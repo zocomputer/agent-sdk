@@ -1,0 +1,47 @@
+{
+  "name": "@zocomputer/agent-sdk",
+  "version": "0.1.0",
+  "description": "A standard library for eve agents: workspace file tools (read/edit/write/glob/grep), a backgroundable bash with bounded output, async task orchestration, and rich-filetype reads (PDF, DOCX, spreadsheets) — one createStdlib call.",
+  "license": "MIT",
+  "type": "module",
+  "keywords": [
+    "eve",
+    "agent",
+    "ai",
+    "tools",
+    "llm"
+  ],
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "files": [
+    "src",
+    "!src/**/*.test.ts",
+    "!src/extract/fixtures",
+    "!src/**/AGENTS.md",
+    "!src/**/CLAUDE.md"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "clawpdf": "0.3.0",
+    "ignore": "^7.0.5",
+    "image-size": "2.0.2",
+    "mammoth": "1.12.0",
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"
+  },
+  "peerDependencies": {
+    "eve": "^0.16.0",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.3.14",
+    "eve": "^0.16.0",
+    "typescript": "^6.0.3",
+    "zod": "^4.4.3"
+  }
+}
