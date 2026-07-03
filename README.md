@@ -2,8 +2,8 @@
 
 A standard library for [eve](https://eve.dev) agents that work on a real
 filesystem: the workspace toolset (`read`, `edit`, `write`, `glob`, `grep`,
-`bash`), background-task orchestration, and rich-filetype reads (PDF, DOCX,
-spreadsheets), wired in one call.
+`bash`, `webfetch`), background-task orchestration, and rich-filetype reads
+(PDF, DOCX, spreadsheets), wired in one call.
 
 We build [Zo](https://zo.computer), where published cloud agents run on eve —
 this SDK is the toolset we give them, extracted from the coding agent we use
@@ -47,7 +47,7 @@ One file per tool; the filename is the name the model calls. Create all of
 these under `agent/tools/`:
 
 ```ts
-// agent/tools/read.ts   (repeat for edit, write, glob, grep, bash)
+// agent/tools/read.ts   (repeat for edit, write, glob, grep, bash, webfetch)
 import { stdlib } from "../lib/stdlib";
 export default stdlib.tools.read;
 ```
@@ -60,6 +60,7 @@ export default stdlib.tools.read;
 | `glob.ts`     | `stdlib.tools.glob`   | `glob`                |
 | `grep.ts`     | `stdlib.tools.grep`   | `grep`                |
 | `bash.ts`     | `stdlib.tools.bash`   | `bash`                |
+| `webfetch.ts` | `stdlib.tools.webfetch` | `webfetch`          |
 | `tasks.ts`\*  | `stdlib.tools.tasks`  | `run_async`, `check_tasks`, `await_task` |
 
 \* The task tools are a **bundle** — one file exports all three, so its own
@@ -164,6 +165,16 @@ The names are deliberately boring; the behavior behind them is the point:
 - **`bash`** waits briefly, then auto-backgrounds a still-running command
   (returns a `task_id`); oversized output spills to `stateDir` instead of
   flooding the context window.
+- **`webfetch`** returns a page as markdown (default), plain text, or raw
+  HTML. HTML is reduced to its **main content** under a title/byline header
+  (`defuddle` extraction, with a guard that falls back to the full page when
+  extraction over-prunes), and the result is honest about failure: a page that
+  yields almost no text gets a note saying so (with a hint for known
+  client-rendered/login-walled domains like X or Reddit), and a conversion
+  that leaves raw HTML flags itself. Fetched PDFs/DOCX/spreadsheets route
+  through the same extractors as `read` (`.pdf` URLs get a longer default
+  timeout); images return metadata and attach to the chat like `read`;
+  oversized bodies spill to `stateDir`.
 - **`run_async` / `check_tasks` / `await_task`** persist the task registry
   across restarts (tasks running across a restart report as `lost`); any
   `defineOp` op becomes `run_async`-able via `extraBackgroundables`.

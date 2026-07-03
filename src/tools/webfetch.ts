@@ -11,6 +11,7 @@ import {
   resolveWebFetchTimeoutMs,
   WEB_FETCH_DEFAULT_TIMEOUT_SECONDS,
   WEB_FETCH_MAX_TIMEOUT_SECONDS,
+  WEB_FETCH_PDF_DEFAULT_TIMEOUT_SECONDS,
   type FetchLike,
   type WebFetchFormat,
 } from "../web-fetch";
@@ -141,7 +142,7 @@ export function createWebFetchTool(opts: {
 
   return defineTool({
     description:
-      `Fetch a URL and return its content. HTML pages are converted to readable markdown by default (set format to "text" for plain text or "html" for the raw page). Fetched PDF, DOCX, and spreadsheet files are converted to plain text; fetching an image queues it to appear as a viewable attachment on your next message. Content over the in-context budget is truncated head+tail and the complete output is spilled to a file named in the truncation marker — read or grep that file instead of re-fetching. Default timeout ${WEB_FETCH_DEFAULT_TIMEOUT_SECONDS}s, max ${WEB_FETCH_MAX_TIMEOUT_SECONDS}s; responses over 5 MB error. Read-only: one HTTP GET, no side effects.`,
+      `Fetch a URL and return its content. HTML pages are reduced to their main content (boilerplate stripped, title/author/date header) and converted to readable markdown by default (set format to "text" for plain text or "html" for the raw page). Fetched PDF, DOCX, and spreadsheet files are converted to plain text; fetching an image queues it to appear as a viewable attachment on your next message. Content over the in-context budget is truncated head+tail and the complete output is spilled to a file named in the truncation marker — read or grep that file instead of re-fetching. Default timeout ${WEB_FETCH_DEFAULT_TIMEOUT_SECONDS}s (${WEB_FETCH_PDF_DEFAULT_TIMEOUT_SECONDS}s for PDFs), max ${WEB_FETCH_MAX_TIMEOUT_SECONDS}s; responses over 5 MB error. Read-only: one HTTP GET, no side effects.`,
     inputSchema: z.object({
       url: z
         .string()
@@ -167,7 +168,13 @@ export function createWebFetchTool(opts: {
       const fetched = await fetchWebResource({
         url,
         format: renderFormat,
-        timeoutMs: resolveWebFetchTimeoutMs(timeout),
+        timeoutMs: resolveWebFetchTimeoutMs(timeout, url),
+        // Without an explicit timeout, let the deadline extend to the PDF
+        // default when the response (not the request URL) turns out to be a
+        // PDF — a redirect to `.pdf` or an extensionless PDF URL.
+        ...(timeout === undefined
+          ? { pdfTimeoutMs: WEB_FETCH_PDF_DEFAULT_TIMEOUT_SECONDS * 1000 }
+          : {}),
         fetchImpl,
       });
       const { body, contentType, finalUrl } = fetched;
@@ -196,12 +203,15 @@ export function createWebFetchTool(opts: {
         size: body.byteLength,
       });
       switch (content.kind) {
-        case "text":
+        case "text": {
+          const rendered = renderWebText(content.text, contentType, renderFormat, finalUrl);
           return {
             ...meta,
             format: renderFormat,
-            ...bounded(renderWebText(content.text, contentType, renderFormat), renderFormat, "text"),
+            ...(rendered.note === undefined ? {} : { note: rendered.note }),
+            ...bounded(rendered.text, renderFormat, "text"),
           };
+        }
         case "pdf":
           return {
             ...meta,

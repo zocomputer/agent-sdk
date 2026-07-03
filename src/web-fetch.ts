@@ -1,22 +1,29 @@
-// The ambient typing for domino (which ships no usable .d.ts) must travel with
-// this module: raw-TS consumers (rib via `file:`) compile these sources through
-// their own tsconfig, which doesn't `include` our sibling .d.ts files.
-/// <reference path="./domino.d.ts" />
-import domino from "@mixmark-io/domino";
 import { Parser } from "htmlparser2";
+import { parseHTML } from "linkedom";
 import TurndownService from "turndown";
+import {
+  buildContentCollapseNote,
+  buildMetadataHeader,
+  extractMainContent,
+  looksLikeRawHtmlOutput,
+  visibleTextLength,
+} from "./web-page";
 
 // The fetch + render core for the `webfetch` tool. Conventions follow the
 // converged Claude Code / opencode / eve standard: browser UA with per-format
 // Accept q-values, markdown as the default rendering for HTML, a one-shot
 // honest-UA retry when Cloudflare's bot check rejects the browser UA (TLS
-// fingerprint mismatch), and a hard response-size cap. Kept framework-free
-// (no eve imports) with `fetchImpl` injectable so tests never touch the
-// network; the tool wrapper owns bounding/spill and the attachment contract.
+// fingerprint mismatch), and a hard response-size cap. HTML reduces to its
+// main content with a metadata header (./web-page.ts) before conversion. Kept
+// framework-free (no eve imports) with `fetchImpl` injectable so tests never
+// touch the network; the tool wrapper owns bounding/spill and the attachment
+// contract.
 
 /** Hard cap on the fetched body; larger responses error rather than truncate. */
 export const WEB_FETCH_MAX_RESPONSE_BYTES = 5 * 1024 * 1024;
 export const WEB_FETCH_DEFAULT_TIMEOUT_SECONDS = 30;
+/** PDFs are routinely tens of MB behind slow servers; give them a longer default. */
+export const WEB_FETCH_PDF_DEFAULT_TIMEOUT_SECONDS = 60;
 export const WEB_FETCH_MAX_TIMEOUT_SECONDS = 120;
 
 export type WebFetchFormat = "markdown" | "text" | "html";
@@ -58,19 +65,17 @@ export function convertHtmlToMarkdown(html: string): string {
     emDelimiter: "*",
   });
   turndown.remove(["script", "style", "meta", "link"]);
-  // Parse with domino (turndown's own server-side parser) explicitly instead
-  // of handing turndown the string: given a string, turndown sniffs a global
-  // DOMParser at import time and prefers it, and DOM-polyfilled hosts (e.g. a
-  // happy-dom test preload) produce a document it can't traverse — output
-  // silently collapses to "". The wrapper element mirrors turndown's own
-  // string path (elements arranged in one root instead of head/body).
-  const doc = domino.createDocument(
-    `<x-turndown id="turndown-root">${html}</x-turndown>`,
-  );
-  const root = doc.getElementById("turndown-root");
+  // Parse with linkedom explicitly instead of handing turndown the string:
+  // given a string, turndown sniffs a global DOMParser at import time and
+  // prefers it, and DOM-polyfilled hosts (e.g. a happy-dom test preload)
+  // produce a document it can't traverse — output silently collapses to "".
+  // The wrapper element mirrors turndown's own string path (elements arranged
+  // in one root instead of head/body).
+  const { document } = parseHTML(`<x-turndown id="turndown-root">${html}</x-turndown>`);
+  const root = document.getElementById("turndown-root");
   if (root === null) throw new Error("unreachable: the turndown-root wrapper always parses");
-  // Domino's nodes implement the DOM surface turndown needs; the lib ships no
-  // types (see domino.d.ts), so this is the one sanctioned cast at the seam.
+  // linkedom's nodes implement the DOM surface turndown needs but aren't
+  // lib.dom types (we compile without the DOM lib) — the one sanctioned cast.
   return turndown.turndown(root as unknown as Parameters<TurndownService["turndown"]>[0]);
 }
 
@@ -123,18 +128,48 @@ export function looksLikeHtml(content: string): boolean {
   );
 }
 
-/** Render fetched text per the requested format; non-HTML passes through untouched. */
+export interface RenderedWebText {
+  readonly text: string;
+  /** Honest-failure signal (content collapse, leftover raw HTML); absent when the render looks healthy. */
+  readonly note?: string;
+}
+
+/**
+ * Render fetched text per the requested format; non-HTML (and format "html")
+ * passes through untouched. For markdown/text, the page first reduces to its
+ * main content with a metadata header (falling back to the whole document
+ * when extraction can't find one), and a render that comes back suspiciously
+ * empty or tag-heavy carries a note saying so.
+ */
 export function renderWebText(
   content: string,
   contentType: string,
   format: WebFetchFormat,
-): string {
+  url: string,
+): RenderedWebText {
   // Route by sniffed content in addition to Content-Type, since servers lie.
   const isHtml = isHtmlContentType(contentType) || looksLikeHtml(content);
-  if (!isHtml) return content;
-  if (format === "markdown") return convertHtmlToMarkdown(content);
-  if (format === "text") return extractTextFromHtml(content);
-  return content;
+  if (!isHtml || format === "html") return { text: content };
+  const page = extractMainContent(content, url);
+  const bodyHtml = page === null ? content : page.contentHtml;
+  const converted =
+    format === "markdown" ? convertHtmlToMarkdown(bodyHtml) : extractTextFromHtml(bodyHtml);
+  const header = page === null ? null : buildMetadataHeader(page);
+  const text = header === null ? converted : `${header}\n\n${converted}`;
+  const notes: string[] = [];
+  const collapse = buildContentCollapseNote({
+    url,
+    renderedChars: converted.trim().length,
+    htmlChars: content.length,
+    documentTextChars: visibleTextLength(content),
+  });
+  if (collapse !== null) notes.push(collapse);
+  if (format === "markdown" && looksLikeRawHtmlOutput(converted)) {
+    notes.push(
+      'The markdown conversion left substantial raw HTML in the output — treat it as partially converted, or re-fetch with format "html" for the true page.',
+    );
+  }
+  return notes.length === 0 ? { text } : { text, note: notes.join(" ") };
 }
 
 /**
@@ -173,58 +208,117 @@ export async function fetchWebResource(opts: {
   url: string;
   format: WebFetchFormat;
   timeoutMs: number;
+  /**
+   * Deadline (from request start) to extend to when the response headers
+   * reveal a PDF the request URL didn't — a redirect to `.pdf` or an
+   * extensionless URL served as `application/pdf`. Omit when the caller set
+   * an explicit timeout, which always wins.
+   */
+  pdfTimeoutMs?: number;
   fetchImpl?: FetchLike;
 }): Promise<FetchedWebResource> {
-  const { url, format, timeoutMs } = opts;
+  const { url, format, timeoutMs, pdfTimeoutMs } = opts;
   const fetchImpl = opts.fetchImpl ?? fetch;
   assertHttpUrl(url);
   // One deadline shared by both attempts — the retry doesn't reset the clock.
-  const signal = AbortSignal.timeout(timeoutMs);
-  const headers = buildWebFetchHeaders(format);
-  let response: Response;
+  // An AbortController (not AbortSignal.timeout) so the deadline can extend
+  // once the headers show the resource is a PDF.
+  const controller = new AbortController();
+  const startedAt = Date.now();
+  let deadlineMs = timeoutMs;
+  let timer = setTimeout(() => controller.abort(), deadlineMs);
+  const timedOut = () => new Error(`Request timed out after ${deadlineMs / 1000}s: ${url}`);
   try {
-    response = await fetchImpl(url, { headers, signal });
-    if (
-      response.status === 403 &&
-      response.headers.get("cf-mitigated") === "challenge"
-    ) {
-      response = await fetchImpl(url, {
-        headers: { ...headers, "User-Agent": FALLBACK_USER_AGENT },
-        signal,
-      });
+    const headers = buildWebFetchHeaders(format);
+    let response: Response;
+    try {
+      response = await fetchImpl(url, { headers, signal: controller.signal });
+      if (
+        response.status === 403 &&
+        response.headers.get("cf-mitigated") === "challenge"
+      ) {
+        response = await fetchImpl(url, {
+          headers: { ...headers, "User-Agent": FALLBACK_USER_AGENT },
+          signal: controller.signal,
+        });
+      }
+    } catch (error) {
+      if (controller.signal.aborted) throw timedOut();
+      throw error;
     }
-  } catch (error) {
-    if (signal.aborted) {
-      throw new Error(`Request timed out after ${timeoutMs / 1000}s: ${url}`);
+    if (!response.ok) {
+      throw new Error(`Request failed with status ${response.status}: ${url}`);
     }
-    throw error;
-  }
-  if (!response.ok) {
-    throw new Error(`Request failed with status ${response.status}: ${url}`);
-  }
-  const contentLength = response.headers.get("content-length");
-  if (contentLength !== null && Number.parseInt(contentLength, 10) > WEB_FETCH_MAX_RESPONSE_BYTES) {
-    throw new Error(
-      `Response too large (content-length exceeds the ${WEB_FETCH_MAX_RESPONSE_BYTES}-byte limit): ${url}`,
-    );
-  }
-  const arrayBuffer = await response.arrayBuffer();
-  if (arrayBuffer.byteLength > WEB_FETCH_MAX_RESPONSE_BYTES) {
-    throw new Error(
-      `Response too large (exceeds the ${WEB_FETCH_MAX_RESPONSE_BYTES}-byte limit): ${url}`,
-    );
-  }
-  return {
-    body: Buffer.from(arrayBuffer),
-    contentType: response.headers.get("content-type") ?? "",
+    const contentType = response.headers.get("content-type") ?? "";
     // Some fetch stubs/implementations leave Response.url empty; fall back to
     // the request URL so callers can always compare for cross-host redirects.
-    finalUrl: response.url === "" ? url : response.url,
-  };
+    const finalUrl = response.url === "" ? url : response.url;
+    // The request URL can hide that the resource is a PDF; once the headers
+    // say so, the body download gets the PDF deadline instead of the page one.
+    if (
+      pdfTimeoutMs !== undefined &&
+      pdfTimeoutMs > deadlineMs &&
+      responseLooksLikePdf(contentType, finalUrl)
+    ) {
+      clearTimeout(timer);
+      deadlineMs = pdfTimeoutMs;
+      const remaining = Math.max(deadlineMs - (Date.now() - startedAt), 0);
+      timer = setTimeout(() => controller.abort(), remaining);
+    }
+    const contentLength = response.headers.get("content-length");
+    if (contentLength !== null && Number.parseInt(contentLength, 10) > WEB_FETCH_MAX_RESPONSE_BYTES) {
+      throw new Error(
+        `Response too large (content-length exceeds the ${WEB_FETCH_MAX_RESPONSE_BYTES}-byte limit): ${url}`,
+      );
+    }
+    let arrayBuffer: ArrayBuffer;
+    try {
+      arrayBuffer = await response.arrayBuffer();
+    } catch (error) {
+      if (controller.signal.aborted) throw timedOut();
+      throw error;
+    }
+    if (arrayBuffer.byteLength > WEB_FETCH_MAX_RESPONSE_BYTES) {
+      throw new Error(
+        `Response too large (exceeds the ${WEB_FETCH_MAX_RESPONSE_BYTES}-byte limit): ${url}`,
+      );
+    }
+    return {
+      body: Buffer.from(arrayBuffer),
+      contentType,
+      finalUrl,
+    };
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
-/** Clamp the model-supplied timeout (seconds) into the allowed range, in ms. */
-export function resolveWebFetchTimeoutMs(timeoutSeconds: number | undefined): number {
-  const seconds = timeoutSeconds ?? WEB_FETCH_DEFAULT_TIMEOUT_SECONDS;
+function responseLooksLikePdf(contentType: string, finalUrl: string): boolean {
+  const mime = contentType.split(";", 1)[0]?.trim().toLowerCase() ?? "";
+  return mime === "application/pdf" || urlLooksLikePdf(finalUrl);
+}
+
+/**
+ * Clamp the model-supplied timeout (seconds) into the allowed range, in ms.
+ * An explicit timeout always wins; without one, `.pdf` URLs default higher
+ * than pages (models rarely think to raise the timeout for a slow PDF).
+ */
+export function resolveWebFetchTimeoutMs(
+  timeoutSeconds: number | undefined,
+  url?: string,
+): number {
+  const fallback = urlLooksLikePdf(url)
+    ? WEB_FETCH_PDF_DEFAULT_TIMEOUT_SECONDS
+    : WEB_FETCH_DEFAULT_TIMEOUT_SECONDS;
+  const seconds = timeoutSeconds ?? fallback;
   return Math.min(Math.max(seconds, 1), WEB_FETCH_MAX_TIMEOUT_SECONDS) * 1000;
+}
+
+function urlLooksLikePdf(url: string | undefined): boolean {
+  if (url === undefined) return false;
+  try {
+    return new URL(url).pathname.toLowerCase().endsWith(".pdf");
+  } catch {
+    return false;
+  }
 }

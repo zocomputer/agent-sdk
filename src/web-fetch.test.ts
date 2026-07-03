@@ -72,11 +72,51 @@ describe("isHtmlContentType / renderWebText", () => {
     expect(isHtmlContentType("")).toBe(false);
   });
 
+  const U = "https://example.com/page";
+
   test("renders html per format and passes non-html through", () => {
-    expect(renderWebText("<h1>Hi</h1>", "text/html", "markdown")).toBe("# Hi");
-    expect(renderWebText("<h1>Hi</h1>", "text/html", "text")).toBe("Hi");
-    expect(renderWebText("<h1>Hi</h1>", "text/html", "html")).toBe("<h1>Hi</h1>");
-    expect(renderWebText('{"a":1}', "application/json", "markdown")).toBe('{"a":1}');
+    expect(renderWebText("<h1>Hi</h1>", "text/html", "markdown", U)).toEqual({ text: "# Hi" });
+    expect(renderWebText("<h1>Hi</h1>", "text/html", "text", U)).toEqual({ text: "Hi" });
+    expect(renderWebText("<h1>Hi</h1>", "text/html", "html", U)).toEqual({
+      text: "<h1>Hi</h1>",
+    });
+    expect(renderWebText('{"a":1}', "application/json", "markdown", U)).toEqual({
+      text: '{"a":1}',
+    });
+  });
+
+  test("reduces a full page to its main content under a metadata header", () => {
+    const page = `<!DOCTYPE html><html><head>
+<title>Widget Trends 2026 — Example News</title>
+<meta property="og:title" content="Widget Trends 2026">
+<meta property="og:site_name" content="Example News">
+<meta name="author" content="Jane Doe">
+</head><body>
+<nav><a href="/">Home</a><a href="/about">About us</a></nav>
+<div class="cookie-banner">We use cookies. <button>Accept</button></div>
+<main><article>
+<h1>Widget Trends 2026</h1>
+<p>The widget industry saw unprecedented growth this year, with over 40% of manufacturers reporting record output. Analysts attribute the shift to converging factors.</p>
+<p>Raw material costs fell sharply after the trade normalization of late 2025, and consumer appetite for bespoke widgets grew in every surveyed market.</p>
+</article></main>
+<footer><a href="/privacy">Privacy</a> <a href="/terms">Terms</a></footer>
+</body></html>`;
+    const rendered = renderWebText(page, "text/html", "markdown", U);
+    expect(rendered.text).toContain("# Widget Trends 2026");
+    expect(rendered.text).toContain("> By Jane Doe · Example News");
+    expect(rendered.text).toContain("unprecedented growth");
+    expect(rendered.text).not.toContain("We use cookies");
+    expect(rendered.text).not.toContain("Privacy");
+    expect(rendered.note).toBeUndefined();
+  });
+
+  test("a substantial page that renders to nothing carries a collapse note", () => {
+    const shell = `<!DOCTYPE html><html><head><title>App</title></head><body><div id="root"></div><script>${"var pad=1;".repeat(400)}</script></body></html>`;
+    const rendered = renderWebText(shell, "text/html", "markdown", "https://x.com/user/status/1");
+    expect(rendered.note).toContain("almost no readable text");
+    expect(rendered.note).toContain("X (Twitter)");
+    // format "html" passes through raw, so no collapse note applies.
+    expect(renderWebText(shell, "text/html", "html", U).note).toBeUndefined();
   });
 });
 
@@ -96,6 +136,16 @@ describe("resolveWebFetchTimeoutMs", () => {
     expect(resolveWebFetchTimeoutMs(5)).toBe(5_000);
     expect(resolveWebFetchTimeoutMs(600)).toBe(120_000);
     expect(resolveWebFetchTimeoutMs(0)).toBe(1_000);
+  });
+
+  test(".pdf URLs default to 60s; an explicit timeout still wins", () => {
+    expect(resolveWebFetchTimeoutMs(undefined, "https://example.com/paper.pdf")).toBe(60_000);
+    expect(resolveWebFetchTimeoutMs(undefined, "https://example.com/paper.PDF?dl=1")).toBe(
+      60_000,
+    );
+    expect(resolveWebFetchTimeoutMs(5, "https://example.com/paper.pdf")).toBe(5_000);
+    expect(resolveWebFetchTimeoutMs(undefined, "https://example.com/page")).toBe(30_000);
+    expect(resolveWebFetchTimeoutMs(undefined, "not a url")).toBe(30_000);
   });
 });
 
@@ -220,6 +270,83 @@ describe("fetchWebResource", () => {
     ).rejects.toThrow(/timed out/);
   });
 
+  // A response whose body takes `delayMs` to download and honors the fetch
+  // abort signal, mimicking real fetch's streaming arrayBuffer.
+  function slowBodyFetch(opts: { finalUrl?: string; contentType?: string; delayMs: number }) {
+    const impl: FetchLike = (_input, init) => {
+      const signal = init?.signal;
+      const response = new Response("x", {
+        status: 200,
+        headers: opts.contentType === undefined ? {} : { "content-type": opts.contentType },
+      });
+      if (opts.finalUrl !== undefined) {
+        Object.defineProperty(response, "url", { value: opts.finalUrl });
+      }
+      Object.defineProperty(response, "arrayBuffer", {
+        value: () =>
+          new Promise<ArrayBuffer>((resolve, reject) => {
+            const timer = setTimeout(
+              () => resolve(new TextEncoder().encode("pdf-bytes").buffer as ArrayBuffer),
+              opts.delayMs,
+            );
+            signal?.addEventListener("abort", () => {
+              clearTimeout(timer);
+              reject(new DOMException("aborted", "AbortError"));
+            });
+          }),
+      });
+      return Promise.resolve(response);
+    };
+    return impl;
+  }
+
+  test("a redirect to a .pdf extends the deadline for the body download", async () => {
+    const result = await fetchWebResource({
+      url: "https://example.com/paper",
+      format: "markdown",
+      timeoutMs: 50,
+      pdfTimeoutMs: 5_000,
+      fetchImpl: slowBodyFetch({ finalUrl: "https://cdn.example.com/paper.pdf", delayMs: 200 }),
+    });
+    expect(result.body.toString()).toBe("pdf-bytes");
+    expect(result.finalUrl).toBe("https://cdn.example.com/paper.pdf");
+  });
+
+  test("an extensionless URL served as application/pdf extends the deadline too", async () => {
+    const result = await fetchWebResource({
+      url: "https://example.com/download?id=1",
+      format: "markdown",
+      timeoutMs: 50,
+      pdfTimeoutMs: 5_000,
+      fetchImpl: slowBodyFetch({ contentType: "application/pdf", delayMs: 200 }),
+    });
+    expect(result.body.toString()).toBe("pdf-bytes");
+    expect(result.contentType).toBe("application/pdf");
+  });
+
+  test("without pdfTimeoutMs a slow PDF body still hits the base deadline", async () => {
+    await expect(
+      fetchWebResource({
+        url: "https://example.com/download?id=1",
+        format: "markdown",
+        timeoutMs: 50,
+        fetchImpl: slowBodyFetch({ contentType: "application/pdf", delayMs: 200 }),
+      }),
+    ).rejects.toThrow(/timed out after 0.05s/);
+  });
+
+  test("a non-PDF response never gets the PDF extension", async () => {
+    await expect(
+      fetchWebResource({
+        url: "https://example.com/page",
+        format: "markdown",
+        timeoutMs: 50,
+        pdfTimeoutMs: 5_000,
+        fetchImpl: slowBodyFetch({ contentType: "text/html", delayMs: 200 }),
+      }),
+    ).rejects.toThrow(/timed out after 0.05s/);
+  });
+
   test("rejects non-http urls before fetching", async () => {
     const { impl, calls } = stubFetch([]);
     await expect(
@@ -236,9 +363,9 @@ describe("fetchWebResource", () => {
   test("detects HTML content even with wrong Content-Type", () => {
     const html = "<html><body><h1>Title</h1></body></html>";
     // Content-Type says text/plain, but content is clearly HTML
-    const result = renderWebText(html, "text/plain", "markdown");
-    expect(result).toContain("# Title");
-    expect(result).not.toContain("<html>");
+    const result = renderWebText(html, "text/plain", "markdown", "https://example.com/x");
+    expect(result.text).toContain("# Title");
+    expect(result.text).not.toContain("<html>");
   });
 
   test("detects HTML by DOCTYPE and common tags", () => {
