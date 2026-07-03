@@ -32,6 +32,24 @@ export interface BoundedCapture {
   totalChars(): number;
 }
 
+// The head/tail cuts index UTF-16 code units, so a naive slice can land inside
+// a surrogate pair and leave a lone surrogate in the transcript (which then
+// breaks JSON encoding to the model API). Nudge every cut off a pair boundary:
+// a head cut never ends on a high surrogate, a tail cut never starts on a low.
+const isHighSurrogate = (code: number): boolean => code >= 0xd800 && code <= 0xdbff;
+const isLowSurrogate = (code: number): boolean => code >= 0xdc00 && code <= 0xdfff;
+
+const endsOnHighSurrogate = (text: string): boolean =>
+  text.length > 0 && isHighSurrogate(text.charCodeAt(text.length - 1));
+
+/** Last `cap` chars of `text`, moved one right if that would open on a low surrogate. */
+function takeTail(text: string, cap: number): string {
+  if (text.length <= cap) return text;
+  let start = text.length - cap;
+  if (isLowSurrogate(text.charCodeAt(start))) start += 1;
+  return text.slice(start);
+}
+
 export function createBoundedCapture(
   opts: {
     headChars?: number;
@@ -52,8 +70,20 @@ export function createBoundedCapture(
   // to bounded-without-file rather than erroring the command).
   let spill: "none" | "live" | "failed" = opts.spillPath ? "none" : "failed";
 
-  const writeSpill = (text: string, first: boolean): void => {
+  // A surrogate pair split across appends would hit the UTF-8 file write as a
+  // lone surrogate and encode as U+FFFD; hold the high half until its partner
+  // arrives so the spill file stays byte-faithful.
+  let spillCarry = "";
+
+  const writeSpill = (chunk: string, first: boolean): void => {
     if (spill === "failed" || opts.spillPath === undefined) return;
+    let text = spillCarry + chunk;
+    if (endsOnHighSurrogate(text)) {
+      spillCarry = text.slice(-1);
+      text = text.slice(0, -1);
+    } else {
+      spillCarry = "";
+    }
     try {
       if (first) {
         mkdirSync(dirname(opts.spillPath), { recursive: true });
@@ -77,26 +107,41 @@ export function createBoundedCapture(
           return;
         }
         overflowed = true;
-        head += chunk.slice(0, room);
+        // Don't cut through a surrogate pair inside this chunk…
+        let cut = room;
+        if (cut > 0 && isHighSurrogate(chunk.charCodeAt(cut - 1))) cut -= 1;
+        head += chunk.slice(0, cut);
+        // …and don't freeze a head that ends on one either (a pair can also be
+        // split across appends: the previous chunk filled the head exactly and
+        // ended on the high half). Move the orphan into the tail stream.
+        let remainder = chunk.slice(cut);
+        if (endsOnHighSurrogate(head)) {
+          remainder = head.slice(-1) + remainder;
+          head = head.slice(0, -1);
+        }
         // The spill file starts as everything seen so far, so it's always complete.
-        writeSpill(head + chunk.slice(room), true);
-        tail = chunk.slice(room).slice(-tailCap);
+        writeSpill(head + remainder, true);
+        tail = takeTail(remainder, tailCap);
         return;
       }
       writeSpill(chunk, false);
-      tail = (tail + chunk).slice(-tailCap);
+      tail = takeTail(tail + chunk, tailCap);
     },
     snapshot() {
       if (!overflowed) {
         return { text: head, totalChars: total, truncated: false, spillPath: null };
       }
-      if (total <= headCap + tailCap) {
-        // Head overflowed but the tail still holds the rest — contiguous, complete.
+      if (head.length + tail.length === total) {
+        // Head overflowed but the tail still holds the rest — contiguous,
+        // complete. Checked by length (not caps): a surrogate nudge can move a
+        // char from head into a tail that then trims, and that loss must
+        // surface as truncation.
         return { text: head + tail, totalChars: total, truncated: false, spillPath: null };
       }
       const where =
         spill === "live" ? `; full output: ${opts.spillLabel ?? opts.spillPath}` : "";
-      const marker = `\n… [output truncated: showing first ${headCap} and last ${tailCap} of ${total} chars${where}]\n`;
+      // Actual lengths, not the caps — surrogate nudges can run a char short.
+      const marker = `\n… [output truncated: showing first ${head.length} and last ${tail.length} of ${total} chars${where}]\n`;
       return {
         text: `${head}${marker}${tail}`,
         totalChars: total,
