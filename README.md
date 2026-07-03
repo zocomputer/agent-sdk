@@ -245,6 +245,12 @@ The names are deliberately boring; the behavior behind them is the point:
 
 ## Design rules
 
+The full rationale — each foundational decision, why we made it, and the
+prior art it came from (Claude Code, opencode, openclaw, hermes, pi, Cursor,
+and Zo v1's hostagent) — lives in
+[`design/foundation/`](./design/foundation/00-overview.md). The short
+version:
+
 - **Prompt-cache stability.** Tool descriptions and dynamic instructions are
   built once per session (`"session.started"`) and stay byte-identical
   thereafter; live state rides tool results, never a description. Options like
