@@ -18,17 +18,18 @@ import { createGlobTool } from "./tools/glob";
 import { createGrepTool } from "./tools/grep";
 import { createReadTool } from "./tools/read";
 import { createTasksTools } from "./tools/tasks";
+import { createWebFetchTool } from "./tools/webfetch";
 import { createWriteTool } from "./tools/write";
 import { createWorkspace, type Workspace } from "./workspace";
 
 // One call wires the whole standard library for a real-filesystem eve agent:
-// a workspace-scoped toolset (read/edit/write/glob/grep + host bash), the
-// background-task machinery (run_async/check_tasks/await_task over a persisted
-// registry), and the matching dynamic instructions. Each `agent/tools/<name>.ts`
-// file re-exports one tool — the filename is the wire name, so agents keep
-// naming control (and can vacate eve's built-in read_file/write_file/bash with
-// disable shims). Everything is also exported à la carte for agents that want
-// a subset.
+// a workspace-scoped toolset (read/edit/write/glob/grep + host bash + webfetch),
+// the background-task machinery (run_async/check_tasks/await_task over a
+// persisted registry), and the matching dynamic instructions. Each
+// `agent/tools/<name>.ts` file re-exports one tool — the filename is the wire
+// name, so agents keep naming control (and can vacate eve's built-in
+// read_file/write_file/bash with disable shims). Everything is also exported à
+// la carte for agents that want a subset.
 
 export interface StdlibOptions {
   /** Directory the agent works in; file tools refuse paths that escape it. */
@@ -56,17 +57,17 @@ export interface StdlibOptions {
     runner: CommandRunner;
   }) => readonly BackgroundableOp[];
   /**
-   * When `read` hits an image, embed its bytes on the tool result so a client
-   * can re-inject it as a viewable attachment on the next turn (see
-   * ./attachments and the README). Requires a client that consumes the
-   * attachment (rib, Zo); generic eve consumers can leave this off and get the
-   * metadata-only "ask the user" note. Defaults to `true`.
+   * When `read` or `webfetch` hits an image, embed its bytes on the tool
+   * result so a client can re-inject it as a viewable attachment on the next
+   * turn (see ./attachments and the README). Requires a client that consumes
+   * the attachment (rib, Zo); generic eve consumers can leave this off and get
+   * the metadata-only "ask the user" note. Defaults to `true`.
    */
   attachImagesToChat?: boolean;
   /**
    * Max image size (bytes) to inline on the tool result; larger images fall
    * back to the metadata-only note. Defaults to 5 MB. Bounds durable-stream
-   * bloat, since the data URL rides the stream once per read.
+   * bloat, since the data URL rides the stream once per read/fetch.
    */
   maxInlineImageBytes?: number;
   /**
@@ -139,6 +140,13 @@ export function createStdlib(options: StdlibOptions) {
         interactiveHint: options.bashInteractiveHint,
       }),
       tasks: createTasksTools({ registry, backgroundables }),
+      webfetch: createWebFetchTool({
+        workspace,
+        spillDir,
+        attachImagesToChat: options.attachImagesToChat ?? true,
+        maxInlineImageBytes:
+          options.maxInlineImageBytes ?? DEFAULT_MAX_INLINE_IMAGE_BYTES,
+      }),
     },
     instructions: {
       parallelTools: createParallelToolsInstruction(),
@@ -164,6 +172,7 @@ export { createGlobTool } from "./tools/glob";
 export { createGrepTool } from "./tools/grep";
 export { createReadTool } from "./tools/read";
 export { buildTasksToolset, createTasksTools } from "./tools/tasks";
+export { createWebFetchTool } from "./tools/webfetch";
 export { createWriteTool } from "./tools/write";
 
 export * from "./attachments";
@@ -201,6 +210,7 @@ export * from "./extract/sheet";
 export * from "./file-kind";
 export * from "./file-view";
 export * from "./glob-match";
+export * from "./web-fetch";
 export * from "./instructions";
 export * from "./list-files";
 export * from "./read-file-content";
