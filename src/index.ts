@@ -131,7 +131,7 @@ export function createStdlib(options: StdlibOptions) {
       edit: createEditTool({ workspace, noun }),
       write: createWriteTool({ workspace, noun }),
       glob: createGlobTool({ workspace, noun }),
-      grep: createGrepTool({ workspace, noun }),
+      grep: createGrepTool({ workspace, noun, spillDir }),
       bash: createBashTool({
         workspace,
         runner,
