@@ -11,7 +11,13 @@ import {
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import type { ToolContext } from "eve/tools";
+import { readImageChatAttachment } from "./attachments";
 import { createStdlib } from "./index";
+import {
+  __resetParkNotificationBridgeForTests,
+  setParkNotificationHandler,
+  type ParkNotification,
+} from "./park-delivery";
 import { buildTasksToolset } from "./tools/tasks";
 
 // One temp workspace shared by the suite: not a git repo, so glob/grep also
@@ -34,23 +40,27 @@ const stdlib = createStdlib({
   bashInteractiveHint: "Use the fancy_terminal tool for interactive programs.",
 });
 
-// The stdlib's tools never touch the eve session context; a stub that throws
+// The stdlib's tools never touch the eve session context beyond `session.id`
+// (which keys per-session state like conventions riders); a stub that throws
 // on every capability keeps that honest without an `as`-cast.
-const ctx: ToolContext = {
-  session: {
-    id: "test-session",
-    auth: { current: null, initiator: null },
-    turn: { id: "turn-1", sequence: 1 },
-  },
-  getSandbox: () => Promise.reject(new Error("no sandbox in tests")),
-  getSkill: () => {
-    throw new Error("no skills in tests");
-  },
-  getToken: () => Promise.reject(new Error("no auth in tests")),
-  requireAuth: () => {
-    throw new Error("no auth in tests");
-  },
-};
+function ctxWith(sessionId: string): ToolContext {
+  return {
+    session: {
+      id: sessionId,
+      auth: { current: null, initiator: null },
+      turn: { id: "turn-1", sequence: 1 },
+    },
+    getSandbox: () => Promise.reject(new Error("no sandbox in tests")),
+    getSkill: () => {
+      throw new Error("no skills in tests");
+    },
+    getToken: () => Promise.reject(new Error("no auth in tests")),
+    requireAuth: () => {
+      throw new Error("no auth in tests");
+    },
+  };
+}
+const ctx = ctxWith("test-session");
 
 describe("createStdlib", () => {
   test("interpolates the workspace noun and hints into descriptions", () => {
@@ -64,6 +74,17 @@ describe("createStdlib", () => {
     expect(stdlib.workspace.root).toBe(root);
     expect(stdlib.spillDir).toBe(join(root, ".agent", "tool-outputs"));
     expect(stdlib.backgroundables.map((o) => o.name)).toEqual(["bash"]);
+  });
+
+  test("ships the full instruction stack", () => {
+    expect(Object.keys(stdlib.instructions).sort()).toEqual([
+      "communication",
+      "hitl",
+      "parallelTools",
+      "repoConventions",
+      "subagents",
+      "workflow",
+    ]);
   });
 });
 
@@ -83,15 +104,113 @@ describe("read tool", () => {
     expect(result.content).toContain("=== page 1 of 2 ===");
   });
 
-  test("returns metadata (not text) for an image", async () => {
+  test("inlines a small image as a model-hidden chat attachment", async () => {
     const result = await stdlib.tools.read.execute({ path: "pic.png" }, ctx);
     expect(result).toMatchObject({ path: "pic.png", source: "image", format: "png" });
+
+    // Bytes ride the raw result under the attachment field...
+    const attachment = readImageChatAttachment(result);
+    if (!attachment) throw new Error("expected a chat attachment on the result");
+    expect(attachment.mediaType).toBe("image/png");
+    expect(attachment.filename).toBe("pic.png");
+    expect(attachment.dataUrl.startsWith("data:image/png;base64,")).toBe(true);
+
+    // ...but toModelOutput strips them, so the model only sees metadata + note.
+    const model = await stdlib.tools.read.toModelOutput?.(result);
+    if (!model || model.type !== "json") throw new Error("expected json model output");
+    expect(readImageChatAttachment(model.value)).toBeNull();
+    const value = model.value as Record<string, unknown>;
+    expect(value.source).toBe("image");
+    expect(typeof value.note).toBe("string");
+    expect(value.note as string).toContain("next message");
+  });
+
+  test("falls back to a metadata-only note when inlining is disabled", async () => {
+    const plain = createStdlib({
+      workspaceRoot: root,
+      stateDir: join(root, ".agent-noinline"),
+      attachImagesToChat: false,
+    });
+    const result = await plain.tools.read.execute({ path: "pic.png" }, ctx);
+    expect(result).toMatchObject({ path: "pic.png", source: "image" });
+    expect(readImageChatAttachment(result)).toBeNull();
     if (!("note" in result) || typeof result.note !== "string") throw new Error("expected a note");
-    expect(result.note).toContain("attach");
+    expect(result.note).toContain("ask the user");
+  });
+
+  test("falls back when the image exceeds the inline size cap", async () => {
+    const capped = createStdlib({
+      workspaceRoot: root,
+      stateDir: join(root, ".agent-capped"),
+      maxInlineImageBytes: 1,
+    });
+    const result = await capped.tools.read.execute({ path: "pic.png" }, ctx);
+    expect(readImageChatAttachment(result)).toBeNull();
+    if (!("note" in result) || typeof result.note !== "string") throw new Error("expected a note");
+    expect(result.note).toContain("too large");
   });
 
   test("refuses paths that escape the workspace", async () => {
     expect(stdlib.tools.read.execute({ path: "../outside.txt" }, ctx)).rejects.toThrow(/escapes/);
+  });
+});
+
+describe("directory conventions riders", () => {
+  // Fixture: a dir with its own conventions file plus a readable file in it.
+  mkdirSync(join(root, "docs"), { recursive: true });
+  writeFileSync(join(root, "docs/AGENTS.md"), "# docs conventions\nBe brief.\n");
+  writeFileSync(join(root, "docs/guide.md"), "welcome\n");
+
+  function ridersOf(result: unknown): unknown {
+    if (typeof result === "object" && result !== null && "directory_conventions" in result) {
+      return (result as Record<string, unknown>).directory_conventions;
+    }
+    return undefined;
+  }
+
+  test("the read description advertises the rider contract", () => {
+    expect(stdlib.tools.read.description).toContain("directory_conventions");
+  });
+
+  test("first read under a dir delivers its conventions; later reads don't; sessions are independent", async () => {
+    const a = ctxWith("riders-a");
+    const first = await stdlib.tools.read.execute({ path: "docs/guide.md" }, a);
+    expect(ridersOf(first)).toEqual([
+      { path: join("docs", "AGENTS.md"), content: "# docs conventions\nBe brief." },
+    ]);
+
+    const second = await stdlib.tools.read.execute({ path: "docs/guide.md" }, a);
+    expect(ridersOf(second)).toBeUndefined();
+
+    const b = await stdlib.tools.read.execute({ path: "docs/guide.md" }, ctxWith("riders-b"));
+    expect(ridersOf(b)).toBeDefined();
+  });
+
+  test("a failing read doesn't consume the once-per-session delivery slot", async () => {
+    mkdirSync(join(root, "docs-fail"), { recursive: true });
+    writeFileSync(join(root, "docs-fail/AGENTS.md"), "# fail-dir conventions\n");
+    // An opaque binary: content loading throws, so no result is returned —
+    // the directory's conventions must still deliver on the next good read.
+    writeFileSync(join(root, "docs-fail/blob.bin"), Buffer.from([0x00, 0x01, 0x02, 0xff]));
+    writeFileSync(join(root, "docs-fail/notes.txt"), "hello\n");
+
+    const failing = ctxWith("riders-failing");
+    expect(stdlib.tools.read.execute({ path: "docs-fail/blob.bin" }, failing)).rejects.toThrow();
+    const ok = await stdlib.tools.read.execute({ path: "docs-fail/notes.txt" }, failing);
+    expect(ridersOf(ok)).toEqual([
+      { path: "docs-fail/AGENTS.md", content: "# fail-dir conventions" },
+    ]);
+  });
+
+  test("injectDirConventions: false disables riders and the description hint", async () => {
+    const plain = createStdlib({
+      workspaceRoot: root,
+      stateDir: join(root, ".agent-noriders"),
+      injectDirConventions: false,
+    });
+    expect(plain.tools.read.description).not.toContain("directory_conventions");
+    const result = await plain.tools.read.execute({ path: "docs/guide.md" }, ctxWith("riders-c"));
+    expect(ridersOf(result)).toBeUndefined();
   });
 });
 
@@ -202,5 +321,99 @@ describe("bash tool and background tasks", () => {
     expect(() => built.run_async.execute({ tool: "bash", input: { command: "" } }, ctx)).toThrow(
       /Invalid input for "bash"/,
     );
+  });
+});
+
+describe("notify watchers", () => {
+  const built = buildTasksToolset({
+    registry: stdlib.registry,
+    backgroundables: stdlib.backgroundables,
+  });
+  if (!built) throw new Error("expected the tasks toolset to build");
+
+  /** Capture posts for one test; always reset the process-global bridge. */
+  async function withCapturedPosts(
+    run: (posts: { sessionId: string; notification: ParkNotification }[]) => Promise<void>,
+  ): Promise<void> {
+    const posts: { sessionId: string; notification: ParkNotification }[] = [];
+    setParkNotificationHandler((sessionId, notification) =>
+      posts.push({ sessionId, notification }),
+    );
+    try {
+      await run(posts);
+    } finally {
+      __resetParkNotificationBridgeForTests();
+    }
+  }
+
+  test("a backgrounded bash command posts a notification when output matches", async () => {
+    await withCapturedPosts(async (posts) => {
+      const started = await stdlib.tools.bash.execute(
+        {
+          command: "sleep 0.15; echo 'ERROR: kaboom'",
+          foreground_ms: 20,
+          notify: { pattern: "ERROR", reason: "failure lines" },
+        },
+        ctx,
+      );
+      expect(started).toMatchObject({ mode: "backgrounded", watching: "ERROR" });
+      if (started.mode !== "backgrounded") throw new Error("expected a task handle");
+
+      await built.await_task.execute({ task_id: started.task_id, wait_ms: 5_000 }, ctx);
+      // The flush rides the command's own result promise; yield once for it.
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      expect(posts).toHaveLength(1);
+      const post = posts[0];
+      if (!post) throw new Error("expected a captured post");
+      expect(post.sessionId).toBe("test-session");
+      expect(post.notification.key).toBe(`${started.task_id}#watch1`);
+      expect(post.notification.text).toContain("failure lines");
+      expect(post.notification.text).toContain("ERROR: kaboom");
+    });
+  });
+
+  test("a foreground bash completion posts nothing", async () => {
+    await withCapturedPosts(async (posts) => {
+      const result = await stdlib.tools.bash.execute(
+        { command: "echo 'ERROR: seen in foreground'", notify: { pattern: "ERROR", reason: "errors" } },
+        ctx,
+      );
+      expect(result).toMatchObject({ mode: "completed" });
+      await new Promise((resolve) => setTimeout(resolve, 50));
+      expect(posts).toHaveLength(0);
+    });
+  });
+
+  test("run_async notify + notify_on_complete post match and settle notices", async () => {
+    await withCapturedPosts(async (posts) => {
+      const started = await built.run_async.execute(
+        {
+          tool: "bash",
+          input: { command: "echo 'WARN: hot path'" },
+          notify: { pattern: "WARN", reason: "warnings" },
+          notify_on_complete: true,
+        },
+        ctx,
+      );
+      expect(started).toMatchObject({ status: "running", watching: "WARN" });
+      await built.await_task.execute({ task_id: started.task_id, wait_ms: 5_000 }, ctx);
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      const keys = posts.map((p) => p.notification.key).sort();
+      expect(keys).toEqual([`${started.task_id}#done`, `${started.task_id}#watch1`]);
+      const done = posts.find((p) => p.notification.key.endsWith("#done"));
+      expect(done?.notification.text).toContain("finished");
+      expect(done?.notification.text).toContain("await_task");
+    });
+  });
+
+  test("an invalid notify regex fails as a normal tool error before any work starts", () => {
+    expect(
+      stdlib.tools.bash.execute(
+        { command: "echo hi", notify: { pattern: "(", reason: "broken" } },
+        ctx,
+      ),
+    ).rejects.toThrow();
   });
 });

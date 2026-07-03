@@ -8,6 +8,22 @@
 // Task metadata/results are persisted to `storePath` so finished work survives
 // an agent restart. In-flight JS promises cannot be reattached after a process
 // exits, so tasks that were still running at boot are marked `lost`.
+//
+// Two hazards shape the registry's sharing model:
+//
+// - **Module-graph duplication.** eve's dev runtime rebuilds authored artifacts
+//   mid-session (e.g. the agent itself touches a watched file), and a rebuild
+//   gives statically-exported tools a fresh module graph while session-scoped
+//   dynamics (the tasks toolset, built on `session.started`) keep their old
+//   closure. Two module instances then hold two `Map`s: `bash` spawns `task_1`
+//   into one, `await_task` looks it up in the other — "No such task". So
+//   registries are deduped per `storePath` on `globalThis` (via `Symbol.for`,
+//   which is shared across module copies): every copy in the process converges
+//   on one instance.
+// - **Out-of-instance readers.** As a second line, lookups that miss in memory
+//   fall back to the persisted store, and `awaitTask` polls it while the task
+//   is running elsewhere — so even a reader in another process reports honest
+//   state instead of "No such task".
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname } from "node:path";
@@ -74,7 +90,38 @@ function isTask(value: unknown): value is Task {
 // oldest already-settled tasks first (never a running one).
 const MAX_TASKS = 100;
 
+// One registry per store path per process, no matter how many module copies a
+// runtime rebuild creates. `Symbol.for` is process-global, so every copy of
+// this module resolves the same key.
+const REGISTRY_CACHE_KEY = Symbol.for("zocomputer.agent-sdk.task-registries");
+
+function registryCache(): Map<string, TaskRegistry> {
+  const holder = globalThis as { [REGISTRY_CACHE_KEY]?: Map<string, TaskRegistry> };
+  holder[REGISTRY_CACHE_KEY] ??= new Map();
+  return holder[REGISTRY_CACHE_KEY];
+}
+
+/**
+ * Test-only: drop the per-process registry dedupe so a test can simulate an
+ * agent restart (a fresh registry over an existing store).
+ */
+export function __resetTaskRegistryCacheForTests(): void {
+  registryCache().clear();
+}
+
+/** How often awaitTask re-reads the store for a task another instance owns. */
+const STORE_POLL_MS = 500;
+
 export function createTaskRegistry(opts: { storePath: string }): TaskRegistry {
+  const cache = registryCache();
+  const cached = cache.get(opts.storePath);
+  if (cached) return cached;
+  const registry = buildTaskRegistry(opts);
+  cache.set(opts.storePath, registry);
+  return registry;
+}
+
+function buildTaskRegistry(opts: { storePath: string }): TaskRegistry {
   const { storePath } = opts;
   const tasks = new Map<string, Task>();
   const pending = new Map<string, Promise<unknown>>();
@@ -89,33 +136,44 @@ export function createTaskRegistry(opts: { storePath: string }): TaskRegistry {
     writeFileSync(storePath, JSON.stringify({ tasks: listTasks() }, null, 2), "utf8");
   }
 
-  function loadPersisted(): void {
-    if (!existsSync(storePath)) return;
+  function readStoreTasks(): Task[] {
+    if (!existsSync(storePath)) return [];
     try {
       const parsed: unknown = JSON.parse(readFileSync(storePath, "utf8"));
-      if (!isRecord(parsed) || !Array.isArray(parsed.tasks)) return;
-      for (const saved of parsed.tasks) {
-        if (!isTask(saved)) continue;
-        const task =
-          saved.status === "running"
-            ? {
-                ...saved,
-                status: "lost" as const,
-                finishedAt: Date.now(),
-                error: "The agent restarted before this background task finished.",
-              }
-            : saved;
-        tasks.set(task.id, task);
-        const match = task.id.match(/^task_(\d+)$/);
-        const n = match ? Number(match[1]) : 0;
-        if (Number.isFinite(n)) counter = Math.max(counter, n);
-      }
+      if (!isRecord(parsed) || !Array.isArray(parsed.tasks)) return [];
+      return parsed.tasks.filter(isTask);
     } catch {
       // Corrupt local state should not stop the agent from booting.
+      return [];
+    }
+  }
+
+  function loadPersisted(): void {
+    for (const saved of readStoreTasks()) {
+      const task =
+        saved.status === "running"
+          ? {
+              ...saved,
+              status: "lost" as const,
+              finishedAt: Date.now(),
+              error: "The agent restarted before this background task finished.",
+            }
+          : saved;
+      tasks.set(task.id, task);
+      const match = task.id.match(/^task_(\d+)$/);
+      const n = match ? Number(match[1]) : 0;
+      if (Number.isFinite(n)) counter = Math.max(counter, n);
     }
   }
 
   loadPersisted();
+
+  // Read-through for tasks this instance doesn't hold (an owner in another
+  // process). Settled state in the store is authoritative; a "running" entry
+  // is honest live state — its promise just isn't awaitable from here.
+  function storeTask(id: string): Task | undefined {
+    return readStoreTasks().find((task) => task.id === id);
+  }
 
   function prune(): void {
     if (tasks.size <= MAX_TASKS) return;
@@ -180,22 +238,36 @@ export function createTaskRegistry(opts: { storePath: string }): TaskRegistry {
     },
     listTasks,
     getTask(id) {
-      return tasks.get(id);
+      return tasks.get(id) ?? storeTask(id);
     },
     async awaitTask(id, waitMs) {
       const current = tasks.get(id);
-      if (!current || current.status !== "running") return current;
-      const work = pending.get(id);
-      if (work) {
-        await Promise.race([
-          work.then(
-            () => undefined,
-            () => undefined,
-          ),
-          new Promise<void>((resolve) => setTimeout(resolve, waitMs)),
-        ]);
+      if (current) {
+        if (current.status !== "running") return current;
+        const work = pending.get(id);
+        if (work) {
+          await Promise.race([
+            work.then(
+              () => undefined,
+              () => undefined,
+            ),
+            new Promise<void>((resolve) => setTimeout(resolve, waitMs)),
+          ]);
+        }
+        return tasks.get(id);
       }
-      return tasks.get(id);
+      // Not ours — poll the persisted store until the owning instance settles
+      // it or the wait elapses (still returns honest "running" state then).
+      const deadline = Date.now() + waitMs;
+      for (;;) {
+        const saved = storeTask(id);
+        if (!saved || saved.status !== "running") return saved;
+        const remaining = deadline - Date.now();
+        if (remaining <= 0) return saved;
+        await new Promise<void>((resolve) =>
+          setTimeout(resolve, Math.min(STORE_POLL_MS, remaining)),
+        );
+      }
     },
   };
 }

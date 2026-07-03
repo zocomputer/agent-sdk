@@ -8,6 +8,12 @@ import type { CommandRunner } from "./run";
 // shell command); instant file ops stay synchronous, and mutating ops
 // (edit/write) stay out to avoid the agent racing its own edits.
 
+/** Optional live handles run_async threads into an op (e.g. a watcher tap). */
+export interface OpStartExtras {
+  /** Raw output tap; an op that produces no stream just ignores it. */
+  onOutput?: (chunk: string) => void;
+}
+
 // A registered op erases its input type behind a uniform surface: `start`
 // parses the raw tool input with the op's own schema (throwing a clear error on
 // bad input) and returns a label plus the in-flight promise. The parse lives
@@ -17,7 +23,10 @@ export interface BackgroundableOp {
   readonly description: string;
   /** JSON Schema of the op's input, surfaced so the model knows what to pass. */
   readonly inputJsonSchema: unknown;
-  start(rawInput: unknown): { label: string; work: Promise<unknown>; progress?: () => unknown };
+  start(
+    rawInput: unknown,
+    extras?: OpStartExtras,
+  ): { label: string; work: Promise<unknown>; progress?: () => unknown };
 }
 
 export function defineOp<I>(cfg: {
@@ -25,18 +34,21 @@ export function defineOp<I>(cfg: {
   description: string;
   inputSchema: z.ZodType<I>;
   label: (input: I) => string;
-  run: (input: I) => Promise<unknown> | { work: Promise<unknown>; progress?: () => unknown };
+  run: (
+    input: I,
+    extras?: OpStartExtras,
+  ) => Promise<unknown> | { work: Promise<unknown>; progress?: () => unknown };
 }): BackgroundableOp {
   return {
     name: cfg.name,
     description: cfg.description,
     inputJsonSchema: z.toJSONSchema(cfg.inputSchema),
-    start(rawInput) {
+    start(rawInput, extras) {
       const parsed = cfg.inputSchema.safeParse(rawInput);
       if (!parsed.success) {
         throw new Error(`Invalid input for "${cfg.name}": ${parsed.error.message}`);
       }
-      const started = cfg.run(parsed.data);
+      const started = cfg.run(parsed.data, extras);
       if (started instanceof Promise) return { label: cfg.label(parsed.data), work: started };
       return { label: cfg.label(parsed.data), ...started };
     },
@@ -64,8 +76,12 @@ export function createBashOp(runner: CommandRunner): BackgroundableOp {
       timeout_ms: z.number().int().positive().optional(),
     }),
     label: ({ command }) => truncate(command),
-    run: ({ command, cwd, timeout_ms }) => {
-      const running = runner.startCommand(command, { cwd, timeoutMs: timeout_ms ?? 600_000 });
+    run: ({ command, cwd, timeout_ms }, extras) => {
+      const running = runner.startCommand(command, {
+        cwd,
+        timeoutMs: timeout_ms ?? 600_000,
+        onOutput: extras?.onOutput,
+      });
       return { work: running.result, progress: running.progress };
     },
   });

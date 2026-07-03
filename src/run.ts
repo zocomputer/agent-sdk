@@ -32,11 +32,21 @@ export interface RunningCommand {
   kill(): void;
 }
 
+export interface StartCommandOptions {
+  cwd?: string;
+  timeoutMs?: number;
+  /**
+   * Raw output tap, called with every stdout/stderr chunk as it arrives
+   * (before any preview truncation). Powers background-output watchers.
+   */
+  onOutput?: (chunk: string) => void;
+}
+
 export interface CommandRunner {
   /** Spawn a shell command and return live handles (progress preview, kill, result). */
-  startCommand(command: string, opts?: { cwd?: string; timeoutMs?: number }): RunningCommand;
+  startCommand(command: string, opts?: StartCommandOptions): RunningCommand;
   /** startCommand, awaited to completion. */
-  runCommand(command: string, opts?: { cwd?: string; timeoutMs?: number }): Promise<RunResult>;
+  runCommand(command: string, opts?: StartCommandOptions): Promise<RunResult>;
 }
 
 function previewOf(capture: BoundedCapture): string {
@@ -54,10 +64,7 @@ export function createCommandRunner(opts: {
 }): CommandRunner {
   const { workspace, spillDir } = opts;
 
-  function startCommand(
-    command: string,
-    runOpts: { cwd?: string; timeoutMs?: number } = {},
-  ): RunningCommand {
+  function startCommand(command: string, runOpts: StartCommandOptions = {}): RunningCommand {
     const cwd = runOpts.cwd ? workspace.resolve(runOpts.cwd) : workspace.root;
     const timeoutMs = runOpts.timeoutMs ?? 120_000;
     // detached: the shell gets its own process group, so kills can target the
@@ -96,11 +103,13 @@ export function createCommandRunner(opts: {
         const chunk = d.toString();
         stdoutBytes += Buffer.byteLength(chunk);
         stdoutCapture.append(chunk);
+        runOpts.onOutput?.(chunk);
       });
       child.stderr.on("data", (d: Buffer) => {
         const chunk = d.toString();
         stderrBytes += Buffer.byteLength(chunk);
         stderrCapture.append(chunk);
+        runOpts.onOutput?.(chunk);
       });
       child.on("close", (code) => {
         closed = true;

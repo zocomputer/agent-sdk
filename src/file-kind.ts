@@ -8,6 +8,11 @@ import { extname } from "node:path";
 
 export type ImageFormat = "png" | "jpeg" | "gif" | "webp";
 
+/** The MIME type for a detected image format (for data URLs / file parts). */
+export function imageMediaType(format: ImageFormat): string {
+  return `image/${format}`;
+}
+
 /** Spreadsheet formats SheetJS parses; all route to the sheet extractor. */
 export type SheetFormat = "xlsx" | "xlsm" | "xls" | "ods";
 

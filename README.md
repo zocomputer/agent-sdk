@@ -23,7 +23,12 @@ build step), matching how eve projects run.
 
 ## Quick start
 
-One call wires everything:
+eve auto-loads `agent/tools/*.ts` and `agent/instructions/*.ts` by filename —
+the tool file's **name is the wire name** the model sees. So you build the
+stdlib once, then add one tiny re-export file per tool. Steps 1–5 below are the
+full prescription; copy it verbatim and you have the complete toolset.
+
+### 1. Build the stdlib once
 
 ```ts
 // agent/lib/stdlib.ts
@@ -31,51 +36,144 @@ import { createStdlib } from "@zocomputer/agent-sdk";
 
 export const stdlib = createStdlib({
   workspaceRoot: process.env.MY_WORKDIR ?? process.cwd(),
-  stateDir: ".agent", // tasks.json + spilled oversized tool output
+  stateDir: ".agent", // tasks.json + spilled tool output — gitignore it
   workspaceNoun: "repo", // what tool descriptions call the workspace
 });
 ```
 
-Then re-export each tool from `agent/tools/<name>.ts` — in eve, the filename
-is the wire name, so your agent keeps naming control:
+### 2. Re-export each tool as its own file
+
+One file per tool; the filename is the name the model calls. Create all of
+these under `agent/tools/`:
 
 ```ts
-// agent/tools/read.ts
+// agent/tools/read.ts   (repeat for edit, write, glob, grep, bash)
 import { stdlib } from "../lib/stdlib";
 export default stdlib.tools.read;
 ```
 
+| file          | export                | model sees            |
+| ------------- | --------------------- | --------------------- |
+| `read.ts`     | `stdlib.tools.read`   | `read`                |
+| `edit.ts`     | `stdlib.tools.edit`   | `edit`                |
+| `write.ts`    | `stdlib.tools.write`  | `write`               |
+| `glob.ts`     | `stdlib.tools.glob`   | `glob`                |
+| `grep.ts`     | `stdlib.tools.grep`   | `grep`                |
+| `bash.ts`     | `stdlib.tools.bash`   | `bash`                |
+| `tasks.ts`\*  | `stdlib.tools.tasks`  | `run_async`, `check_tasks`, `await_task` |
+
+\* The task tools are a **bundle** — one file exports all three, so its own
+filename is free (rib calls it `parallel.ts`):
+
 ```ts
-// agent/tools/read_file.ts — vacate eve's built-in so the model sees ONE read
+// agent/tools/tasks.ts
+import { stdlib } from "../lib/stdlib";
+export default stdlib.tools.tasks; // run_async + check_tasks + await_task
+```
+
+### 3. Vacate the eve built-ins you're replacing
+
+eve injects every built-in tool whose name you don't override or disable. The
+rule:
+
+- **Same name → automatic override.** `bash.ts` above already replaces eve's
+  built-in `bash`; nothing else to do.
+- **Different name → disable the built-in** so the model doesn't see two file
+  readers/writers. The stdlib uses the Claude Code / opencode names (`read`,
+  `write`), so shim out eve's `read_file` and `write_file`:
+
+```ts
+// agent/tools/read_file.ts   (and agent/tools/write_file.ts)
 import { disableTool } from "eve/tools";
 export default disableTool();
 ```
 
-## What's included
+### 4. Register the instructions
 
-- **`read`** — line-numbered windows over text, with content-sniffed filetype
-  handling: PDF (PDFium via `clawpdf`, page markers, extraction page cap),
-  DOCX (`mammoth`), and spreadsheets (`.xlsx`/`.xlsm`/`.xls`/`.ods` via
-  SheetJS, TSV per sheet) convert to text; UTF-16 text is BOM-detected and
-  decoded; images return metadata (format, dimensions) plus a hint to attach
-  the image to the chat, since eve tool results are text/json-only (see the
-  maintainer notes below). Formats with no extractor fail with a named,
-  actionable error. Extraction is cached by path + stat identity.
-- **`edit` / `write`** — exact-string replace (unique-match enforced,
-  `replace_all` opt-in) and file creation with parent dirs.
-- **`glob` / `grep`** — git-sourced file candidates (`git ls-files`) with a
-  filesystem-walk fallback for non-repos, bounded result counts.
-- **`bash`** — runs on the host workspace with a short foreground wait; a
-  command still running after it returns a `task_id` and keeps going in the
-  background. Oversized output spills to a file under `stateDir` instead of
+The stdlib ships the operational prose alongside the tools — the workflow,
+communication, and HITL contracts that make a coding agent behave well, not
+just the file operations. One re-export file per instruction under
+`agent/instructions/`:
+
+```ts
+// agent/instructions/workflow.ts — explore→read→edit→verify + the end-of-turn check
+import { stdlib } from "../lib/stdlib";
+export default stdlib.instructions.workflow;
+```
+
+| file                  | export                            | teaches                                             |
+| --------------------- | --------------------------------- | --------------------------------------------------- |
+| `workflow.ts`         | `stdlib.instructions.workflow`    | explore before edit, read before edit, verify, todo tracking, finish before ending the turn |
+| `communication.ts`    | `stdlib.instructions.communication` | lead with the outcome, readable over brief, report-don't-fix, act without permission-seeking |
+| `hitl.ts`             | `stdlib.instructions.hitl`        | the `ask_question` playbook — options, `style: "primary"`, `allowFreeform`, ask independent questions together |
+| `parallel-tools.ts`   | `stdlib.instructions.parallelTools` | background tasks, `notify` watchers, await-before-ending |
+| `repo-conventions.ts` | `stdlib.instructions.repoConventions` | injects the workspace's root `AGENTS.md`         |
+| `subagents.ts`        | `stdlib.instructions.subagents`   | delegation with eve's built-in `agent` tool          |
+
+Persona stays yours: the stdlib ships operational contracts, not voice — write
+your agent's identity as your own instruction file (see the example's
+`coder.ts`).
+
+### 5. Register the park-delivery hook
+
+One hook file makes `read` images actually reach the model (see
+[Media reads](#media-reads-images)) and delivers background-task
+notifications (see [Tool behavior](#tool-behavior)):
+
+```ts
+// agent/hooks/park-delivery.ts
+import { createParkDeliveryHook } from "@zocomputer/agent-sdk";
+export default createParkDeliveryHook();
+```
+
+That's the whole setup. Everything is also exported à la carte
+(`createReadTool`, `createCommandRunner`, …) if you'd rather compose a subset.
+
+## Example
+
+[`examples/coder`](./examples/coder) is a complete, minimal eve coding agent
+built on this stdlib — the five steps above as real files: the full toolset,
+the `read_file`/`write_file` shims, the six instructions, the park-delivery
+hook, and a one-file coder persona. Point it at a project and run it:
+
+```sh
+cd examples/coder
+bun install
+CODER_WORKDIR=/path/to/project AI_GATEWAY_API_KEY=… bun dev
+```
+
+## Tool behavior
+
+The names are deliberately boring; the behavior behind them is the point:
+
+- **`read`** is multi-format — line-numbered text windows plus content-sniffed
+  PDF (PDFium via `clawpdf`), DOCX (`mammoth`), and spreadsheet (`.xlsx`/
+  `.xlsm`/`.xls`/`.ods` via SheetJS, TSV per sheet) → text, and UTF-16 BOM
+  decode. Reading an **image** returns metadata and queues the pixels to appear
+  as a viewable attachment on the next turn (see [Media reads](#media-reads-images)).
+  No-extractor formats fail with a named, actionable error; extraction is cached
+  by path + stat. The first read under a directory with its own `AGENTS.md`
+  attaches that file to the result (`directory_conventions`), **once per
+  directory per session** — nested conventions arrive exactly when the model
+  enters the directory, instead of hoping it remembers to read them. The root
+  file is excluded (`instructions.repoConventions` already injects it); riders
+  are result content, so the prompt prefix stays byte-stable. Opt out with
+  `injectDirConventions: false`; rename the file with `conventionsFileName`.
+- **`glob` / `grep`** prefer git-tracked candidates (`git ls-files`), falling
+  back to a filesystem walk outside a repo, with bounded result counts.
+- **`bash`** waits briefly, then auto-backgrounds a still-running command
+  (returns a `task_id`); oversized output spills to `stateDir` instead of
   flooding the context window.
-- **`run_async` / `check_tasks` / `await_task`** — background-task machinery
-  over a persisted registry (survives agent restarts; tasks running across a
-  restart report as `lost`). Any op defined with `defineOp` becomes
-  `run_async`-able via `extraBackgroundables`.
-- **Instructions** — `parallelTools` (the workflow guidance for the async
-  tools) and `repoConventions` (injects the workspace's root `AGENTS.md` as a
-  system-prompt section, since eve doesn't read it natively).
+- **`run_async` / `check_tasks` / `await_task`** persist the task registry
+  across restarts (tasks running across a restart report as `lost`); any
+  `defineOp` op becomes `run_async`-able via `extraBackgroundables`.
+- **Background notifications**: `bash` and `run_async` take an optional
+  `notify` watcher (`{ pattern, reason }`) — output lines matching the regex
+  (debounced, capped) are delivered to the model as a message while the
+  session is idle, instead of it polling `check_tasks`; `run_async` also takes
+  `notify_on_complete` for a settle notice. Delivery rides the park-delivery
+  hook (Quick start step 5): notifications queue until the session parks and
+  then start its next turn, exactly like a user message.
 
 ## Design rules
 
@@ -93,26 +191,72 @@ export default disableTool();
   discriminated unions, `eve` + `zod` as peers, WASM/pure-JS extraction deps
   (no native postinstalls).
 
+## Media reads (images)
+
+eve tool results are text/json only, so `read` can't hand the model an image
+directly. The workaround: for an image under `maxInlineImageBytes` (5 MB
+default), `read` embeds the bytes as a `data:` URL on its **raw** result under a
+model-hidden field, and its `toModelOutput` strips that field. The model sees
+only metadata + a note; the **park-delivery hook** (`createParkDeliveryHook`,
+one file in `agent/hooks/` — Quick start step 5) watches the runtime stream from
+inside the agent's own server process and, when the session parks, sends the
+images back into the session as a real user turn over loopback. The model sees
+the pixels on its next turn with no browser, cockpit, or user action involved.
+(The same hook delivers background-task notifications — see
+[Tool behavior](#tool-behavior).)
+
+- eve hooks are observe-only for model context, so the hook doesn't mutate the
+  current turn — it starts the next one, exactly like a user hitting send.
+  Delivery is deduped per tool call, retried briefly on a racing send, and
+  re-queued for the next park if it still fails.
+- The contract + a dependency-free reader live at
+  **`@zocomputer/agent-sdk/attachments`** (`readImageChatAttachment(output)` →
+  `ImageChatAttachment | null`), so UI clients that want to render or track the
+  attachments import it without the extraction deps. The pure decision core
+  (`redeliveryFromEvent`, `createRedeliveryState`, `buildRedeliveryMessage`) is
+  exported for hosts that would rather run delivery elsewhere.
+- Options: `createStdlib`'s `attachImagesToChat` (default `true`) and
+  `maxInlineImageBytes` (default 5 MB; larger images fall back to the
+  metadata-only "ask the user" note); `createParkDeliveryHook`'s `serverUrl`
+  (defaults to loopback on `$PORT`, eve dev's 2000 otherwise) and `log`.
+  An agent that skips the hook simply gets the metadata note (the bytes ride
+  the stream unused — turn inlining off with `attachImagesToChat: false`).
+
 ## Notes for the eve maintainers
 
 Gaps we hit building this — each is something we'd rather see upstream than
 keep working around:
 
 - **Multimodal tool results.** `ToolModelOutput` is `text | json` only, so
-  `read` can't return an image and instead returns metadata + "ask the user to
-  attach it". `@workflow/ai`'s DurableAgent already merged multimodal
-  tool-result pass-through (`type: "content"`, vercel/workflow#848 → #1385);
-  exposing that through eve's tool surface would let `read` return real image
-  blocks.
+  `read` can't return an image directly — we work around it by smuggling the
+  bytes past on the raw result and having a hook send them back as the next
+  user turn (see [Media reads](#media-reads-images)), which costs an extra turn
+  and an extra copy of the bytes in the durable stream. `@workflow/ai`'s
+  DurableAgent already merged multimodal tool-result pass-through (`type: "content"`,
+  vercel/workflow#848 → #1385); exposing that through eve's tool surface would
+  let `read` return real image blocks and delete the whole workaround.
 - **HITL replay.** eve persists `input.requested` but not the client's
   `input.responded`, so a replayed session reopens answered prompts as
   pending. We append synthetic responded-events from client-side storage;
   persisting the response (or accepting it into the durable stream) would fix
   every client at once.
+- **`ask_question` multi-select.** The input-request contract carries rich
+  options (`id`/`label`/`description`/`style`) but the response carries a
+  single `optionId` — there's no way to ask "pick all that apply."
+  `allowMultiple` on the request plus `optionIds` on the response would
+  complete the surface; clients render checkboxes instead of buttons when
+  it's set.
 - **Tool naming + config-level disable.** The built-ins ship off-prior names
   (`read_file`, `write_file`), and vacating one requires a `disableTool()`
   shim file per name. Prior-aligned defaults — or a config switch to disable
   built-ins wholesale — would remove the shims.
+- **Continuation-token scoping.** A hook's `ctx.channel.continuationToken` is
+  the runtime-namespaced form (`eve:eve:<uuid>`), but `ClientSession.send`
+  needs the client-facing token (`eve:<uuid>`) — and posting the namespaced
+  form doesn't error, it **silently creates a new session** (the continue
+  route's get-or-create). We strip the namespace (`clientContinuationToken`)
+  and assert the echoed session id; either surfacing the client token on
+  `HookContext` or rejecting unknown tokens on continue would remove the trap.
 - **AGENTS.md ingestion.** eve injects no repo conventions; every other
   harness (Claude Code, Cursor, Codex) reads `AGENTS.md` natively. Our
   `repoConventions` instruction covers the root file, but first-class support

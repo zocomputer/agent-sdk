@@ -2,9 +2,14 @@ import { join } from "node:path";
 import { createTaskRegistry, type TaskRegistry } from "./async-tasks";
 import { createBashOp, type BackgroundableOp } from "./backgroundable";
 import { TOOL_OUTPUT_DIRNAME } from "./bounded-output";
+import { createDirConventionsTracker } from "./dir-conventions";
 import {
+  createCommunicationInstruction,
+  createHitlInstruction,
   createParallelToolsInstruction,
   createRepoConventionsInstruction,
+  createSubagentInstruction,
+  createWorkflowInstruction,
 } from "./instructions";
 import { createCommandRunner, type CommandRunner } from "./run";
 import { createBashTool } from "./tools/bash";
@@ -50,7 +55,39 @@ export interface StdlibOptions {
     workspace: Workspace;
     runner: CommandRunner;
   }) => readonly BackgroundableOp[];
+  /**
+   * When `read` hits an image, embed its bytes on the tool result so a client
+   * can re-inject it as a viewable attachment on the next turn (see
+   * ./attachments and the README). Requires a client that consumes the
+   * attachment (rib, Zo); generic eve consumers can leave this off and get the
+   * metadata-only "ask the user" note. Defaults to `true`.
+   */
+  attachImagesToChat?: boolean;
+  /**
+   * Max image size (bytes) to inline on the tool result; larger images fall
+   * back to the metadata-only note. Defaults to 5 MB. Bounds durable-stream
+   * bloat, since the data URL rides the stream once per read.
+   */
+  maxInlineImageBytes?: number;
+  /**
+   * Verify command mentioned by the workflow instruction (e.g. "bun run
+   * check"). Interpolated once at build time; omit for a generic hint.
+   */
+  verifyCommandHint?: string;
+  /**
+   * Attach a directory's conventions file to the first `read` under it, once
+   * per directory per session (see ./dir-conventions.ts). The root file is
+   * excluded — `instructions.repoConventions` covers it. Defaults to `true`.
+   */
+  injectDirConventions?: boolean;
+  /**
+   * Conventions filename the read riders look for. Defaults to "AGENTS.md".
+   */
+  conventionsFileName?: string;
 }
+
+/** Default cap for inlining image bytes on a `read` result (5 MB). */
+export const DEFAULT_MAX_INLINE_IMAGE_BYTES = 5 * 1024 * 1024;
 
 export function createStdlib(options: StdlibOptions) {
   const noun = options.workspaceNoun ?? "workspace";
@@ -64,6 +101,17 @@ export function createStdlib(options: StdlibOptions) {
     createBashOp(runner),
     ...(options.extraBackgroundables?.({ workspace, runner }) ?? []),
   ];
+  const conventionsFileName = options.conventionsFileName ?? "AGENTS.md";
+  const dirConventions =
+    (options.injectDirConventions ?? true)
+      ? {
+          tracker: createDirConventionsTracker({
+            workspaceRoot: workspace.root,
+            fileName: conventionsFileName,
+          }),
+          fileName: conventionsFileName,
+        }
+      : undefined;
   return {
     workspace,
     runner,
@@ -71,7 +119,14 @@ export function createStdlib(options: StdlibOptions) {
     spillDir,
     backgroundables,
     tools: {
-      read: createReadTool({ workspace, noun }),
+      read: createReadTool({
+        workspace,
+        noun,
+        attachImagesToChat: options.attachImagesToChat ?? true,
+        maxInlineImageBytes:
+          options.maxInlineImageBytes ?? DEFAULT_MAX_INLINE_IMAGE_BYTES,
+        dirConventions,
+      }),
       edit: createEditTool({ workspace, noun }),
       write: createWriteTool({ workspace, noun }),
       glob: createGlobTool({ workspace, noun }),
@@ -88,6 +143,13 @@ export function createStdlib(options: StdlibOptions) {
     instructions: {
       parallelTools: createParallelToolsInstruction(),
       repoConventions: createRepoConventionsInstruction({ workspaceRoot: workspace.root }),
+      subagents: createSubagentInstruction({ workspaceNoun: noun }),
+      workflow: createWorkflowInstruction({
+        workspaceNoun: noun,
+        verifyCommandHint: options.verifyCommandHint,
+      }),
+      communication: createCommunicationInstruction(),
+      hitl: createHitlInstruction(),
     },
   };
 }
@@ -104,9 +166,34 @@ export { createReadTool } from "./tools/read";
 export { buildTasksToolset, createTasksTools } from "./tools/tasks";
 export { createWriteTool } from "./tools/write";
 
+export * from "./attachments";
+export {
+  createParkDeliveryHook,
+  type ParkDeliveryOptions,
+} from "./hooks";
+export {
+  buildRedeliveryMessage,
+  clientContinuationToken,
+  createRedeliveryState,
+  type PendingRedelivery,
+  redeliveryFromEvent,
+  type RedeliveryMessagePart,
+  type RedeliveryRequest,
+  type RedeliveryState,
+} from "./redeliver";
+export {
+  createParkDeliveryState,
+  type ParkDeliveryItem,
+  type ParkDeliveryRequest,
+  type ParkDeliveryState,
+  type ParkNotification,
+  postParkNotification,
+  setParkNotificationHandler,
+} from "./park-delivery";
 export * from "./async-tasks";
 export * from "./backgroundable";
 export * from "./bounded-output";
+export * from "./dir-conventions";
 export * from "./extract/cache";
 export * from "./extract/docx";
 export * from "./extract/pdf";
@@ -120,4 +207,5 @@ export * from "./read-file-content";
 export * from "./read-text";
 export * from "./run";
 export * from "./walk";
+export * from "./watch-output";
 export * from "./workspace";
