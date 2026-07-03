@@ -13,6 +13,8 @@ import {
   type SubagentRosterEntry,
 } from "./instructions";
 import { createCommandRunner, type CommandRunner } from "./run";
+import { createSteerInbox, type SteerInbox } from "./steer-inbox";
+import { createSteerWrapper } from "./steer-tool";
 import { createBashTool } from "./tools/bash";
 import { createEditTool } from "./tools/edit";
 import { createGlobTool } from "./tools/glob";
@@ -87,6 +89,14 @@ export interface StdlibOptions {
    */
   conventionsFileName?: string;
   /**
+   * Enable steering: a directory (typically under `stateDir`) where UI
+   * clients queue mid-turn messages (see ./steer-inbox). Every stdlib tool is
+   * wrapped so queued messages ride the next completing tool result; pass the
+   * same dir to `createParkDeliveryHook({ steer })` so messages a turn ends
+   * before delivering go out on park instead.
+   */
+  steer?: { dir: string };
+  /**
    * Declared subagents the delegation playbook should route work to (e.g. the
    * explore preset — see ./explore.ts). Grows `instructions.subagents` with a
    * "Choosing a subagent" section. Interpolated once at build time.
@@ -120,40 +130,51 @@ export function createStdlib(options: StdlibOptions) {
           fileName: conventionsFileName,
         }
       : undefined;
+  const steerInbox: SteerInbox | null = options.steer
+    ? createSteerInbox({ dir: options.steer.dir })
+    : null;
+  const steer = createSteerWrapper(steerInbox);
   return {
     workspace,
     runner,
     registry,
     spillDir,
     backgroundables,
+    steerInbox,
     tools: {
-      read: createReadTool({
-        workspace,
-        noun,
-        attachImagesToChat: options.attachImagesToChat ?? true,
-        maxInlineImageBytes:
-          options.maxInlineImageBytes ?? DEFAULT_MAX_INLINE_IMAGE_BYTES,
-        dirConventions,
-      }),
-      edit: createEditTool({ workspace, noun }),
-      write: createWriteTool({ workspace, noun }),
-      glob: createGlobTool({ workspace, noun }),
-      grep: createGrepTool({ workspace, noun, spillDir }),
-      bash: createBashTool({
-        workspace,
-        runner,
-        registry,
-        noun,
-        interactiveHint: options.bashInteractiveHint,
-      }),
-      tasks: createTasksTools({ registry, backgroundables }),
-      webfetch: createWebFetchTool({
-        workspace,
-        spillDir,
-        attachImagesToChat: options.attachImagesToChat ?? true,
-        maxInlineImageBytes:
-          options.maxInlineImageBytes ?? DEFAULT_MAX_INLINE_IMAGE_BYTES,
-      }),
+      read: steer(
+        createReadTool({
+          workspace,
+          noun,
+          attachImagesToChat: options.attachImagesToChat ?? true,
+          maxInlineImageBytes:
+            options.maxInlineImageBytes ?? DEFAULT_MAX_INLINE_IMAGE_BYTES,
+          dirConventions,
+        }),
+      ),
+      edit: steer(createEditTool({ workspace, noun })),
+      write: steer(createWriteTool({ workspace, noun })),
+      glob: steer(createGlobTool({ workspace, noun })),
+      grep: steer(createGrepTool({ workspace, noun, spillDir })),
+      bash: steer(
+        createBashTool({
+          workspace,
+          runner,
+          registry,
+          noun,
+          interactiveHint: options.bashInteractiveHint,
+        }),
+      ),
+      tasks: createTasksTools({ registry, backgroundables, steerInbox }),
+      webfetch: steer(
+        createWebFetchTool({
+          workspace,
+          spillDir,
+          attachImagesToChat: options.attachImagesToChat ?? true,
+          maxInlineImageBytes:
+            options.maxInlineImageBytes ?? DEFAULT_MAX_INLINE_IMAGE_BYTES,
+        }),
+      ),
     },
     instructions: {
       parallelTools: createParallelToolsInstruction(),
@@ -227,6 +248,17 @@ export * from "./list-files";
 export * from "./read-file-content";
 export * from "./read-text";
 export * from "./run";
+export * from "./steer";
+export {
+  createSteerInbox,
+  type SteerInbox,
+  type SteerInboxOptions,
+} from "./steer-inbox";
+export {
+  createSteerWrapper,
+  type SteerSource,
+  withSteerDelivery,
+} from "./steer-tool";
 export * from "./walk";
 export * from "./watch-output";
 export * from "./workspace";

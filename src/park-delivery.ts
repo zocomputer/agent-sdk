@@ -85,6 +85,27 @@ export function createParkDeliveryState<T>() {
     return { sessionId: id, continuationToken: state.continuationToken, items };
   }
 
+  /**
+   * Queue several items at once — all of them enter pending before any drain,
+   * so a batch enqueued into an already-parked session goes out as ONE
+   * delivery. Enqueuing the same batch item-by-item would let the first
+   * item's immediate flush strand the rest into a second turn.
+   */
+  function enqueueAll(
+    sessionId: string,
+    items: readonly ParkDeliveryItem<T>[],
+  ): ParkDeliveryRequest<T> | null {
+    const state = session(sessionId);
+    let queued = false;
+    for (const item of items) {
+      if (state.delivered.has(item.key) || state.pending.has(item.key)) continue;
+      state.pending.set(item.key, item);
+      queued = true;
+    }
+    if (!queued || !state.parked) return null;
+    return drain(sessionId, state);
+  }
+
   return {
     /**
      * Consume one stream event. `continuationToken` is the hook's runtime
@@ -121,12 +142,10 @@ export function createParkDeliveryState<T>() {
      * key was already delivered (or is already pending) is dropped.
      */
     enqueue(sessionId: string, item: ParkDeliveryItem<T>): ParkDeliveryRequest<T> | null {
-      const state = session(sessionId);
-      if (state.delivered.has(item.key) || state.pending.has(item.key)) return null;
-      state.pending.set(item.key, item);
-      if (!state.parked) return null;
-      return drain(sessionId, state);
+      return enqueueAll(sessionId, [item]);
     },
+
+    enqueueAll,
 
     /**
      * Report the send outcome. A failed send re-queues for the next park.

@@ -11,6 +11,8 @@ import {
   redeliveryFromEvent,
   type RedeliveryMessagePart,
 } from "./redeliver";
+import type { SteerMessage } from "./steer";
+import { createSteerInbox } from "./steer-inbox";
 
 // The effectful half of park delivery (pure core: ./park-delivery.ts). An
 // agent wires it as one hook file:
@@ -19,7 +21,7 @@ import {
 //   import { createParkDeliveryHook } from "@zocomputer/agent-sdk";
 //   export default createParkDeliveryHook();
 //
-// Two producers feed it:
+// Three producers feed it:
 // - **Read images** (./redeliver.ts): `action.result` events carry read's raw
 //   output (bytes included — toModelOutput only narrows what the model sees);
 //   on park the images go back into the session as a real user turn.
@@ -28,6 +30,10 @@ import {
 //   bridge; delivered on park — or immediately, when the match lands while
 //   the session is already parked (a background task finishing mid-park is
 //   the whole point of the feature).
+// - **Leftover steers** (./steer-inbox.ts, when `steer.dir` is set): a steered
+//   message normally rides the next completing tool result (./steer-tool.ts),
+//   but a turn that ends first strands the inbox — on park the hook drains it
+//   and sends the messages as the user turn they were meant to be.
 //
 // The send goes through eve's HTTP API on loopback — the hook context hands us
 // the continuation token, and eve's localDev auth accepts loopback callers.
@@ -42,10 +48,11 @@ import {
 
 const RETRY_DELAYS_MS = [500, 2_000, 5_000];
 
-/** What one park delivery carries: a read image or a notification text. */
+/** What one park delivery carries: a read image, a note, or a steered message. */
 type DeliveryPayload =
   | { readonly kind: "image"; readonly attachment: ImageChatAttachment }
-  | { readonly kind: "note"; readonly text: string };
+  | { readonly kind: "note"; readonly text: string }
+  | { readonly kind: "steer"; readonly message: SteerMessage };
 
 function buildDeliveryMessage(
   request: ParkDeliveryRequest<DeliveryPayload>,
@@ -58,10 +65,23 @@ function buildDeliveryMessage(
   const notes = request.items.flatMap((item) =>
     item.payload.kind === "note" ? [item.payload.text] : [],
   );
+  // Steers are the user's own words — deliver them verbatim, first.
+  const steers = request.items.flatMap((item) =>
+    item.payload.kind === "steer" ? [item.payload.message.text] : [],
+  );
   return [
+    ...steers.map((text) => ({ type: "text" as const, text })),
     ...(images.length > 0 ? buildRedeliveryMessage(images) : []),
     ...notes.map((text) => ({ type: "text" as const, text })),
   ];
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function isSessionWaiting(event: unknown): boolean {
+  return isRecord(event) && event.type === "session.waiting";
 }
 
 export interface ParkDeliveryOptions {
@@ -72,12 +92,19 @@ export interface ParkDeliveryOptions {
   serverUrl?: string;
   /** Log a line per delivery/failure (default true — it explains agent turns). */
   log?: boolean;
+  /**
+   * The steer inbox dir (the same one passed to `createStdlib`). When set,
+   * steered messages a turn ends before delivering (no tool completed after
+   * they arrived) go out on park as the next user turn.
+   */
+  steer?: { dir: string };
 }
 
 export function createParkDeliveryHook(options: ParkDeliveryOptions = {}) {
   const serverUrl =
     options.serverUrl ?? `http://127.0.0.1:${process.env.PORT ?? "2000"}`;
   const log = options.log ?? true;
+  const steerInbox = options.steer ? createSteerInbox({ dir: options.steer.dir }) : null;
   const state = createParkDeliveryState<DeliveryPayload>();
 
   async function deliver(request: ParkDeliveryRequest<DeliveryPayload>): Promise<void> {
@@ -149,6 +176,25 @@ export function createParkDeliveryHook(options: ParkDeliveryOptions = {}) {
           sessionId: ctx.session.id,
           continuationToken: ctx.channel.continuationToken,
         };
+        // Drain leftover steers BEFORE observe processes the park, so they
+        // ride the same delivery the waiting event triggers. The whole drain
+        // enqueues as one batch — item-by-item enqueue would let the first
+        // steer's immediate flush (session already parked) split the rest
+        // into a second turn. Failed sends re-queue in the delivery state
+        // (keyed by steer id), not the file.
+        if (steerInbox && isSessionWaiting(event)) {
+          const steers = steerInbox.drain(meta.sessionId);
+          if (steers.length > 0) {
+            const flush = state.enqueueAll(
+              meta.sessionId,
+              steers.map((message) => ({
+                key: `steer:${message.id}`,
+                payload: { kind: "steer" as const, message },
+              })),
+            );
+            if (flush) void deliver(flush);
+          }
+        }
         const request = state.observe(event, meta);
         if (request) void deliver(request);
         const found = redeliveryFromEvent(event);

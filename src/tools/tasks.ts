@@ -3,6 +3,7 @@ import { z } from "zod";
 import type { Task, TaskRegistry } from "../async-tasks";
 import type { BackgroundableOp } from "../backgroundable";
 import { postParkNotification } from "../park-delivery";
+import { createSteerWrapper, type SteerSource } from "../steer-tool";
 import {
   createOutputWatcher,
   formatCompletionNotification,
@@ -58,6 +59,8 @@ function full(task: Task) {
 export function buildTasksToolset(opts: {
   registry: TaskRegistry;
   backgroundables: readonly BackgroundableOp[];
+  /** When set, steered messages ride these tools' results (see ../steer-tool). */
+  steerInbox?: SteerSource | null;
 }) {
   const { registry, backgroundables } = opts;
   const [firstOp, ...restOps] = backgroundables;
@@ -66,9 +69,12 @@ export function buildTasksToolset(opts: {
   const catalog = backgroundables
     .map((o) => `- ${o.name}: ${o.description}\n  input: ${JSON.stringify(o.inputJsonSchema)}`)
     .join("\n");
+  // await_task is the highest-value steer window: it's where the agent blocks
+  // on long work, exactly when a user most wants to redirect.
+  const wrap = createSteerWrapper(opts.steerInbox ?? null);
 
   return {
-    run_async: defineTool({
+    run_async: wrap(defineTool({
       description:
         "Start a tool running in the BACKGROUND and return immediately with a task id, instead of blocking until it finishes. Use it for long work whose result your next step doesn't need yet (tests, builds, installs) so you can keep working in parallel; poll with check_tasks and collect the result with await_task. If your very next step needs the output, just call the tool directly instead. For work where you only care about a specific output signal, pass notify — matching lines are delivered to you as a message while you're idle, instead of you polling.\n\nBackgroundable tools (pass `input` matching the tool's own schema):\n" +
         catalog,
@@ -179,9 +185,9 @@ export function buildTasksToolset(opts: {
           note: "Started in the background. If your next actions don't depend on this, keep working and call check_tasks / await_task later; otherwise call await_task now.",
         };
       },
-    }),
+    })),
 
-    check_tasks: defineTool({
+    check_tasks: wrap(defineTool({
       description:
         "List background tasks and their status without blocking; returns `runningCount` plus the task list. For tasks that support progress (notably bash), includes a live stdout/stderr preview. Call await_task to collect a task's final result.",
       inputSchema: z.object({}),
@@ -189,9 +195,9 @@ export function buildTasksToolset(opts: {
         const tasks = registry.listTasks().map(peek);
         return { runningCount: tasks.filter((t) => t.status === "running").length, tasks };
       },
-    }),
+    })),
 
-    await_task: defineTool({
+    await_task: wrap(defineTool({
       description:
         "Block until a background task finishes (up to wait_ms), then return its full result. Use it when your next step needs the task's final output. If the wait elapses while it's still running, returns the running status plus any live progress so you can decide to keep waiting or move on.",
       inputSchema: z.object({
@@ -211,7 +217,7 @@ export function buildTasksToolset(opts: {
         if (!task) throw new Error(`No such task: ${task_id}`);
         return full(task);
       },
-    }),
+    })),
   };
 }
 
@@ -224,6 +230,8 @@ export function buildTasksToolset(opts: {
 export function createTasksTools(opts: {
   registry: TaskRegistry;
   backgroundables: readonly BackgroundableOp[];
+  /** When set, steered messages ride these tools' results (see ../steer-tool). */
+  steerInbox?: SteerSource | null;
 }) {
   return defineDynamic({
     events: {

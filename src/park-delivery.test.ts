@@ -57,6 +57,34 @@ describe("createParkDeliveryState", () => {
     expect(state.enqueue("s1", { key: "k1", payload: "x" })).toBeNull();
   });
 
+  test("enqueueAll into a parked session emits ONE request with every item", () => {
+    const state = createParkDeliveryState<string>();
+    expect(state.observe(waiting, meta)).toBeNull(); // parked, nothing pending
+    const request = state.enqueueAll("s1", [
+      { key: "k1", payload: "one" },
+      { key: "k2", payload: "two" },
+      { key: "k3", payload: "three" },
+    ]);
+    expect(request?.items.map((i) => i.key)).toEqual(["k1", "k2", "k3"]);
+  });
+
+  test("enqueueAll skips delivered/pending duplicates and returns null when nothing new queued", () => {
+    const state = createParkDeliveryState<string>();
+    state.observe(waiting, meta);
+    const first = state.enqueue("s1", { key: "k1", payload: "one" });
+    expect(first).not.toBeNull();
+    if (!first) throw new Error("expected a request");
+    state.settle(first, true);
+    // k1 already delivered — an all-duplicate batch queues nothing.
+    expect(state.enqueueAll("s1", [{ key: "k1", payload: "one" }])).toBeNull();
+    // A mixed batch delivers only the new item.
+    const mixed = state.enqueueAll("s1", [
+      { key: "k1", payload: "one" },
+      { key: "k2", payload: "two" },
+    ]);
+    expect(mixed?.items.map((i) => i.key)).toEqual(["k2"]);
+  });
+
   test("a failed send re-queues; enqueue-while-parked drains everything", () => {
     const state = createParkDeliveryState<string>();
     state.enqueue("s1", { key: "k1", payload: "x" });

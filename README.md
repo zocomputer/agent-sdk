@@ -127,6 +127,9 @@ import { createParkDeliveryHook } from "@zocomputer/agent-sdk";
 export default createParkDeliveryHook();
 ```
 
+(If you enable [Steering](#steering-mid-turn-messages), pass the same inbox dir
+here: `createParkDeliveryHook({ steer: { dir } })`.)
+
 That's the whole setup. Everything is also exported à la carte
 (`createReadTool`, `createCommandRunner`, …) if you'd rather compose a subset.
 
@@ -286,6 +289,32 @@ the pixels on its next turn with no browser, cockpit, or user action involved.
   (defaults to loopback on `$PORT`, eve dev's 2000 otherwise) and `log`.
   An agent that skips the hook simply gets the metadata note (the bytes ride
   the stream unused — turn inlining off with `attachImagesToChat: false`).
+
+## Steering (mid-turn messages)
+
+eve queues a message sent to a busy session until the turn ends — hooks are
+observe-only and a mid-turn `send()` is rejected, so there's no framework
+channel into a running turn. The SDK's channel rides the tool results:
+
+- **Enable it with `createStdlib({ steer: { dir } })`.** The stdlib builds a
+  steer **inbox** — one NDJSON file per session under `dir` (exposed as
+  `stdlib.steerInbox`) — and wraps every stdlib tool so a completing call
+  drains the inbox and attaches the queued messages to its result under
+  `user_steer`, with a note telling the model to adjust course now. On a long
+  turn, `await_task` is the highest-value delivery window.
+- **A UI queues a steer by appending to the inbox**:
+  `createSteerInbox({ dir }).append(sessionId, text)`
+  (`@zocomputer/agent-sdk/steer-inbox`), typically behind a small HTTP route.
+  Drain-vs-append races are safe (rename-first drain).
+- **Wrap your own tools** with `createSteerWrapper(stdlib.steerInbox)` (or
+  `withSteerDelivery(tool, inbox)`) so they deliver steers too.
+- **Messages that miss every tool window drain on park**: with
+  `createParkDeliveryHook({ steer: { dir } })` (Quick start step 5), leftovers
+  start the session's next turn — delivered first, verbatim.
+- **The wire contract is dependency-free at `@zocomputer/agent-sdk/steer`**
+  (`STEER_FIELD`, `SteerMessage`, `readSteerMessages`, …), so UI clients can
+  project delivered steers into user-message bubbles without pulling in the
+  extraction deps.
 
 ## Notes for the eve maintainers
 

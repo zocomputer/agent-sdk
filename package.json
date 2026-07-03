@@ -13,7 +13,9 @@
   ],
   "exports": {
     ".": "./src/index.ts",
-    "./attachments": "./src/attachments.ts"
+    "./attachments": "./src/attachments.ts",
+    "./steer": "./src/steer.ts",
+    "./steer-inbox": "./src/steer-inbox.ts"
   },
   "files": [
     "src",
