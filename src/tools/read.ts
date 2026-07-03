@@ -32,15 +32,48 @@ export function createReadTool(opts: {
    * once per directory per session (see ../dir-conventions.ts).
    */
   dirConventions?: { tracker: DirConventionsTracker; fileName: string };
+  /**
+   * The "what to do instead" sentence in the file-too-large error. Defaults
+   * to the bash suggestion; agents without bash (the explore preset) point it
+   * at the tools they do have.
+   */
+  oversizeHint?: string;
+  /**
+   * The "what to do instead" sentence in the image result note when the
+   * pixels can't be delivered (attach disabled or over the size cap).
+   * Defaults to asking the user to attach the image; agents without HITL
+   * (the explore preset) substitute advice that's actually actionable.
+   */
+  imageUnavailableHint?: string;
+  /**
+   * Include the read-before-edit guidance in the description. Default true;
+   * read-only consumers (the explore preset) turn it off — there is no edit.
+   */
+  includeEditGuidance?: boolean;
 }) {
   const { workspace, noun, attachImagesToChat, maxInlineImageBytes, dirConventions } = opts;
+  const oversizeHint =
+    opts.oversizeHint ?? "Use bash (head, sed -n, rg) to extract the part you need.";
+  const imageUnavailableHint =
+    opts.imageUnavailableHint ??
+    "If you need to see this image, ask the user to attach it to the chat.";
   // Static per-build (option-dependent, never per-turn): prompt-cache safe.
   const conventionsHint = dirConventions
     ? ` When a read first enters a directory with its own ${dirConventions.fileName} conventions file, the result includes it under directory_conventions (once per directory per session) — honor those conventions for work in that directory.`
     : "";
+  // Only promise the image-attachment path when a client actually delivers it
+  // (attachImagesToChat + the park-delivery hook); otherwise be honest that an
+  // image read is metadata-only.
+  const imageHint = attachImagesToChat
+    ? "reading an image returns its metadata and queues the image to appear as a viewable attachment on your next message"
+    : "reading an image returns its metadata only";
+  const editHint =
+    (opts.includeEditGuidance ?? true)
+      ? " Read a file before editing it so your edits target the current text."
+      : "";
   return defineTool({
     description:
-      `Read a file from the ${noun}, returning line-numbered text. PDF, DOCX, and spreadsheet files (.xlsx, .xlsm, .xls, .ods) are converted to plain text (PDFs get per-page markers, spreadsheets render as TSV per sheet); reading an image returns its metadata and queues the image to appear as a viewable attachment on your next message. Read a file before editing it so your edits target the current text. Returns up to 2000 lines per call by default; page bigger files with offset/limit.` +
+      `Read a file from the ${noun}, returning line-numbered text. PDF, DOCX, and spreadsheet files (.xlsx, .xlsm, .xls, .ods) are converted to plain text (PDFs get per-page markers, spreadsheets render as TSV per sheet); ${imageHint}.${editHint} Returns up to 2000 lines per call by default; page bigger files with offset/limit.` +
       conventionsHint,
     inputSchema: z.object({
       path: z.string().min(1).describe(`File path, relative to the ${noun} root.`),
@@ -59,7 +92,7 @@ export function createReadTool(opts: {
       if (stat.size > READ_FILE_MAX_BYTES) {
         throw new Error(
           `${rel} is ${stat.size} bytes — too large to read (max ${READ_FILE_MAX_BYTES}). ` +
-            "Use bash (head, sed -n, rg) to extract the part you need.",
+            oversizeHint,
         );
       }
       const buffer = readFileSync(abs);
@@ -122,7 +155,7 @@ export function createReadTool(opts: {
                 : "cannot be returned as a tool result (text/json only)";
             return {
               ...meta,
-              note: `Image content ${why}. If you need to see this image, ask the user to attach it to the chat.`,
+              note: `Image content ${why}. ${imageUnavailableHint}`,
               ...conventions,
             };
           }

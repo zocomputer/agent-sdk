@@ -10,6 +10,7 @@ import {
   createRepoConventionsInstruction,
   createSubagentInstruction,
   createWorkflowInstruction,
+  type SubagentRosterEntry,
 } from "./instructions";
 import { createCommandRunner, type CommandRunner } from "./run";
 import { createBashTool } from "./tools/bash";
@@ -85,6 +86,12 @@ export interface StdlibOptions {
    * Conventions filename the read riders look for. Defaults to "AGENTS.md".
    */
   conventionsFileName?: string;
+  /**
+   * Declared subagents the delegation playbook should route work to (e.g. the
+   * explore preset — see ./explore.ts). Grows `instructions.subagents` with a
+   * "Choosing a subagent" section. Interpolated once at build time.
+   */
+  subagentRoster?: readonly SubagentRosterEntry[];
 }
 
 /** Default cap for inlining image bytes on a `read` result (5 MB). */
@@ -151,7 +158,10 @@ export function createStdlib(options: StdlibOptions) {
     instructions: {
       parallelTools: createParallelToolsInstruction(),
       repoConventions: createRepoConventionsInstruction({ workspaceRoot: workspace.root }),
-      subagents: createSubagentInstruction({ workspaceNoun: noun }),
+      subagents: createSubagentInstruction({
+        workspaceNoun: noun,
+        roster: options.subagentRoster,
+      }),
       workflow: createWorkflowInstruction({
         workspaceNoun: noun,
         verifyCommandHint: options.verifyCommandHint,
@@ -203,6 +213,7 @@ export * from "./async-tasks";
 export * from "./backgroundable";
 export * from "./bounded-output";
 export * from "./dir-conventions";
+export * from "./explore";
 export * from "./extract/cache";
 export * from "./extract/docx";
 export * from "./extract/pdf";

@@ -75,6 +75,20 @@ test("subagent playbook interpolates the workspace noun and covers the load-bear
   expect(markdown).toContain("same repo");
   expect(markdown).toContain("non-overlapping write scopes");
   expect(markdown).toContain("in parallel");
-  // Default noun.
+  // Default noun; no roster section without a roster.
   expect(buildSubagentMarkdown()).toContain("same workspace");
+  expect(markdown).not.toContain("### Choosing a subagent");
+});
+
+test("a roster adds the routing section with each specialist's when", () => {
+  const markdown = buildSubagentMarkdown("repo", [
+    { name: "explore", when: "read-only codebase questions" },
+    { name: "reviewer", when: "pre-merge review passes" },
+  ]);
+  expect(markdown).toContain("### Choosing a subagent");
+  expect(markdown).toContain("- **`explore`** — read-only codebase questions.");
+  expect(markdown).toContain("- **`reviewer`** — pre-merge review passes.");
+  expect(markdown).toContain("safe to fan out freely");
+  // An empty roster behaves like no roster.
+  expect(buildSubagentMarkdown("repo", [])).not.toContain("### Choosing a subagent");
 });

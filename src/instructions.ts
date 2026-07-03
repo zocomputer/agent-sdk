@@ -163,9 +163,32 @@ export function createHitlInstruction() {
   });
 }
 
+/** One declared subagent the delegation playbook should route work to. */
+export interface SubagentRosterEntry {
+  /** The subagent's tool name (its `agent/subagents/<id>/` directory name). */
+  readonly name: string;
+  /** When the parent should pick it, e.g. "read-only codebase questions". */
+  readonly when: string;
+}
+
 /** Pure markdown for the subagent delegation playbook. */
-export function buildSubagentMarkdown(workspaceNoun = "workspace"): string {
+export function buildSubagentMarkdown(
+  workspaceNoun = "workspace",
+  roster?: readonly SubagentRosterEntry[],
+): string {
   const noun = workspaceNoun;
+  const rosterSection =
+    roster && roster.length > 0
+      ? `
+
+### Choosing a subagent
+
+Beyond the clone, you have declared specialists — each is its own tool with the same \`{ message, outputSchema? }\` input:
+
+${roster.map((entry) => `- **\`${entry.name}\`** — ${entry.when}.`).join("\n")}
+
+Prefer a specialist when the task matches its purpose; use the clone \`agent\` for subtasks that edit files. A specialist that cannot write (a read-only explorer) is safe to fan out freely — the non-overlapping write-scope rule only applies to children that edit.`
+      : "";
   return `## Delegating with the agent tool
 
 \`agent\` runs a focused subtask in a **fresh copy of yourself** — same tools and instructions, same ${noun}, but a **blank conversation**: the child sees only the \`message\` you send, none of your history. It's how you parallelize.
@@ -174,18 +197,22 @@ export function buildSubagentMarkdown(workspaceNoun = "workspace"): string {
 - **Fan out independent subtasks in parallel**: emit several \`agent\` calls in one response — they run concurrently and all results return before you continue. Fan out only work that's genuinely independent.
 - **Give parallel children non-overlapping write scopes** (different files or directories). They share your ${noun} and see each other's writes; overlapping edits clobber.
 - **Don't delegate trivia.** A subtask that one or two direct tool calls would answer is faster done yourself; delegation pays off for self-contained work with real depth (multi-file exploration, an isolated fix + verify, a report).
-- Set \`outputSchema\` when you need structured output back instead of prose.`;
+- Set \`outputSchema\` when you need structured output back instead of prose.${rosterSection}`;
 }
 
 /**
  * Delegation guidance for eve's built-in `agent` tool (a clone of the calling
- * agent). eve ships the tool but no playbook, and models under-use it or pack
- * children with too little context without one. Static markdown, session-stable
- * (prompt-cache safe), parameterized only at build time.
+ * agent) and, when `roster` names declared subagents, the routing guidance
+ * between them. eve ships the tools but no playbook, and models under-use
+ * them or pack children with too little context without one. Static markdown,
+ * session-stable (prompt-cache safe), parameterized only at build time.
  */
-export function createSubagentInstruction(opts?: { workspaceNoun?: string }) {
+export function createSubagentInstruction(opts?: {
+  workspaceNoun?: string;
+  roster?: readonly SubagentRosterEntry[];
+}) {
   const instruction = defineInstructions({
-    markdown: buildSubagentMarkdown(opts?.workspaceNoun),
+    markdown: buildSubagentMarkdown(opts?.workspaceNoun, opts?.roster),
   });
 
   return defineDynamic({

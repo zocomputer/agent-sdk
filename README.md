@@ -130,6 +130,60 @@ export default createParkDeliveryHook();
 That's the whole setup. Everything is also exported à la carte
 (`createReadTool`, `createCommandRunner`, …) if you'd rather compose a subset.
 
+### 6. Optional: declare an explore subagent
+
+A read-only child the parent can fan out aggressively for codebase questions —
+cheap (give it a fast model), and safe by construction because it cannot
+write. Declared under `agent/subagents/explore/`:
+
+```ts
+// agent/subagents/explore/agent.ts — the child's identity + fast model
+import { createExploreAgent } from "@zocomputer/agent-sdk";
+export default createExploreAgent({ model: "anthropic/claude-haiku-4.5" });
+
+// agent/subagents/explore/instructions.ts — the child's operating contract
+import { createExploreInstruction } from "@zocomputer/agent-sdk";
+export default createExploreInstruction({ workspaceNoun: "repo" });
+
+// agent/subagents/explore/tools/read.ts (and glob.ts, grep.ts)
+import { exploreTools } from "../lib/explore-tools"; // your createExploreTools(...) instance
+export default exploreTools.read;
+```
+
+**The critical part: a declared subagent inherits nothing from the root.** An
+absent `tools/` slot falls back to eve's *framework defaults* — `bash`,
+`write_file`, full write capability. Read-only must be constructed: besides
+the three tools, ship a `disableTool()` shim for every entry in
+`EXPLORE_DISABLED_BUILTINS` (`agent`, `ask_question`, `bash`, `load_skill`,
+`read_file`, `todo`, `web_fetch`, `web_search`, `write_file` — everything in
+the default harness that writes, parks, recurses, or pads the one-question
+surface):
+
+```ts
+// agent/subagents/explore/tools/bash.ts — one per disabled builtin
+import { disableTool } from "eve/tools";
+export default disableTool();
+```
+
+Add a test that diffs the `tools/` directory against
+`EXPLORE_TOOL_NAMES` + `EXPLORE_DISABLED_BUILTINS`, so a forgotten shim (=
+silently resurrected write capability) fails CI instead of shipping.
+
+Finally, tell the parent when to route to it — pass a roster to the stdlib and
+the `subagents` instruction grows a "Choosing a subagent" section:
+
+```ts
+const stdlib = createStdlib({
+  // …
+  subagentRoster: [
+    { name: "explore", when: "read-only codebase questions — how/where/what — where you need an answer, not an edit" },
+  ],
+});
+```
+
+Hooks aren't inherited either: if your agent logs sessions via a hook, re-export
+it under `agent/subagents/explore/hooks/` or child sessions won't be recorded.
+
 ## Example
 
 [`examples/coder`](./examples/coder) is a complete, minimal eve coding agent
