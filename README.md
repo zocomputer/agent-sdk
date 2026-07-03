@@ -14,12 +14,15 @@ want a subset.
 ## Install
 
 ```sh
-bun add @zocomputer/agent-sdk
-# or: npm install @zocomputer/agent-sdk
+bun add @zocomputer/agent-sdk@github:zocomputer/agent-sdk#v0.3.0
 ```
 
-`eve` and `zod` are peer dependencies. The package ships plain TypeScript (no
-build step), matching how eve projects run.
+Each release is a `v<version>` tag on this repo; pin one. (The npm publish
+isn't bootstrapped yet — until it is, this repo is the registry.)
+
+`eve`, `zod`, and `ai` are peer dependencies. Runtime imports load built JS
+from `dist/` (Node won't load raw TS out of `node_modules`); types resolve
+straight from the TypeScript source shipped alongside it.
 
 ## Quick start
 
@@ -321,6 +324,30 @@ channel into a running turn. The SDK's channel rides the tool results:
   (`STEER_FIELD`, `SteerMessage`, `readSteerMessages`, …), so UI clients can
   project delivered steers into user-message bubbles without pulling in the
   extraction deps.
+
+## Zo platform modules (`platform/`)
+
+Everything above is the generic stdlib — nothing in it assumes Zo. The
+published artifact additionally vendors the Zo platform packages under
+`platform/`, exposed as subpath exports, so an agent deployed on Zo installs
+its whole harness from this one dependency:
+
+| Import | What it is |
+| --- | --- |
+| `@zocomputer/agent-sdk/sandbox` | `zoSandbox()` — the Zo sandbox backend for eve's `agent/sandbox.ts` slot. The runtime holds no provider key; it asks the Zo control plane (`ZO_API_URL`, authenticated by `ZO_AGENT_TOKEN`) for a scoped, short-lived SSH session. |
+| `@zocomputer/agent-sdk/ai` (+ `/ai/gateway`, `/ai/register`, `/ai/session-fetch`) | The Zo AI provider layer. `import "@zocomputer/agent-sdk/ai/register"` (first in `agent.ts`) points the AI SDK's default provider at Zo's metering gateway so bare catalog model slugs work. |
+| `@zocomputer/agent-sdk/cloud-tools` (+ `/image`, `/web-search`) | The default Zo cloud tools: `generate_image` and the Exa web-search factory, built on the gateway. |
+| `@zocomputer/agent-sdk/runtime-auth` | The agent-token contract (header/env names, mint/verify) shared with the Zo control plane. |
+
+These modules assume Zo's control plane and are inert elsewhere; `ai` joins
+`eve`/`zod` as a peer dependency (the `/ai/register` side effect must mutate
+*your* `ai` instance), and `platform/agent-sandbox` brings `ssh2` (its native
+addon is optional — the pure-JS fallback is fine).
+
+In the [Zo monorepo](https://github.com/zocomputer/zov2-code) these are
+separate workspace packages; the mirror sync composes them into this one
+package so a deployed agent's `package.json` needs a single
+`github:zocomputer/agent-sdk#<ref>` (or npm) dependency.
 
 ## Notes for the eve maintainers
 

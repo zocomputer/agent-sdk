@@ -17,9 +17,11 @@
     "types": [
       "bun"
     ],
-    "verbatimModuleSyntax": true
+    "verbatimModuleSyntax": true,
+    "allowImportingTsExtensions": true
   },
   "include": [
-    "src/**/*.ts"
+    "src/**/*.ts",
+    "platform/**/*.ts"
   ]
 }
