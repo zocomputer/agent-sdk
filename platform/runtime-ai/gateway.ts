@@ -35,7 +35,11 @@ export function resolveZoGatewayApiKey(
   return trimmed && trimmed.length > 0 ? trimmed : DEFAULT_ZO_AI_KEY;
 }
 
-export function zoGateway(options: ZoGatewayOptions = {}) {
+// Explicit return type: the inferred one names @ai-sdk/gateway's GatewayProvider
+// through a store-internal path, which the d.ts build rejects as non-portable.
+export function zoGateway(
+  options: ZoGatewayOptions = {},
+): ReturnType<typeof createGateway> {
   return createGateway({
     ...options,
     apiKey: resolveZoGatewayApiKey(options.apiKey),
