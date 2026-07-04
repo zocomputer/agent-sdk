@@ -3,7 +3,7 @@ import { mkdirSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from "nod
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import type { ToolContext } from "eve/tools";
-import { readImageChatAttachment } from "./attachments";
+import { readChatAttachment } from "./attachments";
 import {
   buildExploreDescription,
   buildExploreMarkdown,
@@ -110,7 +110,7 @@ describe("createExploreTools", () => {
   test("images never inline as chat attachments (no park-delivery hook in the child)", async () => {
     const result = await tools.read.execute({ path: "pic.png" }, ctx);
     expect(result).toMatchObject({ path: "pic.png", source: "image" });
-    expect(readImageChatAttachment(result)).toBeNull();
+    expect(readChatAttachment(result)).toBeNull();
     // The note must not tell an ask_question-less child to ask the user.
     if (!("note" in result) || typeof result.note !== "string") throw new Error("expected a note");
     expect(result.note).not.toContain("ask the user");

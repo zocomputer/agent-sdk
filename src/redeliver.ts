@@ -1,18 +1,19 @@
-// Image redelivery: decide, from the runtime event stream, when a read image
-// should be re-sent to the session as a real user message part.
+// Media redelivery: decide, from the runtime event stream, when a read
+// image/video/audio file should be re-sent to the session as a real user
+// message part.
 //
-// eve tool results are text/json, so `read` smuggles image bytes out on its raw
+// eve tool results are text/json, so `read` smuggles media bytes out on its raw
 // result under CHAT_ATTACHMENT_FIELD (model-hidden via toModelOutput — see
 // ./attachments.ts). Hooks receive that raw output on `action.result`, and
 // `session.waiting` marks the session parked and deliverable. This module is
-// the image-flavored client of the generic park-delivery core
+// the media-flavored client of the generic park-delivery core
 // (./park-delivery.ts): extraction + message shape live here, the
 // queue/park/settle state machine lives there, and the effectful hook
 // (./hooks.ts) performs the actual send.
 
 import {
-  readImageChatAttachment,
-  type ImageChatAttachment,
+  readChatAttachment,
+  type ChatAttachment,
 } from "./attachments";
 import {
   clientContinuationToken,
@@ -27,11 +28,11 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 export interface PendingRedelivery {
   readonly toolCallId: string;
-  readonly attachment: ImageChatAttachment;
+  readonly attachment: ChatAttachment;
 }
 
 /**
- * Extract a read-image attachment from an `action.result` stream event, if the
+ * Extract a read-media attachment from an `action.result` stream event, if the
  * completed tool's raw output carries one. Structural (no eve types) and
  * tool-name-agnostic: any tool that returns a `CHAT_ATTACHMENT_FIELD` payload
  * participates.
@@ -42,7 +43,7 @@ export function redeliveryFromEvent(event: unknown): PendingRedelivery | null {
   const result = event.data.result;
   if (!isRecord(result) || result.kind !== "tool-result") return null;
   if (typeof result.callId !== "string" || result.callId.length === 0) return null;
-  const attachment = readImageChatAttachment(result.output);
+  const attachment = readChatAttachment(result.output);
   if (!attachment) return null;
   return { toolCallId: result.callId, attachment };
 }
@@ -58,9 +59,9 @@ export type RedeliveryMessagePart =
     };
 
 /**
- * Build the user turn that carries the pending images. A short text part names
+ * Build the user turn that carries the pending media. A short text part names
  * the files (so transcripts show what arrived); the file parts carry the
- * pixels the model was promised by read's "queued" note.
+ * bytes the model was promised by read's "queued" note.
  */
 export function buildRedeliveryMessage(
   pending: readonly PendingRedelivery[],
@@ -85,16 +86,16 @@ export interface RedeliveryRequest {
 
 /**
  * Per-process redelivery state across sessions: the generic park-delivery
- * state machine specialized to read-image attachments. Feed it every stream
+ * state machine specialized to read-media attachments. Feed it every stream
  * event via `observe`; it returns a `RedeliveryRequest` exactly when a parked
- * session has images to deliver. The caller performs the send and reports back
- * with `settle` — on failure the images re-queue for the session's next park.
+ * session has media to deliver. The caller performs the send and reports back
+ * with `settle` — on failure the media re-queue for the session's next park.
  *
  * Dedup is by tool call id for the session's lifetime in this process, so an
- * image never delivers twice even if a failed send races a user message.
+ * attachment never delivers twice even if a failed send races a user message.
  */
 export function createRedeliveryState() {
-  const core = createParkDeliveryState<ImageChatAttachment>();
+  const core = createParkDeliveryState<ChatAttachment>();
 
   function toRequest(
     request: ReturnType<typeof core.observe>,
@@ -120,9 +121,9 @@ export function createRedeliveryState() {
       event: unknown,
       meta: { readonly sessionId: string; readonly continuationToken?: string },
     ): RedeliveryRequest | null {
-      // Observe first: an image always arrives on an action.result (a
+      // Observe first: an attachment always arrives on an action.result (a
       // non-waiting event), so enqueue never fires an immediate delivery here
-      // — images release on the park, exactly as before the extraction.
+      // — media release on the park, exactly as before the extraction.
       const request = toRequest(core.observe(event, meta));
       const found = redeliveryFromEvent(event);
       if (found) {

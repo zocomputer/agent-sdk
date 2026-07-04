@@ -11,7 +11,7 @@ import {
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import type { ToolContext } from "eve/tools";
-import { readImageChatAttachment } from "./attachments";
+import { readChatAttachment } from "./attachments";
 import { createStdlib } from "./index";
 import {
   __resetParkNotificationBridgeForTests,
@@ -32,6 +32,15 @@ writeFileSync(join(root, "src/app.ts"), "export const answer = 42; // the answer
 const fixture = (name: string) => new URL(`extract/fixtures/${name}`, import.meta.url).pathname;
 copyFileSync(fixture("two-page.pdf"), join(root, "doc.pdf"));
 copyFileSync(fixture("tiny.png"), join(root, "pic.png"));
+// A minimal ISO BMFF header is all `read` inspects — no real footage needed.
+writeFileSync(
+  join(root, "clip.mp4"),
+  Buffer.concat([Buffer.from([0, 0, 0, 0x18]), Buffer.from("ftypisom"), Buffer.alloc(24)]),
+);
+writeFileSync(
+  join(root, "song.mp3"),
+  Buffer.concat([Buffer.from("ID3\x04\x00"), Buffer.alloc(16)]),
+);
 
 const stdlib = createStdlib({
   workspaceRoot: root,
@@ -109,7 +118,7 @@ describe("read tool", () => {
     expect(result).toMatchObject({ path: "pic.png", source: "image", format: "png" });
 
     // Bytes ride the raw result under the attachment field...
-    const attachment = readImageChatAttachment(result);
+    const attachment = readChatAttachment(result);
     if (!attachment) throw new Error("expected a chat attachment on the result");
     expect(attachment.mediaType).toBe("image/png");
     expect(attachment.filename).toBe("pic.png");
@@ -118,7 +127,7 @@ describe("read tool", () => {
     // ...but toModelOutput strips them, so the model only sees metadata + note.
     const model = await stdlib.tools.read.toModelOutput?.(result);
     if (!model || model.type !== "json") throw new Error("expected json model output");
-    expect(readImageChatAttachment(model.value)).toBeNull();
+    expect(readChatAttachment(model.value)).toBeNull();
     const value = model.value as Record<string, unknown>;
     expect(value.source).toBe("image");
     expect(typeof value.note).toBe("string");
@@ -133,7 +142,7 @@ describe("read tool", () => {
     });
     const result = await plain.tools.read.execute({ path: "pic.png" }, ctx);
     expect(result).toMatchObject({ path: "pic.png", source: "image" });
-    expect(readImageChatAttachment(result)).toBeNull();
+    expect(readChatAttachment(result)).toBeNull();
     if (!("note" in result) || typeof result.note !== "string") throw new Error("expected a note");
     expect(result.note).toContain("ask the user");
   });
@@ -145,7 +154,63 @@ describe("read tool", () => {
       maxInlineImageBytes: 1,
     });
     const result = await capped.tools.read.execute({ path: "pic.png" }, ctx);
-    expect(readImageChatAttachment(result)).toBeNull();
+    expect(readChatAttachment(result)).toBeNull();
+    if (!("note" in result) || typeof result.note !== "string") throw new Error("expected a note");
+    expect(result.note).toContain("too large");
+  });
+
+  test("video/audio reads return metadata only by default", async () => {
+    const video = await stdlib.tools.read.execute({ path: "clip.mp4" }, ctx);
+    expect(video).toMatchObject({
+      path: "clip.mp4",
+      source: "video",
+      format: "mp4",
+      mediaType: "video/mp4",
+    });
+    expect(readChatAttachment(video)).toBeNull();
+    if (!("note" in video) || typeof video.note !== "string") throw new Error("expected a note");
+    expect(video.note).toContain("not enabled");
+
+    const audio = await stdlib.tools.read.execute({ path: "song.mp3" }, ctx);
+    expect(audio).toMatchObject({ source: "audio", format: "mp3", mediaType: "audio/mpeg" });
+    expect(readChatAttachment(audio)).toBeNull();
+  });
+
+  test("attachVideoToChat/attachAudioToChat opt into media attachments", async () => {
+    const multimodal = createStdlib({
+      workspaceRoot: root,
+      stateDir: join(root, ".agent-media"),
+      attachVideoToChat: true,
+      attachAudioToChat: true,
+    });
+    expect(multimodal.tools.read.description).toContain("image or video or audio files");
+
+    const video = await multimodal.tools.read.execute({ path: "clip.mp4" }, ctx);
+    const attachment = readChatAttachment(video);
+    if (!attachment) throw new Error("expected a chat attachment on the result");
+    expect(attachment.kind).toBe("video");
+    expect(attachment.mediaType).toBe("video/mp4");
+    expect(attachment.filename).toBe("clip.mp4");
+    expect(attachment.dataUrl.startsWith("data:video/mp4;base64,")).toBe(true);
+
+    // toModelOutput strips the bytes for media too.
+    const model = await multimodal.tools.read.toModelOutput?.(video);
+    if (!model || model.type !== "json") throw new Error("expected json model output");
+    expect(readChatAttachment(model.value)).toBeNull();
+
+    const audio = await multimodal.tools.read.execute({ path: "song.mp3" }, ctx);
+    expect(readChatAttachment(audio)?.kind).toBe("audio");
+  });
+
+  test("media over the inline cap falls back to the metadata note", async () => {
+    const capped = createStdlib({
+      workspaceRoot: root,
+      stateDir: join(root, ".agent-media-capped"),
+      attachVideoToChat: true,
+      maxInlineMediaBytes: 1,
+    });
+    const result = await capped.tools.read.execute({ path: "clip.mp4" }, ctx);
+    expect(readChatAttachment(result)).toBeNull();
     if (!("note" in result) || typeof result.note !== "string") throw new Error("expected a note");
     expect(result.note).toContain("too large");
   });

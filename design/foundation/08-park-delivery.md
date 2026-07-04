@@ -8,7 +8,9 @@ queues keyed items per session, and `createParkDeliveryHook` watches the
 runtime stream from inside the agent's own server process and, the moment the
 session parks, sends the batch back into the session over loopback
 `eve/client` — exactly like a user hitting send. The first clients are
-`read`/`webfetch` **image bytes** (riding the chat-attachment contract) and
+`read`/`webfetch` **media bytes** (riding the chat-attachment contract —
+images by default, video/audio behind opt-in flags since model support is
+provider-gated and eve's hydration whitelist is image/PDF-only today) and
 background-task **`notify` matches** ([07](./07-background-tasks.md)); the
 steering backstop rides it too ([12](./12-mid-turn-steering.md)).
 

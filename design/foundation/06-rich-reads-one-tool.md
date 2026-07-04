@@ -7,11 +7,11 @@ the existing `read` window** — same tool, same offset/limit pagination, same
 output budget. `read` sniffs the file kind after its stat guard (extension
 confirmed by magic bytes) and routes: PDF → per-page text via PDFium WASM with
 `=== page N of M ===` markers, DOCX → raw text, spreadsheets → per-sheet TSV
-with dimension headers. Images return structured metadata (the bytes reach the
-model separately — see [08](./08-park-delivery.md)). Unknown binary gets a
-structured rejection naming the detected type. `webfetch` routes fetched
-documents through the same extractors, so a URL and a local file read
-identically.
+with dimension headers. Images — and, behind opt-in flags, video/audio —
+return structured metadata (the bytes reach the model separately — see
+[08](./08-park-delivery.md)). Unknown binary gets a structured rejection
+naming the detected type. `webfetch` routes fetched documents through the
+same extractors, so a URL and a local file read identically.
 
 ## Why: reuse the reading interface the model already knows
 

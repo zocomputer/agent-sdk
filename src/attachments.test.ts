@@ -1,11 +1,11 @@
 import { describe, expect, test } from "bun:test";
 import {
   CHAT_ATTACHMENT_FIELD,
-  readImageChatAttachment,
+  readChatAttachment,
 } from "./attachments";
 
-describe("readImageChatAttachment", () => {
-  const valid = {
+describe("readChatAttachment", () => {
+  const validImage = {
     kind: "image" as const,
     dataUrl: "data:image/png;base64,iVBORw0KGgo=",
     mediaType: "image/png",
@@ -14,20 +14,39 @@ describe("readImageChatAttachment", () => {
     height: 2,
   };
 
-  test("reads a well-formed attachment off a tool result", () => {
-    const result = { source: "image", [CHAT_ATTACHMENT_FIELD]: valid };
-    expect(readImageChatAttachment(result)).toEqual(valid);
+  test("reads a well-formed image attachment off a tool result", () => {
+    const result = { source: "image", [CHAT_ATTACHMENT_FIELD]: validImage };
+    expect(readChatAttachment(result)).toEqual(validImage);
   });
 
-  test("defaults filename and dimensions when absent", () => {
-    const result = {
-      [CHAT_ATTACHMENT_FIELD]: {
-        kind: "image",
-        dataUrl: "data:image/gif;base64,AA==",
-        mediaType: "image/gif",
-      },
+  test("reads video and audio attachments", () => {
+    const video = {
+      kind: "video" as const,
+      dataUrl: "data:video/mp4;base64,AAAAGGZ0eXA=",
+      mediaType: "video/mp4",
+      filename: "clip.mp4",
     };
-    expect(readImageChatAttachment(result)).toEqual({
+    expect(readChatAttachment({ [CHAT_ATTACHMENT_FIELD]: video })).toEqual(video);
+
+    const audio = {
+      kind: "audio" as const,
+      dataUrl: "data:audio/mpeg;base64,SUQz",
+      mediaType: "audio/mpeg",
+      filename: "song.mp3",
+    };
+    expect(readChatAttachment({ [CHAT_ATTACHMENT_FIELD]: audio })).toEqual(audio);
+  });
+
+  test("defaults filename (and image dimensions) when absent", () => {
+    expect(
+      readChatAttachment({
+        [CHAT_ATTACHMENT_FIELD]: {
+          kind: "image",
+          dataUrl: "data:image/gif;base64,AA==",
+          mediaType: "image/gif",
+        },
+      }),
+    ).toEqual({
       kind: "image",
       dataUrl: "data:image/gif;base64,AA==",
       mediaType: "image/gif",
@@ -35,27 +54,66 @@ describe("readImageChatAttachment", () => {
       width: null,
       height: null,
     });
+    expect(
+      readChatAttachment({
+        [CHAT_ATTACHMENT_FIELD]: {
+          kind: "video",
+          dataUrl: "data:video/webm;base64,AA==",
+          mediaType: "video/webm",
+        },
+      }),
+    ).toEqual({
+      kind: "video",
+      dataUrl: "data:video/webm;base64,AA==",
+      mediaType: "video/webm",
+      filename: "video",
+    });
+    expect(
+      readChatAttachment({
+        [CHAT_ATTACHMENT_FIELD]: {
+          kind: "audio",
+          dataUrl: "data:audio/wav;base64,AA==",
+          mediaType: "audio/wav",
+        },
+      }),
+    ).toEqual({
+      kind: "audio",
+      dataUrl: "data:audio/wav;base64,AA==",
+      mediaType: "audio/wav",
+      filename: "audio",
+    });
   });
 
   test("returns null when there is no attachment", () => {
-    expect(readImageChatAttachment({ source: "image", note: "…" })).toBeNull();
-    expect(readImageChatAttachment({ content: "line 1" })).toBeNull();
+    expect(readChatAttachment({ source: "image", note: "…" })).toBeNull();
+    expect(readChatAttachment({ content: "line 1" })).toBeNull();
   });
 
   test("returns null for malformed / non-object input", () => {
-    expect(readImageChatAttachment(null)).toBeNull();
-    expect(readImageChatAttachment("nope")).toBeNull();
-    expect(readImageChatAttachment([valid])).toBeNull();
+    expect(readChatAttachment(null)).toBeNull();
+    expect(readChatAttachment("nope")).toBeNull();
+    expect(readChatAttachment([validImage])).toBeNull();
+    // Unknown kind.
     expect(
-      readImageChatAttachment({ [CHAT_ATTACHMENT_FIELD]: { kind: "video" } }),
+      readChatAttachment({
+        [CHAT_ATTACHMENT_FIELD]: {
+          kind: "hologram",
+          dataUrl: "data:application/octet-stream;base64,AA==",
+          mediaType: "application/octet-stream",
+        },
+      }),
+    ).toBeNull();
+    // Missing / empty required fields.
+    expect(
+      readChatAttachment({ [CHAT_ATTACHMENT_FIELD]: { kind: "video" } }),
     ).toBeNull();
     expect(
-      readImageChatAttachment({
+      readChatAttachment({
         [CHAT_ATTACHMENT_FIELD]: { kind: "image", mediaType: "image/png" },
       }),
     ).toBeNull();
     expect(
-      readImageChatAttachment({
+      readChatAttachment({
         [CHAT_ATTACHMENT_FIELD]: { kind: "image", dataUrl: "", mediaType: "image/png" },
       }),
     ).toBeNull();

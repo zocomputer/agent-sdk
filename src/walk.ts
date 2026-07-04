@@ -7,8 +7,10 @@ import ignore, { type Ignore } from "ignore";
 // nested, and ancestors between `base` and `root` for scoped walks) rather
 // than duplicating the repo's ignore list here. The hardcoded set is only a
 // safety net for trees with no `.gitignore` at all: VCS stores plus the one
-// universally-huge dependency dir.
-const ALWAYS_IGNORED = new Set([".git", ".jj", ".hg", ".svn", "node_modules"]);
+// universally-huge dependency dir. Exported so the sandbox search backend
+// (../sandbox-io.ts) applies the same unconditional skips — the two backends
+// must not drift on what a search can wander into.
+export const ALWAYS_IGNORED = new Set([".git", ".jj", ".hg", ".svn", "node_modules"]);
 
 // One .gitignore's matcher, scoped to the directory that holds it. `prefix` is
 // that directory relative to the walk base (forward-slash, "" for the base

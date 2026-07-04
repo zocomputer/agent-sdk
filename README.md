@@ -14,7 +14,7 @@ want a subset.
 ## Install
 
 ```sh
-bun add @zocomputer/agent-sdk@github:zocomputer/agent-sdk#v0.3.0
+bun add @zocomputer/agent-sdk@github:zocomputer/agent-sdk#v0.4.0
 ```
 
 Each release is a `v<version>` tag on this repo; pin one. (The npm publish
@@ -95,8 +95,8 @@ export default disableTool();
 ### 4. Register the instructions
 
 The stdlib ships the operational prose alongside the tools — the workflow,
-communication, and HITL contracts that make a coding agent behave well. One
-re-export file per instruction under
+communication, and HITL contracts that make a coding agent behave well, not
+just the file operations. One re-export file per instruction under
 `agent/instructions/`:
 
 ```ts
@@ -120,8 +120,8 @@ your agent's identity as your own instruction file (see the example's
 
 ### 5. Register the park-delivery hook
 
-One hook file makes `read` images actually reach the model (see
-[Media reads](#media-reads-images)) and delivers background-task
+One hook file makes `read` media actually reach the model (see
+[Media reads](#media-reads-images-video-audio)) and delivers background-task
 notifications (see [Tool behavior](#tool-behavior)):
 
 ```ts
@@ -214,7 +214,9 @@ The names are deliberately boring; the behavior behind them is the point:
   PDF (PDFium via `clawpdf`), DOCX (`mammoth`), and spreadsheet (`.xlsx`/
   `.xlsm`/`.xls`/`.ods` via SheetJS, TSV per sheet) → text, and UTF-16 BOM
   decode. Reading an **image** returns metadata and queues the pixels to appear
-  as a viewable attachment on the next turn (see [Media reads](#media-reads-images)).
+  as a viewable attachment on the next turn; **video/audio** reads return
+  metadata (format, MIME type, bytes) and can queue the same way where the
+  model supports it (see [Media reads](#media-reads-images-video-audio)).
   No-extractor formats fail with a named, actionable error; extraction is cached
   by path + stat. The first read under a directory with its own `AGENTS.md`
   attaches that file to the result (`directory_conventions`), **once per
@@ -249,6 +251,50 @@ The names are deliberately boring; the behavior behind them is the point:
   hook (Quick start step 5): notifications queue until the session parks and
   then start its next turn, exactly like a user message.
 
+## Sandbox-backed file tools (split topologies)
+
+`createStdlib`'s file tools do `node:fs` against the process's own disk —
+right when the eve process and the workspace share a machine (a local coding
+agent, the coder example). On a **split topology** — eve on a serverless
+function, the workspace in a remote sandbox (`ctx.getSandbox()`) — that would
+read the harness's filesystem, not the workspace. For that case the same
+tools run over the sandbox session:
+
+```ts
+// agent/lib/file-tools.ts
+import { createSandboxFileTools } from "@zocomputer/agent-sdk";
+
+export const fileTools = createSandboxFileTools({
+  workspaceRoot: "/workspace", // absolute path INSIDE the sandbox
+  spillDir: "/workspace/.agent/tool-outputs", // grep overflow, readable by `read`
+});
+// then re-export fileTools.tools.read / edit / write / glob / grep per file,
+// with disableTool() shims for eve's read_file/write_file (glob/grep shadow
+// the built-ins by name), exactly like the Quick start.
+```
+
+Every effect routes through the session sandbox, resolved per tool call:
+bytes over `readBinaryFile`/`writeBinaryFile`, stat/list/search executed
+remotely via `run` (ripgrep when present, POSIX grep fallback) so a search
+never pulls file contents over the wire. The rich-read pipeline (extraction,
+media detection, attachments, `AGENTS.md` riders) is byte-identical to the
+local backend — a shared conformance suite pins the two together. `bash` and
+the task machinery stay host-side by design: on a sandboxed runtime, keep
+eve's built-in `bash` (already sandbox-native).
+
+Under the hood this is one seam: every file tool takes an `io:
+WorkspaceIoProvider` (default local `node:fs`), and `createSandboxIo` /
+`sandboxIoProvider` implement it over a structural `SandboxSessionLike` that
+eve's `SandboxSession` satisfies. A custom backend (e.g. a bootstrap step
+before first use) plugs in via `resolveSession`.
+
+One default flips versus `createStdlib`: `attachImagesToChat` is **false**
+here. The attachment path needs the park-delivery hook and a runtime that can
+send itself the next-turn message over loopback — unvalidated on hosted
+serverless runtimes — so until a consumer wires and verifies that leg, image
+reads return the honest metadata-only note instead of a "queued" promise that
+never delivers.
+
 ## Design rules
 
 The full rationale — each foundational decision, why we made it, and the
@@ -271,17 +317,17 @@ version:
   discriminated unions, `eve` + `zod` as peers, WASM/pure-JS extraction deps
   (no native postinstalls).
 
-## Media reads (images)
+## Media reads (images, video, audio)
 
 eve tool results are text/json only, so `read` can't hand the model an image
-directly. The workaround: for an image under `maxInlineImageBytes` (5 MB
-default), `read` embeds the bytes as a `data:` URL on its **raw** result under a
-model-hidden field, and its `toModelOutput` strips that field. The model sees
-only metadata + a note; the **park-delivery hook** (`createParkDeliveryHook`,
-one file in `agent/hooks/` — Quick start step 5) watches the runtime stream from
-inside the agent's own server process and, when the session parks, sends the
-images back into the session as a real user turn over loopback. The model sees
-the pixels on its next turn with no browser, cockpit, or user action involved.
+directly. The workaround: for media under the inline cap, `read` embeds the
+bytes as a `data:` URL on its **raw** result under a model-hidden field, and
+its `toModelOutput` strips that field. The model sees only metadata + a note;
+the **park-delivery hook** (`createParkDeliveryHook`, one file in
+`agent/hooks/` — Quick start step 5) watches the runtime stream from inside
+the agent's own server process and, when the session parks, sends the media
+back into the session as a real user turn over loopback. The model sees the
+pixels on its next turn with no browser, cockpit, or user action involved.
 (The same hook delivers background-task notifications — see
 [Tool behavior](#tool-behavior).)
 
@@ -290,17 +336,31 @@ the pixels on its next turn with no browser, cockpit, or user action involved.
   Delivery is deduped per tool call, retried briefly on a racing send, and
   re-queued for the next park if it still fails.
 - The contract + a dependency-free reader live at
-  **`@zocomputer/agent-sdk/attachments`** (`readImageChatAttachment(output)` →
-  `ImageChatAttachment | null`), so UI clients that want to render or track the
-  attachments import it without the extraction deps. The pure decision core
-  (`redeliveryFromEvent`, `createRedeliveryState`, `buildRedeliveryMessage`) is
-  exported for hosts that would rather run delivery elsewhere.
-- Options: `createStdlib`'s `attachImagesToChat` (default `true`) and
-  `maxInlineImageBytes` (default 5 MB; larger images fall back to the
-  metadata-only "ask the user" note); `createParkDeliveryHook`'s `serverUrl`
-  (defaults to loopback on `$PORT`, eve dev's 2000 otherwise) and `log`.
-  An agent that skips the hook gets the metadata note (the bytes ride
-  the stream unused — turn inlining off with `attachImagesToChat: false`).
+  **`@zocomputer/agent-sdk/attachments`** (`readChatAttachment(output)` →
+  `ChatAttachment | null`, kinds `image`/`video`/`audio`), so UI clients that
+  want to render or track the attachments import it without the extraction
+  deps. The pure decision core (`redeliveryFromEvent`, `createRedeliveryState`,
+  `buildRedeliveryMessage`) is exported for hosts that would rather run
+  delivery elsewhere.
+- **Images** attach by default: `attachImagesToChat` (default `true`) and
+  `maxInlineImageBytes` (default 3 MiB — eve's attachment staging inlines
+  images up to that size at model-call time and text-stubs bigger ones, so the
+  cap keeps the "queued" promise truthful; larger images fall back to the
+  metadata-only "ask the user" note).
+- **Video/audio are opt-in**: `attachVideoToChat` / `attachAudioToChat`
+  (default `false`) and `maxInlineMediaBytes` (default 10 MB, read's stat
+  guard). Two gates must hold before enabling them: your **model** takes that
+  medium (Gemini accepts video/audio file parts; Claude and most others don't
+  — an unsupported part fails the delivery turn), and your **runtime** passes
+  them through (eve's attachment staging currently hydrates only images ≤3 MiB
+  and PDFs ≤20 MiB back into the model call; anything else becomes an
+  "Attached file …" text stub — see the eve-maintainer notes below). Until
+  both hold, video/audio reads return honest metadata + a note steering to
+  bash extraction (e.g. ffmpeg frames read back as images).
+- `createParkDeliveryHook`'s `serverUrl` (defaults to loopback on `$PORT`, eve
+  dev's 2000 otherwise) and `log`. An agent that skips the hook simply gets
+  the metadata note (the bytes ride the stream unused — turn inlining off with
+  `attachImagesToChat: false`).
 
 ## Steering (mid-turn messages)
 
@@ -360,11 +420,41 @@ keep working around:
 - **Multimodal tool results.** `ToolModelOutput` is `text | json` only, so
   `read` can't return an image directly — we work around it by smuggling the
   bytes past on the raw result and having a hook send them back as the next
-  user turn (see [Media reads](#media-reads-images)), which costs an extra turn
-  and an extra copy of the bytes in the durable stream. `@workflow/ai`'s
-  DurableAgent already merged multimodal tool-result pass-through (`type: "content"`,
-  vercel/workflow#848 → #1385); exposing that through eve's tool surface would
-  let `read` return real image blocks and delete the whole workaround.
+  user turn (see [Media reads](#media-reads-images-video-audio)), which costs
+  an extra turn and an extra copy of the bytes in the durable stream.
+  `@workflow/ai`'s DurableAgent already merged multimodal tool-result
+  pass-through (`type: "content"`, vercel/workflow#848 → #1385); exposing that
+  through eve's tool surface would let `read` return real image blocks and
+  delete the whole workaround. We've worked the design to change-list
+  precision — including the storage-independent persistence policy (stub-first
+  history + an in-process byte cache, so the model sees media the turn it read
+  them and degrades gracefully to a text stub across process boundaries) and
+  the per-provider degrade table it needs (Anthropic's tool-result converter
+  warn-drops non-image/PDF media; OpenAI chat completions would stringify
+  base64 — the opencode blowup) — in
+  [`design/proposals/eve-content-tool-results.md`](./design/proposals/eve-content-tool-results.md).
+- **Attachment hydration is image/PDF-only.** The staging pipeline
+  (`attachment-staging.ts`) stages every inbound file part to the sandbox, but
+  `shouldInlineSandboxRefAsBytes` re-inlines only `image/*` ≤3 MiB and
+  `application/pdf` ≤20 MiB at model-call time — every other media type
+  (video, audio) hydrates as an `Attached file …` text stub even when the
+  session's model accepts it. That silently blocks video/audio delivery on any
+  sandboxed runtime (the user-turn workaround included), while the AI SDK
+  underneath is ready: `@ai-sdk/google` converts any file part to `inlineData`
+  and Gemini natively takes video/audio (Anthropic's converter throws
+  `UnsupportedFunctionalityError` on them, so a *blind* widening would turn
+  today's stub into a failed model call). The fix that threads that needle is
+  model-aware hydration — detect the provider family from the already-resolved
+  model (the `detectPromptCachePath` idiom) and inline video/audio ≤20 MiB for
+  the google family only, keeping the text-stub fallback for everyone else. We
+  built and tested exactly that patch against `vercel/eve` (all suites green):
+  the PR-grade writeup is
+  [`design/proposals/eve-hydrate-model-aware-media.md`](./design/proposals/eve-hydrate-model-aware-media.md)
+  and the DCO-signed patch sits beside it
+  (`eve-hydrate-media-support.patch`), ready to submit once an identity with
+  fork rights + verified commit signing picks it up. It would make `read`'s
+  opt-in video/audio attachments (`attachVideoToChat`/`attachAudioToChat`)
+  work end-to-end.
 - **HITL replay.** eve persists `input.requested` but not the client's
   `input.responded`, so a replayed session reopens answered prompts as
   pending. We append synthetic responded-events from client-side storage;

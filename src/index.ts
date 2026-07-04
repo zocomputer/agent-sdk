@@ -1,4 +1,8 @@
 import { join } from "node:path";
+import {
+  DEFAULT_MAX_INLINE_IMAGE_BYTES,
+  DEFAULT_MAX_INLINE_MEDIA_BYTES,
+} from "./attachments";
 import { createTaskRegistry, type TaskRegistry } from "./async-tasks";
 import { createBashOp, type BackgroundableOp } from "./backgroundable";
 import { TOOL_OUTPUT_DIRNAME } from "./bounded-output";
@@ -24,6 +28,7 @@ import { createTasksTools } from "./tools/tasks";
 import { createWebFetchTool } from "./tools/webfetch";
 import { createWriteTool } from "./tools/write";
 import { createWorkspace, type Workspace } from "./workspace";
+import { sandboxIoProvider, type SandboxIoOptions } from "./sandbox-io";
 
 // One call wires the whole standard library for a real-filesystem eve agent:
 // a workspace-scoped toolset (read/edit/write/glob/grep + host bash + webfetch),
@@ -69,10 +74,29 @@ export interface StdlibOptions {
   attachImagesToChat?: boolean;
   /**
    * Max image size (bytes) to inline on the tool result; larger images fall
-   * back to the metadata-only note. Defaults to 5 MB. Bounds durable-stream
-   * bloat, since the data URL rides the stream once per read/fetch.
+   * back to the metadata-only note. Defaults to 3 MiB — eve's attachment
+   * staging inlines images up to that size at model-call time and text-stubs
+   * bigger ones, so staying under it keeps the "queued" promise truthful.
+   * Also bounds durable-stream bloat (the data URL rides the stream once per
+   * read/fetch).
    */
   maxInlineImageBytes?: number;
+  /**
+   * Attach video files (mp4/mov/webm/mkv/avi) the way images attach. Defaults
+   * to `false`: video input is provider-gated (Gemini accepts it; Claude and
+   * most others don't), and eve's attachment staging currently hydrates only
+   * images/PDFs back into the model call (see the README's eve-maintainer
+   * notes) — enable once both hold for your agent.
+   */
+  attachVideoToChat?: boolean;
+  /** Attach audio files (mp3/wav/ogg/flac/m4a). Same gating as video. */
+  attachAudioToChat?: boolean;
+  /**
+   * Max video/audio size (bytes) to inline on the tool result. Defaults to
+   * 10 MB (read's stat guard rejects bigger files outright; webfetch's 5 MB
+   * response cap bites first for fetches).
+   */
+  maxInlineMediaBytes?: number;
   /**
    * Verify command mentioned by the workflow instruction (e.g. "bun run
    * check"). Interpolated once at build time; omit for a generic hint.
@@ -103,9 +127,6 @@ export interface StdlibOptions {
    */
   subagentRoster?: readonly SubagentRosterEntry[];
 }
-
-/** Default cap for inlining image bytes on a `read` result (5 MB). */
-export const DEFAULT_MAX_INLINE_IMAGE_BYTES = 5 * 1024 * 1024;
 
 export function createStdlib(options: StdlibOptions) {
   const noun = options.workspaceNoun ?? "workspace";
@@ -149,6 +170,10 @@ export function createStdlib(options: StdlibOptions) {
           attachImagesToChat: options.attachImagesToChat ?? true,
           maxInlineImageBytes:
             options.maxInlineImageBytes ?? DEFAULT_MAX_INLINE_IMAGE_BYTES,
+          attachVideoToChat: options.attachVideoToChat ?? false,
+          attachAudioToChat: options.attachAudioToChat ?? false,
+          maxInlineMediaBytes:
+            options.maxInlineMediaBytes ?? DEFAULT_MAX_INLINE_MEDIA_BYTES,
           dirConventions,
         }),
       ),
@@ -173,6 +198,10 @@ export function createStdlib(options: StdlibOptions) {
           attachImagesToChat: options.attachImagesToChat ?? true,
           maxInlineImageBytes:
             options.maxInlineImageBytes ?? DEFAULT_MAX_INLINE_IMAGE_BYTES,
+          attachVideoToChat: options.attachVideoToChat ?? false,
+          attachAudioToChat: options.attachAudioToChat ?? false,
+          maxInlineMediaBytes:
+            options.maxInlineMediaBytes ?? DEFAULT_MAX_INLINE_MEDIA_BYTES,
         }),
       ),
     },
@@ -194,6 +223,115 @@ export function createStdlib(options: StdlibOptions) {
 }
 
 export type Stdlib = ReturnType<typeof createStdlib>;
+
+// The sandbox-backed counterpart to the stdlib's file tools, for the hosted
+// topology: the eve process runs on one machine (a Vercel Function) and the
+// workspace lives in the session's sandbox (`ctx.getSandbox()`) on another.
+// The stdlib's `node:fs` tools would read the harness's own disk there — the
+// wrong filesystem entirely — so these route every effect through the
+// sandbox session instead (see ./sandbox-io.ts). Consumers wire them exactly
+// like stdlib tools (one `agent/tools/<name>.ts` re-export each) and vacate
+// eve's built-in `read_file`/`write_file`/`glob`/`grep` with disable shims;
+// `bash` stays eve's built-in — it is already sandbox-native.
+//
+// Host-process machinery that needs a local disk or shell (bash, the task
+// registry, steering) is deliberately absent: on a hosted agent those either
+// stay eve built-ins or don't apply.
+
+export interface SandboxFileToolsOptions {
+  /**
+   * Absolute workspace root **inside the sandbox** (e.g. "/workspace").
+   * File tools refuse paths that escape it.
+   */
+  workspaceRoot: string;
+  /** What tool descriptions call the workspace. Defaults to "workspace". */
+  workspaceNoun?: string;
+  /**
+   * Resolves the sandbox session for one tool call. Defaults to
+   * `ctx.getSandbox()`; injectable for tests.
+   */
+  resolveSession?: SandboxIoOptions["resolveSession"];
+  /**
+   * Sandbox directory for grep's overflow match lists (spilled through the
+   * sandbox, so the model's follow-up `read` can reach them). Omit to keep
+   * the stop-at-cap behavior.
+   */
+  spillDir?: string;
+  /**
+   * See {@link StdlibOptions.attachImagesToChat}. Defaults to `false` here —
+   * the attachment path only works when the agent registers
+   * `createParkDeliveryHook` AND its runtime can reach itself over loopback
+   * to send the next-turn message; hosted serverless runtimes haven't
+   * validated that leg. Until a consumer wires and verifies it, the honest
+   * default is the metadata-only note (a "queued" promise that never
+   * delivers is the silent failure the attachment contract exists to avoid).
+   */
+  attachImagesToChat?: boolean;
+  /** See {@link StdlibOptions.maxInlineImageBytes}. */
+  maxInlineImageBytes?: number;
+  /** See {@link StdlibOptions.attachVideoToChat}. Defaults to `false`. */
+  attachVideoToChat?: boolean;
+  /** See {@link StdlibOptions.attachAudioToChat}. Defaults to `false`. */
+  attachAudioToChat?: boolean;
+  /** See {@link StdlibOptions.maxInlineMediaBytes}. */
+  maxInlineMediaBytes?: number;
+  /** See {@link StdlibOptions.injectDirConventions}. Defaults to `true`. */
+  injectDirConventions?: boolean;
+  /** See {@link StdlibOptions.conventionsFileName}. Defaults to "AGENTS.md". */
+  conventionsFileName?: string;
+}
+
+export function createSandboxFileTools(options: SandboxFileToolsOptions) {
+  const noun = options.workspaceNoun ?? "workspace";
+  const workspace = createWorkspace(options.workspaceRoot);
+  const io = sandboxIoProvider({
+    root: workspace.root,
+    ...(options.resolveSession !== undefined
+      ? { resolveSession: options.resolveSession }
+      : {}),
+  });
+  const conventionsFileName = options.conventionsFileName ?? "AGENTS.md";
+  const dirConventions =
+    (options.injectDirConventions ?? true)
+      ? {
+          tracker: createDirConventionsTracker({
+            workspaceRoot: workspace.root,
+            fileName: conventionsFileName,
+          }),
+          fileName: conventionsFileName,
+        }
+      : undefined;
+  return {
+    workspace,
+    io,
+    tools: {
+      read: createReadTool({
+        workspace,
+        noun,
+        io,
+        attachImagesToChat: options.attachImagesToChat ?? false,
+        maxInlineImageBytes:
+          options.maxInlineImageBytes ?? DEFAULT_MAX_INLINE_IMAGE_BYTES,
+        attachVideoToChat: options.attachVideoToChat ?? false,
+        attachAudioToChat: options.attachAudioToChat ?? false,
+        maxInlineMediaBytes:
+          options.maxInlineMediaBytes ?? DEFAULT_MAX_INLINE_MEDIA_BYTES,
+        dirConventions,
+      }),
+      edit: createEditTool({ workspace, noun, io }),
+      write: createWriteTool({ workspace, noun, io }),
+      glob: createGlobTool({ workspace, noun, io }),
+      grep: createGrepTool({
+        workspace,
+        noun,
+        io,
+        ...(options.spillDir !== undefined ? { spillDir: options.spillDir } : {}),
+      }),
+    },
+  };
+}
+
+export type SandboxFileTools = ReturnType<typeof createSandboxFileTools>;
 
 // À la carte surface: the tool/instruction factories and every lib module the
 // tools are built from, for agents that compose their own set.
@@ -270,6 +408,8 @@ export {
   type MockScriptedScenario,
   type MockStoryModelOptions,
 } from "./mock-model";
+export * from "./sandbox-io";
 export * from "./walk";
 export * from "./watch-output";
 export * from "./workspace";
+export * from "./workspace-io";

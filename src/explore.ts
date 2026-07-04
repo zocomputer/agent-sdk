@@ -68,9 +68,9 @@ export interface ExploreToolsOptions {
 
 /**
  * The read-only explore toolset: `read`, `glob`, `grep` — no edit/write/bash,
- * no task machinery. Images read as metadata only (`attachImagesToChat:
- * false`): the child runs without a park-delivery hook, so there is no client
- * to re-inject the bytes.
+ * no task machinery. Media read as metadata only (`attachImagesToChat: false`;
+ * video/audio attach defaults are already off): the child runs without a
+ * park-delivery hook, so there is no client to re-inject the bytes.
  */
 export function createExploreTools(options: ExploreToolsOptions) {
   const noun = options.workspaceNoun ?? "workspace";
@@ -101,6 +101,8 @@ export function createExploreTools(options: ExploreToolsOptions) {
         "This file is beyond your tools' reach — report its path and size so the caller can extract what's needed.",
       imageUnavailableHint:
         "Its pixels are not available to you — report the image's path and metadata so the caller can view it.",
+      mediaUnavailableHint:
+        "Its contents are not available to you — report the file's path and metadata so the caller can handle it.",
       includeEditGuidance: false,
     }),
     glob: createGlobTool({ workspace, noun }),

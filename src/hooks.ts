@@ -1,6 +1,6 @@
 import { Client } from "eve/client";
 import { defineHook } from "eve/hooks";
-import type { ImageChatAttachment } from "./attachments";
+import type { ChatAttachment } from "./attachments";
 import {
   createParkDeliveryState,
   setParkNotificationHandler,
@@ -22,9 +22,10 @@ import { createSteerInbox } from "./steer-inbox";
 //   export default createParkDeliveryHook();
 //
 // Three producers feed it:
-// - **Read images** (./redeliver.ts): `action.result` events carry read's raw
+// - **Read media** (./redeliver.ts): `action.result` events carry read's raw
 //   output (bytes included — toModelOutput only narrows what the model sees);
-//   on park the images go back into the session as a real user turn.
+//   on park the images/video/audio go back into the session as a real user
+//   turn.
 // - **Background-task notifications** (./watch-output.ts): a bash/run_async
 //   watcher match or a completion notice posted through the notification
 //   bridge; delivered on park — or immediately, when the match lands while
@@ -48,17 +49,17 @@ import { createSteerInbox } from "./steer-inbox";
 
 const RETRY_DELAYS_MS = [500, 2_000, 5_000];
 
-/** What one park delivery carries: a read image, a note, or a steered message. */
+/** What one park delivery carries: read media, a note, or a steered message. */
 type DeliveryPayload =
-  | { readonly kind: "image"; readonly attachment: ImageChatAttachment }
+  | { readonly kind: "media"; readonly attachment: ChatAttachment }
   | { readonly kind: "note"; readonly text: string }
   | { readonly kind: "steer"; readonly message: SteerMessage };
 
 function buildDeliveryMessage(
   request: ParkDeliveryRequest<DeliveryPayload>,
 ): RedeliveryMessagePart[] {
-  const images = request.items.flatMap((item) =>
-    item.payload.kind === "image"
+  const media = request.items.flatMap((item) =>
+    item.payload.kind === "media"
       ? [{ toolCallId: item.key, attachment: item.payload.attachment }]
       : [],
   );
@@ -71,7 +72,7 @@ function buildDeliveryMessage(
   );
   return [
     ...steers.map((text) => ({ type: "text" as const, text })),
-    ...(images.length > 0 ? buildRedeliveryMessage(images) : []),
+    ...(media.length > 0 ? buildRedeliveryMessage(media) : []),
     ...notes.map((text) => ({ type: "text" as const, text })),
   ];
 }
@@ -132,7 +133,7 @@ export function createParkDeliveryHook(options: ParkDeliveryOptions = {}) {
         const next = state.settle(request, true);
         if (log) {
           const labels = request.items.map((item) =>
-            item.payload.kind === "image" ? item.payload.attachment.filename : item.key,
+            item.payload.kind === "media" ? item.payload.attachment.filename : item.key,
           );
           console.log(
             `[agent-sdk] park delivery to ${request.sessionId}: ${labels.join(", ")}`,
@@ -199,11 +200,11 @@ export function createParkDeliveryHook(options: ParkDeliveryOptions = {}) {
         if (request) void deliver(request);
         const found = redeliveryFromEvent(event);
         if (found) {
-          // Images arrive on action.result (a non-waiting event), so this
+          // Media arrive on action.result (a non-waiting event), so this
           // enqueue never fires an immediate delivery — they ride the park.
           state.enqueue(meta.sessionId, {
             key: found.toolCallId,
-            payload: { kind: "image", attachment: found.attachment },
+            payload: { kind: "media", attachment: found.attachment },
           });
         }
       },

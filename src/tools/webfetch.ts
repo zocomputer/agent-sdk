@@ -1,10 +1,15 @@
 import { defineTool } from "eve/tools";
 import { z } from "zod";
 import { basename, join } from "node:path";
-import { CHAT_ATTACHMENT_FIELD, type ImageChatAttachment } from "../attachments";
+import {
+  CHAT_ATTACHMENT_FIELD,
+  DEFAULT_MAX_INLINE_MEDIA_BYTES,
+  type ChatAttachment,
+} from "../attachments";
 import { createBoundedCapture } from "../bounded-output";
-import { detectFileKind, imageMediaType } from "../file-kind";
+import { audioMediaType, detectFileKind, imageMediaType, videoMediaType } from "../file-kind";
 import { loadFileContent } from "../read-file-content";
+import { buildMediaHint } from "./read";
 import {
   fetchWebResource,
   renderWebText,
@@ -37,12 +42,12 @@ function spillFilename(format: WebFetchFormat, kind: "text" | "extracted"): stri
   return `webfetch-${runId}.${ext}`;
 }
 
-function imageFilename(finalUrl: string): string {
+function fetchedFilename(finalUrl: string, fallback: string): string {
   try {
     const name = basename(new URL(finalUrl).pathname);
-    return name === "" || name === "/" ? "image" : name;
+    return name === "" || name === "/" ? fallback : name;
   } catch {
-    return "image";
+    return fallback;
   }
 }
 
@@ -70,6 +75,20 @@ const CONTENT_TYPE_EXTENSIONS: Record<string, string> = {
   "application/vnd.oasis.opendocument.spreadsheet": ".ods",
   "application/vnd.oasis.opendocument.presentation": ".odp",
   "application/pdf": ".pdf",
+  // Media types matter only for formats whose magic bytes are ambiguous
+  // without a path hint (EBML webm/mkv, bare-frame-sync mp3); listed broadly
+  // so extensionless media URLs still label sensibly.
+  "video/mp4": ".mp4",
+  "video/quicktime": ".mov",
+  "video/webm": ".webm",
+  "video/x-matroska": ".mkv",
+  "video/x-msvideo": ".avi",
+  "audio/mpeg": ".mp3",
+  "audio/wav": ".wav",
+  "audio/x-wav": ".wav",
+  "audio/ogg": ".ogg",
+  "audio/flac": ".flac",
+  "audio/mp4": ".m4a",
 };
 
 // Legacy MIME types that servers sometimes use for modern OpenXML files
@@ -120,10 +139,19 @@ export function createWebFetchTool(opts: {
   spillDir: string;
   attachImagesToChat: boolean;
   maxInlineImageBytes: number;
+  /** Attach fetched video the way images attach — see `createReadTool`. Default false. */
+  attachVideoToChat?: boolean;
+  /** Attach fetched audio. Same gating as video. Default false. */
+  attachAudioToChat?: boolean;
+  /** Max video/audio bytes to inline; the 5 MB response cap bites first. */
+  maxInlineMediaBytes?: number;
   /** Injectable for tests; defaults to global fetch. */
   fetchImpl?: FetchLike;
 }) {
   const { workspace, spillDir, attachImagesToChat, maxInlineImageBytes, fetchImpl } = opts;
+  const attachVideoToChat = opts.attachVideoToChat ?? false;
+  const attachAudioToChat = opts.attachAudioToChat ?? false;
+  const maxInlineMediaBytes = opts.maxInlineMediaBytes ?? DEFAULT_MAX_INLINE_MEDIA_BYTES;
 
   const bounded = (text: string, format: WebFetchFormat, kind: "text" | "extracted") => {
     const spillPath = join(spillDir, spillFilename(format, kind));
@@ -140,9 +168,14 @@ export function createWebFetchTool(opts: {
     };
   };
 
+  const mediaHint = buildMediaHint(
+    { image: attachImagesToChat, video: attachVideoToChat, audio: attachAudioToChat },
+    "fetching",
+  );
+
   return defineTool({
     description:
-      `Fetch a URL and return its content. HTML pages are reduced to their main content (boilerplate stripped, title/author/date header) and converted to readable markdown by default (set format to "text" for plain text or "html" for the raw page). Fetched PDF, DOCX, and spreadsheet files are converted to plain text; fetching an image queues it to appear as a viewable attachment on your next message. Content over the in-context budget is truncated head+tail and the complete output is spilled to a file named in the truncation marker — read or grep that file instead of re-fetching. Default timeout ${WEB_FETCH_DEFAULT_TIMEOUT_SECONDS}s (${WEB_FETCH_PDF_DEFAULT_TIMEOUT_SECONDS}s for PDFs), max ${WEB_FETCH_MAX_TIMEOUT_SECONDS}s; responses over 5 MB error. Read-only: one HTTP GET, no side effects.`,
+      `Fetch a URL and return its content. HTML pages are reduced to their main content (boilerplate stripped, title/author/date header) and converted to readable markdown by default (set format to "text" for plain text or "html" for the raw page). Fetched PDF, DOCX, and spreadsheet files are converted to plain text; ${mediaHint}. Content over the in-context budget is truncated head+tail and the complete output is spilled to a file named in the truncation marker — read or grep that file instead of re-fetching. Default timeout ${WEB_FETCH_DEFAULT_TIMEOUT_SECONDS}s (${WEB_FETCH_PDF_DEFAULT_TIMEOUT_SECONDS}s for PDFs), max ${WEB_FETCH_MAX_TIMEOUT_SECONDS}s; responses over 5 MB error. Read-only: one HTTP GET, no side effects.`,
     inputSchema: z.object({
       url: z
         .string()
@@ -192,7 +225,7 @@ export function createWebFetchTool(opts: {
       const detected = detectFileKind(body, label);
       if (detected.kind === "binary") {
         throw new Error(
-          `Fetched content is ${detected.description} — webfetch returns text and images only. ` +
+          `Fetched content is ${detected.description} — webfetch returns text and media metadata only. ` +
             "Use bash (curl -o) to download it if needed.",
         );
       }
@@ -246,23 +279,63 @@ export function createWebFetchTool(opts: {
             const why =
               attachImagesToChat && body.byteLength > maxInlineImageBytes
                 ? `too large to attach automatically (${body.byteLength} bytes, max ${maxInlineImageBytes})`
-                : "cannot be returned as a tool result (text/json only)";
+                : "cannot be returned as a tool result (text/json only), and image attachments are not enabled for this agent";
             return {
               ...imageMeta,
               note: `Image content ${why}. If you need to see this image, ask the user to attach it to the chat.`,
             };
           }
-          const attachment: ImageChatAttachment = {
+          const attachment: ChatAttachment = {
             kind: "image",
             dataUrl: `data:${imageMediaType(content.format)};base64,${body.toString("base64")}`,
             mediaType: imageMediaType(content.format),
-            filename: imageFilename(finalUrl),
+            filename: fetchedFilename(finalUrl, "image"),
             width: content.width,
             height: content.height,
           };
           return {
             ...imageMeta,
             note: "This image is queued and will be attached to your next message as a viewable image — no need to ask the user to attach it.",
+            [CHAT_ATTACHMENT_FIELD]: attachment,
+          };
+        }
+        case "video":
+        case "audio": {
+          const kind = content.kind;
+          const mediaType =
+            kind === "video"
+              ? videoMediaType(content.format)
+              : audioMediaType(content.format);
+          // `format` names the render format on text results (and imageFormat/
+          // sheetFormat theirs), so media keeps the same disambiguation.
+          const mediaMeta = {
+            ...meta,
+            source: kind,
+            mediaFormat: content.format,
+            mediaType,
+            bytes: body.byteLength,
+          };
+          const label = kind === "video" ? "Video" : "Audio";
+          const enabled = kind === "video" ? attachVideoToChat : attachAudioToChat;
+          if (!enabled || body.byteLength > maxInlineMediaBytes) {
+            const why =
+              enabled && body.byteLength > maxInlineMediaBytes
+                ? `too large to attach automatically (${body.byteLength} bytes, max ${maxInlineMediaBytes})`
+                : `cannot be returned as a tool result (text/json only), and ${kind} attachments are not enabled for this agent`;
+            return {
+              ...mediaMeta,
+              note: `${label} content ${why}. Use bash (curl -o) to download it if you need to process it.`,
+            };
+          }
+          const attachment: ChatAttachment = {
+            kind,
+            dataUrl: `data:${mediaType};base64,${body.toString("base64")}`,
+            mediaType,
+            filename: fetchedFilename(finalUrl, kind),
+          };
+          return {
+            ...mediaMeta,
+            note: `This ${kind} file is queued and will be attached to your next message — no need to ask the user to attach it.`,
             [CHAT_ATTACHMENT_FIELD]: attachment,
           };
         }

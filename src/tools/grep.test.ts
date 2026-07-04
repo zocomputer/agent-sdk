@@ -4,6 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import type { ToolContext } from "eve/tools";
 import { createWorkspace } from "../workspace";
+import { createLocalIo, type WorkspaceIoProvider } from "../workspace-io";
 import { createGrepTool, GREP_SPILL_MAX_MATCHES } from "./grep";
 
 // Temp workspace (not a git repo, so candidates come from the walk fallback).
@@ -117,6 +118,9 @@ describe("grep overflow spill", () => {
       });
       if (result.note === undefined) throw new Error("expected a note");
       expect(result.note).toContain(`Stopped scanning at ${GREP_SPILL_MAX_MATCHES} matching lines`);
+      // A hard-bound spill is not exhaustive; the pointer must not say so.
+      expect(result.note).not.toContain("complete list");
+      expect(result.note).toContain("matches collected so far are at");
       const match = result.note.match(/at (\S+) —/);
       if (!match?.[1]) throw new Error(`note names no spill file: ${result.note}`);
       expect(spillLines(join(bigRoot, match[1]))).toHaveLength(GREP_SPILL_MAX_MATCHES);
@@ -171,6 +175,33 @@ describe("grep overflow spill", () => {
     } finally {
       rmSync(bigRoot, { recursive: true, force: true });
     }
+  });
+
+  test("a byte-capped remote scan is reported honestly, never as a complete list", async () => {
+    // An IO whose search reports the remote transfer cap cut the stream.
+    const local = createLocalIo(root);
+    const floodIo: WorkspaceIoProvider = () => ({
+      ...local,
+      search: () =>
+        Promise.resolve({
+          matches: [
+            { file: "few.txt", line: 1, text: "needle once" },
+            { file: "many-a.txt", line: 1, text: "needle line 0" },
+          ],
+          stopped: "output-cap" as const,
+          skippedLargeFiles: null,
+        }),
+    });
+    const grep = createGrepTool({ workspace, noun: "repo", spillDir, io: floodIo });
+    const result = await grep.execute({ pattern: "needle", max_results: 50 }, ctx);
+    expect(result).toMatchObject({ truncated: true, count: 2, totalMatches: 2 });
+    // The backend can't count size-skips remotely — no misleading 0.
+    expect("skippedLargeFiles" in result).toBe(false);
+    if (result.note === undefined) throw new Error("expected a note");
+    expect(result.note).toContain("hit the transfer cap");
+    expect(result.note).toContain("more matches may exist");
+    expect(result.note).toContain("matches collected so far are at");
+    expect(result.note).not.toContain("complete list");
   });
 
   test("a failed spill degrades to the capped result with narrow guidance", async () => {

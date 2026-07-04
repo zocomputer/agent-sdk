@@ -1,9 +1,11 @@
 import { imageSize } from "image-size";
 import {
+  type AudioFormat,
   detectFileKind,
   type ImageFormat,
   type SheetFormat,
   type TextEncoding,
+  type VideoFormat,
 } from "./file-kind";
 import { createStatCache, type StatIdentity } from "./extract/cache";
 import { extractDocx } from "./extract/docx";
@@ -11,9 +13,10 @@ import { extractPdf } from "./extract/pdf";
 import { extractSheets, type SheetMeta } from "./extract/sheet";
 
 // Content routing for the `read` tool: sniff the bytes, then hand back either
-// the text to window (native or extracted from PDF/DOCX/spreadsheets), image
-// metadata, or a thrown error for binaries with no text rendering. Kept free
-// of the workspace module so tests can feed fixture paths directly.
+// the text to window (native or extracted from PDF/DOCX/spreadsheets),
+// image/video/audio metadata, or a thrown error for binaries with no text
+// rendering. Kept free of the workspace module so tests can feed fixture
+// paths directly.
 
 export type FileContent =
   | { readonly kind: "text"; readonly text: string }
@@ -30,7 +33,9 @@ export type FileContent =
       readonly format: ImageFormat;
       readonly width: number | null;
       readonly height: number | null;
-    };
+    }
+  | { readonly kind: "video"; readonly format: VideoFormat }
+  | { readonly kind: "audio"; readonly format: AudioFormat };
 
 type ExtractedDoc = Exclude<FileContent, { kind: "text" } | { kind: "image" }>;
 type ExtractableKind =
@@ -121,6 +126,13 @@ export async function loadFileContent(
         height: size?.height ?? null,
       };
     }
+    // No probing for duration/dimensions — container parsing isn't worth a
+    // dep; the metadata result carries format + size and the bytes ride the
+    // attachment contract when the consumer opted in.
+    case "video":
+      return { kind: "video", format: detected.format };
+    case "audio":
+      return { kind: "audio", format: detected.format };
     case "binary":
       throw new Error(
         `${path} is ${detected.description} — read returns text only. ` +

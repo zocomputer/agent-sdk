@@ -12,7 +12,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@zocomputer/agent-sdk": "^0.1.0",
+    "@zocomputer/agent-sdk": "file:../..",
     "eve": "^0.16.0",
     "zod": "^4.4.3"
   },

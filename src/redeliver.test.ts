@@ -40,6 +40,31 @@ describe("redeliveryFromEvent", () => {
     expect(found).toEqual({ toolCallId: "call-1", attachment });
   });
 
+  test("extracts video and audio attachments too", () => {
+    const video = {
+      kind: "video" as const,
+      dataUrl: "data:video/mp4;base64,AA==",
+      mediaType: "video/mp4",
+      filename: "clip.mp4",
+    };
+    expect(
+      redeliveryFromEvent(
+        actionResult("call-v", { source: "video", [CHAT_ATTACHMENT_FIELD]: video }),
+      ),
+    ).toEqual({ toolCallId: "call-v", attachment: video });
+    const audio = {
+      kind: "audio" as const,
+      dataUrl: "data:audio/mpeg;base64,AA==",
+      mediaType: "audio/mpeg",
+      filename: "song.mp3",
+    };
+    expect(
+      redeliveryFromEvent(
+        actionResult("call-a", { source: "audio", [CHAT_ATTACHMENT_FIELD]: audio }),
+      ),
+    ).toEqual({ toolCallId: "call-a", attachment: audio });
+  });
+
   test("ignores non-attachment results and other events", () => {
     expect(redeliveryFromEvent(actionResult("c", { content: "1|hi" }))).toBeNull();
     expect(redeliveryFromEvent(waiting)).toBeNull();
@@ -68,6 +93,29 @@ describe("buildRedeliveryMessage", () => {
       { type: "file", data: attachment.dataUrl, mediaType: "image/png", filename: "pic.png" },
       { type: "file", data: attachment.dataUrl, mediaType: "image/png", filename: "b.png" },
     ]);
+  });
+
+  test("mixed media build file parts with their own media types", () => {
+    const video = {
+      kind: "video" as const,
+      dataUrl: "data:video/webm;base64,AA==",
+      mediaType: "video/webm",
+      filename: "capture.webm",
+    };
+    const message = buildRedeliveryMessage([
+      { toolCallId: "a", attachment },
+      { toolCallId: "b", attachment: video },
+    ]);
+    expect(message[0]).toEqual({
+      type: "text",
+      text: "Attached: pic.png, capture.webm (auto-attached from read).",
+    });
+    expect(message[2]).toEqual({
+      type: "file",
+      data: video.dataUrl,
+      mediaType: "video/webm",
+      filename: "capture.webm",
+    });
   });
 });
 

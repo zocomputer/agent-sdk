@@ -1,14 +1,61 @@
-// ../../../../../tmp/agent-sdk-mirror-qr7iHR/repo/src/index.ts
-import { join as join7 } from "node:path";
+// ../../../../../tmp/agent-sdk-mirror-FWlvyg/repo/src/index.ts
+import { join as join8 } from "node:path";
 
-// ../../../../../tmp/agent-sdk-mirror-qr7iHR/repo/src/async-tasks.ts
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { dirname } from "node:path";
+// ../../../../../tmp/agent-sdk-mirror-FWlvyg/repo/src/attachments.ts
+var CHAT_ATTACHMENT_FIELD = "chatAttachment";
+var DEFAULT_MAX_INLINE_IMAGE_BYTES = 3 * 1024 * 1024;
+var DEFAULT_MAX_INLINE_MEDIA_BYTES = 10 * 1024 * 1024;
 function isRecord(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
+function readChatAttachment(toolOutput) {
+  if (!isRecord(toolOutput))
+    return null;
+  const raw = toolOutput[CHAT_ATTACHMENT_FIELD];
+  if (!isRecord(raw))
+    return null;
+  if (typeof raw.dataUrl !== "string" || raw.dataUrl.length === 0)
+    return null;
+  if (typeof raw.mediaType !== "string" || raw.mediaType.length === 0)
+    return null;
+  const base = {
+    dataUrl: raw.dataUrl,
+    mediaType: raw.mediaType
+  };
+  switch (raw.kind) {
+    case "image":
+      return {
+        kind: "image",
+        ...base,
+        filename: typeof raw.filename === "string" ? raw.filename : "image",
+        width: typeof raw.width === "number" ? raw.width : null,
+        height: typeof raw.height === "number" ? raw.height : null
+      };
+    case "video":
+      return {
+        kind: "video",
+        ...base,
+        filename: typeof raw.filename === "string" ? raw.filename : "video"
+      };
+    case "audio":
+      return {
+        kind: "audio",
+        ...base,
+        filename: typeof raw.filename === "string" ? raw.filename : "audio"
+      };
+    default:
+      return null;
+  }
+}
+
+// ../../../../../tmp/agent-sdk-mirror-FWlvyg/repo/src/async-tasks.ts
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { dirname } from "node:path";
+function isRecord2(value) {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
 function isTask(value) {
-  if (!isRecord(value))
+  if (!isRecord2(value))
     return false;
   if (typeof value.id !== "string" || typeof value.tool !== "string" || typeof value.label !== "string" || typeof value.startedAt !== "number" || typeof value.status !== "string") {
     return false;
@@ -62,7 +109,7 @@ function buildTaskRegistry(opts) {
       return [];
     try {
       const parsed = JSON.parse(readFileSync(storePath, "utf8"));
-      if (!isRecord(parsed) || !Array.isArray(parsed.tasks))
+      if (!isRecord2(parsed) || !Array.isArray(parsed.tasks))
         return [];
       return parsed.tasks.filter(isTask);
     } catch {
@@ -179,7 +226,7 @@ function buildTaskRegistry(opts) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-qr7iHR/repo/src/backgroundable.ts
+// ../../../../../tmp/agent-sdk-mirror-FWlvyg/repo/src/backgroundable.ts
 import { z } from "zod";
 function defineOp(cfg) {
   return {
@@ -223,7 +270,7 @@ function createBashOp(runner) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-qr7iHR/repo/src/bounded-output.ts
+// ../../../../../tmp/agent-sdk-mirror-FWlvyg/repo/src/bounded-output.ts
 import { appendFileSync, mkdirSync as mkdirSync2, writeFileSync as writeFileSync2 } from "node:fs";
 import { dirname as dirname2 } from "node:path";
 var HEAD_CHARS = 25000;
@@ -324,7 +371,7 @@ function createBoundedCapture(opts = {}) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-qr7iHR/repo/src/dir-conventions.ts
+// ../../../../../tmp/agent-sdk-mirror-FWlvyg/repo/src/dir-conventions.ts
 import { readFileSync as readFileSync2 } from "node:fs";
 import { join } from "node:path";
 var DEFAULT_MAX_BYTES_PER_FILE = 16 * 1024;
@@ -392,20 +439,30 @@ function createDirConventionsTracker(options) {
     return set;
   }
   return {
-    collect(sessionId, relPath) {
+    async collect(sessionId, relPath, loadOverride) {
       if (!sessionId)
         return [];
+      const load = loadOverride ?? loadFile;
       const delivered = deliveredSet(sessionId);
       const normalizedRel = normalizeRel(relPath);
       const found = [];
       for (const dir of dirChain(normalizedRel)) {
         if (delivered.has(dir))
           continue;
-        delivered.add(dir);
         const riderRel = `${dir}/${fileName}`;
-        if (riderRel === normalizedRel)
+        if (riderRel === normalizedRel) {
+          delivered.add(dir);
           continue;
-        const content = loadFile(join(workspaceRoot, riderRel))?.trim() ?? "";
+        }
+        delivered.add(dir);
+        let loaded;
+        try {
+          loaded = await load(join(workspaceRoot, riderRel));
+        } catch {
+          delivered.delete(dir);
+          continue;
+        }
+        const content = loaded?.trim() ?? "";
         if (content.length === 0)
           continue;
         found.push({ dir, path: riderRel, content });
@@ -426,7 +483,7 @@ function createDirConventionsTracker(options) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-qr7iHR/repo/src/instructions.ts
+// ../../../../../tmp/agent-sdk-mirror-FWlvyg/repo/src/instructions.ts
 import { readFileSync as readFileSync3 } from "node:fs";
 import { resolve } from "node:path";
 import { defineDynamic, defineInstructions } from "eve/instructions";
@@ -565,7 +622,7 @@ function createSubagentInstruction(opts) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-qr7iHR/repo/src/run.ts
+// ../../../../../tmp/agent-sdk-mirror-FWlvyg/repo/src/run.ts
 import { spawn } from "node:child_process";
 import { join as join2 } from "node:path";
 var MAX_PREVIEW = 20000;
@@ -666,7 +723,7 @@ function createCommandRunner(opts) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-qr7iHR/repo/src/steer-inbox.ts
+// ../../../../../tmp/agent-sdk-mirror-FWlvyg/repo/src/steer-inbox.ts
 import {
   appendFileSync as appendFileSync2,
   linkSync,
@@ -677,7 +734,7 @@ import {
 } from "node:fs";
 import { join as join3 } from "node:path";
 
-// ../../../../../tmp/agent-sdk-mirror-qr7iHR/repo/src/steer.ts
+// ../../../../../tmp/agent-sdk-mirror-FWlvyg/repo/src/steer.ts
 var STEER_FIELD = "user_steer";
 var STEER_WRAPPED_OUTPUT_FIELD = "steer_wrapped_output";
 var STEER_DIRNAME = "steer";
@@ -685,14 +742,14 @@ var STEER_NOTE = "The user sent these messages while this tool was running. They
 function buildSteerPayload(messages) {
   return { note: STEER_NOTE, messages: [...messages] };
 }
-function isRecord2(value) {
+function isRecord3(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 function isSteerMessage(value) {
-  return isRecord2(value) && typeof value.id === "string" && typeof value.text === "string" && typeof value.at === "number";
+  return isRecord3(value) && typeof value.id === "string" && typeof value.text === "string" && typeof value.at === "number";
 }
 function attachSteerToOutput(output, messages) {
-  if (isRecord2(output)) {
+  if (isRecord3(output)) {
     const existing = readSteerMessages(output) ?? [];
     return { ...output, [STEER_FIELD]: buildSteerPayload([...existing, ...messages]) };
   }
@@ -710,10 +767,10 @@ function stripSteerFromOutput(record) {
   return rest;
 }
 function readSteerMessages(output) {
-  if (!isRecord2(output))
+  if (!isRecord3(output))
     return null;
   const payload = output[STEER_FIELD];
-  if (!isRecord2(payload) || !Array.isArray(payload.messages))
+  if (!isRecord3(payload) || !Array.isArray(payload.messages))
     return null;
   const messages = payload.messages.filter(isSteerMessage);
   return messages.length > 0 ? messages : null;
@@ -747,7 +804,7 @@ function parseSteerLine(line) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-qr7iHR/repo/src/steer-inbox.ts
+// ../../../../../tmp/agent-sdk-mirror-FWlvyg/repo/src/steer-inbox.ts
 var drainSequence = 0;
 function createSteerInbox(options) {
   const now = options.now ?? Date.now;
@@ -796,7 +853,7 @@ function createSteerInbox(options) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-qr7iHR/repo/src/steer-tool.ts
+// ../../../../../tmp/agent-sdk-mirror-FWlvyg/repo/src/steer-tool.ts
 import { defineTool } from "eve/tools";
 function withSteerDelivery(tool, inbox) {
   const originalToModelOutput = tool.toModelOutput?.bind(tool);
@@ -828,12 +885,12 @@ function createSteerWrapper(inbox) {
   return (tool) => withSteerDelivery(tool, inbox);
 }
 
-// ../../../../../tmp/agent-sdk-mirror-qr7iHR/repo/src/tools/bash.ts
+// ../../../../../tmp/agent-sdk-mirror-FWlvyg/repo/src/tools/bash.ts
 import { defineTool as defineTool2 } from "eve/tools";
 import { z as z2 } from "zod";
 
-// ../../../../../tmp/agent-sdk-mirror-qr7iHR/repo/src/park-delivery.ts
-function isRecord3(value) {
+// ../../../../../tmp/agent-sdk-mirror-FWlvyg/repo/src/park-delivery.ts
+function isRecord4(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 function clientContinuationToken(runtimeToken) {
@@ -882,7 +939,7 @@ function createParkDeliveryState() {
       if (meta.continuationToken) {
         state.continuationToken = clientContinuationToken(meta.continuationToken);
       }
-      if (!isRecord3(event))
+      if (!isRecord4(event))
         return null;
       if (event.type === "session.completed" || event.type === "session.failed") {
         sessions.delete(meta.sessionId);
@@ -945,7 +1002,7 @@ function setParkNotificationHandler(handler) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-qr7iHR/repo/src/watch-output.ts
+// ../../../../../tmp/agent-sdk-mirror-FWlvyg/repo/src/watch-output.ts
 var DEFAULT_WATCH_DEBOUNCE_MS = 5000;
 var DEFAULT_MAX_WATCH_NOTIFICATIONS = 5;
 function createOutputWatcher(options) {
@@ -1003,7 +1060,7 @@ function formatCompletionNotification(opts) {
   return `Background task ${opts.taskId} (${opts.label}) ${outcome}. Call await_task to collect its result.`;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-qr7iHR/repo/src/tools/bash.ts
+// ../../../../../tmp/agent-sdk-mirror-FWlvyg/repo/src/tools/bash.ts
 var DEFAULT_INTERACTIVE_HINT = "This is a piped shell with NO tty: avoid interactive or full-screen CLIs (a REPL, vim, an interactive installer/prompt) — those programs hang or degrade without a real terminal.";
 function createBashTool(opts) {
   const { workspace, runner, registry, noun } = opts;
@@ -1091,49 +1148,22 @@ function createBashTool(opts) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-qr7iHR/repo/src/tools/edit.ts
+// ../../../../../tmp/agent-sdk-mirror-FWlvyg/repo/src/tools/edit.ts
 import { defineTool as defineTool3 } from "eve/tools";
 import { z as z3 } from "zod";
-import { readFileSync as readFileSync5, writeFileSync as writeFileSync3 } from "node:fs";
-function createEditTool(opts) {
-  const { workspace, noun } = opts;
-  return defineTool3({
-    description: "Replace an exact string in an existing file. By default old_string must occur exactly once — include enough surrounding context to make it unique. Set replace_all to replace every occurrence (e.g. renaming a symbol).",
-    inputSchema: z3.object({
-      path: z3.string().min(1).describe(`File path, relative to the ${noun} root.`),
-      old_string: z3.string().min(1).describe("Exact text to replace; must currently exist in the file."),
-      new_string: z3.string().describe("Text to replace it with."),
-      replace_all: z3.boolean().optional().describe("Replace every occurrence instead of requiring a single match.")
-    }),
-    async execute({ path, old_string, new_string, replace_all }) {
-      const abs = workspace.resolve(path);
-      const rel = workspace.relativize(abs);
-      const before = readFileSync5(abs, "utf8");
-      const count = before.split(old_string).length - 1;
-      if (count === 0)
-        throw new Error(`old_string not found in ${rel}.`);
-      if (count > 1 && !replace_all) {
-        throw new Error(`old_string is not unique in ${rel} (${count} matches). Add surrounding context or set replace_all.`);
-      }
-      const after = before.split(old_string).join(new_string);
-      writeFileSync3(abs, after, "utf8");
-      return { ok: true, path: rel, replacements: count };
-    }
-  });
-}
 
-// ../../../../../tmp/agent-sdk-mirror-qr7iHR/repo/src/tools/glob.ts
-import { defineTool as defineTool4 } from "eve/tools";
-import { z as z4 } from "zod";
+// ../../../../../tmp/agent-sdk-mirror-FWlvyg/repo/src/workspace-io.ts
+import { mkdirSync as mkdirSync4, readFileSync as readFileSync7, statSync as statSync2, writeFileSync as writeFileSync3 } from "node:fs";
+import { dirname as dirname3, join as join5 } from "node:path";
 
-// ../../../../../tmp/agent-sdk-mirror-qr7iHR/repo/src/glob-match.ts
+// ../../../../../tmp/agent-sdk-mirror-FWlvyg/repo/src/glob-match.ts
 function globToRegExp(glob) {
   const escaped = glob.replace(/[.+^${}()|[\]\\]/g, "\\$&");
   const body = escaped.replace(/\*\*\/?/g, "\x00").replace(/\*/g, "[^/]*").replace(/\?/g, "[^/]").replace(/\u0000/g, "(?:.*/)?");
   return new RegExp(`^${body}$`);
 }
 
-// ../../../../../tmp/agent-sdk-mirror-qr7iHR/repo/src/list-files.ts
+// ../../../../../tmp/agent-sdk-mirror-FWlvyg/repo/src/list-files.ts
 import { spawnSync } from "node:child_process";
 var MAX_BUFFER = 64 * 1024 * 1024;
 function gitPaths(root, args) {
@@ -1161,7 +1191,34 @@ function listGitFiles(root, scope) {
   return files.filter((path) => !gone.has(path));
 }
 
-// ../../../../../tmp/agent-sdk-mirror-qr7iHR/repo/src/walk.ts
+// ../../../../../tmp/agent-sdk-mirror-FWlvyg/repo/src/read-text.ts
+import { readFileSync as readFileSync5, statSync } from "node:fs";
+var MAX_SEARCH_FILE_BYTES = 1500000;
+var BINARY_SNIFF_BYTES = 8192;
+function readTextForSearch(abs, maxBytes = MAX_SEARCH_FILE_BYTES) {
+  let size;
+  try {
+    const stats = statSync(abs);
+    if (!stats.isFile())
+      return { kind: "unreadable" };
+    size = stats.size;
+  } catch {
+    return { kind: "unreadable" };
+  }
+  if (size > maxBytes)
+    return { kind: "too-large", bytes: size };
+  let buf;
+  try {
+    buf = readFileSync5(abs);
+  } catch {
+    return { kind: "unreadable" };
+  }
+  if (buf.subarray(0, BINARY_SNIFF_BYTES).includes(0))
+    return { kind: "binary" };
+  return { kind: "text", content: buf.toString("utf8") };
+}
+
+// ../../../../../tmp/agent-sdk-mirror-FWlvyg/repo/src/walk.ts
 import { readFileSync as readFileSync6, readdirSync } from "node:fs";
 import { join as join4, relative, sep } from "node:path";
 import ignore from "ignore";
@@ -1243,20 +1300,166 @@ function* walkFiles(root, base = root) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-qr7iHR/repo/src/tools/glob.ts
+// ../../../../../tmp/agent-sdk-mirror-FWlvyg/repo/src/workspace.ts
+import { isAbsolute, relative as relative2, resolve as resolve2, sep as sep2 } from "node:path";
+function resolveWithin(root, path) {
+  const abs = isAbsolute(path) ? resolve2(path) : resolve2(root, path);
+  if (abs !== root && !abs.startsWith(root + sep2)) {
+    throw new Error(`Path escapes the workspace root (${root}): ${path}`);
+  }
+  return abs;
+}
+function relativizeWithin(root, abs) {
+  const rel = relative2(root, abs);
+  return rel === "" ? "." : rel.split(sep2).join("/");
+}
+function createWorkspace(root) {
+  const abs = resolve2(root);
+  return {
+    root: abs,
+    resolve: (path) => resolveWithin(abs, path),
+    relativize: (path) => relativizeWithin(abs, path)
+  };
+}
+
+// ../../../../../tmp/agent-sdk-mirror-FWlvyg/repo/src/workspace-io.ts
+function createLocalIo(root) {
+  return {
+    async stat(abs) {
+      try {
+        const st = statSync2(abs);
+        return { isFile: st.isFile(), size: st.size, mtimeMs: st.mtimeMs };
+      } catch {
+        return null;
+      }
+    },
+    async readFile(abs) {
+      try {
+        return readFileSync7(abs);
+      } catch (err) {
+        if (isMissingFileError(err))
+          return null;
+        throw err;
+      }
+    },
+    async writeFile(abs, content) {
+      mkdirSync4(dirname3(abs), { recursive: true });
+      writeFileSync3(abs, content);
+    },
+    async listFiles(scope) {
+      if (scope === undefined) {
+        return listGitFiles(root) ?? walkFiles(root);
+      }
+      const rel = relativizeWithin(root, scope);
+      return listGitFiles(root, rel) ?? walkFiles(scope, root);
+    },
+    async search(options) {
+      return searchLocal(root, options);
+    }
+  };
+}
+function localIoProvider(root) {
+  const io = createLocalIo(root);
+  return () => io;
+}
+function isMissingFileError(err) {
+  return typeof err === "object" && err !== null && "code" in err && err.code === "ENOENT";
+}
+async function searchLocal(root, options) {
+  const re = new RegExp(options.pattern, options.ignoreCase ? "i" : "");
+  const globRe = options.glob ? globToRegExp(options.glob) : null;
+  let candidates;
+  if (options.scope !== undefined) {
+    const rel = relativizeWithin(root, options.scope);
+    let isFile = false;
+    try {
+      isFile = statSync2(options.scope).isFile();
+    } catch {
+      isFile = false;
+    }
+    candidates = isFile ? [rel] : listGitFiles(root, rel) ?? walkFiles(options.scope, root);
+  } else {
+    candidates = listGitFiles(root) ?? walkFiles(root);
+  }
+  const matches = [];
+  let stopped = false;
+  let skippedLargeFiles = 0;
+  scan:
+    for (const file of candidates) {
+      if (globRe && !globRe.test(file))
+        continue;
+      const read = readTextForSearch(join5(root, file));
+      if (read.kind === "too-large") {
+        skippedLargeFiles += 1;
+        continue;
+      }
+      if (read.kind !== "text")
+        continue;
+      const lines = read.content.split(`
+`);
+      for (const [index, line] of lines.entries()) {
+        if (!re.test(line))
+          continue;
+        matches.push({ file, line: index + 1, text: line });
+        if (matches.length >= options.maxMatches) {
+          stopped = "max-matches";
+          break scan;
+        }
+      }
+    }
+  return { matches, stopped, skippedLargeFiles };
+}
+
+// ../../../../../tmp/agent-sdk-mirror-FWlvyg/repo/src/tools/edit.ts
+function createEditTool(opts) {
+  const { workspace, noun } = opts;
+  const io = opts.io ?? localIoProvider(workspace.root);
+  return defineTool3({
+    description: "Replace an exact string in an existing file. By default old_string must occur exactly once — include enough surrounding context to make it unique. Set replace_all to replace every occurrence (e.g. renaming a symbol).",
+    inputSchema: z3.object({
+      path: z3.string().min(1).describe(`File path, relative to the ${noun} root.`),
+      old_string: z3.string().min(1).describe("Exact text to replace; must currently exist in the file."),
+      new_string: z3.string().describe("Text to replace it with."),
+      replace_all: z3.boolean().optional().describe("Replace every occurrence instead of requiring a single match.")
+    }),
+    async execute({ path, old_string, new_string, replace_all }, ctx) {
+      const abs = workspace.resolve(path);
+      const rel = workspace.relativize(abs);
+      const fio = io(ctx);
+      const bytes = await fio.readFile(abs);
+      if (bytes === null)
+        throw new Error(`${rel} does not exist.`);
+      const before = bytes.toString("utf8");
+      const count = before.split(old_string).length - 1;
+      if (count === 0)
+        throw new Error(`old_string not found in ${rel}.`);
+      if (count > 1 && !replace_all) {
+        throw new Error(`old_string is not unique in ${rel} (${count} matches). Add surrounding context or set replace_all.`);
+      }
+      const after = before.split(old_string).join(new_string);
+      await fio.writeFile(abs, after);
+      return { ok: true, path: rel, replacements: count };
+    }
+  });
+}
+
+// ../../../../../tmp/agent-sdk-mirror-FWlvyg/repo/src/tools/glob.ts
+import { defineTool as defineTool4 } from "eve/tools";
+import { z as z4 } from "zod";
 function createGlobTool(opts) {
   const { workspace, noun } = opts;
+  const io = opts.io ?? localIoProvider(workspace.root);
   return defineTool4({
     description: `Find files in the ${noun} by glob pattern, returning ${noun}-relative paths. \`**\` spans directories, \`*\` matches within a path segment. A pattern without a leading \`**/\` is matched at any depth (so \`*.ts\` finds .ts files anywhere). Gitignored files and build/VCS dirs are skipped.`,
     inputSchema: z4.object({
       pattern: z4.string().min(1).describe("Glob pattern, e.g. `**/*.ts` or `src/tools/*.ts`."),
       limit: z4.number().int().positive().optional().describe("Max paths to return (default 500).")
     }),
-    async execute({ pattern, limit }) {
+    async execute({ pattern, limit }, ctx) {
       const normalized = pattern.startsWith("**/") || pattern.startsWith("/") ? pattern.replace(/^\//, "") : `**/${pattern}`;
       const re = globToRegExp(normalized);
       const max = limit ?? 500;
-      const candidates = listGitFiles(workspace.root) ?? walkFiles(workspace.root);
+      const candidates = await io(ctx).listFiles();
       const files = [];
       let truncated = false;
       for (const file of candidates) {
@@ -1279,45 +1482,17 @@ function createGlobTool(opts) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-qr7iHR/repo/src/tools/grep.ts
+// ../../../../../tmp/agent-sdk-mirror-FWlvyg/repo/src/tools/grep.ts
 import { defineTool as defineTool5 } from "eve/tools";
 import { z as z5 } from "zod";
-import { mkdirSync as mkdirSync4, statSync as statSync2, writeFileSync as writeFileSync4 } from "node:fs";
-import { dirname as dirname3, join as join5 } from "node:path";
-
-// ../../../../../tmp/agent-sdk-mirror-qr7iHR/repo/src/read-text.ts
-import { readFileSync as readFileSync7, statSync } from "node:fs";
-var MAX_SEARCH_FILE_BYTES = 1500000;
-var BINARY_SNIFF_BYTES = 8192;
-function readTextForSearch(abs, maxBytes = MAX_SEARCH_FILE_BYTES) {
-  let size;
-  try {
-    const stats = statSync(abs);
-    if (!stats.isFile())
-      return { kind: "unreadable" };
-    size = stats.size;
-  } catch {
-    return { kind: "unreadable" };
-  }
-  if (size > maxBytes)
-    return { kind: "too-large", bytes: size };
-  let buf;
-  try {
-    buf = readFileSync7(abs);
-  } catch {
-    return { kind: "unreadable" };
-  }
-  if (buf.subarray(0, BINARY_SNIFF_BYTES).includes(0))
-    return { kind: "binary" };
-  return { kind: "text", content: buf.toString("utf8") };
-}
-
-// ../../../../../tmp/agent-sdk-mirror-qr7iHR/repo/src/tools/grep.ts
+import { join as join6 } from "node:path";
 var GREP_SPILL_MAX_MATCHES = 5000;
+var MATCH_TEXT_MAX_CHARS = 300;
 function createGrepTool(opts) {
   const { workspace, noun, spillDir } = opts;
+  const io = opts.io ?? localIoProvider(workspace.root);
   return defineTool5({
-    description: `Search ${noun} file contents by regular expression, returning matching lines with their file and line number. Scope with \`path\` (a file or directory) and/or a \`glob\` on the filename. Gitignored files, build/VCS dirs, binaries, and files over ~1.5 MB are skipped.${spillDir === undefined ? "" : " When more lines match than max_results, the complete match list is saved to a file named in the result — read or grep that file instead of re-searching."}`,
+    description: `Search ${noun} file contents by regular expression, returning matching lines with their file and line number. Scope with \`path\` (a file or directory) and/or a \`glob\` on the filename. Gitignored files, build/VCS dirs, binaries, and files over ~1.5 MB are skipped.${spillDir === undefined ? "" : " When more lines match than max_results, the collected matches are saved to a file named in the result (the note says whether that list is complete) — read or grep that file instead of re-searching."}`,
     inputSchema: z5.object({
       pattern: z5.string().min(1).describe("JavaScript regular expression to search for."),
       path: z5.string().optional().describe(`A file or directory (relative to the ${noun} root) to limit the search to.`),
@@ -1325,85 +1500,74 @@ function createGrepTool(opts) {
       ignore_case: z5.boolean().optional().describe("Case-insensitive match."),
       max_results: z5.number().int().positive().optional().describe("Max matching lines (default 200).")
     }),
-    async execute({ pattern, path, glob, ignore_case, max_results }) {
-      let re;
+    async execute({ pattern, path, glob, ignore_case, max_results }, ctx) {
       try {
-        re = new RegExp(pattern, ignore_case ? "i" : "");
+        new RegExp(pattern, ignore_case ? "i" : "");
       } catch (err) {
         const reason = err instanceof Error ? err.message : String(err);
         throw new Error(`Invalid regular expression: ${reason}`);
       }
-      const globRe = glob ? globToRegExp(glob) : null;
       const max = max_results ?? 200;
-      let candidates;
+      const fio = io(ctx);
+      let scope;
       if (path) {
         const abs = workspace.resolve(path);
-        candidates = statSync2(abs).isFile() ? [workspace.relativize(abs)] : listGitFiles(workspace.root, workspace.relativize(abs)) ?? walkFiles(abs, workspace.root);
-      } else {
-        candidates = listGitFiles(workspace.root) ?? walkFiles(workspace.root);
-      }
-      const matches = [];
-      const allLines = [];
-      let scanStopped = false;
-      let skippedLargeFiles = 0;
-      scan:
-        for (const file of candidates) {
-          if (globRe && !globRe.test(file))
-            continue;
-          const read = readTextForSearch(workspace.resolve(file));
-          if (read.kind === "too-large") {
-            skippedLargeFiles += 1;
-            continue;
-          }
-          if (read.kind !== "text")
-            continue;
-          const lines = read.content.split(`
-`);
-          for (const [index, line] of lines.entries()) {
-            if (!re.test(line))
-              continue;
-            const text = line.slice(0, 300);
-            allLines.push(`${file}:${index + 1}: ${text}`);
-            if (matches.length < max) {
-              matches.push({ file, line: index + 1, text });
-            } else if (spillDir === undefined) {
-              return {
-                pattern,
-                count: matches.length,
-                truncated: true,
-                skippedLargeFiles,
-                matches,
-                note: `Stopped at ${max} matching lines — more matches may exist. Narrow with path/glob or a more specific pattern, or raise max_results.`
-              };
-            }
-            if (allLines.length >= GREP_SPILL_MAX_MATCHES) {
-              scanStopped = true;
-              break scan;
-            }
-          }
+        const stat = await fio.stat(abs);
+        if (stat === null) {
+          throw new Error(`${workspace.relativize(abs)} does not exist.`);
         }
-      if (!scanStopped && allLines.length <= max) {
-        return { pattern, count: matches.length, truncated: false, skippedLargeFiles, matches };
+        scope = abs;
       }
+      const cap = spillDir === undefined ? Math.min(max + 1, GREP_SPILL_MAX_MATCHES) : GREP_SPILL_MAX_MATCHES;
+      const searched = await fio.search({
+        pattern,
+        ignoreCase: ignore_case ?? false,
+        scope,
+        glob,
+        maxMatches: cap
+      });
+      const clip = (m) => ({
+        file: m.file,
+        line: m.line,
+        text: m.text.slice(0, MATCH_TEXT_MAX_CHARS)
+      });
+      const matches = searched.matches.slice(0, max).map(clip);
+      const skipped = searched.skippedLargeFiles === null ? {} : { skippedLargeFiles: searched.skippedLargeFiles };
+      const hitHardBound = searched.stopped === "max-matches" && cap === GREP_SPILL_MAX_MATCHES;
+      const floodCut = searched.stopped === "output-cap";
+      if (searched.stopped === false && searched.matches.length <= max) {
+        return { pattern, count: matches.length, truncated: false, ...skipped, matches };
+      }
+      if (spillDir === undefined && !hitHardBound && !floodCut) {
+        return {
+          pattern,
+          count: matches.length,
+          truncated: true,
+          ...skipped,
+          matches,
+          note: `Stopped at ${max} matching lines — more matches may exist. Narrow with path/glob or a more specific pattern, or raise max_results.`
+        };
+      }
+      const allLines = searched.matches.map((m) => `${m.file}:${m.line}: ${m.text.slice(0, MATCH_TEXT_MAX_CHARS)}`);
       let label = null;
       if (spillDir !== undefined) {
-        const spillPath = join5(spillDir, `grep-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}.txt`);
+        const spillPath = join6(spillDir, `grep-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}.txt`);
         try {
-          mkdirSync4(dirname3(spillPath), { recursive: true });
-          writeFileSync4(spillPath, allLines.join(`
+          await fio.writeFile(spillPath, allLines.join(`
 `) + `
 `);
           label = workspace.relativize(spillPath);
         } catch {}
       }
-      const found = scanStopped ? `Stopped scanning at ${GREP_SPILL_MAX_MATCHES} matching lines` : `Found ${allLines.length} matching lines`;
-      const where = label === null ? "Narrow with path/glob or a more specific pattern, or raise max_results." : `The complete list is at ${label} — read or grep that file, or narrow with path/glob.`;
+      const found = floodCut ? `Search output hit the transfer cap after ${allLines.length} matching lines — more matches may exist` : hitHardBound ? `Stopped scanning at ${GREP_SPILL_MAX_MATCHES} matching lines` : `Found ${allLines.length} matching lines`;
+      const spillIsComplete = !floodCut && !hitHardBound;
+      const where = label === null ? "Narrow with path/glob or a more specific pattern, or raise max_results." : `The ${spillIsComplete ? "complete list is" : "matches collected so far are"} at ${label} — read or grep that file, or narrow with path/glob.`;
       return {
         pattern,
         count: matches.length,
         totalMatches: allLines.length,
         truncated: true,
-        skippedLargeFiles,
+        ...skipped,
         matches,
         note: `${found} — showing the first ${matches.length} here. ${where}`
       };
@@ -1411,43 +1575,43 @@ function createGrepTool(opts) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-qr7iHR/repo/src/tools/read.ts
+// ../../../../../tmp/agent-sdk-mirror-FWlvyg/repo/src/tools/read.ts
 import { defineTool as defineTool6 } from "eve/tools";
 import { z as z6 } from "zod";
 import { basename } from "node:path";
-import { readFileSync as readFileSync8, statSync as statSync3 } from "node:fs";
 
-// ../../../../../tmp/agent-sdk-mirror-qr7iHR/repo/src/attachments.ts
-var CHAT_ATTACHMENT_FIELD = "chatAttachment";
-function isRecord4(value) {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-function readImageChatAttachment(toolOutput) {
-  if (!isRecord4(toolOutput))
-    return null;
-  const raw = toolOutput[CHAT_ATTACHMENT_FIELD];
-  if (!isRecord4(raw))
-    return null;
-  if (raw.kind !== "image")
-    return null;
-  if (typeof raw.dataUrl !== "string" || raw.dataUrl.length === 0)
-    return null;
-  if (typeof raw.mediaType !== "string" || raw.mediaType.length === 0)
-    return null;
-  return {
-    kind: "image",
-    dataUrl: raw.dataUrl,
-    mediaType: raw.mediaType,
-    filename: typeof raw.filename === "string" ? raw.filename : "image",
-    width: typeof raw.width === "number" ? raw.width : null,
-    height: typeof raw.height === "number" ? raw.height : null
-  };
-}
-
-// ../../../../../tmp/agent-sdk-mirror-qr7iHR/repo/src/file-kind.ts
+// ../../../../../tmp/agent-sdk-mirror-FWlvyg/repo/src/file-kind.ts
 import { extname } from "node:path";
 function imageMediaType(format) {
   return `image/${format}`;
+}
+function videoMediaType(format) {
+  switch (format) {
+    case "mp4":
+      return "video/mp4";
+    case "mov":
+      return "video/quicktime";
+    case "webm":
+      return "video/webm";
+    case "mkv":
+      return "video/x-matroska";
+    case "avi":
+      return "video/x-msvideo";
+  }
+}
+function audioMediaType(format) {
+  switch (format) {
+    case "mp3":
+      return "audio/mpeg";
+    case "wav":
+      return "audio/wav";
+    case "ogg":
+      return "audio/ogg";
+    case "flac":
+      return "audio/flac";
+    case "m4a":
+      return "audio/mp4";
+  }
 }
 var BINARY_SNIFF_BYTES2 = 8192;
 function startsWith(buf, bytes, at = 0) {
@@ -1464,10 +1628,67 @@ var JPEG_MAGIC = [255, 216, 255];
 var GIF_MAGIC = [71, 73, 70, 56];
 var RIFF_MAGIC = [82, 73, 70, 70];
 var WEBP_TAG = [87, 69, 66, 80];
+var AVI_TAG = [65, 86, 73, 32];
+var WAVE_TAG = [87, 65, 86, 69];
+var FTYP_TAG = [102, 116, 121, 112];
+var EBML_MAGIC = [26, 69, 223, 163];
+var ID3_MAGIC = [73, 68, 51];
+var OGG_MAGIC = [79, 103, 103, 83];
+var FLAC_MAGIC = [102, 76, 97, 67];
 var ZIP_MAGIC = [80, 75, 3, 4];
 var CFB_MAGIC = [208, 207, 17, 224, 161, 177, 26, 225];
 var UTF16LE_BOM = [255, 254];
 var UTF16BE_BOM = [254, 255];
+var BMFF_IMAGE_BRANDS = new Set([
+  "avif",
+  "avis",
+  "heic",
+  "heix",
+  "heim",
+  "heis",
+  "hevc",
+  "hevx",
+  "mif1",
+  "msf1"
+]);
+var BMFF_AUDIO_BRANDS = new Set(["M4A ", "M4B ", "M4P "]);
+var BMFF_AUDIO_EXTENSIONS = new Set([".m4a", ".m4b", ".m4p"]);
+var BMFF_FTYP_SCAN_CAP = 256;
+function bmffBrands(buf) {
+  const boxSize = buf.length >= 4 ? buf.readUInt32BE(0) : 0;
+  const end = Math.min(boxSize, buf.length, BMFF_FTYP_SCAN_CAP);
+  const brands = [buf.subarray(8, 12).toString("latin1")];
+  for (let off = 16;off + 4 <= end; off += 4) {
+    brands.push(buf.subarray(off, off + 4).toString("latin1"));
+  }
+  return brands;
+}
+function bmffKind(buf, path) {
+  const brands = bmffBrands(buf);
+  const major = brands[0] ?? "";
+  const imageBrand = brands.find((brand) => BMFF_IMAGE_BRANDS.has(brand.toLowerCase()));
+  if (imageBrand !== undefined) {
+    return {
+      kind: "binary",
+      description: `an HEIF/AVIF image (brand "${imageBrand.trim()}") with no supported renderer — convert it to PNG or JPEG`
+    };
+  }
+  if (brands.some((brand) => BMFF_AUDIO_BRANDS.has(brand))) {
+    return { kind: "audio", format: "m4a" };
+  }
+  if (major.startsWith("qt"))
+    return { kind: "video", format: "mov" };
+  if (BMFF_AUDIO_EXTENSIONS.has(extname(path).toLowerCase())) {
+    return { kind: "audio", format: "m4a" };
+  }
+  return { kind: "video", format: "mp4" };
+}
+function ebmlKind(buf) {
+  const header = buf.subarray(0, 64).toString("latin1");
+  if (header.includes("webm"))
+    return { kind: "video", format: "webm" };
+  return { kind: "video", format: "mkv" };
+}
 function zipKind(path) {
   switch (extname(path).toLowerCase()) {
     case ".docx":
@@ -1518,8 +1739,26 @@ function detectFileKind(buf, path) {
     return { kind: "image", format: "jpeg" };
   if (startsWith(buf, GIF_MAGIC))
     return { kind: "image", format: "gif" };
-  if (startsWith(buf, RIFF_MAGIC) && startsWith(buf, WEBP_TAG, 8)) {
-    return { kind: "image", format: "webp" };
+  if (startsWith(buf, RIFF_MAGIC)) {
+    if (startsWith(buf, WEBP_TAG, 8))
+      return { kind: "image", format: "webp" };
+    if (startsWith(buf, AVI_TAG, 8))
+      return { kind: "video", format: "avi" };
+    if (startsWith(buf, WAVE_TAG, 8))
+      return { kind: "audio", format: "wav" };
+  }
+  if (startsWith(buf, FTYP_TAG, 4))
+    return bmffKind(buf, path);
+  if (startsWith(buf, EBML_MAGIC))
+    return ebmlKind(buf);
+  if (startsWith(buf, OGG_MAGIC))
+    return { kind: "audio", format: "ogg" };
+  if (startsWith(buf, FLAC_MAGIC))
+    return { kind: "audio", format: "flac" };
+  if (startsWith(buf, ID3_MAGIC))
+    return { kind: "audio", format: "mp3" };
+  if (buf.length >= 2 && buf[0] === 255 && ((buf[1] ?? 0) & 224) === 224 && extname(path).toLowerCase() === ".mp3") {
+    return { kind: "audio", format: "mp3" };
   }
   if (startsWith(buf, ZIP_MAGIC))
     return zipKind(path);
@@ -1535,7 +1774,7 @@ function detectFileKind(buf, path) {
   return { kind: "text", encoding: "utf8" };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-qr7iHR/repo/src/file-view.ts
+// ../../../../../tmp/agent-sdk-mirror-FWlvyg/repo/src/file-view.ts
 var READ_FILE_DEFAULT_LINE_LIMIT = 2000;
 var READ_FILE_MAX_LINE_CHARS = 2000;
 var READ_FILE_MAX_CONTENT_CHARS = 50000;
@@ -1579,10 +1818,10 @@ function buildFileView(text, opts = {}) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-qr7iHR/repo/src/read-file-content.ts
+// ../../../../../tmp/agent-sdk-mirror-FWlvyg/repo/src/read-file-content.ts
 import { imageSize } from "image-size";
 
-// ../../../../../tmp/agent-sdk-mirror-qr7iHR/repo/src/extract/cache.ts
+// ../../../../../tmp/agent-sdk-mirror-FWlvyg/repo/src/extract/cache.ts
 function createStatCache(limit) {
   const entries = new Map;
   return {
@@ -1607,7 +1846,7 @@ function createStatCache(limit) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-qr7iHR/repo/src/extract/docx.ts
+// ../../../../../tmp/agent-sdk-mirror-FWlvyg/repo/src/extract/docx.ts
 import mammoth from "mammoth";
 async function extractDocx(buffer) {
   try {
@@ -1619,7 +1858,7 @@ async function extractDocx(buffer) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-qr7iHR/repo/src/extract/pdf.ts
+// ../../../../../tmp/agent-sdk-mirror-FWlvyg/repo/src/extract/pdf.ts
 import { openPdf } from "clawpdf";
 var PDF_EMPTY_PAGE_NOTE = "[no text on this page — likely scanned or image-only; rendered pages cannot be attached]";
 var PDF_PAGE_CAP = 200;
@@ -1654,7 +1893,7 @@ async function extractPdf(bytes, options = {}) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-qr7iHR/repo/src/extract/sheet.ts
+// ../../../../../tmp/agent-sdk-mirror-FWlvyg/repo/src/extract/sheet.ts
 import { read, utils } from "xlsx";
 var SHEET_ROW_CAP = 5000;
 function extractSheets(buffer, rowCap = SHEET_ROW_CAP) {
@@ -1695,7 +1934,7 @@ function extractSheets(buffer, rowCap = SHEET_ROW_CAP) {
 `), sheets };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-qr7iHR/repo/src/read-file-content.ts
+// ../../../../../tmp/agent-sdk-mirror-FWlvyg/repo/src/read-file-content.ts
 var EXTRACTION_CACHE_LIMIT = 20;
 var extractionCache = createStatCache(EXTRACTION_CACHE_LIMIT);
 function decodeText(buffer, encoding) {
@@ -1757,21 +1996,41 @@ async function loadFileContent(buffer, path, id) {
         height: size?.height ?? null
       };
     }
+    case "video":
+      return { kind: "video", format: detected.format };
+    case "audio":
+      return { kind: "audio", format: detected.format };
     case "binary":
       throw new Error(`${path} is ${detected.description} — read returns text only. ` + "Use bash (unzip -l, strings, xxd) to inspect it if needed.");
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-qr7iHR/repo/src/tools/read.ts
+// ../../../../../tmp/agent-sdk-mirror-FWlvyg/repo/src/tools/read.ts
+function buildMediaHint(attach, verb) {
+  const kinds = ["image", "video", "audio"];
+  const on = kinds.filter((kind) => attach[kind]);
+  const off = kinds.filter((kind) => !attach[kind]);
+  const list = (items) => items.join(" or ");
+  if (on.length === 0) {
+    return `${verb} media (images, video, audio) returns metadata only`;
+  }
+  const queued = `${verb} ${list(on)} files returns metadata and queues the file to appear as a viewable attachment on your next message`;
+  return off.length === 0 ? queued : `${queued} (${list(off)} ${verb === "reading" ? "reads" : "fetches"} return metadata only)`;
+}
 function createReadTool(opts) {
   const { workspace, noun, attachImagesToChat, maxInlineImageBytes, dirConventions } = opts;
+  const io = opts.io ?? localIoProvider(workspace.root);
+  const attachVideoToChat = opts.attachVideoToChat ?? false;
+  const attachAudioToChat = opts.attachAudioToChat ?? false;
+  const maxInlineMediaBytes = opts.maxInlineMediaBytes ?? DEFAULT_MAX_INLINE_MEDIA_BYTES;
   const oversizeHint = opts.oversizeHint ?? "Use bash (head, sed -n, rg) to extract the part you need.";
   const imageUnavailableHint = opts.imageUnavailableHint ?? "If you need to see this image, ask the user to attach it to the chat.";
+  const mediaUnavailableHint = opts.mediaUnavailableHint ?? "If you need its contents, extract what you can with bash (e.g. ffmpeg frames from a video, read as images) or ask the user about it.";
   const conventionsHint = dirConventions ? ` When a read first enters a directory with its own ${dirConventions.fileName} conventions file, the result includes it under directory_conventions (once per directory per session) — honor those conventions for work in that directory.` : "";
-  const imageHint = attachImagesToChat ? "reading an image returns its metadata and queues the image to appear as a viewable attachment on your next message" : "reading an image returns its metadata only";
+  const mediaHint = buildMediaHint({ image: attachImagesToChat, video: attachVideoToChat, audio: attachAudioToChat }, "reading");
   const editHint = opts.includeEditGuidance ?? true ? " Read a file before editing it so your edits target the current text." : "";
   return defineTool6({
-    description: `Read a file from the ${noun}, returning line-numbered text. PDF, DOCX, and spreadsheet files (.xlsx, .xlsm, .xls, .ods) are converted to plain text (PDFs get per-page markers, spreadsheets render as TSV per sheet); ${imageHint}.${editHint} Returns up to 2000 lines per call by default; page bigger files with offset/limit.` + conventionsHint,
+    description: `Read a file from the ${noun}, returning line-numbered text. PDF, DOCX, and spreadsheet files (.xlsx, .xlsm, .xls, .ods) are converted to plain text (PDFs get per-page markers, spreadsheets render as TSV per sheet); ${mediaHint}.${editHint} Returns up to 2000 lines per call by default; page bigger files with offset/limit.` + conventionsHint,
     inputSchema: z6.object({
       path: z6.string().min(1).describe(`File path, relative to the ${noun} root.`),
       offset: z6.number().int().positive().optional().describe("1-based line to start reading from."),
@@ -1780,16 +2039,33 @@ function createReadTool(opts) {
     async execute({ path, offset, limit }, ctx) {
       const abs = workspace.resolve(path);
       const rel = workspace.relativize(abs);
-      const stat = statSync3(abs);
+      const fio = io(ctx);
+      const stat = await fio.stat(abs);
+      if (stat === null)
+        throw new Error(`${rel} does not exist.`);
+      if (!stat.isFile) {
+        throw new Error(`${rel} is not a regular file. Use glob to list a directory.`);
+      }
       if (stat.size > READ_FILE_MAX_BYTES) {
         throw new Error(`${rel} is ${stat.size} bytes — too large to read (max ${READ_FILE_MAX_BYTES}). ` + oversizeHint);
       }
-      const buffer = readFileSync8(abs);
+      const buffer = await fio.readFile(abs);
+      if (buffer === null)
+        throw new Error(`${rel} does not exist.`);
       const content = await loadFileContent(buffer, rel, {
         mtimeMs: stat.mtimeMs,
         size: stat.size
       });
-      const riders = dirConventions?.tracker.collect(ctx?.session?.id, rel) ?? [];
+      const riders = await (async () => {
+        try {
+          return await dirConventions?.tracker.collect(ctx?.session?.id, rel, async (absPath) => {
+            const bytes = await fio.readFile(absPath);
+            return bytes === null ? null : bytes.toString("utf8");
+          }) ?? [];
+        } catch {
+          return [];
+        }
+      })();
       const conventions = riders.length > 0 ? { directory_conventions: riders } : {};
       switch (content.kind) {
         case "text":
@@ -1832,7 +2108,7 @@ function createReadTool(opts) {
             bytes: stat.size
           };
           if (!attachImagesToChat || stat.size > maxInlineImageBytes) {
-            const why = attachImagesToChat && stat.size > maxInlineImageBytes ? `too large to attach automatically (${stat.size} bytes, max ${maxInlineImageBytes})` : "cannot be returned as a tool result (text/json only)";
+            const why = attachImagesToChat && stat.size > maxInlineImageBytes ? `too large to attach automatically (${stat.size} bytes, max ${maxInlineImageBytes})` : "cannot be returned as a tool result (text/json only), and image attachments are not enabled for this agent";
             return {
               ...meta,
               note: `Image content ${why}. ${imageUnavailableHint}`,
@@ -1854,6 +2130,40 @@ function createReadTool(opts) {
             ...conventions
           };
         }
+        case "video":
+        case "audio": {
+          const kind = content.kind;
+          const mediaType = kind === "video" ? videoMediaType(content.format) : audioMediaType(content.format);
+          const meta = {
+            path: rel,
+            source: kind,
+            format: content.format,
+            mediaType,
+            bytes: stat.size
+          };
+          const label = kind === "video" ? "Video" : "Audio";
+          const enabled = kind === "video" ? attachVideoToChat : attachAudioToChat;
+          if (!enabled || stat.size > maxInlineMediaBytes) {
+            const why = enabled && stat.size > maxInlineMediaBytes ? `too large to attach automatically (${stat.size} bytes, max ${maxInlineMediaBytes})` : `cannot be returned as a tool result (text/json only), and ${kind} attachments are not enabled for this agent`;
+            return {
+              ...meta,
+              note: `${label} content ${why}. ${mediaUnavailableHint}`,
+              ...conventions
+            };
+          }
+          const attachment = {
+            kind,
+            dataUrl: `data:${mediaType};base64,${buffer.toString("base64")}`,
+            mediaType,
+            filename: basename(rel)
+          };
+          return {
+            ...meta,
+            note: `This ${kind} file is queued and will be attached to your next message — no need to ask the user to attach it.`,
+            [CHAT_ATTACHMENT_FIELD]: attachment,
+            ...conventions
+          };
+        }
       }
     },
     toModelOutput(output) {
@@ -1866,7 +2176,7 @@ function createReadTool(opts) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-qr7iHR/repo/src/tools/tasks.ts
+// ../../../../../tmp/agent-sdk-mirror-FWlvyg/repo/src/tools/tasks.ts
 import { defineDynamic as defineDynamic2, defineTool as defineTool7 } from "eve/tools";
 import { z as z7 } from "zod";
 var DEFAULT_WAIT_MS = 120000;
@@ -2023,17 +2333,17 @@ function createTasksTools(opts) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-qr7iHR/repo/src/tools/webfetch.ts
+// ../../../../../tmp/agent-sdk-mirror-FWlvyg/repo/src/tools/webfetch.ts
 import { defineTool as defineTool8 } from "eve/tools";
 import { z as z8 } from "zod";
-import { basename as basename2, join as join6 } from "node:path";
+import { basename as basename2, join as join7 } from "node:path";
 
-// ../../../../../tmp/agent-sdk-mirror-qr7iHR/repo/src/web-fetch.ts
+// ../../../../../tmp/agent-sdk-mirror-FWlvyg/repo/src/web-fetch.ts
 import { Parser } from "htmlparser2";
 import { parseHTML as parseHTML2 } from "linkedom";
 import TurndownService from "turndown";
 
-// ../../../../../tmp/agent-sdk-mirror-qr7iHR/repo/src/web-page.ts
+// ../../../../../tmp/agent-sdk-mirror-FWlvyg/repo/src/web-page.ts
 import Defuddle from "defuddle";
 import { parseHTML } from "linkedom";
 var asField = (value) => {
@@ -2144,7 +2454,7 @@ function looksLikeRawHtmlOutput(rendered) {
   return tagChars / rendered.length > 0.1;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-qr7iHR/repo/src/web-fetch.ts
+// ../../../../../tmp/agent-sdk-mirror-FWlvyg/repo/src/web-fetch.ts
 var WEB_FETCH_MAX_RESPONSE_BYTES = 5 * 1024 * 1024;
 var WEB_FETCH_DEFAULT_TIMEOUT_SECONDS = 30;
 var WEB_FETCH_PDF_DEFAULT_TIMEOUT_SECONDS = 60;
@@ -2334,7 +2644,7 @@ function urlLooksLikePdf(url) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-qr7iHR/repo/src/tools/webfetch.ts
+// ../../../../../tmp/agent-sdk-mirror-FWlvyg/repo/src/tools/webfetch.ts
 var SPILL_EXTENSION = {
   markdown: "md",
   text: "txt",
@@ -2345,12 +2655,12 @@ function spillFilename(format, kind) {
   const ext = kind === "extracted" ? "txt" : SPILL_EXTENSION[format];
   return `webfetch-${runId}.${ext}`;
 }
-function imageFilename(finalUrl) {
+function fetchedFilename(finalUrl, fallback) {
   try {
     const name = basename2(new URL(finalUrl).pathname);
-    return name === "" || name === "/" ? "image" : name;
+    return name === "" || name === "/" ? fallback : name;
   } catch {
-    return "image";
+    return fallback;
   }
 }
 var ZIP_MAGIC2 = [80, 75, 3, 4];
@@ -2373,7 +2683,18 @@ var CONTENT_TYPE_EXTENSIONS = {
   "application/vnd.oasis.opendocument.text": ".odt",
   "application/vnd.oasis.opendocument.spreadsheet": ".ods",
   "application/vnd.oasis.opendocument.presentation": ".odp",
-  "application/pdf": ".pdf"
+  "application/pdf": ".pdf",
+  "video/mp4": ".mp4",
+  "video/quicktime": ".mov",
+  "video/webm": ".webm",
+  "video/x-matroska": ".mkv",
+  "video/x-msvideo": ".avi",
+  "audio/mpeg": ".mp3",
+  "audio/wav": ".wav",
+  "audio/x-wav": ".wav",
+  "audio/ogg": ".ogg",
+  "audio/flac": ".flac",
+  "audio/mp4": ".m4a"
 };
 var LEGACY_TO_MODERN_EXT = {
   ".doc": ".docx",
@@ -2407,8 +2728,11 @@ function pathLabelForFetch(finalUrl, contentType, body) {
 }
 function createWebFetchTool(opts) {
   const { workspace, spillDir, attachImagesToChat, maxInlineImageBytes, fetchImpl } = opts;
+  const attachVideoToChat = opts.attachVideoToChat ?? false;
+  const attachAudioToChat = opts.attachAudioToChat ?? false;
+  const maxInlineMediaBytes = opts.maxInlineMediaBytes ?? DEFAULT_MAX_INLINE_MEDIA_BYTES;
   const bounded = (text, format, kind) => {
-    const spillPath = join6(spillDir, spillFilename(format, kind));
+    const spillPath = join7(spillDir, spillFilename(format, kind));
     const capture = createBoundedCapture({
       spillPath,
       spillLabel: workspace.relativize(spillPath)
@@ -2421,8 +2745,9 @@ function createWebFetchTool(opts) {
       truncated: snapshot.truncated
     };
   };
+  const mediaHint = buildMediaHint({ image: attachImagesToChat, video: attachVideoToChat, audio: attachAudioToChat }, "fetching");
   return defineTool8({
-    description: `Fetch a URL and return its content. HTML pages are reduced to their main content (boilerplate stripped, title/author/date header) and converted to readable markdown by default (set format to "text" for plain text or "html" for the raw page). Fetched PDF, DOCX, and spreadsheet files are converted to plain text; fetching an image queues it to appear as a viewable attachment on your next message. Content over the in-context budget is truncated head+tail and the complete output is spilled to a file named in the truncation marker — read or grep that file instead of re-fetching. Default timeout ${WEB_FETCH_DEFAULT_TIMEOUT_SECONDS}s (${WEB_FETCH_PDF_DEFAULT_TIMEOUT_SECONDS}s for PDFs), max ${WEB_FETCH_MAX_TIMEOUT_SECONDS}s; responses over 5 MB error. Read-only: one HTTP GET, no side effects.`,
+    description: `Fetch a URL and return its content. HTML pages are reduced to their main content (boilerplate stripped, title/author/date header) and converted to readable markdown by default (set format to "text" for plain text or "html" for the raw page). Fetched PDF, DOCX, and spreadsheet files are converted to plain text; ${mediaHint}. Content over the in-context budget is truncated head+tail and the complete output is spilled to a file named in the truncation marker — read or grep that file instead of re-fetching. Default timeout ${WEB_FETCH_DEFAULT_TIMEOUT_SECONDS}s (${WEB_FETCH_PDF_DEFAULT_TIMEOUT_SECONDS}s for PDFs), max ${WEB_FETCH_MAX_TIMEOUT_SECONDS}s; responses over 5 MB error. Read-only: one HTTP GET, no side effects.`,
     inputSchema: z8.object({
       url: z8.string().min(1).describe("The URL to fetch. Must start with http:// or https://."),
       format: z8.enum(["markdown", "text", "html"]).optional().describe('How to render HTML responses: "markdown" (default), "text", or "html" (raw). Non-HTML content is unaffected.'),
@@ -2443,7 +2768,7 @@ function createWebFetchTool(opts) {
       const label = pathLabelForFetch(finalUrl, contentType, body);
       const detected = detectFileKind(body, label);
       if (detected.kind === "binary") {
-        throw new Error(`Fetched content is ${detected.description} — webfetch returns text and images only. ` + "Use bash (curl -o) to download it if needed.");
+        throw new Error(`Fetched content is ${detected.description} — webfetch returns text and media metadata only. ` + "Use bash (curl -o) to download it if needed.");
       }
       const content = await loadFileContent(body, label, {
         mtimeMs: Date.now(),
@@ -2490,7 +2815,7 @@ function createWebFetchTool(opts) {
             bytes: body.byteLength
           };
           if (!attachImagesToChat || body.byteLength > maxInlineImageBytes) {
-            const why = attachImagesToChat && body.byteLength > maxInlineImageBytes ? `too large to attach automatically (${body.byteLength} bytes, max ${maxInlineImageBytes})` : "cannot be returned as a tool result (text/json only)";
+            const why = attachImagesToChat && body.byteLength > maxInlineImageBytes ? `too large to attach automatically (${body.byteLength} bytes, max ${maxInlineImageBytes})` : "cannot be returned as a tool result (text/json only), and image attachments are not enabled for this agent";
             return {
               ...imageMeta,
               note: `Image content ${why}. If you need to see this image, ask the user to attach it to the chat.`
@@ -2500,13 +2825,45 @@ function createWebFetchTool(opts) {
             kind: "image",
             dataUrl: `data:${imageMediaType(content.format)};base64,${body.toString("base64")}`,
             mediaType: imageMediaType(content.format),
-            filename: imageFilename(finalUrl),
+            filename: fetchedFilename(finalUrl, "image"),
             width: content.width,
             height: content.height
           };
           return {
             ...imageMeta,
             note: "This image is queued and will be attached to your next message as a viewable image — no need to ask the user to attach it.",
+            [CHAT_ATTACHMENT_FIELD]: attachment
+          };
+        }
+        case "video":
+        case "audio": {
+          const kind = content.kind;
+          const mediaType = kind === "video" ? videoMediaType(content.format) : audioMediaType(content.format);
+          const mediaMeta = {
+            ...meta,
+            source: kind,
+            mediaFormat: content.format,
+            mediaType,
+            bytes: body.byteLength
+          };
+          const label2 = kind === "video" ? "Video" : "Audio";
+          const enabled = kind === "video" ? attachVideoToChat : attachAudioToChat;
+          if (!enabled || body.byteLength > maxInlineMediaBytes) {
+            const why = enabled && body.byteLength > maxInlineMediaBytes ? `too large to attach automatically (${body.byteLength} bytes, max ${maxInlineMediaBytes})` : `cannot be returned as a tool result (text/json only), and ${kind} attachments are not enabled for this agent`;
+            return {
+              ...mediaMeta,
+              note: `${label2} content ${why}. Use bash (curl -o) to download it if you need to process it.`
+            };
+          }
+          const attachment = {
+            kind,
+            dataUrl: `data:${mediaType};base64,${body.toString("base64")}`,
+            mediaType,
+            filename: fetchedFilename(finalUrl, kind)
+          };
+          return {
+            ...mediaMeta,
+            note: `This ${kind} file is queued and will be attached to your next message — no need to ask the user to attach it.`,
             [CHAT_ATTACHMENT_FIELD]: attachment
           };
         }
@@ -2522,55 +2879,235 @@ function createWebFetchTool(opts) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-qr7iHR/repo/src/tools/write.ts
+// ../../../../../tmp/agent-sdk-mirror-FWlvyg/repo/src/tools/write.ts
 import { defineTool as defineTool9 } from "eve/tools";
 import { z as z9 } from "zod";
-import { existsSync as existsSync2, mkdirSync as mkdirSync5, writeFileSync as writeFileSync5 } from "node:fs";
-import { dirname as dirname4 } from "node:path";
 function createWriteTool(opts) {
   const { workspace, noun } = opts;
+  const io = opts.io ?? localIoProvider(workspace.root);
   return defineTool9({
     description: `Write a complete file to the ${noun}, creating parent directories and overwriting any existing file. For a small change to an existing file, prefer edit so you don't have to reproduce the whole file.`,
     inputSchema: z9.object({
       path: z9.string().min(1).describe(`File path, relative to the ${noun} root.`),
       content: z9.string().describe("The full contents to write.")
     }),
-    async execute({ path, content }) {
+    async execute({ path, content }, ctx) {
       const abs = workspace.resolve(path);
-      const created = !existsSync2(abs);
-      mkdirSync5(dirname4(abs), { recursive: true });
-      writeFileSync5(abs, content, "utf8");
-      return { ok: true, path: workspace.relativize(abs), created, bytes: Buffer.byteLength(content) };
+      const fio = io(ctx);
+      const created = await fio.stat(abs) === null;
+      await fio.writeFile(abs, content);
+      return {
+        ok: true,
+        path: workspace.relativize(abs),
+        created,
+        bytes: Buffer.byteLength(content)
+      };
     }
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-qr7iHR/repo/src/workspace.ts
-import { isAbsolute, relative as relative2, resolve as resolve2, sep as sep2 } from "node:path";
-function resolveWithin(root, path) {
-  const abs = isAbsolute(path) ? resolve2(path) : resolve2(root, path);
-  if (abs !== root && !abs.startsWith(root + sep2)) {
-    throw new Error(`Path escapes the workspace root (${root}): ${path}`);
+// ../../../../../tmp/agent-sdk-mirror-FWlvyg/repo/src/sandbox-io.ts
+import ignore2 from "ignore";
+function shellSingleQuote(value) {
+  return `'${value.replaceAll("'", `'\\''`)}'`;
+}
+function defaultResolveSession(ctx) {
+  if (ctx === undefined) {
+    throw new Error("Sandbox-backed workspace tools need an eve tool context (ctx.getSandbox); none was provided.");
   }
-  return abs;
+  return ctx.getSandbox();
 }
-function relativizeWithin(root, abs) {
-  const rel = relative2(root, abs);
-  return rel === "" ? "." : rel.split(sep2).join("/");
+function sandboxIoProvider(options) {
+  const resolve3 = options.resolveSession ?? defaultResolveSession;
+  return (ctx) => createSandboxIo({ root: options.root, session: () => resolve3(ctx) });
 }
-function createWorkspace(root) {
-  const abs = resolve2(root);
+function createSandboxIo(opts) {
+  const { root } = opts;
+  let resolved = null;
+  const session = () => {
+    resolved ??= Promise.resolve(opts.session());
+    return resolved;
+  };
+  async function run(command) {
+    const sb = await session();
+    return await sb.run({ command, workingDirectory: root });
+  }
   return {
-    root: abs,
-    resolve: (path) => resolveWithin(abs, path),
-    relativize: (path) => relativizeWithin(abs, path)
+    async stat(abs) {
+      const q = shellSingleQuote(abs);
+      const result = await run(`stat -c '%s %Y %F' -- ${q} 2>/dev/null || stat -f '%z %m %HT' -- ${q}`);
+      if (result.exitCode !== 0)
+        return null;
+      const match = /^(\d+)\s+(\d+)\s+(.+)$/.exec(result.stdout.trim());
+      if (match === null)
+        return null;
+      const [, size, mtimeSec, kind] = match;
+      if (size === undefined || mtimeSec === undefined || kind === undefined)
+        return null;
+      return {
+        isFile: /regular/i.test(kind),
+        size: Number(size),
+        mtimeMs: Number(mtimeSec) * 1000
+      };
+    },
+    async readFile(abs) {
+      const sb = await session();
+      const bytes = await sb.readBinaryFile({ path: abs });
+      return bytes === null ? null : Buffer.from(bytes);
+    },
+    async writeFile(abs, content) {
+      const sb = await session();
+      const bytes = typeof content === "string" ? new TextEncoder().encode(content) : content;
+      await sb.writeBinaryFile({ path: abs, content: bytes });
+    },
+    async listFiles(scope) {
+      const rel = scope === undefined ? undefined : relativizeWithin(root, scope);
+      const spec = rel === undefined || rel === "." ? "" : ` -- ${shellSingleQuote(rel)}`;
+      const listed = await run(`git ls-files --cached --others --exclude-standard -z${spec}`);
+      if (listed.exitCode === 0) {
+        const files2 = listed.stdout.split("\x00").filter((p) => p.length > 0);
+        const deleted = await run(`git ls-files --deleted -z${spec}`);
+        if (deleted.exitCode !== 0)
+          return files2;
+        const gone = new Set(deleted.stdout.split("\x00").filter((p) => p.length > 0));
+        return gone.size === 0 ? files2 : files2.filter((p) => !gone.has(p));
+      }
+      const start = rel === undefined || rel === "." ? "." : shellSingleQuote(rel);
+      const prune = `\\( ${[...ALWAYS_IGNORED].map((dir) => `-name ${dir}`).join(" -o ")} \\) -prune`;
+      const found = await run(`find ${start} ${prune} -o -type f -print`);
+      if (found.exitCode !== 0) {
+        throw new Error(`Could not list workspace files in the sandbox: ${found.stderr.trim() || `find exited ${found.exitCode}`}`);
+      }
+      const files = found.stdout.split(`
+`).map((line) => line.startsWith("./") ? line.slice(2) : line).filter((line) => line.length > 0);
+      const sb = await session();
+      const rootIgnore = await sb.readBinaryFile({ path: `${root}/.gitignore` });
+      if (rootIgnore === null)
+        return files;
+      const matcher = ignore2().add(Buffer.from(rootIgnore).toString("utf8"));
+      return files.filter((file) => !matcher.ignores(file));
+    },
+    async search(options) {
+      const scopeRel = options.scope === undefined ? "." : relativizeWithin(root, options.scope);
+      const viaRg = await runSearch(run, buildRipgrepCommand(options, scopeRel));
+      if (viaRg.exitCode === 0 || viaRg.exitCode === 1) {
+        return parseSearchOutput(viaRg.stdout, options.maxMatches, viaRg.flooded);
+      }
+      if (viaRg.exitCode !== 127) {
+        throw new Error(`Search failed in the sandbox (rg exited ${viaRg.exitCode}): ${viaRg.stderr.trim()}`);
+      }
+      const viaGrep = await runSearch(run, buildPosixGrepCommand(options, scopeRel));
+      if (viaGrep.exitCode === 0 || viaGrep.exitCode === 1) {
+        const parsed = parseSearchOutput(viaGrep.stdout, Number.MAX_SAFE_INTEGER, viaGrep.flooded);
+        const globRe = options.glob === undefined ? null : globToRegExp(options.glob);
+        const sb = await session();
+        const rootIgnore = await sb.readBinaryFile({ path: `${root}/.gitignore` });
+        const matcher = rootIgnore === null ? null : ignore2().add(Buffer.from(rootIgnore).toString("utf8"));
+        const kept = parsed.matches.filter((m) => (globRe === null || globRe.test(m.file)) && (matcher === null || !matcher.ignores(m.file)));
+        return {
+          matches: kept.slice(0, options.maxMatches),
+          stopped: parsed.stopped === "output-cap" ? "output-cap" : kept.length >= options.maxMatches ? "max-matches" : parsed.stopped,
+          skippedLargeFiles: null
+        };
+      }
+      throw new Error(`Search failed in the sandbox (grep exited ${viaGrep.exitCode}): ${viaGrep.stderr.trim()}`);
+    }
   };
 }
-// ../../../../../tmp/agent-sdk-mirror-qr7iHR/repo/src/hooks.ts
+var SEARCH_OUTPUT_CAP_BYTES = 10 * 1024 * 1024;
+var SEARCH_EXIT_SENTINEL = "__ZO_SEARCH_EXIT__";
+async function runSearch(run, command) {
+  const wrapped = `{ ${command}; printf '\\n${SEARCH_EXIT_SENTINEL}:%d\\n' "$?"; } | head -c ${SEARCH_OUTPUT_CAP_BYTES}`;
+  const result = await run(wrapped);
+  const parsed = extractSearchExit(result.stdout);
+  if (parsed.exitCode === null) {
+    if (result.exitCode !== 0) {
+      return { exitCode: result.exitCode, stdout: parsed.stdout, stderr: result.stderr, flooded: false };
+    }
+    return { exitCode: 0, stdout: parsed.stdout, stderr: result.stderr, flooded: true };
+  }
+  return {
+    exitCode: parsed.exitCode,
+    stdout: parsed.stdout,
+    stderr: result.stderr,
+    flooded: false
+  };
+}
+function extractSearchExit(stdout) {
+  const match = new RegExp(`\\n?${SEARCH_EXIT_SENTINEL}:(\\d+)\\n?$`).exec(stdout);
+  if (match === null || match[1] === undefined) {
+    return { stdout, exitCode: null };
+  }
+  return { stdout: stdout.slice(0, match.index), exitCode: Number(match[1]) };
+}
+function buildRipgrepCommand(options, scopeRel) {
+  const parts = [
+    "rg",
+    "--line-number",
+    "--with-filename",
+    "--no-heading",
+    "--color=never",
+    "--hidden",
+    ...[...ALWAYS_IGNORED].map((dir) => `--glob ${shellSingleQuote(`!**/${dir}`)}`),
+    `--max-filesize ${MAX_SEARCH_FILE_BYTES}`
+  ];
+  if (options.ignoreCase)
+    parts.push("--ignore-case");
+  if (options.glob !== undefined)
+    parts.push(`--glob ${shellSingleQuote(options.glob)}`);
+  parts.push(`--max-count ${options.maxMatches}`);
+  parts.push(`--regexp ${shellSingleQuote(options.pattern)}`);
+  parts.push("--", shellSingleQuote(scopeRel));
+  return parts.join(" ");
+}
+function buildPosixGrepCommand(options, scopeRel) {
+  const prune = `\\( ${[...ALWAYS_IGNORED].map((dir) => `-name ${dir}`).join(" -o ")} \\) -prune`;
+  const filters = ["-type f", `-size -${MAX_SEARCH_FILE_BYTES}c`];
+  const grep = [
+    "grep",
+    "-n",
+    "-H",
+    "-E",
+    "--color=never",
+    ...options.ignoreCase ? ["-i"] : [],
+    `-m ${options.maxMatches}`,
+    "-e",
+    shellSingleQuote(options.pattern),
+    "--"
+  ].join(" ");
+  return `find ${shellSingleQuote(scopeRel)} ${prune} -o ${filters.join(" ")} -exec ${grep} {} +`;
+}
+function parseSearchOutput(stdout, maxMatches, flooded = false) {
+  const matches = [];
+  let stopped = flooded ? "output-cap" : false;
+  for (const line of stdout.split(`
+`)) {
+    if (line.length === 0)
+      continue;
+    const parsed = /^(.+?):(\d+):(.*)$/.exec(line);
+    if (parsed === null)
+      continue;
+    const [, file, lineNo, text] = parsed;
+    if (file === undefined || lineNo === undefined || text === undefined)
+      continue;
+    matches.push({
+      file: file.startsWith("./") ? file.slice(2) : file,
+      line: Number(lineNo),
+      text
+    });
+    if (matches.length >= maxMatches) {
+      if (stopped === false)
+        stopped = "max-matches";
+      break;
+    }
+  }
+  return { matches, stopped, skippedLargeFiles: null };
+}
+// ../../../../../tmp/agent-sdk-mirror-FWlvyg/repo/src/hooks.ts
 import { Client } from "eve/client";
 import { defineHook } from "eve/hooks";
 
-// ../../../../../tmp/agent-sdk-mirror-qr7iHR/repo/src/redeliver.ts
+// ../../../../../tmp/agent-sdk-mirror-FWlvyg/repo/src/redeliver.ts
 function isRecord5(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
@@ -2584,7 +3121,7 @@ function redeliveryFromEvent(event) {
     return null;
   if (typeof result.callId !== "string" || result.callId.length === 0)
     return null;
-  const attachment = readImageChatAttachment(result.output);
+  const attachment = readChatAttachment(result.output);
   if (!attachment)
     return null;
   return { toolCallId: result.callId, attachment };
@@ -2640,15 +3177,15 @@ function createRedeliveryState() {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-qr7iHR/repo/src/hooks.ts
+// ../../../../../tmp/agent-sdk-mirror-FWlvyg/repo/src/hooks.ts
 var RETRY_DELAYS_MS = [500, 2000, 5000];
 function buildDeliveryMessage(request) {
-  const images = request.items.flatMap((item) => item.payload.kind === "image" ? [{ toolCallId: item.key, attachment: item.payload.attachment }] : []);
+  const media = request.items.flatMap((item) => item.payload.kind === "media" ? [{ toolCallId: item.key, attachment: item.payload.attachment }] : []);
   const notes = request.items.flatMap((item) => item.payload.kind === "note" ? [item.payload.text] : []);
   const steers = request.items.flatMap((item) => item.payload.kind === "steer" ? [item.payload.message.text] : []);
   return [
     ...steers.map((text) => ({ type: "text", text })),
-    ...images.length > 0 ? buildRedeliveryMessage(images) : [],
+    ...media.length > 0 ? buildRedeliveryMessage(media) : [],
     ...notes.map((text) => ({ type: "text", text }))
   ];
 }
@@ -2680,7 +3217,7 @@ function createParkDeliveryHook(options = {}) {
         await response.result();
         const next = state.settle(request, true);
         if (log) {
-          const labels = request.items.map((item) => item.payload.kind === "image" ? item.payload.attachment.filename : item.key);
+          const labels = request.items.map((item) => item.payload.kind === "media" ? item.payload.attachment.filename : item.key);
           console.log(`[agent-sdk] park delivery to ${request.sessionId}: ${labels.join(", ")}`);
         }
         if (next)
@@ -2732,14 +3269,14 @@ function createParkDeliveryHook(options = {}) {
         if (found) {
           state.enqueue(meta.sessionId, {
             key: found.toolCallId,
-            payload: { kind: "image", attachment: found.attachment }
+            payload: { kind: "media", attachment: found.attachment }
           });
         }
       }
     }
   });
 }
-// ../../../../../tmp/agent-sdk-mirror-qr7iHR/repo/src/explore.ts
+// ../../../../../tmp/agent-sdk-mirror-FWlvyg/repo/src/explore.ts
 import { defineAgent } from "eve";
 import { defineDynamic as defineDynamic3, defineInstructions as defineInstructions2 } from "eve/instructions";
 var EXPLORE_TOOL_NAMES = ["read", "glob", "grep"];
@@ -2773,6 +3310,7 @@ function createExploreTools(options) {
       dirConventions,
       oversizeHint: "This file is beyond your tools' reach — report its path and size so the caller can extract what's needed.",
       imageUnavailableHint: "Its pixels are not available to you — report the image's path and metadata so the caller can view it.",
+      mediaUnavailableHint: "Its contents are not available to you — report the file's path and metadata so the caller can handle it.",
       includeEditGuidance: false
     }),
     glob: createGlobTool({ workspace, noun }),
@@ -2808,7 +3346,7 @@ function createExploreAgent(options) {
     ...options.reasoning !== undefined ? { reasoning: options.reasoning } : {}
   });
 }
-// ../../../../../tmp/agent-sdk-mirror-qr7iHR/repo/src/mock-model.ts
+// ../../../../../tmp/agent-sdk-mirror-FWlvyg/repo/src/mock-model.ts
 var STORY_SENTENCES = [
   "The lighthouse keeper counted the waves as they broke against the rocks.",
   "Every seventh wave carried a whisper from the old town beneath the sea.",
@@ -3139,15 +3677,14 @@ function createMockStoryModel(options = {}) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-qr7iHR/repo/src/index.ts
-var DEFAULT_MAX_INLINE_IMAGE_BYTES = 5 * 1024 * 1024;
+// ../../../../../tmp/agent-sdk-mirror-FWlvyg/repo/src/index.ts
 function createStdlib(options) {
   const noun = options.workspaceNoun ?? "workspace";
   const workspace2 = createWorkspace(options.workspaceRoot);
-  const spillDir = join7(options.stateDir, TOOL_OUTPUT_DIRNAME);
+  const spillDir = join8(options.stateDir, TOOL_OUTPUT_DIRNAME);
   const runner = createCommandRunner({ workspace: workspace2, spillDir });
   const registry = createTaskRegistry({
-    storePath: join7(options.stateDir, "tasks.json")
+    storePath: join8(options.stateDir, "tasks.json")
   });
   const backgroundables = [
     createBashOp(runner),
@@ -3176,6 +3713,9 @@ function createStdlib(options) {
         noun,
         attachImagesToChat: options.attachImagesToChat ?? true,
         maxInlineImageBytes: options.maxInlineImageBytes ?? DEFAULT_MAX_INLINE_IMAGE_BYTES,
+        attachVideoToChat: options.attachVideoToChat ?? false,
+        attachAudioToChat: options.attachAudioToChat ?? false,
+        maxInlineMediaBytes: options.maxInlineMediaBytes ?? DEFAULT_MAX_INLINE_MEDIA_BYTES,
         dirConventions
       })),
       edit: steer2(createEditTool({ workspace: workspace2, noun })),
@@ -3194,7 +3734,10 @@ function createStdlib(options) {
         workspace: workspace2,
         spillDir,
         attachImagesToChat: options.attachImagesToChat ?? true,
-        maxInlineImageBytes: options.maxInlineImageBytes ?? DEFAULT_MAX_INLINE_IMAGE_BYTES
+        maxInlineImageBytes: options.maxInlineImageBytes ?? DEFAULT_MAX_INLINE_IMAGE_BYTES,
+        attachVideoToChat: options.attachVideoToChat ?? false,
+        attachAudioToChat: options.attachAudioToChat ?? false,
+        maxInlineMediaBytes: options.maxInlineMediaBytes ?? DEFAULT_MAX_INLINE_MEDIA_BYTES
       }))
     },
     instructions: {
@@ -3213,14 +3756,60 @@ function createStdlib(options) {
     }
   };
 }
+function createSandboxFileTools(options) {
+  const noun = options.workspaceNoun ?? "workspace";
+  const workspace2 = createWorkspace(options.workspaceRoot);
+  const io = sandboxIoProvider({
+    root: workspace2.root,
+    ...options.resolveSession !== undefined ? { resolveSession: options.resolveSession } : {}
+  });
+  const conventionsFileName = options.conventionsFileName ?? "AGENTS.md";
+  const dirConventions = options.injectDirConventions ?? true ? {
+    tracker: createDirConventionsTracker({
+      workspaceRoot: workspace2.root,
+      fileName: conventionsFileName
+    }),
+    fileName: conventionsFileName
+  } : undefined;
+  return {
+    workspace: workspace2,
+    io,
+    tools: {
+      read: createReadTool({
+        workspace: workspace2,
+        noun,
+        io,
+        attachImagesToChat: options.attachImagesToChat ?? false,
+        maxInlineImageBytes: options.maxInlineImageBytes ?? DEFAULT_MAX_INLINE_IMAGE_BYTES,
+        attachVideoToChat: options.attachVideoToChat ?? false,
+        attachAudioToChat: options.attachAudioToChat ?? false,
+        maxInlineMediaBytes: options.maxInlineMediaBytes ?? DEFAULT_MAX_INLINE_MEDIA_BYTES,
+        dirConventions
+      }),
+      edit: createEditTool({ workspace: workspace2, noun, io }),
+      write: createWriteTool({ workspace: workspace2, noun, io }),
+      glob: createGlobTool({ workspace: workspace2, noun, io }),
+      grep: createGrepTool({
+        workspace: workspace2,
+        noun,
+        io,
+        ...options.spillDir !== undefined ? { spillDir: options.spillDir } : {}
+      })
+    }
+  };
+}
 export {
   withSteerDelivery,
   walkFiles,
+  videoMediaType,
   stripSteerFromOutput,
+  shellSingleQuote,
   setParkNotificationHandler,
   serializeSteerLine,
+  searchLocal,
   scriptStepFrom,
   scriptActionFor,
+  sandboxIoProvider,
   resolveWithin,
   resolveWebFetchTimeoutMs,
   renderWebText,
@@ -3228,13 +3817,15 @@ export {
   redeliveryFromEvent,
   readTextForSearch,
   readSteerMessages,
-  readImageChatAttachment,
+  readChatAttachment,
   postParkNotification,
   parseSteerLine,
+  parseSearchOutput,
   mockScenarioFrom,
   mergeSteerIntoModelOutput,
   markdownChunks,
   looksLikeHtml,
+  localIoProvider,
   loadFileContent,
   listGitFiles,
   isHtmlContentType,
@@ -3246,6 +3837,7 @@ export {
   fetchWebResource,
   extractTextFromHtml,
   extractSheets,
+  extractSearchExit,
   extractPdf,
   extractDocx,
   dirChain,
@@ -3262,6 +3854,8 @@ export {
   createSteerInbox,
   createStdlib,
   createStatCache,
+  createSandboxIo,
+  createSandboxFileTools,
   createRepoConventionsInstruction,
   createRedeliveryState,
   createReadTool,
@@ -3270,6 +3864,7 @@ export {
   createParallelToolsInstruction,
   createOutputWatcher,
   createMockStoryModel,
+  createLocalIo,
   createHitlInstruction,
   createGrepTool,
   createGlobTool,
@@ -3297,6 +3892,7 @@ export {
   buildExploreMarkdown,
   buildExploreDescription,
   buildCommunicationMarkdown,
+  audioMediaType,
   attachSteerToOutput,
   assertHttpUrl,
   __resetTaskRegistryCacheForTests,
@@ -3312,6 +3908,7 @@ export {
   STEER_FIELD,
   STEER_DIRNAME,
   SHEET_ROW_CAP,
+  SEARCH_OUTPUT_CAP_BYTES,
   READ_FILE_MAX_LINE_CHARS,
   READ_FILE_MAX_CONTENT_CHARS,
   READ_FILE_MAX_BYTES,
@@ -3327,7 +3924,9 @@ export {
   EXPLORE_DISABLED_BUILTINS,
   DEFAULT_WATCH_DEBOUNCE_MS,
   DEFAULT_MAX_WATCH_NOTIFICATIONS,
+  DEFAULT_MAX_INLINE_MEDIA_BYTES,
   DEFAULT_MAX_INLINE_IMAGE_BYTES,
   CHAT_ATTACHMENT_FIELD,
-  BROWSER_USER_AGENT
+  BROWSER_USER_AGENT,
+  ALWAYS_IGNORED
 };

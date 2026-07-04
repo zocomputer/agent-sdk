@@ -3,7 +3,7 @@ import { existsSync, mkdtempSync, readFileSync, realpathSync, rmSync } from "nod
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import type { ToolContext } from "eve/tools";
-import { readImageChatAttachment } from "../attachments";
+import { readChatAttachment } from "../attachments";
 import { HEAD_CHARS, TAIL_CHARS } from "../bounded-output";
 import type { FetchLike } from "../web-fetch";
 import { createWorkspace } from "../workspace";
@@ -140,7 +140,7 @@ describe("webfetch tool", () => {
     const result = await tool.execute({ url: "https://example.com/pic.png" }, ctx);
     expect(result).toMatchObject({ source: "image", imageFormat: "png" });
 
-    const attachment = readImageChatAttachment(result);
+    const attachment = readChatAttachment(result);
     if (!attachment) throw new Error("expected a chat attachment");
     expect(attachment.mediaType).toBe("image/png");
     expect(attachment.filename).toBe("pic.png");
@@ -148,7 +148,50 @@ describe("webfetch tool", () => {
 
     const model = await tool.toModelOutput?.(result);
     if (!model || model.type !== "json") throw new Error("expected json model output");
-    expect(readImageChatAttachment(model.value)).toBeNull();
+    expect(readChatAttachment(model.value)).toBeNull();
+  });
+
+  test("fetched video returns metadata only unless video attach is enabled", async () => {
+    const mp4 = Buffer.concat([
+      Buffer.from([0, 0, 0, 0x18]),
+      Buffer.from("ftypisom"),
+      Buffer.alloc(24),
+    ]);
+    const response = () =>
+      new Response(mp4, { status: 200, headers: { "content-type": "video/mp4" } });
+
+    const metadataOnly = await toolWith(response()).execute(
+      { url: "https://example.com/clip.mp4" },
+      ctx,
+    );
+    expect(metadataOnly).toMatchObject({
+      source: "video",
+      mediaFormat: "mp4",
+      mediaType: "video/mp4",
+    });
+    expect(readChatAttachment(metadataOnly)).toBeNull();
+    if (!("note" in metadataOnly) || typeof metadataOnly.note !== "string") {
+      throw new Error("expected a note");
+    }
+    expect(metadataOnly.note).toContain("not enabled");
+
+    const attaching = createWebFetchTool({
+      workspace,
+      spillDir,
+      attachImagesToChat: true,
+      maxInlineImageBytes: 5 * 1024 * 1024,
+      attachVideoToChat: true,
+      fetchImpl: () => Promise.resolve(response()),
+    });
+    const attached = await attaching.execute({ url: "https://example.com/clip.mp4" }, ctx);
+    const attachment = readChatAttachment(attached);
+    if (!attachment) throw new Error("expected a chat attachment");
+    expect(attachment.kind).toBe("video");
+    expect(attachment.filename).toBe("clip.mp4");
+    expect(attachment.dataUrl.startsWith("data:video/mp4;base64,")).toBe(true);
+    const model = await attaching.toModelOutput?.(attached);
+    if (!model || model.type !== "json") throw new Error("expected json model output");
+    expect(readChatAttachment(model.value)).toBeNull();
   });
 
   test("falls back to a note when image inlining is off", async () => {
@@ -164,7 +207,7 @@ describe("webfetch tool", () => {
         ),
     });
     const result = await tool.execute({ url: "https://example.com/pic.png" }, ctx);
-    expect(readImageChatAttachment(result)).toBeNull();
+    expect(readChatAttachment(result)).toBeNull();
     if (!("note" in result) || typeof result.note !== "string") throw new Error("expected a note");
     expect(result.note).toContain("ask the user");
   });
@@ -176,7 +219,7 @@ describe("webfetch tool", () => {
       new Response(zip, { status: 200, headers: { "content-type": "application/zip" } }),
     );
     await expect(tool.execute({ url: "https://example.com/x.zip" }, ctx)).rejects.toThrow(
-      /text and images only/,
+      /text and media metadata only/,
     );
   });
 

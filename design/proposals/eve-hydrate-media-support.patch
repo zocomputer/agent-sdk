@@ -1,0 +1,440 @@
+From b73ec2f9a9805413dde0b7ef44231c7eff66d111 Mon Sep 17 00:00:00 2001
+From: Cursor Agent <cursoragent@cursor.com>
+Date: Sat, 4 Jul 2026 16:34:30 +0000
+Subject: [PATCH] feat(eve): hydrate video/audio attachments inline for models
+ that accept them
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Attachment hydration re-inlines staged file parts through a hard whitelist
+(images ≤3 MiB, PDFs ≤20 MiB); every other media type silently degrades to
+an 'Attached file …' text stub — including video/audio sent to a Gemini
+model that natively understands them.
+
+Widen the inline decision per model family, mirroring detectPromptCachePath:
+detectModelMediaSupport classifies the resolved model (gateway id string,
+gateway instance, or direct provider instance) and hydration inlines
+video/* and audio/* up to 20 MiB for the google family only. Anthropic's
+converter throws UnsupportedFunctionalityError on such parts (which would
+fail the whole model call) and OpenAI's input_audio path only works on its
+audio-preview subset, so both stay on the text-stub path. Default behavior
+is unchanged when no model is passed.
+
+Verified: unit + integration suites, guard:invariants, lint, typecheck.
+Signed-off-by: Cursor Agent <cursoragent@cursor.com>
+---
+ .../attachment-staging.integration.test.ts    | 111 ++++++++++++++++
+ .../src/harness/attachment-staging.test.ts    |  58 ++++++++-
+ .../eve/src/harness/attachment-staging.ts     | 121 ++++++++++++++++--
+ packages/eve/src/harness/tool-loop.ts         |   6 +-
+ 4 files changed, 279 insertions(+), 17 deletions(-)
+
+diff --git a/packages/eve/src/harness/attachment-staging.integration.test.ts b/packages/eve/src/harness/attachment-staging.integration.test.ts
+index a4899f8..63bbdd4 100644
+--- a/packages/eve/src/harness/attachment-staging.integration.test.ts
++++ b/packages/eve/src/harness/attachment-staging.integration.test.ts
+@@ -578,6 +578,117 @@ describe("hydrateSandboxAttachments (integration)", () => {
+     });
+   });
+ 
++  it("treats video as non-inlinable for the default model — renders a text reference", async () => {
++    const sandbox = mockSandbox({ id: "sbx_hydrate_video_default" });
++    const runtime = createTestRuntime();
++    const videoBytes = Buffer.alloc(1024, 0x66);
++
++    const stagedContent = (await runtime.runAsSession({ sandbox }, async () =>
++      stageAttachmentsToSandbox([
++        { data: videoBytes, filename: "clip.mp4", mediaType: "video/mp4", type: "file" },
++      ] as UserContent),
++    )) as UserContent;
++
++    const refPart = (stagedContent as FilePart[]).find((p) => p.type === "file") as FilePart;
++    const stagedPath = refPart.filename as string;
++
++    const messages = [{ content: stagedContent, role: "user" as const }];
++    const hydrated = await runtime.runAsSession({ sandbox }, async () =>
++      hydrateSandboxAttachments(messages),
++    );
++
++    const hydratedContent = hydrated[0]?.content as Exclude<UserContent, string>;
++    expect(hydratedContent[0]).toEqual({
++      text: `Attached file ${stagedPath} (video/mp4)`,
++      type: "text",
++    });
++  });
++
++  it("hydrates video inline as bytes when the resolved model accepts it (Gemini family)", async () => {
++    const sandbox = mockSandbox({ id: "sbx_hydrate_video_google" });
++    const runtime = createTestRuntime();
++    const videoBytes = Buffer.alloc(1024, 0x66);
++
++    const stagedContent = (await runtime.runAsSession({ sandbox }, async () =>
++      stageAttachmentsToSandbox([
++        { type: "text", text: "describe the clip" },
++        { data: videoBytes, filename: "clip.mp4", mediaType: "video/mp4", type: "file" },
++      ] as UserContent),
++    )) as UserContent;
++
++    const messages = [{ content: stagedContent, role: "user" as const }];
++    const hydrated = await runtime.runAsSession({ sandbox }, async () =>
++      hydrateSandboxAttachments(messages, "google/gemini-3-pro"),
++    );
++
++    const hydratedContent = hydrated[0]?.content as Exclude<UserContent, string>;
++    const hydratedFilePart = hydratedContent.find(
++      (p) => (p as FilePart).type === "file",
++    ) as FilePart;
++    expect(Buffer.isBuffer(hydratedFilePart.data)).toBe(true);
++    expect((hydratedFilePart.data as Buffer).equals(videoBytes)).toBe(true);
++    expect(hydratedFilePart.mediaType).toBe("video/mp4");
++  });
++
++  it("treats oversized video (>20 MiB) as non-inlinable even for a media-capable model", async () => {
++    const sandbox = mockSandbox({ id: "sbx_hydrate_big_video" });
++    const runtime = createTestRuntime();
++    const oversizedVideo = Buffer.alloc(20 * 1024 * 1024 + 1, 0x66);
++
++    const stagedContent = (await runtime.runAsSession({ sandbox }, async () =>
++      stageAttachmentsToSandbox([
++        { data: oversizedVideo, filename: "huge.mp4", mediaType: "video/mp4", type: "file" },
++      ] as UserContent),
++    )) as UserContent;
++
++    const refPart = (stagedContent as FilePart[]).find((p) => p.type === "file") as FilePart;
++    const stagedPath = refPart.filename as string;
++
++    const messages = [{ content: stagedContent, role: "user" as const }];
++    const hydrated = await runtime.runAsSession({ sandbox }, async () =>
++      hydrateSandboxAttachments(messages, "google/gemini-3-pro"),
++    );
++
++    const hydratedContent = hydrated[0]?.content as Exclude<UserContent, string>;
++    expect(hydratedContent[0]).toEqual({
++      text: `Attached file ${stagedPath} (video/mp4)`,
++      type: "text",
++    });
++  });
++
++  it("hydrates audio inline for a media-capable model and stubs it for others", async () => {
++    const sandbox = mockSandbox({ id: "sbx_hydrate_audio" });
++    const runtime = createTestRuntime();
++    const wavBytes = Buffer.alloc(1024, 0x52);
++
++    const stagedContent = (await runtime.runAsSession({ sandbox }, async () =>
++      stageAttachmentsToSandbox([
++        { data: wavBytes, filename: "voice.wav", mediaType: "audio/wav", type: "file" },
++      ] as UserContent),
++    )) as UserContent;
++
++    const refPart = (stagedContent as FilePart[]).find((p) => p.type === "file") as FilePart;
++    const stagedPath = refPart.filename as string;
++    const messages = [{ content: stagedContent, role: "user" as const }];
++
++    const forGemini = await runtime.runAsSession({ sandbox }, async () =>
++      hydrateSandboxAttachments(messages, "google/gemini-3-pro"),
++    );
++    const geminiContent = forGemini[0]?.content as Exclude<UserContent, string>;
++    const wavPart = geminiContent.find((p) => (p as FilePart).type === "file") as FilePart;
++    expect(Buffer.isBuffer(wavPart.data)).toBe(true);
++    expect(wavPart.mediaType).toBe("audio/wav");
++
++    const forClaude = await runtime.runAsSession({ sandbox }, async () =>
++      hydrateSandboxAttachments(messages, "anthropic/claude-sonnet-4.5"),
++    );
++    const claudeContent = forClaude[0]?.content as Exclude<UserContent, string>;
++    expect(claudeContent[0]).toEqual({
++      text: `Attached file ${stagedPath} (audio/wav)`,
++      type: "text",
++    });
++  });
++
+   it("returns the input array unchanged (no allocation) when no messages contain sandbox refs", async () => {
+     const sandbox = mockSandbox({ id: "sbx_noop" });
+     const runtime = createTestRuntime();
+diff --git a/packages/eve/src/harness/attachment-staging.test.ts b/packages/eve/src/harness/attachment-staging.test.ts
+index a4985ee..7f3c4b5 100644
+--- a/packages/eve/src/harness/attachment-staging.test.ts
++++ b/packages/eve/src/harness/attachment-staging.test.ts
+@@ -1,11 +1,15 @@
+-import type { FilePart, UserContent } from "ai";
++import type { FilePart, LanguageModel, UserContent } from "ai";
+ import { describe, expect, it } from "vitest";
+ 
+ import type { ChannelAdapterContext } from "#channel/adapter.js";
+ import { ContextContainer } from "#context/container.js";
+ import { decodeSandboxRef, isSandboxRefUrl } from "#internal/attachments/sandbox-refs.js";
+ import { mockSandbox } from "#internal/testing/mocks/mock-sandbox.js";
+-import { ATTACHMENTS_ROOT, stageAttachmentsForAdapter } from "#harness/attachment-staging.js";
++import {
++  ATTACHMENTS_ROOT,
++  detectModelMediaSupport,
++  stageAttachmentsForAdapter,
++} from "#harness/attachment-staging.js";
+ 
+ const UTF8 = new TextEncoder();
+ const ATTACHMENTS_PATH_PATTERN = /^\/workspace\/attachments\/[0-9a-f]{16}\//;
+@@ -365,3 +369,53 @@ describe("stageAttachmentsForAdapter", () => {
+     expect(filePart.filename).toMatch(ATTACHMENTS_PATH_PATTERN);
+   });
+ });
++
++describe("detectModelMediaSupport", () => {
++  const none = { video: false, audio: false };
++  const all = { video: true, audio: true };
++
++  it("defaults to no extended media when the model is unknown", () => {
++    expect(detectModelMediaSupport(undefined)).toEqual(none);
++    // A bare model id with no creator segment carries no family signal.
++    expect(detectModelMediaSupport("gemini-3-pro")).toEqual(none);
++  });
++
++  it("detects the google family from a gateway id string", () => {
++    expect(detectModelMediaSupport("google/gemini-3-pro")).toEqual(all);
++    expect(detectModelMediaSupport("anthropic/claude-sonnet-4.5")).toEqual(none);
++    expect(detectModelMediaSupport("openai/gpt-5.2")).toEqual(none);
++  });
++
++  it("detects the google family from a direct provider instance", () => {
++    const gemini = {
++      provider: "google.generative-ai",
++      modelId: "gemini-3-pro-preview",
++    } as LanguageModel;
++    expect(detectModelMediaSupport(gemini)).toEqual(all);
++
++    const vertex = { provider: "google.vertex.chat", modelId: "gemini-3-pro" } as LanguageModel;
++    expect(detectModelMediaSupport(vertex)).toEqual(all);
++
++    const claude = {
++      provider: "anthropic.messages",
++      modelId: "claude-sonnet-4-5",
++    } as LanguageModel;
++    expect(detectModelMediaSupport(claude)).toEqual(none);
++  });
++
++  it("resolves gateway instances through the model id's creator segment", () => {
++    const viaGateway = { provider: "gateway", modelId: "google/gemini-3-pro" } as LanguageModel;
++    expect(detectModelMediaSupport(viaGateway)).toEqual(all);
++
++    const claudeViaGateway = {
++      provider: "gateway",
++      modelId: "anthropic/claude-sonnet-4.5",
++    } as LanguageModel;
++    expect(detectModelMediaSupport(claudeViaGateway)).toEqual(none);
++  });
++
++  it("returns no extended media for malformed model shapes", () => {
++    expect(detectModelMediaSupport({} as LanguageModel)).toEqual(none);
++    expect(detectModelMediaSupport({ provider: "gateway" } as LanguageModel)).toEqual(none);
++  });
++});
+diff --git a/packages/eve/src/harness/attachment-staging.ts b/packages/eve/src/harness/attachment-staging.ts
+index 3780fd7..2801832 100644
+--- a/packages/eve/src/harness/attachment-staging.ts
++++ b/packages/eve/src/harness/attachment-staging.ts
+@@ -1,6 +1,6 @@
+ import { createHash } from "node:crypto";
+ import { basename } from "node:path";
+-import type { FilePart, ModelMessage, TextPart, UserContent } from "ai";
++import type { FilePart, LanguageModel, ModelMessage, TextPart, UserContent } from "ai";
+ 
+ import { buildAdapterContext } from "#channel/adapter-context.js";
+ import type { ChannelAdapterContext, FetchFileResult } from "#channel/adapter.js";
+@@ -50,8 +50,86 @@ const HYDRATE_IMAGE_INLINE_MAX_BYTES = 3 * 1024 * 1024;
+  */
+ const HYDRATE_PDF_INLINE_MAX_BYTES = 20 * 1024 * 1024;
+ 
++/**
++ * Upper bound, in bytes, on video/audio payloads that hydrate as inline
++ * bytes for models that accept them natively. Matches the Gemini API's
++ * inline-data request budget.
++ */
++const HYDRATE_MEDIA_INLINE_MAX_BYTES = 20 * 1024 * 1024;
++
+ const PDF_MEDIA_TYPE = "application/pdf";
+ const IMAGE_MEDIA_TYPE_PREFIX = "image/";
++const VIDEO_MEDIA_TYPE_PREFIX = "video/";
++const AUDIO_MEDIA_TYPE_PREFIX = "audio/";
++
++/**
++ * Media kinds beyond images and PDFs that the resolved turn model accepts
++ * as inline bytes. Detected per model family by
++ * {@link detectModelMediaSupport}; the default is none, which preserves the
++ * image/PDF-only hydration behavior.
++ */
++export interface ModelMediaSupport {
++  /** `video/*` file parts hydrate as inline bytes. */
++  readonly video: boolean;
++  /** `audio/*` file parts hydrate as inline bytes. */
++  readonly audio: boolean;
++}
++
++const NO_EXTENDED_MEDIA_SUPPORT: ModelMediaSupport = Object.freeze({
++  video: false,
++  audio: false,
++});
++
++/**
++ * Detects which media kinds beyond images/PDFs the resolved model accepts
++ * as inline bytes, so hydration can widen its inline decision without ever
++ * sending a provider a part it would reject (a rejected part fails the
++ * whole model call — e.g. Anthropic's converter throws
++ * `UnsupportedFunctionalityError` on non-image/PDF media).
++ *
++ * Keyed by provider family, mirroring {@link detectPromptCachePath}'s
++ * approach: the AI SDK exposes no per-model inline-media introspection
++ * (`supportedUrls` covers URL passthrough only), so this encodes what is
++ * safe per family. Today that is the **google** family only (Gemini via
++ * `@ai-sdk/google`, Vertex, or the gateway): its converter turns any file
++ * part into `inlineData`, and every Gemini language model natively
++ * understands video and audio. OpenAI is deliberately excluded — its
++ * converter maps wav/mp3 to `input_audio`, but only the audio-preview /
++ * realtime model subset accepts those, so a family-level rule would fail
++ * calls on mainline models.
++ *
++ * Runs once per harness step on the already-resolved model.
++ */
++export function detectModelMediaSupport(model: LanguageModel | undefined): ModelMediaSupport {
++  if (model === undefined) {
++    return NO_EXTENDED_MEDIA_SUPPORT;
++  }
++  if (providerFamilyForModel(model) === "google") {
++    return { video: true, audio: true };
++  }
++  return NO_EXTENDED_MEDIA_SUPPORT;
++}
++
++/**
++ * Best-effort provider family for a resolved model. A bare string id is a
++ * gateway id (`"google/gemini-3-pro"`) whose creator segment names the
++ * family; a gateway model instance carries the same id in `modelId`; a
++ * direct provider instance names its family in the top-level `provider`
++ * segment (`"google.generative-ai"` → `"google"`). Unknown shapes return
++ * `""`, which maps to no extended media support.
++ */
++function providerFamilyForModel(model: LanguageModel): string {
++  if (typeof model === "string") {
++    return model.includes("/") ? model.split("/", 1)[0]!.toLowerCase() : "";
++  }
++  const provider = typeof model.provider === "string" ? model.provider.toLowerCase() : "";
++  const topLevelProvider = provider.split(".", 1)[0] ?? "";
++  if (topLevelProvider === "gateway") {
++    const modelId = typeof model.modelId === "string" ? model.modelId : "";
++    return modelId.includes("/") ? modelId.split("/", 1)[0]!.toLowerCase() : "";
++  }
++  return topLevelProvider;
++}
+ 
+ /**
+  * Writes inbound `FilePart` bytes into the sandbox and rewrites each
+@@ -130,12 +208,15 @@ export async function stageAttachmentsToSandbox(
+ /**
+  * Hydrates `eve-sandbox:` file refs for a single model call.
+  *
+- * Small images and PDFs are inlined as bytes; larger or unsupported files
+- * become text references to their sandbox path. The returned messages must
+- * not be written back to session history, which stays ref-only across steps.
++ * Small images and PDFs are inlined as bytes — plus video/audio when the
++ * resolved `model` natively accepts them (see {@link detectModelMediaSupport}).
++ * Larger or unsupported files become text references to their sandbox path.
++ * The returned messages must not be written back to session history, which
++ * stays ref-only across steps.
+  */
+ export async function hydrateSandboxAttachments(
+   messages: readonly ModelMessage[],
++  model?: LanguageModel,
+ ): Promise<ModelMessage[]> {
+   if (!messagesContainSandboxRef(messages)) {
+     return messages as ModelMessage[];
+@@ -156,12 +237,14 @@ export async function hydrateSandboxAttachments(
+     );
+   }
+ 
++  const mediaSupport = detectModelMediaSupport(model);
++
+   return Promise.all(
+     messages.map(async (message) => {
+       if (!messageContainsSandboxRef(message)) {
+         return message;
+       }
+-      const content = await hydrateMessageContent(message.content, sandbox);
++      const content = await hydrateMessageContent(message.content, sandbox, mediaSupport);
+       return { ...message, content } as ModelMessage;
+     }),
+   );
+@@ -216,7 +299,11 @@ function isSandboxRefFilePart(part: unknown): part is FilePart {
+   );
+ }
+ 
+-async function hydrateMessageContent(content: unknown, sandbox: SandboxSession): Promise<unknown> {
++async function hydrateMessageContent(
++  content: unknown,
++  sandbox: SandboxSession,
++  mediaSupport: ModelMediaSupport,
++): Promise<unknown> {
+   if (!Array.isArray(content)) {
+     return content;
+   }
+@@ -227,7 +314,7 @@ async function hydrateMessageContent(content: unknown, sandbox: SandboxSession):
+       }
+       const filePart = part;
+       const ref = decodeSandboxRef(filePart.data as URL);
+-      if (!shouldInlineSandboxRefAsBytes(ref)) {
++      if (!shouldInlineSandboxRefAsBytes(ref, mediaSupport)) {
+         return renderSandboxRefAsTextPart(ref);
+       }
+       const bytes = await sandbox.readBinaryFile({ path: ref.path });
+@@ -257,19 +344,27 @@ async function hydrateMessageContent(content: unknown, sandbox: SandboxSession):
+  * model as inline bytes at the hydration step, or be substituted for a
+  * text reference pointing at the staged sandbox path.
+  *
+- * Keep this decision narrow: only the shapes every major provider
+- * supports natively qualify for byte inlining. Everything else — raw
+- * documents, archives, source code, oversized images/PDFs — reaches
+- * the model as a text reference so the agent's filesystem tools do
+- * the reading.
++ * Keep this decision narrow: images and PDFs — the shapes every major
++ * provider supports natively — qualify unconditionally, and video/audio
++ * qualify only when {@link detectModelMediaSupport} says the resolved
++ * model accepts them (a part a provider's converter rejects would fail
++ * the whole model call). Everything else — raw documents, archives,
++ * source code, oversized payloads — reaches the model as a text
++ * reference so the agent's filesystem tools do the reading.
+  */
+-function shouldInlineSandboxRefAsBytes(ref: SandboxRef): boolean {
++function shouldInlineSandboxRefAsBytes(ref: SandboxRef, mediaSupport: ModelMediaSupport): boolean {
+   if (ref.mediaType.startsWith(IMAGE_MEDIA_TYPE_PREFIX)) {
+     return ref.size <= HYDRATE_IMAGE_INLINE_MAX_BYTES;
+   }
+   if (ref.mediaType === PDF_MEDIA_TYPE) {
+     return ref.size <= HYDRATE_PDF_INLINE_MAX_BYTES;
+   }
++  if (ref.mediaType.startsWith(VIDEO_MEDIA_TYPE_PREFIX)) {
++    return mediaSupport.video && ref.size <= HYDRATE_MEDIA_INLINE_MAX_BYTES;
++  }
++  if (ref.mediaType.startsWith(AUDIO_MEDIA_TYPE_PREFIX)) {
++    return mediaSupport.audio && ref.size <= HYDRATE_MEDIA_INLINE_MAX_BYTES;
++  }
+   return false;
+ }
+ 
+diff --git a/packages/eve/src/harness/tool-loop.ts b/packages/eve/src/harness/tool-loop.ts
+index 478afa5..cf88136 100644
+--- a/packages/eve/src/harness/tool-loop.ts
++++ b/packages/eve/src/harness/tool-loop.ts
+@@ -553,8 +553,10 @@ export function createToolLoopHarness(config: ToolLoopHarnessConfig): StepFn {
+     // Hydrate `eve-sandbox:` ref FileParts into inline bytes for the
+     // model call only. The result is transient — `messages` itself
+     // remains ref-only so it can flow into `session.history` without
+-    // bloating every future step boundary.
+-    const hydratedMessages = await hydrateSandboxAttachments(messages);
++    // bloating every future step boundary. The resolved model widens
++    // the inline decision to video/audio where the provider accepts
++    // them (see `detectModelMediaSupport`).
++    const hydratedMessages = await hydrateSandboxAttachments(messages, model);
+ 
+     // AI SDK rejects role:"system" in `messages` — route system entries
+     // from durable history to `instructions` instead.
+-- 
+2.43.0
+

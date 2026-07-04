@@ -40,9 +40,12 @@ export interface DirConventionsOptions {
   maxFilesPerRead?: number;
   /**
    * File loader, injectable for tests. Returns the file's content or null
-   * when it doesn't exist. Defaults to a UTF-8 fs read.
+   * when it doesn't exist (sync or async — a sandbox-backed read is async).
+   * Defaults to a UTF-8 fs read. Callers with a per-call I/O backend (the
+   * read tool resolving a sandbox session) pass a loader to `collect`
+   * instead, which overrides this one.
    */
-  loadFile?: (absPath: string) => string | null;
+  loadFile?: (absPath: string) => string | null | Promise<string | null>;
   /**
    * Max sessions tracked per workspace; least-recently-used sessions evict
    * first (an evicted session that reappears re-delivers). Default 100.
@@ -54,9 +57,16 @@ export interface DirConventionsTracker {
   /**
    * Riders for a read of `relPath` (workspace-relative), marking every
    * directory on its chain as delivered for `sessionId`. No session id (a
-   * caller outside an eve session) → no riders, no tracking.
+   * caller outside an eve session) → no riders, no tracking. `loadFile`
+   * overrides the tracker's own loader for this call — the read tool passes
+   * its per-call workspace IO here so riders come off the same backend
+   * (local disk or sandbox) as the read itself.
    */
-  collect(sessionId: string | undefined, relPath: string): DirConventionsRider[];
+  collect(
+    sessionId: string | undefined,
+    relPath: string,
+    loadFile?: (absPath: string) => string | null | Promise<string | null>,
+  ): Promise<DirConventionsRider[]>;
 }
 
 const DEFAULT_MAX_BYTES_PER_FILE = 16 * 1024;
@@ -168,8 +178,9 @@ export function createDirConventionsTracker(
   }
 
   return {
-    collect(sessionId, relPath) {
+    async collect(sessionId, relPath, loadOverride) {
       if (!sessionId) return [];
+      const load = loadOverride ?? loadFile;
       const delivered = deliveredSet(sessionId);
       const normalizedRel = normalizeRel(relPath);
 
@@ -179,11 +190,31 @@ export function createDirConventionsTracker(
       const found: { dir: string; path: string; content: string }[] = [];
       for (const dir of dirChain(normalizedRel)) {
         if (delivered.has(dir)) continue;
-        delivered.add(dir);
         const riderRel = `${dir}/${fileName}`;
         // Reading the conventions file itself delivers it — no rider needed.
-        if (riderRel === normalizedRel) continue;
-        const content = loadFile(join(workspaceRoot, riderRel))?.trim() ?? "";
+        if (riderRel === normalizedRel) {
+          delivered.add(dir);
+          continue;
+        }
+        // Reserve the slot BEFORE the async load: a turn's tool calls run
+        // concurrently, and two reads first entering the same directory must
+        // not both deliver its conventions.
+        delivered.add(dir);
+        let loaded: string | null;
+        try {
+          loaded = await load(join(workspaceRoot, riderRel));
+        } catch {
+          // A throwing loader is a transient failure (a sandbox hop, a
+          // permissions blip), not a missing file: release the slot so a
+          // later read under this directory retries the delivery. (A
+          // concurrent read that skipped meanwhile also retries later —
+          // at-most-once holds either way.)
+          delivered.delete(dir);
+          continue;
+        }
+        // Absent/empty after a successful load is a settled answer (nothing
+        // to deliver): the reservation stands and the dir never re-probes.
+        const content = loaded?.trim() ?? "";
         if (content.length === 0) continue;
         found.push({ dir, path: riderRel, content });
       }
