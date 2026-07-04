@@ -13,7 +13,7 @@ structured rejection naming the detected type. `webfetch` routes fetched
 documents through the same extractors, so a URL and a local file read
 identically.
 
-## Why: the winning interface is no new interface
+## Why: reuse the reading interface the model already knows
 
 A 200-page PDF should page exactly like a big `.ts` file. Every harness that
 routes documents through a separate tool or plugin pays in model confusion —

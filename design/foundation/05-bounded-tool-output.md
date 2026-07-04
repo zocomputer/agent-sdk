@@ -28,9 +28,9 @@ doesn't exist yet — it's on the upstream-asks list).
 
 Three sub-decisions matter beyond the budgets themselves:
 
-- **Head+tail, not head-only.** Head-only truncation is a quality bug, not
-  just a cost one: test runners print the failure summary *last* — exactly
-  the part a head-only capture drops.
+- **Head+tail, not head-only.** Test runners print the failure summary
+  *last* — exactly the part a head-only capture drops, so head-only
+  truncation costs quality as well as tokens.
 - **Spill, don't discard.** A truncated result the model can't recover forces
   a re-run (or a narrower re-query it has to guess at). Writing the complete
   output to disk and naming the file turns truncation from data loss into

@@ -20,7 +20,7 @@ check the tests" — happen mid-turn, often minutes before the boundary on a
 long coding turn. eve has no channel for it: hooks are observe-only for model
 context, and a `send()` to a busy session is rejected. But a turn is a loop
 of inference → tool calls → inference, and **every tool result re-enters the
-model's context immediately** — the channel exists, it just isn't labeled.
+model's context immediately** — the channel exists; it isn't labeled.
 `await_task` is the highest-value delivery window: exactly when the agent
 sits in background work is when you want to redirect it.
 

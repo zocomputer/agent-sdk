@@ -95,8 +95,8 @@ export default disableTool();
 ### 4. Register the instructions
 
 The stdlib ships the operational prose alongside the tools — the workflow,
-communication, and HITL contracts that make a coding agent behave well, not
-just the file operations. One re-export file per instruction under
+communication, and HITL contracts that make a coding agent behave well. One
+re-export file per instruction under
 `agent/instructions/`:
 
 ```ts
@@ -299,7 +299,7 @@ the pixels on its next turn with no browser, cockpit, or user action involved.
   `maxInlineImageBytes` (default 5 MB; larger images fall back to the
   metadata-only "ask the user" note); `createParkDeliveryHook`'s `serverUrl`
   (defaults to loopback on `$PORT`, eve dev's 2000 otherwise) and `log`.
-  An agent that skips the hook simply gets the metadata note (the bytes ride
+  An agent that skips the hook gets the metadata note (the bytes ride
   the stream unused — turn inlining off with `attachImagesToChat: false`).
 
 ## Steering (mid-turn messages)

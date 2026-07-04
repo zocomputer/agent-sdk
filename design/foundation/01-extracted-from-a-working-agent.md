@@ -3,8 +3,8 @@
 ## The decision
 
 Every piece of this SDK shipped in rib — the coding agent that works on the Zo
-monorepo — before it shipped here. The package is an extraction, not a
-design: patterns get proven under real daily use, written up as learning notes
+monorepo — before it shipped here. The package extracts what rib proved:
+patterns get proven under real daily use, written up as learning notes
 (`rib/learnings/` in the monorepo), and lifted only once they've stabilized.
 rib then becomes the first consumer of its own extracted parts, so the SDK is
 never speculative — its APIs are shaped by the call sites that already exist.

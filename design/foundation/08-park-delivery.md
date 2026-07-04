@@ -25,10 +25,10 @@ parked session just sits there. Two capabilities genuinely need a push path:
 - **Async progress.** A backgrounded task outlives its tool result; without a
   push path the model must poll or stall.
 
-Delivery-as-a-user-send is the key insight rather than a compromise: it uses
-no private API, and the delivered batch is **durable, replayable, and rendered
-by every client for free** — it's just a message in the stream. The hook
-doesn't mutate the running turn (eve hooks can't); it starts the next one.
+Delivery-as-a-user-send uses no private API, and the delivered batch is
+**durable, replayable, and rendered by every client for free** — it's a
+message in the stream like any other. The hook doesn't mutate the running
+turn (eve hooks can't); it starts the next one.
 
 ## The mechanics that make it correct
 

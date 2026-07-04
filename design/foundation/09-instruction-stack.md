@@ -16,7 +16,7 @@ one-file re-export in the consuming agent, parameterized like the tools
 **Persona stays consumer-owned.** The stack ships behavior contracts, not
 voice — an agent's identity is its own instruction file.
 
-## Why: tools without the workflow prose is half the product
+## Why: the tools underperform without the workflow prose
 
 The clearest finding from reading Cursor's harness from the inside: its
 persona is one sentence, and everything else — the part doing visible heavy

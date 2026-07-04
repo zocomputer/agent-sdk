@@ -36,9 +36,8 @@ the sole sanctioned prefix rewrite — and openclaw independently goes as far as
 impersonating Claude Code's tool names partly to inherit its cache priors.
 Cursor's harness, read from the inside, follows the same discipline: a static
 prefix, with everything alive delivered as tool-result riders or user-message
-attachments. Three unrelated projects converging on the same rule is the
-strongest evidence the constraint is real. The SDK's contribution is baking it
-into the API shape so a consumer can't casually regress it.
+attachments. Three unrelated projects converged on the same rule. The SDK
+bakes it into the API shape so a consumer can't casually regress it.
 
 ## Consequences elsewhere in the SDK
 
