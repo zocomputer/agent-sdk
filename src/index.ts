@@ -259,6 +259,17 @@ export {
   type SteerSource,
   withSteerDelivery,
 } from "./steer-tool";
+export {
+  createMockStoryModel,
+  markdownChunks,
+  MOCK_SCENARIOS,
+  mockScenarioFrom,
+  scriptActionFor,
+  scriptStepFrom,
+  type MockScenario,
+  type MockScriptedScenario,
+  type MockStoryModelOptions,
+} from "./mock-model";
 export * from "./walk";
 export * from "./watch-output";
 export * from "./workspace";

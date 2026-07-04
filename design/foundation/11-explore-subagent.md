@@ -53,10 +53,16 @@ read":
 - `ask_question` — a parked child parks the **parent's** turn. An explorer
   that hits ambiguity should report the ambiguity as its answer, and the
   instruction says so explicitly.
-- `agent` — no recursive delegation from a one-question child.
 - `todo`, `load_skill` — surface noise for a single-question worker, and
   shimming them keeps the instruction's "your tools are `read`, `glob`, and
   `grep`" literally true instead of approximately true.
+
+One built-in the kit *wants* to shim but can't: the `agent` clone tool. eve
+injects it at the harness layer (`createNodeHarnessTools`), not as a
+framework tool, so a `disableTool()` shim for it fails runtime agent-graph
+resolution — every session create 500s. Recursion from the one-question child
+is discouraged by the instruction ("never delegate it onward") until eve
+offers a disable path; see the README's maintainers notes.
 
 **3. Instructions don't inherit either — the child would work blind.** The
 kit ships `createExploreInstruction` because without it the child has *no*

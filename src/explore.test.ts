@@ -62,10 +62,11 @@ describe("the manifests", () => {
   test("every non-read framework builtin is on the disable list", () => {
     // The full default harness minus the overridden read tools: anything that
     // writes (bash, write_file), parks (ask_question), reaches the web
-    // (web_fetch, web_search), recurses (agent), or pads the one-question
-    // surface (todo, load_skill). read_file is vacated in favor of `read`.
+    // (web_fetch, web_search), or pads the one-question surface (todo,
+    // load_skill). read_file is vacated in favor of `read`. The `agent` clone
+    // tool is NOT disableable — eve injects it at the harness layer, and a
+    // shim for it fails runtime graph resolution (breaks every session).
     expect([...EXPLORE_DISABLED_BUILTINS].sort()).toEqual([
-      "agent",
       "ask_question",
       "bash",
       "load_skill",
@@ -150,6 +151,9 @@ describe("the explore instruction", () => {
     expect(markdown).toContain("paths and line references");
     expect(markdown).toContain("thoroughness");
     expect(markdown).toContain("Never guess silently");
+    // The `agent` clone tool can't be shimmed away (eve injects it at the
+    // harness layer), so the instruction is the recursion guard.
+    expect(markdown).toContain("never delegate");
     // Default noun.
     expect(buildExploreMarkdown()).toContain("question about this workspace");
   });

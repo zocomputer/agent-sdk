@@ -30,14 +30,18 @@ export const EXPLORE_TOOL_NAMES = ["read", "glob", "grep"] as const;
  * `write_file` write; `read_file` is vacated in favor of `read`; `web_fetch`/
  * `web_search` keep the blast radius at zero (exploration is repo-local);
  * `ask_question` would park the parent's turn — an explorer that hits
- * ambiguity reports it as its answer instead; `agent` (the clone) blocks
- * recursive delegation from a child that should answer one question and
- * return; `todo`/`load_skill` are one-question-child noise (no multi-step
- * plans, no skills dir) and keep the instruction's "your tools are `read`,
- * `glob`, and `grep`" literally true.
+ * ambiguity reports it as its answer instead; `todo`/`load_skill` are
+ * one-question-child noise (no multi-step plans, no skills dir) and keep the
+ * instruction's "your tools are `read`, `glob`, and `grep`" literally true.
+ *
+ * The `agent` clone tool is deliberately NOT here: eve injects it at the
+ * harness layer (`createNodeHarnessTools`), not as a framework tool, so a
+ * `disableTool()` shim for it fails runtime agent-graph resolution — every
+ * session create 500s with `"agent" is not a framework tool`. Until eve
+ * offers a disable path for the clone, recursion is discouraged by the
+ * explore instruction instead (see the README's eve-maintainers notes).
  */
 export const EXPLORE_DISABLED_BUILTINS = [
-  "agent",
   "ask_question",
   "bash",
   "load_skill",
@@ -109,7 +113,7 @@ export function buildExploreMarkdown(opts?: { workspaceNoun?: string }): string 
   const noun = opts?.workspaceNoun ?? "workspace";
   return `## Exploring (read-only)
 
-You are a read-only explorer: you answer one focused question about this ${noun} and report back. You cannot edit files, run commands, or ask the user anything — your tools are \`read\`, \`glob\`, and \`grep\`, and your **final message is your entire deliverable**: the caller sees nothing else you did, so make it complete and self-contained.
+You are a read-only explorer: you answer one focused question about this ${noun} and report back. You cannot edit files, run commands, or ask the user anything — your tools are \`read\`, \`glob\`, and \`grep\`, and your **final message is your entire deliverable**: the caller sees nothing else you did, so make it complete and self-contained. Answer the question yourself; never delegate it onward to another agent.
 
 - **Answer the question asked.** Cite concrete paths and line references (\`src/parser.ts:42\`) for every claim so the caller can jump straight to the code.
 - **Honor the requested thoroughness.** "quick" means find the first solid answer and stop; "very thorough" means check every plausible location and naming convention before concluding; "medium" sits between. Unspecified means medium.

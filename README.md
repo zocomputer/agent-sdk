@@ -160,10 +160,13 @@ export default exploreTools.read;
 absent `tools/` slot falls back to eve's *framework defaults* — `bash`,
 `write_file`, full write capability. Read-only must be constructed: besides
 the three tools, ship a `disableTool()` shim for every entry in
-`EXPLORE_DISABLED_BUILTINS` (`agent`, `ask_question`, `bash`, `load_skill`,
+`EXPLORE_DISABLED_BUILTINS` (`ask_question`, `bash`, `load_skill`,
 `read_file`, `todo`, `web_fetch`, `web_search`, `write_file` — everything in
-the default harness that writes, parks, recurses, or pads the one-question
-surface):
+the default harness that writes, parks, or pads the one-question surface).
+Do **not** shim the `agent` clone tool: eve injects it at the harness layer
+rather than as a framework tool, so a shim for it fails runtime agent-graph
+resolution and breaks every session; the explore instruction discourages
+recursion instead (see the maintainers notes below):
 
 ```ts
 // agent/subagents/explore/tools/bash.ts — one per disabled builtin
@@ -377,6 +380,29 @@ keep working around:
   (`read_file`, `write_file`), and vacating one requires a `disableTool()`
   shim file per name. Prior-aligned defaults — or a config switch to disable
   built-ins wholesale — would remove the shims.
+- **The `agent` clone tool can't be disabled.** It's injected at the harness
+  layer (`createNodeHarnessTools`), not as a framework tool, so a
+  `disableTool()` shim for it fails runtime agent-graph resolution — every
+  session create 500s. A read-only child that should answer one question and
+  return has no way to vacate recursive delegation; we fall back to
+  instruction text. Either registering `agent` as a disableable framework
+  tool or honoring the shim at the harness layer would close the gap.
+- **Streaming events are quadratic.** `message.appended`/`reasoning.appended`
+  carry the full text-so-far alongside each delta, so one turn's events sum
+  to O(n²) bytes — a 3,000-delta turn measures ~330 MB of payloads, and
+  late deltas re-send ~36 KB of prefix each. Clients that store or replay
+  streams must compact/thin app-side (chat-core's `stream-thinning`);
+  delta-only stream events would fix storage, replay, and live-wire
+  throughput at the source.
+- **An aborted stream resets the client session.** `advanceSession` carries
+  the session forward only when the consumed stream ends on
+  `session.waiting`; an abort (Stop/Esc) therefore erases the sessionId, and
+  the next `send` silently creates a fresh session — forking the
+  conversation. Preserving the session state across aborts (the id was
+  known!) would remove a whole class of client-side recovery code.
+- **No turn cancellation.** Aborting the client stream leaves the server-side
+  turn running to completion; there's no API to actually stop it. Stop
+  buttons today can only detach and re-attach.
 - **Continuation-token scoping.** A hook's `ctx.channel.continuationToken` is
   the runtime-namespaced form (`eve:eve:<uuid>`), but `ClientSession.send`
   needs the client-facing token (`eve:<uuid>`) — and posting the namespaced
