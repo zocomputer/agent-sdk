@@ -32,8 +32,8 @@ of how eve's isolation boundary actually behaves.
 declared subagent inherits *nothing* from the root — and an unauthored slot
 falls back to the **framework default**, not the parent's version. A child
 with no `tools/` dir gets eve's built-in `bash` and `write_file`: full write
-capability. So "read-only" is not a configuration you set; it's a state you
-construct file by file — author the three read tools *and* ship a
+capability. So read-only must be constructed file by file — author the three
+read tools *and* ship a
 `disableTool()` shim for every remaining built-in. That's why
 `EXPLORE_DISABLED_BUILTINS` is exported at all: the manifest exists so a
 consumer test can diff the child's `tools/` dir against

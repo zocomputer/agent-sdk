@@ -1,4 +1,4 @@
-// ../../../../../tmp/agent-sdk-mirror-fFEN3E/repo/src/attachments.ts
+// ../../../../../tmp/agent-sdk-mirror-Bk8Y76/repo/src/attachments.ts
 var CHAT_ATTACHMENT_FIELD = "chatAttachment";
 function isRecord(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
