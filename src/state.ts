@@ -29,7 +29,7 @@ export type StatePartition = "none" | "team" | "user" | "session";
  * the binding resolution ladder. Hints, not constraints.
  */
 export interface SuggestedStateDefaults {
-  /** Engine catalog key, e.g. "zo-blob". Free-form: the catalog is control-plane code. */
+  /** Engine catalog key, e.g. "zo-blob-r2". Free-form: the catalog is control-plane code. */
   readonly engine?: string;
   readonly partition?: StatePartition;
   /** Per-transition lifecycle overrides on the (engine, partition) defaults. */

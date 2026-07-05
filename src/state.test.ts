@@ -21,7 +21,7 @@ describe("defineExternalState", () => {
       access: "rw",
       intent: "private",
       suggestedDefaults: {
-        engine: "zo-blob",
+        engine: "zo-blob-r2",
         partition: "user",
         lifecycle: { archiveAfterDays: 30 },
       },
