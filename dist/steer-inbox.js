@@ -1,4 +1,4 @@
-// ../../../../../tmp/agent-sdk-mirror-EQ4qmQ/repo/src/steer-inbox.ts
+// ../../../../../tmp/agent-sdk-mirror-QKZdjP/repo/src/steer-inbox.ts
 import {
   appendFileSync,
   linkSync,
@@ -9,7 +9,7 @@ import {
 } from "node:fs";
 import { join } from "node:path";
 
-// ../../../../../tmp/agent-sdk-mirror-EQ4qmQ/repo/src/steer.ts
+// ../../../../../tmp/agent-sdk-mirror-QKZdjP/repo/src/steer.ts
 function isRecord(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
@@ -31,7 +31,7 @@ function parseSteerLine(line) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-EQ4qmQ/repo/src/steer-inbox.ts
+// ../../../../../tmp/agent-sdk-mirror-QKZdjP/repo/src/steer-inbox.ts
 var drainSequence = 0;
 function createSteerInbox(options) {
   const now = options.now ?? Date.now;
