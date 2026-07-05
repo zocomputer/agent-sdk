@@ -1,11 +1,24 @@
 # eve proposal: surface invalid tool calls in the event stream
 
-**Status: worked design, patch not built.** Today a tool call that fails
-schema validation (or names a tool that doesn't exist) is handled correctly
-for the *model* — the AI SDK feeds the validation error back and the model
-retries — but emits **no event**: clients render nothing where the failed
-call happened, and harnesses cannot measure schema-misuse rates from session
-logs. One additive event type closes both gaps.
+**Status: patch built and verified** against `vercel/eve@main` (July 2026) —
+[`eve-invalid-tool-call-events.patch`](./eve-invalid-tool-call-events.patch),
+a DCO-signed `git format-patch` commit, +359/−36 across 9 files (protocol
+event + factory, both emission passes, client re-exports, harness tests,
+changeset, docs event table). Apply with `git am` on a fork; eve's protected
+branches additionally require a GitHub-verified commit signature, so the
+submitter re-signs (`git commit --amend -s -S --no-edit`) with their own key.
+
+Filed upstream as [vercel/eve#542](https://github.com/vercel/eve/issues/542)
+(eve requires issue discussion before a behavior-change PR); the PR follows
+on maintainer go-ahead. Tracked internally on
+[zov2-code#319](https://github.com/zocomputer/zov2-code/issues/319).
+
+Today a tool call that fails schema validation (or names a tool that doesn't
+exist) is handled correctly for the *model* — the AI SDK feeds the validation
+error back and the model retries — but emits **no event**: clients render
+nothing where the failed call happened, and harnesses cannot measure
+schema-misuse rates from session logs. One additive event type closes both
+gaps.
 
 ## Why
 
@@ -60,6 +73,14 @@ plus the matching `createActionInvalidEvent` factory, following the
 `createActionResultEvent` shape. Additive: existing clients ignore unknown
 event types.
 
+As built, the event follows eve's stream-event convention — fields nest
+under `data` (`{ data: { callId, … }, type: "action.invalid" }`) — and
+`input` is `input?: JsonValue` rather than `unknown`: the factory-side
+normalizer drops anything non-JSON-serializable instead of letting a
+diagnostic event fail the step (`errorText` still describes the failure).
+Both types re-export from `client/index.ts` alongside the other stream
+events.
+
 `reason` discriminates the two AI SDK error classes (`NoSuchToolError` vs
 `InvalidToolInputError`) — the split matters downstream because they call
 for different fixes (a hallucinated tool name is a naming-prior problem; a
@@ -75,6 +96,17 @@ of nothing, and record the callId in a new `emittedInvalidCallIds` set
 (returned alongside `emittedActionCallIds`) so the step-result pass can
 dedupe. The invalid call's `error` rides the chunk the AI SDK already
 delivers; `errorText` via the existing `toError` helper.
+
+As built, the shared emit helper lives in a new
+`src/harness/invalid-actions.ts` (eve's structural tests cap production
+files at 700 lines; `emission.ts` would have crossed it), and the invalid
+branch runs *before* the `providerExecuted` branch in the stream switch —
+which also closes a latent crash path where a provider-executed invalid
+call's raw-string input would reach `resolveToolCallInputObject`. The event
+deliberately ignores `excludedActionToolNames`: that exclusion governs how
+valid calls are projected (HITL tools get `input.requested` instead), while
+an invalid call has no other lifecycle event — an invalid `ask_question`
+call is exactly what the measurement needs to see.
 
 ### 3. Emit on the non-streaming path (`packages/eve/src/harness/step-hooks.ts`)
 
@@ -108,17 +140,23 @@ proposal only makes the durable stream tell the truth about it.
   concern, truncate `errorText`/`input` at the factory with the same policy
   other events use — maintainers' call.
 
-## Verification (at patch time)
+## Verification (done, at patch time)
 
-Two claims above are read from the shipped `dist` and should be re-verified
-against source before building: that invalid calls arrive on the fullStream
-as `tool-call` chunks carrying `invalid`/`error` (the streaming-path seam),
-and that the `generate` path's only emission opportunity is
-`emitStepActions`. Then: a harness test driving a scripted model that emits
-one malformed call (bad type on a required param) and one call to a
-nonexistent tool, asserting exactly two `action.invalid` events with the
-right `reason`s, unchanged `actions.requested`/`action.result` counts, and
-a model-visible retry in the same turn.
+The two claims originally read from the shipped `dist` were re-verified
+against `vercel/eve` source before building: invalid calls do arrive on the
+fullStream as `tool-call` chunks carrying `invalid`/`error` (the
+streaming-path seam), and the non-streaming path's only emission
+opportunity is `emitStepActions`.
+
+Tests in the patch (`tool-loop.test.ts`): three existing invalid-call tests
+extended to assert the exact `action.invalid` payload (`invalid-input` on
+malformed JSON, including the raw-string `input` passthrough); a new
+no-such-tool test asserting `reason: "no-such-tool"` via a real
+`NoSuchToolError` with zero `actions.requested`/`action.result`; and a new
+dedupe test where the same invalid call arrives on both the stream and the
+step result and emits exactly one event. Run against the eve repo: full
+unit suite green (419 files, 4381 passed / 1 pre-existing skip),
+`typecheck`, `lint`, `fmt`, and `guard:invariants` all clean.
 
 ## What it unlocks downstream
 

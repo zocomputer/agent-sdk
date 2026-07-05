@@ -515,10 +515,10 @@ keep working around:
   the PR-grade writeup is
   [`design/proposals/eve-hydrate-model-aware-media.md`](./design/proposals/eve-hydrate-model-aware-media.md)
   and the DCO-signed patch sits beside it
-  (`eve-hydrate-media-support.patch`), ready to submit once an identity with
-  fork rights + verified commit signing picks it up. It would make `read`'s
-  opt-in video/audio attachments (`attachVideoToChat`/`attachAudioToChat`)
-  work end-to-end.
+  (`eve-hydrate-media-support.patch`). Filed upstream as
+  [vercel/eve#543](https://github.com/vercel/eve/issues/543); the PR follows
+  on maintainer go-ahead. It would make `read`'s opt-in video/audio
+  attachments (`attachVideoToChat`/`attachAudioToChat`) work end-to-end.
 - **HITL replay.** eve persists `input.requested` but not the client's
   `input.responded`, so a replayed session reopens answered prompts as
   pending. We append synthetic responded-events from client-side storage;
@@ -549,9 +549,14 @@ keep working around:
   invalid calls — no event is emitted, so clients can't render the retry
   and harnesses can't measure schema-misuse rates (the regression newer
   Anthropic models show on off-prior schemas). An `action.invalid` event
-  with the tool name and error class would close the gap; the change-list
-  design is
-  [`design/proposals/eve-invalid-tool-call-events.md`](./design/proposals/eve-invalid-tool-call-events.md).
+  with the tool name and error class closes the gap. We built and tested
+  exactly that patch against `vercel/eve` (all suites green): the PR-grade
+  writeup is
+  [`design/proposals/eve-invalid-tool-call-events.md`](./design/proposals/eve-invalid-tool-call-events.md)
+  and the DCO-signed patch sits beside it
+  (`eve-invalid-tool-call-events.patch`). Filed upstream as
+  [vercel/eve#542](https://github.com/vercel/eve/issues/542); the PR follows
+  on maintainer go-ahead.
 - **`ask_question`'s options are the off-prior nested shape.** Its `options`
   array of `.strict()` option objects is exactly the shape newer Claude
   models garble (invented trailing keys after long strings), and it has no

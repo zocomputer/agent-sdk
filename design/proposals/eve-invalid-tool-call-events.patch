@@ -1,0 +1,643 @@
+From 49233fad23922b4f625e87d6c4838de99287aa97 Mon Sep 17 00:00:00 2001
+From: 0thernet <ben@substrate.run>
+Date: Sun, 5 Jul 2026 11:10:34 -0400
+Subject: [PATCH] feat(harness): emit action.invalid events for tool calls that
+ fail validation
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+When the model emits a tool call that fails validation before execution
+— an unknown tool name or unparsable/schema-invalid input — the call is
+deliberately excluded from `actions.requested` and `action.result`, so
+it vanished from the event stream entirely. Consumers could not observe
+or measure invalid calls even though the model-facing retry loop was
+already handling them.
+
+The harness now emits a new `action.invalid` stream event for each such
+call, carrying:
+
+- `callId`, `toolName`, `turnId`, `stepIndex`, `sequence`
+- `reason`: `"no-such-tool"` (unknown tool name) or `"invalid-input"`
+  (unparsable JSON or input that failed the tool's schema)
+- `errorText`: the AI SDK's validation error message
+- `input`: the raw input when it is JSON-serializable
+
+Emission happens on both passes — the streaming pass (invalid chunk on
+the full stream) and the post-step pass (invalid entries in the step's
+`toolCalls`) — deduped by call ID via a shared set, since the SDK can
+surface an invalid call in either or both places.
+
+The event deliberately ignores `excludedActionToolNames`: that exclusion
+governs how valid calls are projected (e.g. HITL tools surface on
+`input.requested` instead), while an invalid call has no other lifecycle
+event and should stay observable for every tool.
+
+Model-facing behavior is unchanged: the AI SDK still feeds the
+validation error back to the model, which may retry on the next step.
+
+Signed-off-by: 0thernet <ben@substrate.run>
+---
+ .changeset/action-invalid-tool-call-events.md |   5 +
+ docs/concepts/sessions-runs-and-streaming.md  |  55 +++---
+ packages/eve/src/client/index.ts              |   2 +
+ packages/eve/src/harness/emission.ts          |  12 ++
+ packages/eve/src/harness/invalid-actions.ts   |  68 ++++++++
+ packages/eve/src/harness/step-hooks.ts        |  28 ++-
+ packages/eve/src/harness/tool-loop.test.ts    | 161 +++++++++++++++++-
+ packages/eve/src/harness/tool-loop.ts         |   2 +
+ packages/eve/src/protocol/message.ts          |  62 +++++++
+ 9 files changed, 359 insertions(+), 36 deletions(-)
+ create mode 100644 .changeset/action-invalid-tool-call-events.md
+ create mode 100644 packages/eve/src/harness/invalid-actions.ts
+
+diff --git a/.changeset/action-invalid-tool-call-events.md b/.changeset/action-invalid-tool-call-events.md
+new file mode 100644
+index 0000000..5c1fb4f
+--- /dev/null
++++ b/.changeset/action-invalid-tool-call-events.md
+@@ -0,0 +1,5 @@
++---
++"eve": minor
++---
++
++New `action.invalid` stream event: when the model emits a tool call that fails validation before execution — an unknown tool name (`reason: "no-such-tool"`) or unparsable/schema-invalid input (`reason: "invalid-input"`) — the harness now emits an `action.invalid` event carrying the call ID, tool name, raw input, and the validation error text. Invalid calls previously vanished from the event stream entirely (they are deliberately excluded from `actions.requested`/`action.result`), so consumers could not observe or measure them. The model-facing retry loop is unchanged: the AI SDK still feeds the validation error back to the model on the next step. Emitted on both the streaming and post-step passes, deduped by call ID.
+diff --git a/docs/concepts/sessions-runs-and-streaming.md b/docs/concepts/sessions-runs-and-streaming.md
+index 75082c0..8bc9c06 100644
+--- a/docs/concepts/sessions-runs-and-streaming.md
++++ b/docs/concepts/sessions-runs-and-streaming.md
+@@ -34,33 +34,34 @@ curl http://127.0.0.1:3000/eve/v1/session/<sessionId>/stream
+ 
+ The stream is newline-delimited JSON (NDJSON), one event per line:
+ 
+-| Event                     | Meaning                                                                                                          |
+-| ------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+-| `session.started`         | A durable session was created.                                                                                   |
+-| `turn.started`            | A new turn began.                                                                                                |
+-| `message.received`        | An inbound user message was accepted.                                                                            |
+-| `step.started`            | A model step began.                                                                                              |
+-| `actions.requested`       | The model requested one or more actions, including tool calls; calls stream before execution.                    |
+-| `action.result`           | A tool call returned.                                                                                            |
+-| `input.requested`         | The run paused for human input ([HITL](/docs/human-in-the-loop) approval or `ask_question`); carries `requests`. |
+-| `subagent.called`         | A subagent was delegated; carries `childSessionId` to attach to.                                                 |
+-| `subagent.completed`      | A delegated subagent finished.                                                                                   |
+-| `reasoning.appended`      | A reasoning delta (incremental, with cumulative text so far).                                                    |
+-| `reasoning.completed`     | The finalized reasoning block.                                                                                   |
+-| `message.appended`        | An assistant text delta (incremental, with cumulative text so far).                                              |
+-| `message.completed`       | A finalized assistant text block.                                                                                |
+-| `result.completed`        | The finalized structured result for a turn that requested an output schema; carries `result`.                    |
+-| `compaction.requested`    | Context-window compaction began; carries `modelId`, `sessionId`, `turnId`, `usageInputTokens`.                   |
+-| `compaction.completed`    | A compaction checkpoint was written to durable history.                                                          |
+-| `authorization.required`  | A connection needs OAuth; carries `name`, `description`, and an `authorization` challenge.                       |
+-| `authorization.completed` | A connection's authorization resolved; carries `outcome`.                                                        |
+-| `step.completed`          | A model step finished; carries `finishReason` and usage.                                                         |
+-| `step.failed`             | A model step failed; carries `{ code, message, details? }`.                                                      |
+-| `turn.completed`          | The turn finished.                                                                                               |
+-| `turn.failed`             | The turn failed; carries `{ code, message, details? }`.                                                          |
+-| `session.waiting`         | The session parked, waiting for the next input (a message, an answer).                                           |
+-| `session.failed`          | The session failed.                                                                                              |
+-| `session.completed`       | The session reached a terminal end.                                                                              |
++| Event                     | Meaning                                                                                                                                                                                       |
++| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
++| `session.started`         | A durable session was created.                                                                                                                                                                |
++| `turn.started`            | A new turn began.                                                                                                                                                                             |
++| `message.received`        | An inbound user message was accepted.                                                                                                                                                         |
++| `step.started`            | A model step began.                                                                                                                                                                           |
++| `actions.requested`       | The model requested one or more actions, including tool calls; calls stream before execution.                                                                                                 |
++| `action.result`           | A tool call returned.                                                                                                                                                                         |
++| `action.invalid`          | The model emitted a tool call that failed validation before execution (unknown tool or invalid input); carries `reason` and `errorText`. The error is fed back to the model, which may retry. |
++| `input.requested`         | The run paused for human input ([HITL](/docs/human-in-the-loop) approval or `ask_question`); carries `requests`.                                                                              |
++| `subagent.called`         | A subagent was delegated; carries `childSessionId` to attach to.                                                                                                                              |
++| `subagent.completed`      | A delegated subagent finished.                                                                                                                                                                |
++| `reasoning.appended`      | A reasoning delta (incremental, with cumulative text so far).                                                                                                                                 |
++| `reasoning.completed`     | The finalized reasoning block.                                                                                                                                                                |
++| `message.appended`        | An assistant text delta (incremental, with cumulative text so far).                                                                                                                           |
++| `message.completed`       | A finalized assistant text block.                                                                                                                                                             |
++| `result.completed`        | The finalized structured result for a turn that requested an output schema; carries `result`.                                                                                                 |
++| `compaction.requested`    | Context-window compaction began; carries `modelId`, `sessionId`, `turnId`, `usageInputTokens`.                                                                                                |
++| `compaction.completed`    | A compaction checkpoint was written to durable history.                                                                                                                                       |
++| `authorization.required`  | A connection needs OAuth; carries `name`, `description`, and an `authorization` challenge.                                                                                                    |
++| `authorization.completed` | A connection's authorization resolved; carries `outcome`.                                                                                                                                     |
++| `step.completed`          | A model step finished; carries `finishReason` and usage.                                                                                                                                      |
++| `step.failed`             | A model step failed; carries `{ code, message, details? }`.                                                                                                                                   |
++| `turn.completed`          | The turn finished.                                                                                                                                                                            |
++| `turn.failed`             | The turn failed; carries `{ code, message, details? }`.                                                                                                                                       |
++| `session.waiting`         | The session parked, waiting for the next input (a message, an answer).                                                                                                                        |
++| `session.failed`          | The session failed.                                                                                                                                                                           |
++| `session.completed`       | The session reached a terminal end.                                                                                                                                                           |
+ 
+ `reasoning.appended` and `message.appended` stream deltas as they arrive, and each one carries both the new delta and the cumulative text for the current block. The finalized block shows up on `message.completed` and `reasoning.completed`, which is the compatibility path for clients that don't render incremental streaming.
+ 
+diff --git a/packages/eve/src/client/index.ts b/packages/eve/src/client/index.ts
+index d89edf1..19ebe4f 100644
+--- a/packages/eve/src/client/index.ts
++++ b/packages/eve/src/client/index.ts
+@@ -82,6 +82,8 @@ export type {
+ // ---------------------------------------------------------------------------
+ 
+ export type {
++  ActionInvalidReason,
++  ActionInvalidStreamEvent,
+   ActionResultStreamEvent,
+   ActionsRequestedStreamEvent,
+   AssistantStepFinishReason,
+diff --git a/packages/eve/src/harness/emission.ts b/packages/eve/src/harness/emission.ts
+index fa9b35f..6c03336 100644
+--- a/packages/eve/src/harness/emission.ts
++++ b/packages/eve/src/harness/emission.ts
+@@ -34,6 +34,7 @@ import type { RunMode } from "#shared/run-mode.js";
+ import { hasEmptyDeliverySentinel } from "#shared/empty-delivery.js";
+ import { toError } from "#shared/errors.js";
+ import type { JsonObject } from "#shared/json.js";
++import { emitInvalidToolCall } from "#harness/invalid-actions.js";
+ import {
+   createRuntimeToolResultFromStepResult,
+   createRuntimeToolResultFromToolError,
+@@ -331,6 +332,7 @@ export function normalizeAssistantStepFinishReason(
+  */
+ interface EmittedStreamContent {
+   readonly emittedActionCallIds: ReadonlySet<string>;
++  readonly emittedInvalidCallIds: ReadonlySet<string>;
+   readonly handledInlineToolResultCallIds: ReadonlySet<string>;
+   readonly inlineAuthorizationResults: readonly TypedToolResult<ToolSet>[];
+   readonly inlineToolResultParts: readonly InlineToolResultPart[];
+@@ -362,6 +364,7 @@ export async function emitStreamContent(
+   let streamError: Error | undefined;
+   const toolCallIdsSeenInStream = new Set<string>();
+   const emittedActionCallIds = new Set<string>();
++  const emittedInvalidCallIds = new Set<string>();
+   const emittedActionResultCallIds = new Set<string>();
+   const providerToolCallIdsSeen = new Set<string>();
+   const providerActionBatch = createProviderStreamActionBatch({ emitFn, state });
+@@ -524,6 +527,14 @@ export async function emitStreamContent(
+       case "tool-call": {
+         const toolCall = part as TypedToolCall<ToolSet>;
+         toolCallIdsSeenInStream.add(toolCall.toolCallId);
++        if (toolCall.invalid === true) {
++          // Invalid calls never execute and never reach `actions.requested`
++          // (see `emitToolCall`). Surface them on their own event so
++          // consumers can observe pre-execution rejections.
++          await providerActionBatch.flush();
++          await emitInvalidToolCall(emitFn, state, toolCall, emittedInvalidCallIds);
++          break;
++        }
+         if (toolCall.providerExecuted === true) {
+           await collectProviderToolCall(toolCall);
+         } else {
+@@ -665,6 +676,7 @@ export async function emitStreamContent(
+ 
+   return {
+     emittedActionCallIds,
++    emittedInvalidCallIds,
+     handledInlineToolResultCallIds,
+     inlineAuthorizationResults,
+     inlineToolResultParts,
+diff --git a/packages/eve/src/harness/invalid-actions.ts b/packages/eve/src/harness/invalid-actions.ts
+new file mode 100644
+index 0000000..280017b
+--- /dev/null
++++ b/packages/eve/src/harness/invalid-actions.ts
+@@ -0,0 +1,68 @@
++import type { ToolSet, TypedToolCall } from "ai";
++import { NoSuchToolError } from "ai";
++
++import type { ActionInvalidReason } from "#protocol/message.js";
++import { createActionInvalidEvent } from "#protocol/message.js";
++import { toError } from "#shared/errors.js";
++import type { JsonValue } from "#shared/json.js";
++import { parseJsonValue } from "#shared/json.js";
++import type { HarnessEmissionState } from "#harness/emission.js";
++import type { HarnessEmitFn } from "#harness/types.js";
++
++/**
++ * Emits one `action.invalid` event for a model tool call that failed
++ * validation before execution (no matching tool, or input that failed the
++ * tool's input schema).
++ *
++ * Shared by the streaming pass (`emitStreamContent`) and the post-step pass
++ * (`emitStepActions`); `emittedInvalidCallIds` dedupes across them.
++ * Deliberately ignores `excludedActionToolNames`: that exclusion governs how
++ * *valid* calls are projected (e.g. HITL tools get `input.requested` instead
++ * of `actions.requested`), while an invalid call has no other lifecycle event
++ * and should stay observable for every tool.
++ */
++export async function emitInvalidToolCall(
++  emitFn: HarnessEmitFn,
++  state: HarnessEmissionState,
++  toolCall: TypedToolCall<ToolSet>,
++  emittedInvalidCallIds: Set<string>,
++): Promise<void> {
++  if (emittedInvalidCallIds.has(toolCall.toolCallId)) {
++    return;
++  }
++  emittedInvalidCallIds.add(toolCall.toolCallId);
++  const reason: ActionInvalidReason = NoSuchToolError.isInstance(toolCall.error)
++    ? "no-such-tool"
++    : "invalid-input";
++  await emitFn(
++    createActionInvalidEvent({
++      callId: toolCall.toolCallId,
++      errorText: toError(toolCall.error).message,
++      input: normalizeInvalidCallInput(toolCall.input),
++      reason,
++      sequence: state.sequence,
++      stepIndex: state.stepIndex,
++      toolName: toolCall.toolName,
++      turnId: state.turnId,
++    }),
++  );
++}
++
++/**
++ * Coerces an invalid tool call's raw input for the `action.invalid` payload.
++ *
++ * The AI SDK leaves the input as the raw string when the JSON was unparsable
++ * and as the parsed value otherwise, so this normally succeeds; anything
++ * non-JSON-serializable is dropped rather than allowed to fail the step over
++ * a diagnostic event (`errorText` still describes the failure).
++ */
++function normalizeInvalidCallInput(input: unknown): JsonValue | undefined {
++  if (input === undefined) {
++    return undefined;
++  }
++  try {
++    return parseJsonValue(input);
++  } catch {
++    return undefined;
++  }
++}
+diff --git a/packages/eve/src/harness/step-hooks.ts b/packages/eve/src/harness/step-hooks.ts
+index f751e45..40e2c6a 100644
+--- a/packages/eve/src/harness/step-hooks.ts
++++ b/packages/eve/src/harness/step-hooks.ts
+@@ -23,6 +23,7 @@ import {
+ } from "#harness/action-result-helpers.js";
+ import type { HarnessEmissionState } from "#harness/emission.js";
+ import { emitStepStarted, normalizeAssistantStepFinishReason } from "#harness/emission.js";
++import { emitInvalidToolCall } from "#harness/invalid-actions.js";
+ import { extractToolApprovalInputRequests } from "#harness/input-extraction.js";
+ import {
+   type AnthropicCacheMarker,
+@@ -189,19 +190,19 @@ export function buildStepHooks(input: StepHooksInput): StepHooks {
+ // ---------------------------------------------------------------------------
+ 
+ /**
+- * Emits `actions.requested`, `action.result`, and `step.completed` events
+- * from a captured step result.
++ * Emits `actions.requested`, `action.result`, `action.invalid`, and
++ * `step.completed` events from a captured step result.
+  *
+  * Tool calls and results that match `excludedActionToolNames`, belong to
+  * tool-approval requests, or are marked `invalid` by the AI SDK (e.g. the
+- * model emitted unparsable JSON) are filtered out of the emitted events.
+- * The AI SDK feeds the invalid-call error back to the model on the next
+- * step via `step.response.messages` so it can retry with well-formed
+- * arguments — the runtime event stream only sees successfully parsed
+- * tool calls.
++ * model emitted unparsable JSON) are filtered out of `actions.requested` /
++ * `action.result`. The AI SDK feeds the invalid-call error back to the model
++ * on the next step via `step.response.messages` so it can retry with
++ * well-formed arguments — invalid calls surface only on `action.invalid`.
+  *
+  * `handledInlineToolResultCallIds` contains results emitted by
+- * `emitStreamContent` or sent to authorization. Skip them here.
++ * `emitStreamContent` or sent to authorization; `emittedInvalidCallIds`
++ * contains invalid calls it already emitted. Skip both here.
+  */
+ export async function emitStepActions(
+   emitFn: HarnessEmitFn,
+@@ -209,6 +210,7 @@ export async function emitStepActions(
+   step: HarnessStepResult,
+   options: {
+     readonly emittedActionCallIds?: ReadonlySet<string>;
++    readonly emittedInvalidCallIds?: ReadonlySet<string>;
+     readonly excludedActionToolNames: ReadonlySet<string>;
+     readonly handledInlineToolResultCallIds?: ReadonlySet<string>;
+     readonly tools: ToolLoopHarnessConfig["tools"];
+@@ -232,6 +234,16 @@ export async function emitStepActions(
+   const isExcluded = (toolCallId: string, toolName: string): boolean =>
+     excludedCallIds.has(toolCallId) || options.excludedActionToolNames.has(toolName);
+ 
++  // Invalid calls never execute, so surface each one on `action.invalid`.
++  // The streaming pass already emitted calls whose final chunk carried the
++  // `invalid` flag; this pass catches the ones it couldn't see (the SDK can
++  // finalize a call as invalid only in the step result) — the shared set
++  // dedupes across the two passes.
++  const emittedInvalidCallIds = new Set<string>(options.emittedInvalidCallIds);
++  for (const toolCall of (step.toolCalls as TypedToolCall<ToolSet>[]).filter(isInvalidToolCall)) {
++    await emitInvalidToolCall(emitFn, state, toolCall, emittedInvalidCallIds);
++  }
++
+   // Streamed calls already emitted their request. The loop below emits their
+   // result.
+   const actions = (step.toolCalls as TypedToolCall<ToolSet>[])
+diff --git a/packages/eve/src/harness/tool-loop.test.ts b/packages/eve/src/harness/tool-loop.test.ts
+index 164d1e5..0d80d7b 100644
+--- a/packages/eve/src/harness/tool-loop.test.ts
++++ b/packages/eve/src/harness/tool-loop.test.ts
+@@ -4,6 +4,7 @@ import {
+   jsonSchema,
+   type LanguageModel,
+   type ModelMessage,
++  NoSuchToolError,
+   ToolLoopAgent,
+   type UserContent,
+ } from "ai";
+@@ -54,7 +55,10 @@ declare module "#public/channels/index.js" {
+   }
+ }
+ 
+-vi.mock("ai", () => ({
++vi.mock("ai", async (importOriginal) => ({
++  // Keep the real module (error classes like `NoSuchToolError` participate
++  // in harness emission) and override only the pieces the tests drive.
++  ...(await importOriginal<typeof import("ai")>()),
+   ToolLoopAgent: vi.fn(),
+   gateway: {
+     tools: {
+@@ -2106,6 +2110,21 @@ describe("createToolLoopHarness", () => {
+     expect(events.some((event) => event.type === "actions.requested")).toBe(false);
+     expect(events.some((event) => event.type === "action.result")).toBe(false);
+ 
++    // ...but it must surface on `action.invalid` so consumers can observe
++    // the pre-execution rejection.
++    const invalidEvents = events.filter((event) => event.type === "action.invalid");
++    expect(invalidEvents).toHaveLength(1);
++    expect(invalidEvents[0]?.data).toEqual({
++      callId: "call-bad",
++      errorText: "SyntaxError: Unexpected token in JSON",
++      input: '{"answer": "...", "keyObservations": \n- bullet',
++      reason: "invalid-input",
++      sequence: 0,
++      stepIndex: 0,
++      toolName: "add",
++      turnId: "turn_0",
++    });
++
+     // The recoverable-failure path must not fire — the step completes
+     // normally so the next turn can feed the SDK's tool-error back to
+     // the model.
+@@ -2180,6 +2199,16 @@ describe("createToolLoopHarness", () => {
+     expect(actionResults[0]?.data).toMatchObject({
+       result: { callId: "call-ok", kind: "tool-result", output: "3", toolName: "add" },
+     });
++
++    // The invalid call gets its own event, without touching the valid
++    // call's request/result lifecycle above.
++    const invalidEvents = events.filter((event) => event.type === "action.invalid");
++    expect(invalidEvents).toHaveLength(1);
++    expect(invalidEvents[0]?.data).toMatchObject({
++      callId: "call-bad",
++      reason: "invalid-input",
++      toolName: "add",
++    });
+   });
+ 
+   it("skips invalid runtime-action tool calls instead of parking them in the pending batch", async () => {
+@@ -2244,6 +2273,136 @@ describe("createToolLoopHarness", () => {
+     expect(result.session.state?.["eve.runtime.pendingActionBatch"]).toBeUndefined();
+     expect(events.some((event) => event.type === "actions.requested")).toBe(false);
+     expect(events.some((event) => event.type === "turn.failed")).toBe(false);
++
++    // Runtime-action tools surface invalid calls the same way plain tools do.
++    const invalidEvents = events.filter((event) => event.type === "action.invalid");
++    expect(invalidEvents).toHaveLength(1);
++    expect(invalidEvents[0]?.data).toMatchObject({
++      callId: "call-subagent-bad",
++      reason: "invalid-input",
++      toolName: "delegate",
++    });
++  });
++
++  it("emits action.invalid with reason no-such-tool when the model calls an unknown tool", async () => {
++    // The AI SDK parses a call to an unknown tool into a DynamicToolCall
++    // with `invalid: true` and a NoSuchToolError, both on the stream and in
++    // the step's toolCalls.
++    const invalidToolCall = {
++      dynamic: true,
++      error: new NoSuchToolError({ availableTools: ["add"], toolName: "subtract" }),
++      input: { a: 1 },
++      invalid: true,
++      toolCallId: "call-unknown",
++      toolName: "subtract",
++      type: "tool-call",
++    };
++    setupMockAgent({
++      finishReason: "tool-calls",
++      fullStreamParts: [invalidToolCall, { finishReason: "tool-calls", type: "finish-step" }],
++      response: {
++        messages: [
++          {
++            content: [
++              {
++                input: { a: 1 },
++                toolCallId: "call-unknown",
++                toolName: "subtract",
++                type: "tool-call",
++              },
++            ],
++            role: "assistant",
++          },
++        ],
++      },
++      text: "",
++      toolCalls: [invalidToolCall],
++      toolResults: [],
++    });
++
++    const { emit, events } = createEventCollector();
++    const runStep = createToolLoopHarness(createTestConfig("conversation", emit));
++
++    await runStep(createTestSession(), { message: "Subtract" });
++
++    const invalidEvents = events.filter((event) => event.type === "action.invalid");
++    expect(invalidEvents).toHaveLength(1);
++    expect(invalidEvents[0]?.data).toEqual({
++      callId: "call-unknown",
++      errorText: expect.stringContaining("subtract") as string,
++      input: { a: 1 },
++      reason: "no-such-tool",
++      sequence: 0,
++      stepIndex: 0,
++      toolName: "subtract",
++      turnId: "turn_0",
++    });
++    expect(events.some((event) => event.type === "actions.requested")).toBe(false);
++    expect(events.some((event) => event.type === "action.result")).toBe(false);
++    expect(events.some((event) => event.type === "turn.failed")).toBe(false);
++  });
++
++  it("emits action.invalid exactly once when the invalid call arrives on both the stream and the step result", async () => {
++    // The real AI SDK enqueues the parsed invalid tool call on `fullStream`
++    // (with `invalid: true` and the parse error) *and* surfaces it again in
++    // the step's `toolCalls`. The two emission passes must dedupe by callId.
++    const invalidToolCall = {
++      dynamic: true,
++      error: new Error("SyntaxError: Unexpected end of JSON input"),
++      input: '{"a": 1, "b":',
++      invalid: true,
++      toolCallId: "call-bad",
++      toolName: "add",
++      type: "tool-call",
++    };
++    setupMockAgent({
++      finishReason: "tool-calls",
++      fullStreamParts: [
++        { id: "text-1", text: "Adding.", type: "text-delta" },
++        invalidToolCall,
++        { finishReason: "tool-calls", type: "finish-step" },
++      ],
++      response: {
++        messages: [
++          {
++            content: [
++              { text: "Adding.", type: "text" },
++              {
++                input: '{"a": 1, "b":',
++                toolCallId: "call-bad",
++                toolName: "add",
++                type: "tool-call",
++              },
++            ],
++            role: "assistant",
++          },
++        ],
++      },
++      text: "",
++      toolCalls: [invalidToolCall],
++      toolResults: [],
++    });
++
++    const { emit, events } = createEventCollector();
++    const runStep = createToolLoopHarness(createTestConfig("conversation", emit));
++
++    await runStep(createTestSession(), { message: "Add" });
++
++    const invalidEvents = events.filter((event) => event.type === "action.invalid");
++    expect(invalidEvents).toHaveLength(1);
++    expect(invalidEvents[0]?.data).toEqual({
++      callId: "call-bad",
++      errorText: "SyntaxError: Unexpected end of JSON input",
++      input: '{"a": 1, "b":',
++      reason: "invalid-input",
++      sequence: 0,
++      stepIndex: 0,
++      toolName: "add",
++      turnId: "turn_0",
++    });
++    expect(events.some((event) => event.type === "actions.requested")).toBe(false);
++    expect(events.some((event) => event.type === "action.result")).toBe(false);
++    expect(events.some((event) => event.type === "turn.failed")).toBe(false);
+   });
+ 
+   it("stamps the live emission state onto a parked runtime-action batch so resume is a continuation", async () => {
+diff --git a/packages/eve/src/harness/tool-loop.ts b/packages/eve/src/harness/tool-loop.ts
+index 478afa5..0eef63c 100644
+--- a/packages/eve/src/harness/tool-loop.ts
++++ b/packages/eve/src/harness/tool-loop.ts
+@@ -756,6 +756,7 @@ export function createToolLoopHarness(config: ToolLoopHarnessConfig): StepFn {
+           });
+           const {
+             emittedActionCallIds,
++            emittedInvalidCallIds,
+             handledInlineToolResultCallIds,
+             inlineAuthorizationResults,
+             inlineToolResultParts,
+@@ -776,6 +777,7 @@ export function createToolLoopHarness(config: ToolLoopHarnessConfig): StepFn {
+           }
+           await emitStepActions(emit, emissionState, stepResult, {
+             emittedActionCallIds,
++            emittedInvalidCallIds,
+             excludedActionToolNames,
+             handledInlineToolResultCallIds,
+             tools: advertisedHarnessTools,
+diff --git a/packages/eve/src/protocol/message.ts b/packages/eve/src/protocol/message.ts
+index 34de839..7a93260 100644
+--- a/packages/eve/src/protocol/message.ts
++++ b/packages/eve/src/protocol/message.ts
+@@ -214,6 +214,38 @@ export interface ActionResultStreamEvent {
+   type: "action.result";
+ }
+ 
++/**
++ * Why one model-emitted tool call failed validation before execution.
++ *
++ * `no-such-tool` means the model addressed a tool that is not in the active
++ * tool set; `invalid-input` means the tool exists but the call's input failed
++ * schema validation (or was not parseable JSON).
++ */
++export type ActionInvalidReason = "invalid-input" | "no-such-tool";
++
++/**
++ * Stream event emitted when the model produces a tool call that fails
++ * validation before execution.
++ *
++ * Invalid calls never execute and never appear in `actions.requested` or
++ * `action.result`; the model still receives the validation error and may
++ * retry. This event makes those pre-execution rejections observable so
++ * consumers can surface or measure them.
++ */
++export interface ActionInvalidStreamEvent {
++  data: {
++    callId: string;
++    errorText: string;
++    input?: JsonValue;
++    reason: ActionInvalidReason;
++    sequence: number;
++    stepIndex: number;
++    toolName: string;
++    turnId: string;
++  };
++  type: "action.invalid";
++}
++
+ /**
+  * Stream event emitted when the parent workflow starts a child subagent session.
+  */
+@@ -556,6 +588,7 @@ export type HandleMessageStreamEvent = (
+   | SubagentChildEventStreamEvent
+   | SubagentCompletedStreamEvent
+   | SubagentStartedStreamEvent
++  | ActionInvalidStreamEvent
+   | ActionsRequestedStreamEvent
+   | InputRequestedStreamEvent
+   | ActionResultStreamEvent
+@@ -837,6 +870,35 @@ export function createActionResultEvent(input: {
+   };
+ }
+ 
++/**
++ * Creates the `action.invalid` event for one model-emitted tool call that
++ * failed validation before execution.
++ */
++export function createActionInvalidEvent(input: {
++  readonly callId: string;
++  readonly errorText: string;
++  readonly input?: JsonValue;
++  readonly reason: ActionInvalidReason;
++  readonly sequence: number;
++  readonly stepIndex: number;
++  readonly toolName: string;
++  readonly turnId: string;
++}): ActionInvalidStreamEvent {
++  return {
++    data: {
++      callId: input.callId,
++      errorText: input.errorText,
++      input: input.input,
++      reason: input.reason,
++      sequence: input.sequence,
++      stepIndex: input.stepIndex,
++      toolName: input.toolName,
++      turnId: input.turnId,
++    },
++    type: "action.invalid",
++  };
++}
++
+ /**
+  * Creates the `subagent.called` event for one started child workflow session.
+  */
+-- 
+2.50.1 (Apple Git-155)
+

@@ -11,6 +11,17 @@ Upstream target: `packages/eve/src/harness/attachment-staging.ts` and its
 callers. Tracked on the README's
 [Notes for the eve maintainers](../../README.md#notes-for-the-eve-maintainers).
 
+Filed upstream as [vercel/eve#543](https://github.com/vercel/eve/issues/543)
+(eve requires issue discussion before a behavior-change PR); the PR follows
+on maintainer go-ahead. Tracked internally on
+[zov2-code#292](https://github.com/zocomputer/zov2-code/issues/292). At
+filing time the patch was re-verified: it still applies cleanly on current
+`main`, and the converter claims were re-checked in the dists of the
+versions eve actually pins (`@ai-sdk/google` 4.0.0, `@ai-sdk/anthropic`
+4.0.0 — the Anthropic converter also accepts `text/plain` documents, so the
+precise statement is that it throws on video/audio, which is what matters
+here).
+
 ## Why
 
 eve stages every inbound `FilePart` to the framework sandbox
