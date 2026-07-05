@@ -196,15 +196,26 @@ it under `agent/subagents/explore/hooks/` or child sessions won't be recorded.
 ## Example
 
 [`examples/coder`](./examples/coder) is a complete, minimal eve coding agent
-built on this stdlib — the five steps above as real files: the full toolset,
+built on this stdlib — the six steps above as real files: the full toolset,
 the `read_file`/`write_file` shims, the six instructions, the park-delivery
-hook, and a one-file coder persona. Point it at a project and run it:
+hook, a declared explore subagent, and a one-file coder persona. Point it at
+a project and run it:
 
 ```sh
 cd examples/coder
 bun install
 CODER_WORKDIR=/path/to/project AI_GATEWAY_API_KEY=… bun dev
 ```
+
+The coder is also this package's **end-to-end test agent**: `bun run eval`
+(in `examples/coder`) runs [`evals-mock/`](./examples/coder/evals-mock) — ten
+deterministic evals that drive the prescribed wiring through a real eve server
+on the mock model (see [Mock model](#mock-model-credential-free-testing)),
+with zero credentials. Park/resume on `ask_question`, two parallel questions
+pending on one park, the todo write/update order, real explore delegation, a
+visible `turn.failed` on an injected stream error, and the stream-shape
+scenarios. Copy the pattern (`scripts/eval.ts` + `evals-mock/`) to give your
+own agent the same CI-friendly suite.
 
 ## Mock model (credential-free testing)
 
@@ -255,8 +266,9 @@ close, a terminal part ends the stream; pinned by the package's conformance
 tests, which also validate the scripted `ask_question`/`todo` inputs against
 the installed eve's own framework-tool schemas). Inject `now` for
 byte-deterministic streams. Because the mock is credential-free, `eve eval`
-suites built on it can run end-to-end in CI — rib's `evals-mock/` tree is the
-reference setup.
+suites built on it can run end-to-end in CI — the coder example's
+[`evals-mock/`](./examples/coder/evals-mock) suite (run via its
+`scripts/eval.ts`) is the reference setup.
 
 ## Tool behavior
 

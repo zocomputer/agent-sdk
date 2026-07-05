@@ -9,6 +9,8 @@
     "dev": "eve dev",
     "build": "eve build",
     "start": "eve start",
+    "eval": "bun run scripts/eval.ts",
+    "test": "bun test",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
