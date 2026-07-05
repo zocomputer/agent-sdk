@@ -20,6 +20,10 @@
       "types": "./src/attachments.ts",
       "import": "./dist/attachments.js"
     },
+    "./state": {
+      "types": "./src/state.ts",
+      "import": "./dist/state.js"
+    },
     "./steer": {
       "types": "./src/steer.ts",
       "import": "./dist/steer.js"
