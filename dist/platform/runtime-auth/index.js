@@ -1,4 +1,4 @@
-// ../../../../../tmp/agent-sdk-mirror-U7xzi8/repo/platform/runtime-auth/index.ts
+// ../../../../../tmp/agent-sdk-mirror-f35QST/repo/platform/runtime-auth/index.ts
 import { SignJWT, jwtVerify } from "jose";
 var AGENT_TOKEN_HEADER = "x-zo-agent-token";
 var EVE_SESSION_HEADER = "x-zo-eve-session";
@@ -62,40 +62,65 @@ async function resolveAgentContext(agentToken, secret, eveSessionId, clock = def
     ...eveSessionId ? { eveSessionId } : {}
   };
 }
-var BUILD_BIND_TYP = "zo-build-bind";
-async function mintBuildBindTicket(input) {
+var IDENTITY_BEARER_TYP = "zo-identity";
+async function mintIdentityBearer(input) {
   const now = (input.clock ?? defaultClock)();
   const payload = {
-    typ: BUILD_BIND_TYP,
+    typ: IDENTITY_BEARER_TYP,
     userId: input.claims.userId,
-    agentProjectId: input.claims.agentProjectId
+    agentId: input.claims.agentId
   };
   return new SignJWT(payload).setProtectedHeader({ alg: "HS256" }).setIssuer(ISSUER).setIssuedAt(now).setExpirationTime(now + input.ttlSeconds).sign(key(input.secret));
 }
-async function verifyBuildBindTicket(ticket, secret, clock = defaultClock) {
+async function verifyIdentityBearer(bearer, secret, clock = defaultClock) {
   try {
-    const { payload } = await jwtVerify(ticket, key(secret), {
+    const { payload } = await jwtVerify(bearer, key(secret), {
       issuer: ISSUER,
       currentDate: new Date(clock() * 1000)
     });
-    if (payload.typ !== BUILD_BIND_TYP)
+    if (payload.typ !== IDENTITY_BEARER_TYP)
       return null;
     const userId = asString(payload.userId);
-    const agentProjectId = asString(payload.agentProjectId);
-    if (!userId || !agentProjectId)
+    const agentId = asString(payload.agentId);
+    if (!userId || !agentId)
       return null;
-    return { userId, agentProjectId };
+    return { userId, agentId };
   } catch {
     return null;
   }
 }
+var INITIATOR_HEADER = "x-zo-initiator";
+function formatInitiator(identity) {
+  return JSON.stringify({ userId: identity.userId, agentId: identity.agentId });
+}
+function parseInitiator(value) {
+  if (!value)
+    return null;
+  let parsed;
+  try {
+    parsed = JSON.parse(value);
+  } catch {
+    return null;
+  }
+  if (typeof parsed !== "object" || parsed === null)
+    return null;
+  const { userId, agentId } = parsed;
+  if (typeof userId !== "string" || !userId)
+    return null;
+  if (typeof agentId !== "string" || !agentId)
+    return null;
+  return { userId, agentId };
+}
 export {
-  verifyBuildBindTicket,
+  verifyIdentityBearer,
   verifyAgentToken,
   resolveAgentContext,
-  mintBuildBindTicket,
+  parseInitiator,
+  mintIdentityBearer,
   mintAgentToken,
+  formatInitiator,
   ZO_PLATFORM_ORG,
+  INITIATOR_HEADER,
   EVE_SESSION_HEADER,
   BUILDER_AGENT_IDENTITY,
   AGENT_TOKEN_HEADER,

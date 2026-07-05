@@ -185,43 +185,44 @@ export async function resolveAgentContext(
   };
 }
 
-// ── build-bind ticket ────────────────────────────────────────────────────────
+// ── identity bearer ──────────────────────────────────────────────────────────
 //
-// The second first-party token: a narrow capability the browser carries on the
-// Builder's eve traffic (`@zocomputer/auth-core`'s BUILD_AGENT_HEADER) asserting "this
-// user may bind Builder eve sessions to this agent". Needed because eve's
-// client fetch sends no credentials, so the builder eve-proxy can't see the
-// WorkOS session cookie — the browser instead trades its cookie for this
-// ticket over an authenticated `POST /agents/:id/builder/bind-token`, and the
-// proxy verifies the ticket offline. apps/api both mints and verifies (same
-// HMAC secret as the agent token); web only ferries the opaque string. See
-// plans/sachin/code-storage-phase3-implementation.md (Open question 3).
+// The second first-party token (credential A): a short-lived signed identity the
+// browser carries on the Builder's eve traffic (`@zocomputer/auth-core`'s
+// IDENTITY_BEARER_HEADER) asserting "this user is building this agent". Needed
+// because eve's client fetch sends no credentials, so the builder eve-proxy can't
+// see the WorkOS session cookie — the browser trades its cookie for this bearer
+// over an authenticated `POST /agents/:id/builder/identity-token`, and the proxy
+// verifies it offline, then injects the resolved identity as the plaintext
+// `x-zo-initiator` header (credential B, below). apps/api both mints and verifies
+// (same HMAC secret as the agent token); web only ferries the opaque string. See
+// plans/sachin/builder-initiator-binding-implementation.md.
 
-const BUILD_BIND_TYP = "zo-build-bind";
+const IDENTITY_BEARER_TYP = "zo-identity";
 
-/** What the build-bind ticket asserts: who may bind sessions to which agent. */
-export interface BuildBindClaims {
+/** What the identity bearer asserts: which user is building which agent. */
+export interface IdentityClaims {
   readonly userId: string;
-  readonly agentProjectId: string;
+  readonly agentId: string;
 }
 
-export interface MintBuildBindTicketInput {
-  readonly claims: BuildBindClaims;
+export interface MintIdentityBearerInput {
+  readonly claims: IdentityClaims;
   readonly secret: string;
-  /** Ticket lifetime in seconds. */
+  /** Bearer lifetime in seconds. */
   readonly ttlSeconds: number;
   readonly clock?: Clock;
 }
 
-/** Mint the build-bind ticket (the browser-side bind capability). */
-export async function mintBuildBindTicket(
-  input: MintBuildBindTicketInput,
+/** Mint the identity bearer (the browser-side identity credential). */
+export async function mintIdentityBearer(
+  input: MintIdentityBearerInput,
 ): Promise<string> {
   const now = (input.clock ?? defaultClock)();
   const payload: JWTPayload = {
-    typ: BUILD_BIND_TYP,
+    typ: IDENTITY_BEARER_TYP,
     userId: input.claims.userId,
-    agentProjectId: input.claims.agentProjectId,
+    agentId: input.claims.agentId,
   };
   return new SignJWT(payload)
     .setProtectedHeader({ alg: "HS256" })
@@ -231,25 +232,66 @@ export async function mintBuildBindTicket(
     .sign(key(input.secret));
 }
 
-/** Verify a build-bind ticket's signature, issuer, expiry, and `typ`. Returns the
- * claims, or `null` when the ticket is invalid/expired/wrong-typ (incl. an agent
- * token presented where a bind ticket belongs — `typ` keeps them unconfusable). */
-export async function verifyBuildBindTicket(
-  ticket: string,
+/** Verify an identity bearer's signature, issuer, expiry, and `typ`. Returns the
+ * claims, or `null` when it's invalid/expired/wrong-typ (incl. an agent token
+ * presented where an identity bearer belongs — `typ` keeps them unconfusable). */
+export async function verifyIdentityBearer(
+  bearer: string,
   secret: string,
   clock: Clock = defaultClock,
-): Promise<BuildBindClaims | null> {
+): Promise<IdentityClaims | null> {
   try {
-    const { payload } = await jwtVerify(ticket, key(secret), {
+    const { payload } = await jwtVerify(bearer, key(secret), {
       issuer: ISSUER,
       currentDate: new Date(clock() * 1000),
     });
-    if (payload.typ !== BUILD_BIND_TYP) return null;
+    if (payload.typ !== IDENTITY_BEARER_TYP) return null;
     const userId = asString(payload.userId);
-    const agentProjectId = asString(payload.agentProjectId);
-    if (!userId || !agentProjectId) return null;
-    return { userId, agentProjectId };
+    const agentId = asString(payload.agentId);
+    if (!userId || !agentId) return null;
+    return { userId, agentId };
   } catch {
     return null;
   }
+}
+
+// ── initiator header (proxy → Builder) ─────────────────────────────────────────
+//
+// Credential B: the plaintext identity the builder eve-proxy injects on the
+// forwarded request after verifying the identity bearer (credential A). The
+// Builder's channel auth reads it and stamps `session.auth.initiator`. Not signed
+// — the Builder holds no secret and trusts it because only the edge-authenticated
+// proxy can reach it (Deployment Protection). The proxy always strips any
+// client-supplied value before setting its own. One JSON header so the identity
+// is atomic: `parseInitiator` returns the whole `{ userId, agentId }` or `null`,
+// never a half-present pair.
+
+/** The proxy → Builder initiator header. */
+export const INITIATOR_HEADER = "x-zo-initiator";
+
+/** The initiator identity carried on `INITIATOR_HEADER`. */
+export interface InitiatorIdentity {
+  readonly userId: string;
+  readonly agentId: string;
+}
+
+/** Serialize the initiator identity for `INITIATOR_HEADER`. */
+export function formatInitiator(identity: InitiatorIdentity): string {
+  return JSON.stringify({ userId: identity.userId, agentId: identity.agentId });
+}
+
+/** Parse-then-narrow the `INITIATOR_HEADER` value; `null` on absent/malformed. */
+export function parseInitiator(value: string | null | undefined): InitiatorIdentity | null {
+  if (!value) return null;
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(value);
+  } catch {
+    return null;
+  }
+  if (typeof parsed !== "object" || parsed === null) return null;
+  const { userId, agentId } = parsed as Record<string, unknown>;
+  if (typeof userId !== "string" || !userId) return null;
+  if (typeof agentId !== "string" || !agentId) return null;
+  return { userId, agentId };
 }

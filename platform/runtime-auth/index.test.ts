@@ -2,11 +2,13 @@ import { describe, expect, test } from "bun:test";
 import {
   BUILDER_AGENT_IDENTITY,
   ZO_PLATFORM_ORG,
+  formatInitiator,
   mintAgentToken,
-  mintBuildBindTicket,
+  mintIdentityBearer,
+  parseInitiator,
   resolveAgentContext,
   verifyAgentToken,
-  verifyBuildBindTicket,
+  verifyIdentityBearer,
 } from "./index";
 
 const SECRET = "test-secret-please-do-not-use-in-prod";
@@ -133,56 +135,89 @@ describe("Builder identity (launcher mint → API verify)", () => {
   });
 });
 
-describe("build-bind ticket", () => {
-  const bindClaims = { userId: "usr_1", agentProjectId: "agt_1" };
+describe("identity bearer", () => {
+  const identityClaims = { userId: "usr_1", agentId: "agt_1" };
 
   test("round-trips its claims", async () => {
-    const ticket = await mintBuildBindTicket({
-      claims: bindClaims,
+    const bearer = await mintIdentityBearer({
+      claims: identityClaims,
       secret: SECRET,
       ttlSeconds: 900,
       clock: at(T0),
     });
-    expect(await verifyBuildBindTicket(ticket, SECRET, at(T0 + 10))).toEqual(bindClaims);
+    expect(await verifyIdentityBearer(bearer, SECRET, at(T0 + 10))).toEqual(identityClaims);
   });
 
   test("rejects the wrong secret", async () => {
-    const ticket = await mintBuildBindTicket({
-      claims: bindClaims,
+    const bearer = await mintIdentityBearer({
+      claims: identityClaims,
       secret: SECRET,
       ttlSeconds: 900,
       clock: at(T0),
     });
-    expect(await verifyBuildBindTicket(ticket, OTHER_SECRET, at(T0))).toBeNull();
+    expect(await verifyIdentityBearer(bearer, OTHER_SECRET, at(T0))).toBeNull();
   });
 
-  test("rejects an expired ticket", async () => {
-    const ticket = await mintBuildBindTicket({
-      claims: bindClaims,
+  test("rejects an expired bearer", async () => {
+    const bearer = await mintIdentityBearer({
+      claims: identityClaims,
       secret: SECRET,
       ttlSeconds: 900,
       clock: at(T0),
     });
-    expect(await verifyBuildBindTicket(ticket, SECRET, at(T0 + 1000))).toBeNull();
+    expect(await verifyIdentityBearer(bearer, SECRET, at(T0 + 1000))).toBeNull();
   });
 
-  test("rejects an agent token presented as a bind ticket (typ confusion)", async () => {
+  test("rejects an agent token presented as an identity bearer (typ confusion)", async () => {
     const agentToken = await mintAgentToken({
       claims: agentClaims,
       secret: SECRET,
       ttlSeconds: 900,
       clock: at(T0),
     });
-    expect(await verifyBuildBindTicket(agentToken, SECRET, at(T0))).toBeNull();
+    expect(await verifyIdentityBearer(agentToken, SECRET, at(T0))).toBeNull();
   });
 
-  test("a bind ticket is not accepted as an agent token (reverse typ confusion)", async () => {
-    const ticket = await mintBuildBindTicket({
-      claims: bindClaims,
+  test("an identity bearer is not accepted as an agent token (reverse typ confusion)", async () => {
+    const bearer = await mintIdentityBearer({
+      claims: identityClaims,
       secret: SECRET,
       ttlSeconds: 900,
       clock: at(T0),
     });
-    expect(await verifyAgentToken(ticket, SECRET, at(T0))).toBeNull();
+    expect(await verifyAgentToken(bearer, SECRET, at(T0))).toBeNull();
+  });
+});
+
+describe("initiator header (format/parse)", () => {
+  const identity = { userId: "usr_1", agentId: "agt_1" };
+
+  test("round-trips through format → parse", () => {
+    expect(parseInitiator(formatInitiator(identity))).toEqual(identity);
+  });
+
+  test("returns null for absent value", () => {
+    expect(parseInitiator(null)).toBeNull();
+    expect(parseInitiator(undefined)).toBeNull();
+    expect(parseInitiator("")).toBeNull();
+  });
+
+  test("returns null for malformed JSON", () => {
+    expect(parseInitiator("not-json")).toBeNull();
+  });
+
+  test("returns null when a field is missing", () => {
+    expect(parseInitiator(JSON.stringify({ userId: "usr_1" }))).toBeNull();
+    expect(parseInitiator(JSON.stringify({ agentId: "agt_1" }))).toBeNull();
+  });
+
+  test("returns null when a field is the wrong type", () => {
+    expect(parseInitiator(JSON.stringify({ userId: "usr_1", agentId: 5 }))).toBeNull();
+    expect(parseInitiator(JSON.stringify({ userId: "", agentId: "agt_1" }))).toBeNull();
+  });
+
+  test("returns null for a non-object body", () => {
+    expect(parseInitiator(JSON.stringify("string"))).toBeNull();
+    expect(parseInitiator(JSON.stringify(["a"]))).toBeNull();
   });
 });
