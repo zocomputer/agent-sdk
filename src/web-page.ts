@@ -168,7 +168,11 @@ export function buildContentCollapseNote(opts: {
  */
 export function looksLikeRawHtmlOutput(rendered: string): boolean {
   if (rendered.length === 0) return false;
-  const tags = rendered.match(/<\/?[a-z][a-z0-9-]*(?:\s[^>]*)?>/gi);
+  // `[^<>]` (not `[^>]`) bounds the attribute scan to a single tag: an
+  // unterminated `<tag …` fails at the next `<` instead of scanning to the
+  // end of the string, which kept this linear on hostile input (a fetched
+  // page of `"<a ".repeat(n)` was polynomial — CodeQL js/polynomial-redos).
+  const tags = rendered.match(/<\/?[a-z][a-z0-9-]*(?:\s[^<>]*)?>/gi);
   if (tags === null || tags.length < 10) return false;
   const tagChars = tags.reduce((sum, tag) => sum + tag.length, 0);
   return tagChars / rendered.length > 0.1;

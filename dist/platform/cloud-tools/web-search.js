@@ -1,7 +1,7 @@
-// ../../../../../tmp/agent-sdk-mirror-7vgVJe/repo/platform/runtime-ai/gateway.ts
+// ../../../../../tmp/agent-sdk-mirror-OoYsku/repo/platform/runtime-ai/gateway.ts
 import { createGateway } from "ai";
 
-// ../../../../../tmp/agent-sdk-mirror-7vgVJe/repo/platform/runtime-ai/session-fetch.ts
+// ../../../../../tmp/agent-sdk-mirror-OoYsku/repo/platform/runtime-ai/session-fetch.ts
 var EVE_SESSION_HEADER = "x-zo-eve-session";
 var EVE_CONTEXT_STORAGE_KEY = Symbol.for("eve.context-storage");
 var SESSION_ID_KEY_NAME = "eve.sessionId";
@@ -29,7 +29,7 @@ function eveSessionFetch(getSessionId = ambientEveSessionId, baseFetch = globalT
   }, baseFetch);
 }
 
-// ../../../../../tmp/agent-sdk-mirror-7vgVJe/repo/platform/runtime-ai/gateway.ts
+// ../../../../../tmp/agent-sdk-mirror-OoYsku/repo/platform/runtime-ai/gateway.ts
 var DEFAULT_ZO_AI_BASE_URL = "http://localhost:4000/runtime/ai/v4/ai";
 var DEFAULT_ZO_AI_KEY = "dev-proxy";
 function resolveZoGatewayBaseUrl(baseURL = process.env.ZO_AI_BASE_URL) {
@@ -48,7 +48,7 @@ function zoGateway(options = {}) {
     fetch: eveSessionFetch(undefined, options.fetch)
   });
 }
-// ../../../../../tmp/agent-sdk-mirror-7vgVJe/repo/platform/cloud-tools/web-search.ts
+// ../../../../../tmp/agent-sdk-mirror-OoYsku/repo/platform/cloud-tools/web-search.ts
 function webSearch(config) {
   const gateway = zoGateway();
   return config === undefined ? gateway.tools.exaSearch() : gateway.tools.exaSearch(config);

@@ -346,6 +346,39 @@ function buildPosixGrepCommand(options: IoSearchOptions, scopeRel: string): stri
 }
 
 /**
+ * Split one search line into `file:line:text` at the first `:<digits>:`
+ * boundary, or null for a non-match line (context separator, binary notice).
+ *
+ * A linear scan, deliberately not a regex: the natural `/^(.+?):(\d+):(.*)$/`
+ * is polynomial on a line that can't match (CodeQL js/polynomial-redos) —
+ * JS `.` excludes `\r`, so a CRLF line's trailing `\r` fails the final `$`
+ * and the lazy `.+?`/`\d+` backtrack quadratically (a crafted line near
+ * runSearch's 10 MB cap ran for minutes). Trimming the `\r` first also fixes
+ * the latent bug where every CRLF-file match silently parsed as null.
+ */
+function parseSearchLine(
+  line: string,
+): { file: string; lineNo: string; text: string } | null {
+  const s = line.endsWith("\r") ? line.slice(0, -1) : line;
+  let from = 0;
+  for (;;) {
+    const colon = s.indexOf(":", from);
+    if (colon === -1) return null;
+    // file (the pre-regex `.+?`) must be non-empty.
+    if (colon === 0) {
+      from = 1;
+      continue;
+    }
+    let end = colon + 1;
+    while (end < s.length && s.charCodeAt(end) >= 48 && s.charCodeAt(end) <= 57) end++;
+    if (end > colon + 1 && s.charCodeAt(end) === 58 /* ":" */) {
+      return { file: s.slice(0, colon), lineNo: s.slice(colon + 1, end), text: s.slice(end + 1) };
+    }
+    from = colon + 1;
+  }
+}
+
+/**
  * Parse `file:line:text` search output into matches, enforcing the total
  * bound. Reaching the bound (or a `flooded` byte-capped stream) marks the
  * scan stopped — more matches may exist past the cap, exactly like the
@@ -360,10 +393,9 @@ export function parseSearchOutput(
   let stopped: IoSearchResult["stopped"] = flooded ? "output-cap" : false;
   for (const line of stdout.split("\n")) {
     if (line.length === 0) continue;
-    const parsed = /^(.+?):(\d+):(.*)$/.exec(line);
+    const parsed = parseSearchLine(line);
     if (parsed === null) continue; // context separators, binary-file notices
-    const [, file, lineNo, text] = parsed;
-    if (file === undefined || lineNo === undefined || text === undefined) continue;
+    const { file, lineNo, text } = parsed;
     matches.push({
       file: file.startsWith("./") ? file.slice(2) : file,
       line: Number(lineNo),

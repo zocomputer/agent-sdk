@@ -439,4 +439,24 @@ describe("parseSearchOutput", () => {
     const result = parseSearchOutput("a.ts:1:const url = 'http://x';\n", 10);
     expect(result.matches[0]?.text).toBe("const url = 'http://x';");
   });
+
+  test("parses a CRLF-terminated match line (trailing \\r trimmed off text)", () => {
+    const result = parseSearchOutput("src/a.ts:3:const x = 1;\r\n", 10);
+    expect(result.matches).toEqual([{ file: "src/a.ts", line: 3, text: "const x = 1;" }]);
+  });
+
+  test("stays linear on a long line the old regex backtracked on", () => {
+    // The old `/^(.+?):(\d+):(.*)$/` was polynomial here: the trailing `\r`
+    // can never satisfy `$` (JS `.` excludes `\r`), so the lazy `.+?`/`\d+`
+    // backtracked quadratically. A crafted line near runSearch's byte cap ran
+    // for minutes; this must be instant. `"a:0:"×N` still matches at the first
+    // `:0:`, so file="a", line=0, and the rest is text.
+    const body = "a:0:".repeat(200_000);
+    const start = performance.now();
+    const result = parseSearchOutput(`${body}\r\n`, 10);
+    expect(performance.now() - start).toBeLessThan(100);
+    expect(result.matches[0]?.file).toBe("a");
+    expect(result.matches[0]?.line).toBe(0);
+    expect(result.matches[0]?.text).toBe(body.slice(4));
+  });
 });

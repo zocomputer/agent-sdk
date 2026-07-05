@@ -197,4 +197,14 @@ describe("looksLikeRawHtmlOutput", () => {
     expect(looksLikeRawHtmlOutput(mostlyProse)).toBe(false);
     expect(looksLikeRawHtmlOutput("")).toBe(false);
   });
+
+  test("stays linear on a fetched page of unterminated tags (no polynomial backtracking)", () => {
+    // `"<a ".repeat(n)` — an open tag that never closes — was polynomial under
+    // the old `[^>]*` (each `<` scanned to end-of-string for a `>`). Bounding
+    // it to `[^<>]*` keeps this instant on a hostile page near the 5 MB cap.
+    const hostile = "<a ".repeat(200_000);
+    const start = performance.now();
+    looksLikeRawHtmlOutput(hostile);
+    expect(performance.now() - start).toBeLessThan(100);
+  });
 });
