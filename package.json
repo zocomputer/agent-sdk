@@ -24,6 +24,10 @@
       "types": "./src/state.ts",
       "import": "./dist/state.js"
     },
+    "./state-files": {
+      "types": "./src/state-files.ts",
+      "import": "./dist/state-files.js"
+    },
     "./steer": {
       "types": "./src/steer.ts",
       "import": "./dist/steer.js"

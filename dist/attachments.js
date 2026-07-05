@@ -1,4 +1,4 @@
-// ../../../../../tmp/agent-sdk-mirror-LCdMNT/repo/src/attachments.ts
+// ../../../../../tmp/agent-sdk-mirror-8f4PWC/repo/src/attachments.ts
 var CHAT_ATTACHMENT_FIELD = "chatAttachment";
 var DEFAULT_MAX_INLINE_IMAGE_BYTES = 3 * 1024 * 1024;
 var DEFAULT_MAX_INLINE_MEDIA_BYTES = 10 * 1024 * 1024;
