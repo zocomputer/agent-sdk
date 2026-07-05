@@ -470,6 +470,30 @@ keep working around:
   (`read_file`, `write_file`), and vacating one requires a `disableTool()`
   shim file per name. Prior-aligned defaults — or a config switch to disable
   built-ins wholesale — would remove the shims.
+- **No per-tool `strict` / `providerOptions` passthrough.** Anthropic's
+  `strict: true` (grammar-constrained sampling — the documented fix for
+  newer Claude models garbling off-prior tool schemas) is a per-tool flag
+  the AI SDK already forwards to providers, but `buildToolSet` constructs
+  `tool()` without it, so no eve agent can enable it. Accepting `strict`
+  (and per-tool `providerOptions`) on `defineTool` and passing them through
+  would make it a one-line opt-in; the change-list design is
+  [`design/proposals/eve-strict-tool-passthrough.md`](./design/proposals/eve-strict-tool-passthrough.md).
+  Same seam: `experimental_repairToolCall` is unwired.
+- **Invalid tool calls never reach the event stream.** When a call fails
+  schema validation the AI SDK marks it `invalid` and feeds the error back
+  to the model, but `emitStreamContent` and `emitStepActions` both skip
+  invalid calls — no event is emitted, so clients can't render the retry
+  and harnesses can't measure schema-misuse rates (the regression newer
+  Anthropic models show on off-prior schemas). An `action.invalid` event
+  with the tool name and error class would close the gap; the change-list
+  design is
+  [`design/proposals/eve-invalid-tool-call-events.md`](./design/proposals/eve-invalid-tool-call-events.md).
+- **`ask_question`'s options are the off-prior nested shape.** Its `options`
+  array of `.strict()` option objects is exactly the shape newer Claude
+  models garble (invented trailing keys after long strings), and it has no
+  Claude Code analog to ride. Flattening it — or at least dropping
+  `.strict()` so the advertised contract matches the (unvalidated) lenient
+  runtime — would cut the schema-slop surface every HITL agent presents.
 - **The `agent` clone tool can't be disabled.** It's injected at the harness
   layer (`createNodeHarnessTools`), not as a framework tool, so a
   `disableTool()` shim for it fails runtime agent-graph resolution — every
