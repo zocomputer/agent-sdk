@@ -1,5 +1,6 @@
 import { defineTool } from "eve/tools";
 import { z } from "zod";
+import { withPathLock } from "../path-locks";
 import type { Workspace } from "../workspace";
 import { localIoProvider, type WorkspaceIoProvider } from "../workspace-io";
 
@@ -23,14 +24,19 @@ export function createWriteTool(opts: {
     async execute({ path, content }, ctx) {
       const abs = workspace.resolve(path);
       const fio = io(ctx);
-      const created = (await fio.stat(abs)) === null;
-      await fio.writeFile(abs, content);
-      return {
-        ok: true,
-        path: workspace.relativize(abs),
-        created,
-        bytes: Buffer.byteLength(content),
-      };
+      // Same per-path serialization as edit: a write racing an edit to the
+      // same file in one concurrent step must not interleave with its
+      // read-modify-write (see ../path-locks.ts).
+      return withPathLock(abs, async () => {
+        const created = (await fio.stat(abs)) === null;
+        await fio.writeFile(abs, content);
+        return {
+          ok: true,
+          path: workspace.relativize(abs),
+          created,
+          bytes: Buffer.byteLength(content),
+        };
+      });
     },
   });
 }

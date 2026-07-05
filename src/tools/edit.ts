@@ -1,5 +1,6 @@
 import { defineTool } from "eve/tools";
 import { z } from "zod";
+import { withPathLock } from "../path-locks";
 import type { Workspace } from "../workspace";
 import { localIoProvider, type WorkspaceIoProvider } from "../workspace-io";
 
@@ -33,20 +34,25 @@ export function createEditTool(opts: {
       const abs = workspace.resolve(path);
       const rel = workspace.relativize(abs);
       const fio = io(ctx);
-      const bytes = await fio.readFile(abs);
-      if (bytes === null) throw new Error(`${rel} does not exist.`);
-      const before = bytes.toString("utf8");
-      const count = before.split(old_string).length - 1;
-      if (count === 0) throw new Error(`old_string not found in ${rel}.`);
-      if (count > 1 && !replace_all) {
-        throw new Error(
-          `old_string is not unique in ${rel} (${count} matches). Add surrounding context or set replace_all.`,
-        );
-      }
-      // split/join avoids String.replace's `$` substitution in new_string.
-      const after = before.split(old_string).join(new_string);
-      await fio.writeFile(abs, after);
-      return { ok: true, path: rel, replacements: count };
+      // Serialized per path: eve runs a step's tool calls concurrently, and
+      // two unserialized edits to one file both read the same original text —
+      // the second write silently drops the first edit (see ../path-locks.ts).
+      return withPathLock(abs, async () => {
+        const bytes = await fio.readFile(abs);
+        if (bytes === null) throw new Error(`${rel} does not exist.`);
+        const before = bytes.toString("utf8");
+        const count = before.split(old_string).length - 1;
+        if (count === 0) throw new Error(`old_string not found in ${rel}.`);
+        if (count > 1 && !replace_all) {
+          throw new Error(
+            `old_string is not unique in ${rel} (${count} matches). Add surrounding context or set replace_all.`,
+          );
+        }
+        // split/join avoids String.replace's `$` substitution in new_string.
+        const after = before.split(old_string).join(new_string);
+        await fio.writeFile(abs, after);
+        return { ok: true, path: rel, replacements: count };
+      });
     },
   });
 }
