@@ -132,7 +132,7 @@ describe("createSandboxIo", () => {
               stderr: "sh: rg: not found",
             });
           }
-          return depSession.run({ command, workingDirectory });
+          return depSession.run({ command, ...(workingDirectory !== undefined ? { workingDirectory } : {}) });
         },
       };
       const fallbackIo = createSandboxIo({ root: depRoot, session: () => Promise.resolve(noRg) });
@@ -177,7 +177,7 @@ describe("createSandboxIo", () => {
             stderr: "sh: rg: not found",
           });
         }
-        return session.run({ command, workingDirectory });
+        return session.run({ command, ...(workingDirectory !== undefined ? { workingDirectory } : {}) });
       },
     };
     const fallbackIo = createSandboxIo({ root, session: () => Promise.resolve(noRg) });
@@ -227,7 +227,7 @@ describe("createSandboxIo", () => {
               stderr: "sh: rg: not found",
             });
           }
-          return real.run({ command, workingDirectory });
+          return real.run({ command, ...(workingDirectory !== undefined ? { workingDirectory } : {}) });
         },
       };
       const fallbackIo = createSandboxIo({ root: giRoot, session: () => Promise.resolve(noRg) });
@@ -298,7 +298,7 @@ describe("createSandboxIo", () => {
       ...session,
       run: ({ command, workingDirectory }) => {
         seen.push(command);
-        return session.run({ command, workingDirectory });
+        return session.run({ command, ...(workingDirectory !== undefined ? { workingDirectory } : {}) });
       },
     };
     const spyIo = createSandboxIo({ root, session: () => Promise.resolve(spying) });

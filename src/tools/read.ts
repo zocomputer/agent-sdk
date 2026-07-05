@@ -76,7 +76,7 @@ export function createReadTool(opts: {
    * file attaches that file to the result under `directory_conventions` —
    * once per directory per session (see ../dir-conventions.ts).
    */
-  dirConventions?: { tracker: DirConventionsTracker; fileName: string };
+  dirConventions?: { tracker: DirConventionsTracker; fileName: string } | undefined;
   /**
    * The "what to do instead" sentence in the file-too-large error. Defaults
    * to the bash suggestion; agents without bash point it at the tools they

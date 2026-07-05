@@ -114,7 +114,7 @@ export function createParkDeliveryState<T>() {
      */
     observe(
       event: unknown,
-      meta: { readonly sessionId: string; readonly continuationToken?: string },
+      meta: { readonly sessionId: string; readonly continuationToken?: string | undefined },
     ): ParkDeliveryRequest<T> | null {
       const state = session(meta.sessionId);
       if (meta.continuationToken) {

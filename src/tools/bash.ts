@@ -21,7 +21,7 @@ export function createBashTool(opts: {
   runner: CommandRunner;
   registry: TaskRegistry;
   noun: string;
-  interactiveHint?: string;
+  interactiveHint?: string | undefined;
 }) {
   const { workspace, runner, registry, noun } = opts;
   const interactiveHint = opts.interactiveHint ?? DEFAULT_INTERACTIVE_HINT;

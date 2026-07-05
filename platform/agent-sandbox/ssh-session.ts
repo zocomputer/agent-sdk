@@ -89,7 +89,7 @@ export function connectSsh(access: SshSandboxAccess): Promise<Client> {
 function runOverSsh(
   conn: Client,
   command: string,
-  options: { abortSignal?: AbortSignal } = {},
+  options: { abortSignal?: AbortSignal | undefined } = {},
 ): Promise<{ exitCode: number; stdout: string; stderr: string }> {
   return new Promise((resolve, reject) => {
     conn.exec(command, (err, stream) => {
@@ -174,7 +174,7 @@ function bytesToStream(bytes: Uint8Array): ReadableStream<Uint8Array> {
  */
 export async function streamToBytes(
   stream: ReadableStream<Uint8Array>,
-  abortSignal?: AbortSignal,
+  abortSignal?: AbortSignal | undefined,
 ): Promise<Uint8Array> {
   const chunks: Uint8Array[] = [];
   let total = 0;
@@ -285,7 +285,7 @@ export function nodeToWebStream(node: Readable): ReadableStream<Uint8Array> {
 function spawnOverSsh(
   conn: Client,
   command: string,
-  options: { abortSignal?: AbortSignal } = {},
+  options: { abortSignal?: AbortSignal | undefined } = {},
 ): Promise<{
   stdout: ReadableStream<Uint8Array>;
   stderr: ReadableStream<Uint8Array>;
@@ -315,7 +315,7 @@ export interface SpawnedProcess {
  */
 export function buildSpawnedProcess(
   stream: ClientChannel,
-  options: { abortSignal?: AbortSignal } = {},
+  options: { abortSignal?: AbortSignal | undefined } = {},
 ): SpawnedProcess {
   // kill() best-effort signals the channel, then closes it — many SSH gateways
   // (incl. Daytona's) ignore an exit-signal request, so closing the channel is
@@ -417,18 +417,28 @@ export function sshSandboxSession(
       return await sftpReadBytes(c, resolvePath(p));
     },
     async readFile({ path: p, abortSignal }) {
-      const bytes = await this.readBinaryFile({ path: p, abortSignal });
+      const bytes = await this.readBinaryFile({
+        path: p,
+        ...(abortSignal !== undefined ? { abortSignal } : {}),
+      });
       return bytes === null ? null : bytesToStream(bytes);
     },
     async readTextFile({ path: p, encoding, startLine, endLine, abortSignal }) {
-      const bytes = await this.readBinaryFile({ path: p, abortSignal });
+      const bytes = await this.readBinaryFile({
+        path: p,
+        ...(abortSignal !== undefined ? { abortSignal } : {}),
+      });
       if (bytes === null) return null;
       const text = decodeText(bytes, encoding);
       // Line-range slicing is the AI-SDK's own extractLines (the exact impl eve
       // uses) — we don't reimplement it. No bounds → returns text unchanged.
       return startLine === undefined && endLine === undefined
         ? text
-        : extractLines({ text, startLine, endLine });
+        : extractLines({
+            text,
+            ...(startLine !== undefined ? { startLine } : {}),
+            ...(endLine !== undefined ? { endLine } : {}),
+          });
     },
 
     // --- file writes: create parent dirs + overwrite (eve contract) ---
@@ -442,10 +452,18 @@ export function sshSandboxSession(
       // mid-read cancel it rather than draining the whole thing first.
       throwIfAborted(abortSignal);
       const bytes = await streamToBytes(content, abortSignal);
-      await this.writeBinaryFile({ path: p, content: bytes, abortSignal });
+      await this.writeBinaryFile({
+        path: p,
+        content: bytes,
+        ...(abortSignal !== undefined ? { abortSignal } : {}),
+      });
     },
     async writeTextFile({ path: p, content, encoding, abortSignal }) {
-      await this.writeBinaryFile({ path: p, content: encodeText(content, encoding), abortSignal });
+      await this.writeBinaryFile({
+        path: p,
+        content: encodeText(content, encoding),
+        ...(abortSignal !== undefined ? { abortSignal } : {}),
+      });
     },
 
     async removePath({ path: p, recursive, force, abortSignal }) {

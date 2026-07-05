@@ -42,9 +42,9 @@ export interface IoSearchOptions {
    * Absolute file or directory to search. The whole workspace when omitted.
    * Callers stat the scope first, so it exists.
    */
-  readonly scope?: string;
+  readonly scope?: string | undefined;
   /** Filename glob filter over root-relative paths (e.g. `**​/*.ts`). */
-  readonly glob?: string;
+  readonly glob?: string | undefined;
   /** Stop scanning once this many matching lines have been collected. */
   readonly maxMatches: number;
 }

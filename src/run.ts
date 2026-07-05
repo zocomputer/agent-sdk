@@ -33,13 +33,13 @@ export interface RunningCommand {
 }
 
 export interface StartCommandOptions {
-  cwd?: string;
+  cwd?: string | undefined;
   timeoutMs?: number;
   /**
    * Raw output tap, called with every stdout/stderr chunk as it arrives
    * (before any preview truncation). Powers background-output watchers.
    */
-  onOutput?: (chunk: string) => void;
+  onOutput?: ((chunk: string) => void) | undefined;
 }
 
 export interface CommandRunner {

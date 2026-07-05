@@ -126,7 +126,7 @@ export async function sftpWriteBytes(
 export async function removePath(
   client: Client,
   remotePath: string,
-  opts: { recursive?: boolean; force?: boolean } = {},
+  opts: { recursive?: boolean | undefined; force?: boolean | undefined } = {},
 ): Promise<void> {
   const flags = `${opts.recursive ? "r" : ""}${opts.force ? "f" : ""}`;
   const rm = flags === "" ? "rm" : `rm -${flags}`;

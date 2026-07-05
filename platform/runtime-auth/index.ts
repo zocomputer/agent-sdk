@@ -154,7 +154,8 @@ export async function verifyAgentToken(
     const agentProjectId = asString(payload.agentProjectId);
     const ownerOrgId = asString(payload.ownerOrgId);
     if (!agentProjectId || !ownerOrgId) return null;
-    return { agentProjectId, ownerOrgId, deploymentId: asString(payload.deploymentId) };
+    const deploymentId = asString(payload.deploymentId);
+    return { agentProjectId, ownerOrgId, ...(deploymentId ? { deploymentId } : {}) };
   } catch {
     return null;
   }

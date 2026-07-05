@@ -153,7 +153,7 @@ export function createWebFetchTool(opts: {
    */
   imageUnavailableHint?: string;
   /** Injectable for tests; defaults to global fetch. */
-  fetchImpl?: FetchLike;
+  fetchImpl?: FetchLike | undefined;
 }) {
   const { workspace, spillDir, attachImagesToChat, maxInlineImageBytes, fetchImpl } = opts;
   const imageUnavailableHint =
@@ -218,7 +218,7 @@ export function createWebFetchTool(opts: {
         ...(timeout === undefined
           ? { pdfTimeoutMs: WEB_FETCH_PDF_DEFAULT_TIMEOUT_SECONDS * 1000 }
           : {}),
-        fetchImpl,
+        ...(fetchImpl !== undefined ? { fetchImpl } : {}),
       });
       const { body, contentType, finalUrl } = fetched;
       // Surface cross-URL redirects so the model knows where the content

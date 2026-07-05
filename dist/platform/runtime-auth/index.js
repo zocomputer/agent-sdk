@@ -1,4 +1,4 @@
-// ../../../../../tmp/agent-sdk-mirror-9z0BPw/repo/platform/runtime-auth/index.ts
+// ../../../../../tmp/agent-sdk-mirror-XhtB7y/repo/platform/runtime-auth/index.ts
 import { SignJWT, jwtVerify } from "jose";
 var AGENT_TOKEN_HEADER = "x-zo-agent-token";
 var EVE_SESSION_HEADER = "x-zo-eve-session";
@@ -43,7 +43,8 @@ async function verifyAgentToken(token, secret, clock = defaultClock) {
     const ownerOrgId = asString(payload.ownerOrgId);
     if (!agentProjectId || !ownerOrgId)
       return null;
-    return { agentProjectId, ownerOrgId, deploymentId: asString(payload.deploymentId) };
+    const deploymentId = asString(payload.deploymentId);
+    return { agentProjectId, ownerOrgId, ...deploymentId ? { deploymentId } : {} };
   } catch {
     return null;
   }

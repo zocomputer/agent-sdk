@@ -23,7 +23,7 @@ export function slugForPrompt(prompt: string): string {
 export interface ImagePathInput {
   readonly id: string;
   readonly mediaType: string;
-  readonly outputDir?: string | null;
+  readonly outputDir?: string | null | undefined;
   readonly prompt: string;
 }
 

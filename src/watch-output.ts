@@ -8,7 +8,7 @@ export interface OutputWatcherOptions {
   /** Regex source matched against complete output lines. */
   pattern: string;
   /** Minimum ms between match batches; matches inside the window drop. */
-  debounceMs?: number;
+  debounceMs?: number | undefined;
   /** Max match batches over the watcher's lifetime; later matches drop. */
   maxNotifications?: number;
   /** Clock, injectable for tests. */

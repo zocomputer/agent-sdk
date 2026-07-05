@@ -203,8 +203,12 @@ export interface TaskDescriptionOptions {
    * see {@link fetchGatewayModelCatalog}). Checked in by the consumer, never
    * fetched at agent build time: tool descriptions are part of the cached
    * prompt prefix and must be static and offline-safe.
+   *
+   * Explicitly `| undefined` (the exactOptionalPropertyTypes idiom): consumers
+   * feed a `Record<string, string>` catalog lookup, which may miss — an
+   * explicit `undefined` reads the same as omitting the blurb.
    */
-  modelBlurb?: string;
+  modelBlurb?: string | undefined;
   /**
    * What the child CANNOT do relative to the parent, as one complete
    * sentence — name the excluded tools when the consumer excludes any

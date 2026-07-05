@@ -78,7 +78,7 @@ Guidance:
 /** Pure markdown for the how-to-work contract; see createWorkflowInstruction. */
 export function buildWorkflowMarkdown(opts?: {
   workspaceNoun?: string;
-  verifyCommandHint?: string;
+  verifyCommandHint?: string | undefined;
 }): string {
   const noun = opts?.workspaceNoun ?? "workspace";
   const verify = opts?.verifyCommandHint
@@ -101,7 +101,7 @@ export function buildWorkflowMarkdown(opts?: {
  */
 export function createWorkflowInstruction(opts?: {
   workspaceNoun?: string;
-  verifyCommandHint?: string;
+  verifyCommandHint?: string | undefined;
 }) {
   const instruction = defineInstructions({ markdown: buildWorkflowMarkdown(opts) });
   return defineDynamic({
@@ -210,7 +210,7 @@ Prefer a specialist when its purpose or model tier matches the subtask; use the 
  */
 export function createSubagentInstruction(opts?: {
   workspaceNoun?: string;
-  roster?: readonly SubagentRosterEntry[];
+  roster?: readonly SubagentRosterEntry[] | undefined;
 }) {
   const instruction = defineInstructions({
     markdown: buildSubagentMarkdown(opts?.workspaceNoun, opts?.roster),

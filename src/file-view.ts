@@ -32,7 +32,7 @@ export interface FileView {
 /** Build the bounded, line-numbered window of `text` for a read result. */
 export function buildFileView(
   text: string,
-  opts: { offset?: number; limit?: number } = {},
+  opts: { offset?: number | undefined; limit?: number | undefined } = {},
 ): FileView {
   const lines = text.split("\n");
   const start = opts.offset ? opts.offset - 1 : 0;
