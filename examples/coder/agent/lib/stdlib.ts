@@ -11,4 +11,12 @@ export const stdlib = createStdlib({
   workspaceRoot: WORKDIR,
   stateDir: resolve(WORKDIR, ".coder"), // tasks.json + spilled tool output
   workspaceNoun: "project",
+  // Teaches the parent when to route to the declared task tier
+  // (agent/subagents/task_fast/) instead of the clone `agent` tool.
+  subagentRoster: [
+    {
+      name: "task_fast",
+      when: "quick, well-scoped subtasks — exploration, focused questions, mechanical edits — on a fast, cheap model",
+    },
+  ],
 });

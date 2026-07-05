@@ -82,12 +82,14 @@ test("subagent playbook interpolates the workspace noun and covers the load-bear
 
 test("a roster adds the routing section with each specialist's when", () => {
   const markdown = buildSubagentMarkdown("repo", [
-    { name: "explore", when: "read-only codebase questions" },
+    { name: "task_fast", when: "quick well-scoped subtasks on a fast model" },
     { name: "reviewer", when: "pre-merge review passes" },
   ]);
   expect(markdown).toContain("### Choosing a subagent");
-  expect(markdown).toContain("- **`explore`** — read-only codebase questions.");
+  expect(markdown).toContain("- **`task_fast`** — quick well-scoped subtasks on a fast model.");
   expect(markdown).toContain("- **`reviewer`** — pre-merge review passes.");
+  // Write-capable specialists share the write-scope rule; read-only ones fan out freely.
+  expect(markdown).toContain("shares the non-overlapping write-scope rule");
   expect(markdown).toContain("safe to fan out freely");
   // An empty roster behaves like no roster.
   expect(buildSubagentMarkdown("repo", [])).not.toContain("### Choosing a subagent");

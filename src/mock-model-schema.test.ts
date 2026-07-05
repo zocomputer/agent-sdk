@@ -136,7 +136,7 @@ function allScriptedCalls(): readonly {
 }[] {
   const scripted = MOCK_SCENARIOS.filter(
     (s): s is MockScriptedScenario =>
-      s === "hitl" || s === "parallel" || s === "todo" || s === "explore",
+      s === "hitl" || s === "parallel" || s === "todo" || s === "delegate",
   );
   const calls: {
     scenario: MockScriptedScenario;
@@ -183,10 +183,10 @@ describe("scripted inputs conform to eve's live tool schemas", () => {
     }
   });
 
-  test("the explore delegation carries a non-empty message", () => {
+  test("the delegation carries a non-empty message", () => {
     // The declared-subagent input schema is eve-owned and not exported, so
-    // pin the one field the delegation contract needs (see ./explore.ts).
-    const calls = allScriptedCalls().filter((c) => c.scenario === "explore");
+    // pin the one field the delegation contract needs (see ./task.ts).
+    const calls = allScriptedCalls().filter((c) => c.scenario === "delegate");
     expect(calls.length).toBe(1);
     const message = calls[0]?.input.message;
     expect(typeof message).toBe("string");

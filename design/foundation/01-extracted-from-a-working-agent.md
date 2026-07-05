@@ -12,7 +12,7 @@ never speculative — its APIs are shaped by the call sites that already exist.
 ## The shape it produced
 
 - **One `createStdlib` call, everything à la carte too.** `createStdlib`
-  returns the full prescribed wiring (tools + instructions + the explore kit
+  returns the full prescribed wiring (tools + instructions + the task-kit
   options), but every factory (`createReadTool`, `createCommandRunner`,
   `createWorkflowInstruction`, …) and every lib module is exported
   individually. Consumers who want a subset compose it; consumers who want

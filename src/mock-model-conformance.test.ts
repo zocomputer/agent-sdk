@@ -125,7 +125,7 @@ function streamGrammarViolations(parts: readonly LanguageModelV4StreamPart[]): s
 
 // --- Drivers -----------------------------------------------------------------
 
-const SCRIPTED: readonly MockScriptedScenario[] = ["hitl", "parallel", "todo", "explore"];
+const SCRIPTED: readonly MockScriptedScenario[] = ["hitl", "parallel", "todo", "delegate"];
 
 /** A prompt that puts a scripted scenario at `step` (step = tool results so far). */
 function promptAtStep(directive: string, step: number): LanguageModelV4Prompt {

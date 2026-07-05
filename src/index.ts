@@ -122,8 +122,8 @@ export interface StdlibOptions {
   steer?: { dir: string };
   /**
    * Declared subagents the delegation playbook should route work to (e.g. the
-   * explore preset — see ./explore.ts). Grows `instructions.subagents` with a
-   * "Choosing a subagent" section. Interpolated once at build time.
+   * model-tier task preset — see ./task.ts). Grows `instructions.subagents`
+   * with a "Choosing a subagent" section. Interpolated once at build time.
    */
   subagentRoster?: readonly SubagentRosterEntry[];
 }
@@ -372,7 +372,7 @@ export * from "./async-tasks";
 export * from "./backgroundable";
 export * from "./bounded-output";
 export * from "./dir-conventions";
-export * from "./explore";
+export * from "./task";
 export * from "./extract/cache";
 export * from "./extract/docx";
 export * from "./extract/pdf";

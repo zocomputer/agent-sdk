@@ -188,7 +188,7 @@ Beyond the clone, you have declared specialists — each is its own tool with th
 
 ${roster.map((entry) => `- **\`${entry.name}\`** — ${entry.when}.`).join("\n")}
 
-Prefer a specialist when the task matches its purpose; use the clone \`agent\` for subtasks that edit files. A specialist that cannot write (a read-only explorer) is safe to fan out freely — the non-overlapping write-scope rule only applies to children that edit.`
+Prefer a specialist when its purpose or model tier matches the subtask; use the clone \`agent\` when none fits. A specialist that can edit shares the non-overlapping write-scope rule above; one that cannot write is safe to fan out freely.`
       : "";
   return `## Delegating with the agent tool
 

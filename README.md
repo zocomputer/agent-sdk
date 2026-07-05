@@ -136,70 +136,94 @@ here: `createParkDeliveryHook({ steer: { dir } })`.)
 That's the whole setup. Everything is also exported à la carte
 (`createReadTool`, `createCommandRunner`, …) if you'd rather compose a subset.
 
-### 6. Optional: declare an explore subagent
+### 6. Optional: declare model-tier task subagents
 
-A read-only child the parent can fan out aggressively for codebase questions —
-cheap (give it a fast model), and safe by construction because it cannot
-write. Declared under `agent/subagents/explore/`:
+A generic delegation worker: a full-capability copy of your agent pinned to a
+model the *caller* chooses. Eve has no per-call model parameter — a subagent
+tool's input is fixed at `{ message, outputSchema? }` and its model compiles
+from its `agent.ts` — so the model knob is **one declared subagent per tier**
+(`task_fast`, `task_deep`, …): the parent picks a model by picking a tool, and
+each tool's description carries that model's identity and routing guidance.
 
 ```ts
-// agent/subagents/explore/agent.ts — the child's identity + fast model
-import { createExploreAgent } from "@zocomputer/agent-sdk";
-export default createExploreAgent({ model: "anthropic/claude-haiku-4.5" });
+// agent/subagents/task_fast/agent.ts — the tier's identity + pinned model
+import { createTaskAgent } from "@zocomputer/agent-sdk";
+export default createTaskAgent({
+  model: "anthropic/claude-sonnet-5",
+  modelName: "Claude Sonnet 5",
+  modelBlurb: "…", // the model's catalog description, checked in (see below)
+  use: "Prefer it for quick, well-scoped subtasks — exploration, focused questions, mechanical edits — where a fast, cheap model is enough.",
+  workspaceNoun: "repo",
+});
 
-// agent/subagents/explore/instructions.ts — the child's operating contract
-import { createExploreInstruction } from "@zocomputer/agent-sdk";
-export default createExploreInstruction({ workspaceNoun: "repo" });
+// agent/subagents/task_fast/instructions/task.ts — the child's operating contract
+import { createTaskInstruction } from "@zocomputer/agent-sdk";
+export default createTaskInstruction({ workspaceNoun: "repo" });
 
-// agent/subagents/explore/tools/read.ts (and glob.ts, grep.ts)
-import { exploreTools } from "../lib/explore-tools"; // your createExploreTools(...) instance
-export default exploreTools.read;
+// agent/subagents/task_fast/tools/bash.ts — one re-export per PARENT tool
+export { default } from "../../../tools/bash";
+
+// agent/subagents/task_fast/tools/read.ts — EXCEPT read/webfetch, which use
+// attach-disabled child instances: no park-delivery hook runs in a child, so
+// the parent's attachment-enabled tools would promise media that never arrives
+import { taskChildTools } from "../lib/child-tools"; // your createTaskChildTools(...) instance
+export default taskChildTools.read;
 ```
 
 **The critical part: a declared subagent inherits nothing from the root.** An
-absent `tools/` slot falls back to eve's *framework defaults* — `bash`,
-`write_file`, full write capability. Read-only must be constructed: besides
-the three tools, ship a `disableTool()` shim for every entry in
-`EXPLORE_DISABLED_BUILTINS` (`ask_question`, `bash`, `load_skill`,
-`read_file`, `todo`, `web_fetch`, `web_search`, `write_file` — everything in
-the default harness that writes, parks, or pads the one-question surface).
-Do **not** shim the `agent` clone tool: eve injects it at the harness layer
-rather than as a framework tool, so a shim for it fails runtime agent-graph
-resolution and breaks every session; the explore instruction discourages
-recursion instead (see the maintainers notes below):
+absent `tools/` slot falls back to eve's *framework defaults*, not your
+authored tools — so "same tools as the parent" must be constructed: one
+re-export file per parent tool (parent disable shims included), minus any
+parent-session-coupled tools you exclude, plus a `disableTool()` shim per
+`TASK_DISABLED_BUILTINS` entry (just `ask_question`: a parked child parks the
+parent's turn, so the task contract is decide-and-report). Do **not** shim the
+`agent` clone tool: eve injects it at the harness layer rather than as a
+framework tool, so a shim for it fails runtime agent-graph resolution and
+breaks every session; the task instruction bounds onward delegation instead
+(see the maintainers notes below):
 
 ```ts
-// agent/subagents/explore/tools/bash.ts — one per disabled builtin
+// agent/subagents/task_fast/tools/ask_question.ts
 import { disableTool } from "eve/tools";
 export default disableTool();
 ```
 
-Add a test that diffs the `tools/` directory against
-`EXPLORE_TOOL_NAMES` + `EXPLORE_DISABLED_BUILTINS`, so a forgotten shim (=
-silently resurrected write capability) fails CI instead of shipping.
+Add a test that diffs each tier's `tools/` directory against
+`expectedTaskToolNames({ parentToolNames, excludedParentTools })`, so a parent
+tool added without a re-export (or a forgotten shim) fails CI instead of
+shipping a child whose tool surface differs from what its description says.
 
-Finally, tell the parent when to route to it — pass a roster to the stdlib and
-the `subagents` instruction grows a "Choosing a subagent" section:
+Model blurbs come from the AI Gateway model catalog — the same public catalog
+the AI SDK's `gateway.getAvailableModels()` reads — via
+`fetchGatewayModelCatalog()` in a **one-shot refresh script**, and are checked
+in. Never fetch them at agent build time: tool descriptions are part of the
+cached prompt prefix and must be static and offline-safe.
+
+Finally, tell the parent when to route to each tier — pass a roster to the
+stdlib and the `subagents` instruction grows a "Choosing a subagent" section:
 
 ```ts
 const stdlib = createStdlib({
   // …
   subagentRoster: [
-    { name: "explore", when: "read-only codebase questions — how/where/what — where you need an answer, not an edit" },
+    { name: "task_fast", when: "quick, well-scoped subtasks on a fast, cheap model" },
+    { name: "task_deep", when: "reasoning-heavy subtasks worth frontier-model cost" },
   ],
 });
 ```
 
-Hooks aren't inherited either: if your agent logs sessions via a hook, re-export
-it under `agent/subagents/explore/hooks/` or child sessions won't be recorded.
+Instructions aren't inherited either — re-export the stdlib instructions the
+child needs (`repoConventions`, `workflow`, `parallelTools`) beside the task
+contract. Same for hooks: if your agent logs sessions via a hook, re-export it
+under `agent/subagents/task_fast/hooks/` or child sessions won't be recorded.
 
 ## Example
 
 [`examples/coder`](./examples/coder) is a complete, minimal eve coding agent
 built on this stdlib — the six steps above as real files: the full toolset,
 the `read_file`/`write_file` shims, the six instructions, the park-delivery
-hook, a declared explore subagent, and a one-file coder persona. Point it at
-a project and run it:
+hook, a `task_fast` model-tier subagent, and a one-file coder persona. Point
+it at a project and run it:
 
 ```sh
 cd examples/coder
@@ -212,7 +236,7 @@ The coder is also this package's **end-to-end test agent**: `bun run eval`
 deterministic evals that drive the prescribed wiring through a real eve server
 on the mock model (see [Mock model](#mock-model-credential-free-testing)),
 with zero credentials. Park/resume on `ask_question`, two parallel questions
-pending on one park, the todo write/update order, real explore delegation, a
+pending on one park, the todo write/update order, real task_fast delegation, a
 visible `turn.failed` on an injected stream error, and the stream-shape
 scenarios. Copy the pattern (`scripts/eval.ts` + `evals-mock/`) to give your
 own agent the same CI-friendly suite.
@@ -252,7 +276,7 @@ message scripts the turn instead:
 | `[mock:hitl]` | One `ask_question` call (styled options + freeform) → park → answer → wrap-up. |
 | `[mock:parallel]` | TWO `ask_question` calls in one response — both pend on a single park; one respond resumes. |
 | `[mock:todo]` | Writes a 4-item todo list, then updates it (completed/cancelled), then wraps up. |
-| `[mock:explore]` | Delegates to a declared subagent (default tool name `explore` — requires one; see step 6). |
+| `[mock:delegate]` | Delegates to a declared subagent (default tool name `task_fast` — requires one; see step 6). |
 | `[mock:fail]` | A few deltas, then a terminal stream error — the deterministic failed-turn trigger. |
 | `[mock:burst]` | `burstChunks` unpaced deltas — the renderer-throughput probe. |
 | `[mock:markdown]` | Structure-heavy markdown split across deltas (fences, tables, unicode) — streaming-renderer stability. |

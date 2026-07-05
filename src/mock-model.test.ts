@@ -266,7 +266,7 @@ describe("the scenario script", () => {
     expect(scriptActionFor("hitl", 1).kind).toBe("text");
     expect(scriptActionFor("parallel", 2).kind).toBe("text");
     expect(scriptActionFor("todo", 2).kind).toBe("text");
-    expect(scriptActionFor("explore", 1).kind).toBe("text");
+    expect(scriptActionFor("delegate", 1).kind).toBe("text");
   });
 
   test("the parallel script only claims both answers after two results", () => {
@@ -311,10 +311,13 @@ describe("the scenario script", () => {
     expect(firstTodos.length).toBe(secondTodos.length);
   });
 
-  test("the explore script delegates to the configured tool name", () => {
-    const action = scriptActionFor("explore", 0, "scout");
+  test("the delegate script targets the configured tool name, defaulting to task_fast", () => {
+    const action = scriptActionFor("delegate", 0, "scout");
     if (action.kind !== "tool-calls") throw new Error("expected tool calls");
     expect(action.calls[0]?.toolName).toBe("scout");
+    const defaulted = scriptActionFor("delegate", 0);
+    if (defaulted.kind !== "tool-calls") throw new Error("expected tool calls");
+    expect(defaulted.calls[0]?.toolName).toBe("task_fast");
   });
 
   test("toolInputFragments splits and reassembles losslessly", () => {

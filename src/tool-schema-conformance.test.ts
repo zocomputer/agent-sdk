@@ -3,7 +3,6 @@ import { mkdtempSync, realpathSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { z } from "zod";
-import { createExploreTools } from "./explore";
 import { createSandboxFileTools, createStdlib } from "./index";
 import { buildTasksToolset } from "./tools/tasks";
 
@@ -36,14 +35,12 @@ const tasks = buildTasksToolset({
   backgroundables: stdlib.backgroundables,
 });
 if (tasks === null) throw new Error("stdlib always has the bash backgroundable");
-const explore = createExploreTools({ workspaceRoot: root });
 const sandbox = createSandboxFileTools({ workspaceRoot: "/workspace" });
 
 const { tasks: _tasksDynamic, ...stdlibStatic } = stdlib.tools;
 const allTools: Record<string, { inputSchema: unknown }> = {
   ...prefixed("stdlib", stdlibStatic),
   ...prefixed("tasks", tasks),
-  ...prefixed("explore", explore),
   ...prefixed("sandbox", sandbox.tools),
 };
 
@@ -89,9 +86,6 @@ describe("model-facing schema shape", () => {
   test("covers the full shipped toolset", () => {
     expect(Object.keys(allTools).sort()).toEqual(
       [
-        "explore.glob",
-        "explore.grep",
-        "explore.read",
         "sandbox.edit",
         "sandbox.glob",
         "sandbox.grep",

@@ -10,8 +10,8 @@
 // - Scripted tool calls, via a `[mock:<scenario>]` directive in the message:
 //   `[mock:hitl]` calls eve's ask_question (options with styles + freeform),
 //   `[mock:parallel]` calls ask_question twice in one response (parallel HITL),
-//   `[mock:todo]` writes then updates a todo list, `[mock:explore]` delegates
-//   to the explore subagent. Each scenario ends with a short wrap-up text, so
+//   `[mock:todo]` writes then updates a todo list, `[mock:delegate]` delegates
+//   to a declared subagent. Each scenario ends with a short wrap-up text, so
 //   the HITL prompt, todo checklist, and subagent card render end-to-end.
 import type {
   LanguageModelV4,
@@ -28,7 +28,7 @@ export interface MockStoryModelOptions {
   chunkDelayMs?: number;
   /** Deltas for a `[mock:burst]` turn (no pacing). Default 600. */
   burstChunks?: number;
-  /** The declared subagent tool `[mock:explore]` delegates to. Default "explore". */
+  /** The declared subagent tool `[mock:delegate]` delegates to. Default "task_fast". */
   delegateToolName?: string;
   /**
    * Clock for response-metadata ids/timestamps. Default `Date.now`. Inject a
@@ -82,7 +82,7 @@ export const MOCK_SCENARIOS = [
   "hitl",
   "parallel",
   "todo",
-  "explore",
+  "delegate",
   "fail",
   "burst",
   "markdown",
@@ -92,7 +92,7 @@ export const MOCK_SCENARIOS = [
 export type MockScenario = (typeof MOCK_SCENARIOS)[number];
 export type MockScriptedScenario = Extract<
   MockScenario,
-  "hitl" | "parallel" | "todo" | "explore"
+  "hitl" | "parallel" | "todo" | "delegate"
 >;
 
 /** One tool call a scripted step emits. */
@@ -205,7 +205,7 @@ function askQuestionCall(prompt: string, topic: string): MockToolCall {
 export function scriptActionFor(
   scenario: MockScriptedScenario,
   step: number,
-  delegateToolName = "explore",
+  delegateToolName = "task_fast",
 ): MockScriptAction {
   switch (scenario) {
     case "hitl":
@@ -280,7 +280,7 @@ export function scriptActionFor(
         };
       }
       return { kind: "text", text: "Todo list written and updated — checklist scenario complete." };
-    case "explore":
+    case "delegate":
       if (step === 0) {
         return {
           kind: "tool-calls",
@@ -295,7 +295,7 @@ export function scriptActionFor(
           ],
         };
       }
-      return { kind: "text", text: "The explorer reported back — delegation scenario complete." };
+      return { kind: "text", text: "The delegate reported back — delegation scenario complete." };
   }
 }
 
@@ -319,7 +319,7 @@ export function createMockStoryModel(options: MockStoryModelOptions = {}): Langu
   const chunkCount = options.chunkCount ?? 240;
   const chunkDelayMs = options.chunkDelayMs ?? 250;
   const burstChunks = options.burstChunks ?? 600;
-  const delegateToolName = options.delegateToolName ?? "explore";
+  const delegateToolName = options.delegateToolName ?? "task_fast";
   const now = options.now ?? Date.now;
   return {
     specificationVersion: "v4",

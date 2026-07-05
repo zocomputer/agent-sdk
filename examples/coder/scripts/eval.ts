@@ -2,7 +2,7 @@
 /**
  * `bun run eval` — run the coder's deterministic mock-model eval suite through
  * eve's runner (`eve eval`). The suite is the SDK's end-to-end contract: the
- * example's prescribed wiring (stdlib tools, instructions, the explore
+ * example's prescribed wiring (stdlib tools, instructions, the task_fast
  * subagent, the park-delivery hook) driven through a REAL eve server, with
  * inference swapped for the SDK's scripted mock — credential-free, so it runs
  * in CI.

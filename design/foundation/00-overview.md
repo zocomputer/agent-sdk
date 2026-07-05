@@ -42,7 +42,7 @@ make.
   ([10](./10-repo-conventions-injection.md)), instruction prose
   ([09](./09-instruction-stack.md)), output watchers
   ([07](./07-background-tasks.md)), and typed subagent roster
-  ([11](./11-explore-subagent.md)) all shipped here within days.
+  ([11](./11-task-subagents.md)) all shipped here within days.
 - **hostagent** — Zo v1's production agent, our ancestor rather than a
   neighbor: Python, ~120 tools, years of edge-case scar tissue. Half its value
   was independent confirmation of patterns we'd already landed; the other half
@@ -76,8 +76,9 @@ make.
   operational prose with the tools; persona stays consumer-owned.
 - [10 — Repo conventions injection](./10-repo-conventions-injection.md): root
   `AGENTS.md` at session start, nested `AGENTS.md` as read riders.
-- [11 — The explore subagent kit](./11-explore-subagent.md): read-only by
-  construction, pinned by a manifest test, routed by a roster.
+- [11 — The model-tier task subagent kit](./11-task-subagents.md): full parent
+  parity by construction, model choice = tool choice, pinned by a manifest
+  test, routed by a roster.
 - [12 — Mid-turn steering](./12-mid-turn-steering.md): user messages delivered
   into a running turn over tool results.
 - [13 — Work with the grain of eve](./13-work-with-the-grain-of-eve.md): build

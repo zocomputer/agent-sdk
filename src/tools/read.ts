@@ -79,27 +79,27 @@ export function createReadTool(opts: {
   dirConventions?: { tracker: DirConventionsTracker; fileName: string };
   /**
    * The "what to do instead" sentence in the file-too-large error. Defaults
-   * to the bash suggestion; agents without bash (the explore preset) point it
-   * at the tools they do have.
+   * to the bash suggestion; agents without bash point it at the tools they
+   * do have.
    */
   oversizeHint?: string;
   /**
    * The "what to do instead" sentence in the image result note when the
    * pixels can't be delivered (attach disabled or over the size cap).
    * Defaults to asking the user to attach the image; agents without HITL
-   * (the explore preset) substitute advice that's actually actionable.
+   * substitute advice that's actually actionable.
    */
   imageUnavailableHint?: string;
   /**
    * The "what to do instead" sentence in the video/audio result note when the
    * bytes can't be delivered (attach disabled — the default — or over the
    * cap). Defaults to steering toward bash extraction (ffmpeg frames read as
-   * images); agents without bash (the explore preset) substitute their own.
+   * images); agents without bash substitute their own.
    */
   mediaUnavailableHint?: string;
   /**
    * Include the read-before-edit guidance in the description. Default true;
-   * read-only consumers (the explore preset) turn it off — there is no edit.
+   * read-only consumers turn it off — there is no edit.
    */
   includeEditGuidance?: boolean;
 }) {

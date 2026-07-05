@@ -145,10 +145,20 @@ export function createWebFetchTool(opts: {
   attachAudioToChat?: boolean;
   /** Max video/audio bytes to inline; the 5 MB response cap bites first. */
   maxInlineMediaBytes?: number;
+  /**
+   * The "what to do instead" sentence in the image result note when the
+   * pixels can't be delivered (attach disabled or over the size cap).
+   * Defaults to asking the user to attach the image; agents without HITL
+   * (e.g. task subagents) substitute advice that's actually actionable.
+   */
+  imageUnavailableHint?: string;
   /** Injectable for tests; defaults to global fetch. */
   fetchImpl?: FetchLike;
 }) {
   const { workspace, spillDir, attachImagesToChat, maxInlineImageBytes, fetchImpl } = opts;
+  const imageUnavailableHint =
+    opts.imageUnavailableHint ??
+    "If you need to see this image, ask the user to attach it to the chat.";
   const attachVideoToChat = opts.attachVideoToChat ?? false;
   const attachAudioToChat = opts.attachAudioToChat ?? false;
   const maxInlineMediaBytes = opts.maxInlineMediaBytes ?? DEFAULT_MAX_INLINE_MEDIA_BYTES;
@@ -282,7 +292,7 @@ export function createWebFetchTool(opts: {
                 : "cannot be returned as a tool result (text/json only), and image attachments are not enabled for this agent";
             return {
               ...imageMeta,
-              note: `Image content ${why}. If you need to see this image, ask the user to attach it to the chat.`,
+              note: `Image content ${why}. ${imageUnavailableHint}`,
             };
           }
           const attachment: ChatAttachment = {
