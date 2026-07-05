@@ -565,6 +565,19 @@ keep working around:
   return has no way to vacate recursive delegation; we fall back to
   instruction text. Either registering `agent` as a disableable framework
   tool or honoring the shim at the harness layer would close the gap.
+- **Concurrent tool calls race shared resources.** The AI SDK loop runs a
+  step's tool calls with `Promise.all`, so two mutating calls against the same
+  file in one step race their read-modify-write sections — both report
+  success and the second write silently drops the first edit. Models batch
+  same-file edits because batching independent work is exactly what we teach
+  them, and the lost update is invisible at the tool boundary (a live sweep
+  burned ~8 steps rediscovering one through a lint error). Our `edit`/`write`
+  serialize per resolved path with a `globalThis`-anchored FIFO lock
+  ([`src/path-locks.ts`](./src/path-locks.ts)), but every toolset author has
+  to rediscover this; a declarative "serialize calls sharing this key" seam
+  on the tool contract — eve already knows the set of calls it's about to run
+  concurrently — would queue same-key calls FIFO while keeping distinct keys
+  parallel (zocomputer/zov2-code#337).
 - **Streaming events are quadratic.** `message.appended`/`reasoning.appended`
   carry the full text-so-far alongside each delta, so one turn's events sum
   to O(n²) bytes — a 3,000-delta turn measures ~330 MB of payloads, and

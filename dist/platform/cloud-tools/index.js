@@ -1,14 +1,14 @@
-// ../../../../../tmp/agent-sdk-mirror-B2rLeM/repo/platform/cloud-tools/image.ts
+// ../../../../../tmp/agent-sdk-mirror-OMj3Gv/repo/platform/cloud-tools/image.ts
 import { randomUUID } from "node:crypto";
 import { ReadableStream } from "node:stream/web";
 import { generateImage } from "ai";
 import { defineTool } from "eve/tools";
 import { z } from "zod";
 
-// ../../../../../tmp/agent-sdk-mirror-B2rLeM/repo/platform/runtime-ai/gateway.ts
+// ../../../../../tmp/agent-sdk-mirror-OMj3Gv/repo/platform/runtime-ai/gateway.ts
 import { createGateway } from "ai";
 
-// ../../../../../tmp/agent-sdk-mirror-B2rLeM/repo/platform/runtime-ai/session-fetch.ts
+// ../../../../../tmp/agent-sdk-mirror-OMj3Gv/repo/platform/runtime-ai/session-fetch.ts
 var EVE_SESSION_HEADER = "x-zo-eve-session";
 var EVE_CONTEXT_STORAGE_KEY = Symbol.for("eve.context-storage");
 var SESSION_ID_KEY_NAME = "eve.sessionId";
@@ -36,7 +36,7 @@ function eveSessionFetch(getSessionId = ambientEveSessionId, baseFetch = globalT
   }, baseFetch);
 }
 
-// ../../../../../tmp/agent-sdk-mirror-B2rLeM/repo/platform/runtime-ai/gateway.ts
+// ../../../../../tmp/agent-sdk-mirror-OMj3Gv/repo/platform/runtime-ai/gateway.ts
 var ZO_TOOL_HEADER = "x-zo-tool";
 var DEFAULT_ZO_AI_BASE_URL = "http://localhost:4000/runtime/ai/v4/ai";
 var DEFAULT_ZO_AI_KEY = "dev-proxy";
@@ -56,7 +56,7 @@ function zoGateway(options = {}) {
     fetch: eveSessionFetch(undefined, options.fetch)
   });
 }
-// ../../../../../tmp/agent-sdk-mirror-B2rLeM/repo/platform/cloud-tools/image-path.ts
+// ../../../../../tmp/agent-sdk-mirror-OMj3Gv/repo/platform/cloud-tools/image-path.ts
 var DEFAULT_IMAGE_OUTPUT_DIR = "generated";
 var MEDIA_TYPE_EXTENSIONS = {
   "image/jpeg": "jpg",
@@ -80,7 +80,7 @@ function imageOutputPath(input) {
   return `${normalizedOutputDir(input.outputDir)}/${slugForPrompt(input.prompt)}-${input.id}.${extensionForMediaType(input.mediaType)}`;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-B2rLeM/repo/platform/cloud-tools/image.ts
+// ../../../../../tmp/agent-sdk-mirror-OMj3Gv/repo/platform/cloud-tools/image.ts
 var DEFAULT_IMAGE_MODEL = "bfl/flux-2-pro";
 function isImageSize(value) {
   return typeof value === "string" && /^[1-9]\d{1,4}x[1-9]\d{1,4}$/u.test(value);
@@ -191,7 +191,7 @@ function generateImageTool() {
   });
 }
 var image_default = generateImageTool();
-// ../../../../../tmp/agent-sdk-mirror-B2rLeM/repo/platform/cloud-tools/web-search.ts
+// ../../../../../tmp/agent-sdk-mirror-OMj3Gv/repo/platform/cloud-tools/web-search.ts
 function webSearch(config) {
   const gateway = zoGateway();
   return config === undefined ? gateway.tools.exaSearch() : gateway.tools.exaSearch(config);
