@@ -6,9 +6,12 @@ import type {
 } from "@ai-sdk/provider";
 import {
   createMockStoryModel,
+  lastUserTextFrom,
+  MOCK_SCENARIOS,
   mockScenarioFrom,
   scriptActionFor,
   scriptStepFrom,
+  toolInputFragments,
 } from "./mock-model";
 
 function callOptions(userText: string): LanguageModelV4CallOptions {
@@ -70,6 +73,36 @@ describe("createMockStoryModel", () => {
     expect(finish.finishReason.unified).toBe("tool-calls");
   });
 
+  test("tool input streams as fragmented deltas that reassemble to the call's input", async () => {
+    const model = createMockStoryModel({ chunkCount: 1, chunkDelayMs: 0 });
+    const { stream } = await model.doStream(callOptions("Run the HITL check [mock:hitl]"));
+    const parts = await collect(stream);
+
+    const inputDeltas = parts.filter((p) => p.type === "tool-input-delta");
+    // A real model streams tool args in fragments; one blob delta hides
+    // arg-streaming renderer bugs.
+    expect(inputDeltas.length).toBeGreaterThan(3);
+    const reassembled = inputDeltas.map((p) => p.delta).join("");
+    const toolCall = parts.find((p) => p.type === "tool-call");
+    if (toolCall?.type !== "tool-call") throw new Error("expected a tool call");
+    expect(reassembled).toBe(toolCall.input);
+  });
+
+  test("a [mock:parallel] turn emits two ask_question calls in one response", async () => {
+    const model = createMockStoryModel({ chunkCount: 1, chunkDelayMs: 0 });
+    const { stream } = await model.doStream(callOptions("Two questions [mock:parallel]"));
+    const parts = await collect(stream);
+
+    const toolCalls = parts.filter((p) => p.type === "tool-call");
+    expect(toolCalls.length).toBe(2);
+    expect(toolCalls.every((c) => c.toolName === "ask_question")).toBe(true);
+    const ids = toolCalls.map((c) => c.toolCallId);
+    expect(new Set(ids).size).toBe(2);
+    const finish = parts.at(-1);
+    if (finish?.type !== "finish") throw new Error("expected a finish part");
+    expect(finish.finishReason.unified).toBe("tool-calls");
+  });
+
   test("after a tool result, a scripted turn advances to the next step", async () => {
     const model = createMockStoryModel({ chunkCount: 1, chunkDelayMs: 0 });
     const prompt: LanguageModelV4Prompt = [
@@ -94,7 +127,7 @@ describe("createMockStoryModel", () => {
     const parts = await collect(stream);
     const toolCall = parts.find((p) => p.type === "tool-call");
     if (toolCall?.type !== "tool-call") throw new Error("expected the step-1 todo call");
-    expect(toolCall.toolCallId).toBe("mock-call-todo-1");
+    expect(toolCall.toolCallId).toBe("mock-call-todo-1-0");
   });
 
   test("stops streaming when aborted", async () => {
@@ -116,16 +149,22 @@ describe("createMockStoryModel", () => {
     // Far fewer than the 1000 configured chunks: the abort cut the loop.
     expect(count).toBeLessThan(50);
   });
+
+  test("an injected clock makes the full stream deterministic across runs", async () => {
+    const run = async () => {
+      const model = createMockStoryModel({ chunkCount: 3, chunkDelayMs: 0, now: () => 1_000 });
+      const { stream } = await model.doStream(callOptions("same story twice [mock:markdown]"));
+      return collect(stream);
+    };
+    expect(await run()).toEqual(await run());
+  });
 });
 
 describe("the scenario script", () => {
-  test("mockScenarioFrom parses directives and rejects unknown ones", () => {
-    expect(mockScenarioFrom("do the thing [mock:hitl] now")).toBe("hitl");
-    expect(mockScenarioFrom("[mock:todo]")).toBe("todo");
-    expect(mockScenarioFrom("[mock:explore]")).toBe("explore");
-    expect(mockScenarioFrom("[mock:fail]")).toBe("fail");
-    expect(mockScenarioFrom("[mock:burst]")).toBe("burst");
-    expect(mockScenarioFrom("[mock:markdown]")).toBe("markdown");
+  test("mockScenarioFrom parses every catalog directive and rejects unknown ones", () => {
+    for (const scenario of MOCK_SCENARIOS) {
+      expect(mockScenarioFrom(`do the thing [mock:${scenario}] now`)).toBe(scenario);
+    }
     expect(mockScenarioFrom("[mock:bogus]")).toBeNull();
     expect(mockScenarioFrom("no directive")).toBeNull();
   });
@@ -165,45 +204,127 @@ describe("the scenario script", () => {
     expect(parts.at(-1)?.type).toBe("finish");
   });
 
-  test("scriptStepFrom counts tool messages since the last user message", () => {
+  test("a [mock:interleave] turn alternates reasoning and text blocks with distinct ids", async () => {
+    const model = createMockStoryModel({ chunkCount: 1, chunkDelayMs: 0 });
+    const { stream } = await model.doStream(callOptions("blocks [mock:interleave]"));
+    const parts = await collect(stream);
+
+    const blockStarts = parts.flatMap((p) =>
+      p.type === "reasoning-start" || p.type === "text-start" ? [{ type: p.type, id: p.id }] : [],
+    );
+    expect(blockStarts).toEqual([
+      { type: "reasoning-start", id: "r1" },
+      { type: "text-start", id: "t1" },
+      { type: "reasoning-start", id: "r2" },
+      { type: "text-start", id: "t2" },
+    ]);
+    expect(parts.at(-1)?.type).toBe("finish");
+  });
+
+  test("a [mock:empty] turn finishes with zero content parts", async () => {
+    const model = createMockStoryModel({ chunkCount: 1, chunkDelayMs: 0 });
+    const { stream } = await model.doStream(callOptions("nothing [mock:empty]"));
+    const parts = await collect(stream);
+
+    expect(parts.map((p) => p.type)).toEqual(["stream-start", "response-metadata", "finish"]);
+    const finish = parts.at(-1);
+    if (finish?.type !== "finish") throw new Error("expected a finish part");
+    expect(finish.finishReason.unified).toBe("stop");
+  });
+
+  test("scriptStepFrom counts tool results since the last user message", () => {
     const user = { role: "user" as const, content: [{ type: "text" as const, text: "hi" }] };
-    const tool = {
-      role: "tool" as const,
-      content: [
-        {
-          type: "tool-result" as const,
-          toolCallId: "c",
-          toolName: "todo",
-          output: { type: "json" as const, value: {} },
-        },
-      ],
-    };
+    const toolResult = (id: string) => ({
+      type: "tool-result" as const,
+      toolCallId: id,
+      toolName: "todo",
+      output: { type: "json" as const, value: {} },
+    });
+    const tool = { role: "tool" as const, content: [toolResult("c")] };
     expect(scriptStepFrom([user])).toBe(0);
     expect(scriptStepFrom([user, tool])).toBe(1);
     expect(scriptStepFrom([user, tool, tool])).toBe(2);
+    // Two results in ONE tool message (parallel calls) also count as two —
+    // the step must advance identically however the harness batches results.
+    const batched = { role: "tool" as const, content: [toolResult("a"), toolResult("b")] };
+    expect(scriptStepFrom([user, batched])).toBe(2);
     // A follow-up user turn resets the script.
     expect(scriptStepFrom([user, tool, user])).toBe(0);
   });
 
-  test("every scenario ends in a text action", () => {
+  test("lastUserTextFrom finds the latest user text through assistant and tool turns", () => {
+    const prompt: LanguageModelV4Prompt = [
+      { role: "user", content: [{ type: "text", text: "first" }] },
+      { role: "assistant", content: [{ type: "text", text: "reply" }] },
+      { role: "user", content: [{ type: "text", text: "second" }] },
+    ];
+    expect(lastUserTextFrom(prompt)).toBe("second");
+    expect(lastUserTextFrom([])).toBeUndefined();
+  });
+
+  test("every scripted scenario ends in a text action", () => {
     expect(scriptActionFor("hitl", 1).kind).toBe("text");
+    expect(scriptActionFor("parallel", 2).kind).toBe("text");
     expect(scriptActionFor("todo", 2).kind).toBe("text");
     expect(scriptActionFor("explore", 1).kind).toBe("text");
+  });
+
+  test("the parallel script only claims both answers after two results", () => {
+    // step = tool results so far; a harness resuming after ONE answered
+    // question must not see a wrap-up claiming both answers arrived.
+    const afterOne = scriptActionFor("parallel", 1);
+    const afterBoth = scriptActionFor("parallel", 2);
+    if (afterOne.kind !== "text" || afterBoth.kind !== "text") {
+      throw new Error("expected text actions");
+    }
+    expect(afterOne.text).toContain("Only one answer arrived");
+    expect(afterOne.text).not.toContain("Both answers received");
+    expect(afterBoth.text).toContain("Both answers received");
+  });
+
+  test("the parallel script emits two ask_question calls at step 0", () => {
+    const action = scriptActionFor("parallel", 0);
+    if (action.kind !== "tool-calls") throw new Error("expected tool calls");
+    expect(action.calls.length).toBe(2);
+    expect(action.calls.every((c) => c.toolName === "ask_question")).toBe(true);
+    const prompts = action.calls.map((c) => c.input.prompt);
+    // Distinct prompts, so the two pending HITL cards are distinguishable.
+    expect(new Set(prompts).size).toBe(2);
   });
 
   test("the todo script writes then updates the same list", () => {
     const first = scriptActionFor("todo", 0);
     const second = scriptActionFor("todo", 1);
-    if (first.kind !== "tool-call" || second.kind !== "tool-call") {
+    if (first.kind !== "tool-calls" || second.kind !== "tool-calls") {
       throw new Error("expected tool calls");
     }
-    expect(first.toolName).toBe("todo");
-    expect(second.toolName).toBe("todo");
-    const firstTodos = first.input.todos;
-    const secondTodos = second.input.todos;
+    const firstCall = first.calls[0];
+    const secondCall = second.calls[0];
+    if (!firstCall || !secondCall) throw new Error("expected one call per step");
+    expect(firstCall.toolName).toBe("todo");
+    expect(secondCall.toolName).toBe("todo");
+    const firstTodos = firstCall.input.todos;
+    const secondTodos = secondCall.input.todos;
     if (!Array.isArray(firstTodos) || !Array.isArray(secondTodos)) {
       throw new Error("expected todo lists");
     }
     expect(firstTodos.length).toBe(secondTodos.length);
+  });
+
+  test("the explore script delegates to the configured tool name", () => {
+    const action = scriptActionFor("explore", 0, "scout");
+    if (action.kind !== "tool-calls") throw new Error("expected tool calls");
+    expect(action.calls[0]?.toolName).toBe("scout");
+  });
+
+  test("toolInputFragments splits and reassembles losslessly", () => {
+    expect(toolInputFragments("")).toEqual([]);
+    expect(toolInputFragments("abc", 24)).toEqual(["abc"]);
+    const long = JSON.stringify({ key: "x".repeat(100) });
+    const fragments = toolInputFragments(long, 7);
+    expect(fragments.join("")).toBe(long);
+    expect(fragments.every((f, i) => (i < fragments.length - 1 ? f.length === 7 : f.length > 0))).toBe(
+      true,
+    );
   });
 });

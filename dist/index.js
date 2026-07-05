@@ -1,7 +1,7 @@
-// ../../../../../tmp/agent-sdk-mirror-AZw1ol/repo/src/index.ts
+// ../../../../../tmp/agent-sdk-mirror-EQ4qmQ/repo/src/index.ts
 import { join as join8 } from "node:path";
 
-// ../../../../../tmp/agent-sdk-mirror-AZw1ol/repo/src/attachments.ts
+// ../../../../../tmp/agent-sdk-mirror-EQ4qmQ/repo/src/attachments.ts
 var CHAT_ATTACHMENT_FIELD = "chatAttachment";
 var DEFAULT_MAX_INLINE_IMAGE_BYTES = 3 * 1024 * 1024;
 var DEFAULT_MAX_INLINE_MEDIA_BYTES = 10 * 1024 * 1024;
@@ -48,7 +48,7 @@ function readChatAttachment(toolOutput) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-AZw1ol/repo/src/async-tasks.ts
+// ../../../../../tmp/agent-sdk-mirror-EQ4qmQ/repo/src/async-tasks.ts
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname } from "node:path";
 function isRecord2(value) {
@@ -226,7 +226,7 @@ function buildTaskRegistry(opts) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-AZw1ol/repo/src/backgroundable.ts
+// ../../../../../tmp/agent-sdk-mirror-EQ4qmQ/repo/src/backgroundable.ts
 import { z } from "zod";
 function defineOp(cfg) {
   return {
@@ -270,7 +270,7 @@ function createBashOp(runner) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-AZw1ol/repo/src/bounded-output.ts
+// ../../../../../tmp/agent-sdk-mirror-EQ4qmQ/repo/src/bounded-output.ts
 import { appendFileSync, mkdirSync as mkdirSync2, writeFileSync as writeFileSync2 } from "node:fs";
 import { dirname as dirname2 } from "node:path";
 var HEAD_CHARS = 25000;
@@ -371,7 +371,7 @@ function createBoundedCapture(opts = {}) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-AZw1ol/repo/src/dir-conventions.ts
+// ../../../../../tmp/agent-sdk-mirror-EQ4qmQ/repo/src/dir-conventions.ts
 import { readFileSync as readFileSync2 } from "node:fs";
 import { join } from "node:path";
 var DEFAULT_MAX_BYTES_PER_FILE = 16 * 1024;
@@ -483,7 +483,7 @@ function createDirConventionsTracker(options) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-AZw1ol/repo/src/instructions.ts
+// ../../../../../tmp/agent-sdk-mirror-EQ4qmQ/repo/src/instructions.ts
 import { readFileSync as readFileSync3 } from "node:fs";
 import { resolve } from "node:path";
 import { defineDynamic, defineInstructions } from "eve/instructions";
@@ -622,7 +622,7 @@ function createSubagentInstruction(opts) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-AZw1ol/repo/src/run.ts
+// ../../../../../tmp/agent-sdk-mirror-EQ4qmQ/repo/src/run.ts
 import { spawn } from "node:child_process";
 import { join as join2 } from "node:path";
 var MAX_PREVIEW = 20000;
@@ -723,7 +723,7 @@ function createCommandRunner(opts) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-AZw1ol/repo/src/steer-inbox.ts
+// ../../../../../tmp/agent-sdk-mirror-EQ4qmQ/repo/src/steer-inbox.ts
 import {
   appendFileSync as appendFileSync2,
   linkSync,
@@ -734,7 +734,7 @@ import {
 } from "node:fs";
 import { join as join3 } from "node:path";
 
-// ../../../../../tmp/agent-sdk-mirror-AZw1ol/repo/src/steer.ts
+// ../../../../../tmp/agent-sdk-mirror-EQ4qmQ/repo/src/steer.ts
 var STEER_FIELD = "user_steer";
 var STEER_WRAPPED_OUTPUT_FIELD = "steer_wrapped_output";
 var STEER_DIRNAME = "steer";
@@ -804,7 +804,7 @@ function parseSteerLine(line) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-AZw1ol/repo/src/steer-inbox.ts
+// ../../../../../tmp/agent-sdk-mirror-EQ4qmQ/repo/src/steer-inbox.ts
 var drainSequence = 0;
 function createSteerInbox(options) {
   const now = options.now ?? Date.now;
@@ -853,7 +853,7 @@ function createSteerInbox(options) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-AZw1ol/repo/src/steer-tool.ts
+// ../../../../../tmp/agent-sdk-mirror-EQ4qmQ/repo/src/steer-tool.ts
 import { defineTool } from "eve/tools";
 function withSteerDelivery(tool, inbox) {
   const originalToModelOutput = tool.toModelOutput?.bind(tool);
@@ -885,11 +885,11 @@ function createSteerWrapper(inbox) {
   return (tool) => withSteerDelivery(tool, inbox);
 }
 
-// ../../../../../tmp/agent-sdk-mirror-AZw1ol/repo/src/tools/bash.ts
+// ../../../../../tmp/agent-sdk-mirror-EQ4qmQ/repo/src/tools/bash.ts
 import { defineTool as defineTool2 } from "eve/tools";
 import { z as z2 } from "zod";
 
-// ../../../../../tmp/agent-sdk-mirror-AZw1ol/repo/src/park-delivery.ts
+// ../../../../../tmp/agent-sdk-mirror-EQ4qmQ/repo/src/park-delivery.ts
 function isRecord4(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
@@ -1002,7 +1002,7 @@ function setParkNotificationHandler(handler) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-AZw1ol/repo/src/watch-output.ts
+// ../../../../../tmp/agent-sdk-mirror-EQ4qmQ/repo/src/watch-output.ts
 var DEFAULT_WATCH_DEBOUNCE_MS = 5000;
 var DEFAULT_MAX_WATCH_NOTIFICATIONS = 5;
 function createOutputWatcher(options) {
@@ -1060,7 +1060,7 @@ function formatCompletionNotification(opts) {
   return `Background task ${opts.taskId} (${opts.label}) ${outcome}. Call await_task to collect its result.`;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-AZw1ol/repo/src/tools/bash.ts
+// ../../../../../tmp/agent-sdk-mirror-EQ4qmQ/repo/src/tools/bash.ts
 var DEFAULT_INTERACTIVE_HINT = "This is a piped shell with NO tty: avoid interactive or full-screen CLIs (a REPL, vim, an interactive installer/prompt) — those programs hang or degrade without a real terminal.";
 function createBashTool(opts) {
   const { workspace, runner, registry, noun } = opts;
@@ -1148,22 +1148,22 @@ function createBashTool(opts) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-AZw1ol/repo/src/tools/edit.ts
+// ../../../../../tmp/agent-sdk-mirror-EQ4qmQ/repo/src/tools/edit.ts
 import { defineTool as defineTool3 } from "eve/tools";
 import { z as z3 } from "zod";
 
-// ../../../../../tmp/agent-sdk-mirror-AZw1ol/repo/src/workspace-io.ts
+// ../../../../../tmp/agent-sdk-mirror-EQ4qmQ/repo/src/workspace-io.ts
 import { mkdirSync as mkdirSync4, readFileSync as readFileSync7, statSync as statSync2, writeFileSync as writeFileSync3 } from "node:fs";
 import { dirname as dirname3, join as join5 } from "node:path";
 
-// ../../../../../tmp/agent-sdk-mirror-AZw1ol/repo/src/glob-match.ts
+// ../../../../../tmp/agent-sdk-mirror-EQ4qmQ/repo/src/glob-match.ts
 function globToRegExp(glob) {
   const escaped = glob.replace(/[.+^${}()|[\]\\]/g, "\\$&");
   const body = escaped.replace(/\*\*\/?/g, "\x00").replace(/\*/g, "[^/]*").replace(/\?/g, "[^/]").replace(/\u0000/g, "(?:.*/)?");
   return new RegExp(`^${body}$`);
 }
 
-// ../../../../../tmp/agent-sdk-mirror-AZw1ol/repo/src/list-files.ts
+// ../../../../../tmp/agent-sdk-mirror-EQ4qmQ/repo/src/list-files.ts
 import { spawnSync } from "node:child_process";
 var MAX_BUFFER = 64 * 1024 * 1024;
 function gitPaths(root, args) {
@@ -1191,7 +1191,7 @@ function listGitFiles(root, scope) {
   return files.filter((path) => !gone.has(path));
 }
 
-// ../../../../../tmp/agent-sdk-mirror-AZw1ol/repo/src/read-text.ts
+// ../../../../../tmp/agent-sdk-mirror-EQ4qmQ/repo/src/read-text.ts
 import { readFileSync as readFileSync5, statSync } from "node:fs";
 var MAX_SEARCH_FILE_BYTES = 1500000;
 var BINARY_SNIFF_BYTES = 8192;
@@ -1218,7 +1218,7 @@ function readTextForSearch(abs, maxBytes = MAX_SEARCH_FILE_BYTES) {
   return { kind: "text", content: buf.toString("utf8") };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-AZw1ol/repo/src/walk.ts
+// ../../../../../tmp/agent-sdk-mirror-EQ4qmQ/repo/src/walk.ts
 import { readFileSync as readFileSync6, readdirSync } from "node:fs";
 import { join as join4, relative, sep } from "node:path";
 import ignore from "ignore";
@@ -1300,7 +1300,7 @@ function* walkFiles(root, base = root) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-AZw1ol/repo/src/workspace.ts
+// ../../../../../tmp/agent-sdk-mirror-EQ4qmQ/repo/src/workspace.ts
 import { isAbsolute, relative as relative2, resolve as resolve2, sep as sep2 } from "node:path";
 function resolveWithin(root, path) {
   const abs = isAbsolute(path) ? resolve2(path) : resolve2(root, path);
@@ -1322,7 +1322,7 @@ function createWorkspace(root) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-AZw1ol/repo/src/workspace-io.ts
+// ../../../../../tmp/agent-sdk-mirror-EQ4qmQ/repo/src/workspace-io.ts
 function createLocalIo(root) {
   return {
     async stat(abs) {
@@ -1410,7 +1410,7 @@ async function searchLocal(root, options) {
   return { matches, stopped, skippedLargeFiles };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-AZw1ol/repo/src/tools/edit.ts
+// ../../../../../tmp/agent-sdk-mirror-EQ4qmQ/repo/src/tools/edit.ts
 function createEditTool(opts) {
   const { workspace, noun } = opts;
   const io = opts.io ?? localIoProvider(workspace.root);
@@ -1443,7 +1443,7 @@ function createEditTool(opts) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-AZw1ol/repo/src/tools/glob.ts
+// ../../../../../tmp/agent-sdk-mirror-EQ4qmQ/repo/src/tools/glob.ts
 import { defineTool as defineTool4 } from "eve/tools";
 import { z as z4 } from "zod";
 function createGlobTool(opts) {
@@ -1482,7 +1482,7 @@ function createGlobTool(opts) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-AZw1ol/repo/src/tools/grep.ts
+// ../../../../../tmp/agent-sdk-mirror-EQ4qmQ/repo/src/tools/grep.ts
 import { defineTool as defineTool5 } from "eve/tools";
 import { z as z5 } from "zod";
 import { join as join6 } from "node:path";
@@ -1575,12 +1575,12 @@ function createGrepTool(opts) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-AZw1ol/repo/src/tools/read.ts
+// ../../../../../tmp/agent-sdk-mirror-EQ4qmQ/repo/src/tools/read.ts
 import { defineTool as defineTool6 } from "eve/tools";
 import { z as z6 } from "zod";
 import { basename } from "node:path";
 
-// ../../../../../tmp/agent-sdk-mirror-AZw1ol/repo/src/file-kind.ts
+// ../../../../../tmp/agent-sdk-mirror-EQ4qmQ/repo/src/file-kind.ts
 import { extname } from "node:path";
 function imageMediaType(format) {
   return `image/${format}`;
@@ -1774,7 +1774,7 @@ function detectFileKind(buf, path) {
   return { kind: "text", encoding: "utf8" };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-AZw1ol/repo/src/file-view.ts
+// ../../../../../tmp/agent-sdk-mirror-EQ4qmQ/repo/src/file-view.ts
 var READ_FILE_DEFAULT_LINE_LIMIT = 2000;
 var READ_FILE_MAX_LINE_CHARS = 2000;
 var READ_FILE_MAX_CONTENT_CHARS = 50000;
@@ -1818,10 +1818,10 @@ function buildFileView(text, opts = {}) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-AZw1ol/repo/src/read-file-content.ts
+// ../../../../../tmp/agent-sdk-mirror-EQ4qmQ/repo/src/read-file-content.ts
 import { imageSize } from "image-size";
 
-// ../../../../../tmp/agent-sdk-mirror-AZw1ol/repo/src/extract/cache.ts
+// ../../../../../tmp/agent-sdk-mirror-EQ4qmQ/repo/src/extract/cache.ts
 function createStatCache(limit) {
   const entries = new Map;
   return {
@@ -1846,7 +1846,7 @@ function createStatCache(limit) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-AZw1ol/repo/src/extract/docx.ts
+// ../../../../../tmp/agent-sdk-mirror-EQ4qmQ/repo/src/extract/docx.ts
 import mammoth from "mammoth";
 async function extractDocx(buffer) {
   try {
@@ -1858,7 +1858,7 @@ async function extractDocx(buffer) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-AZw1ol/repo/src/extract/pdf.ts
+// ../../../../../tmp/agent-sdk-mirror-EQ4qmQ/repo/src/extract/pdf.ts
 import { openPdf } from "clawpdf";
 var PDF_EMPTY_PAGE_NOTE = "[no text on this page — likely scanned or image-only; rendered pages cannot be attached]";
 var PDF_PAGE_CAP = 200;
@@ -1893,7 +1893,7 @@ async function extractPdf(bytes, options = {}) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-AZw1ol/repo/src/extract/sheet.ts
+// ../../../../../tmp/agent-sdk-mirror-EQ4qmQ/repo/src/extract/sheet.ts
 import { read, utils } from "xlsx";
 var SHEET_ROW_CAP = 5000;
 function extractSheets(buffer, rowCap = SHEET_ROW_CAP) {
@@ -1934,7 +1934,7 @@ function extractSheets(buffer, rowCap = SHEET_ROW_CAP) {
 `), sheets };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-AZw1ol/repo/src/read-file-content.ts
+// ../../../../../tmp/agent-sdk-mirror-EQ4qmQ/repo/src/read-file-content.ts
 var EXTRACTION_CACHE_LIMIT = 20;
 var extractionCache = createStatCache(EXTRACTION_CACHE_LIMIT);
 function decodeText(buffer, encoding) {
@@ -2005,7 +2005,7 @@ async function loadFileContent(buffer, path, id) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-AZw1ol/repo/src/tools/read.ts
+// ../../../../../tmp/agent-sdk-mirror-EQ4qmQ/repo/src/tools/read.ts
 function buildMediaHint(attach, verb) {
   const kinds = ["image", "video", "audio"];
   const on = kinds.filter((kind) => attach[kind]);
@@ -2176,7 +2176,7 @@ function createReadTool(opts) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-AZw1ol/repo/src/tools/tasks.ts
+// ../../../../../tmp/agent-sdk-mirror-EQ4qmQ/repo/src/tools/tasks.ts
 import { defineDynamic as defineDynamic2, defineTool as defineTool7 } from "eve/tools";
 import { z as z7 } from "zod";
 var DEFAULT_WAIT_MS = 120000;
@@ -2333,17 +2333,17 @@ function createTasksTools(opts) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-AZw1ol/repo/src/tools/webfetch.ts
+// ../../../../../tmp/agent-sdk-mirror-EQ4qmQ/repo/src/tools/webfetch.ts
 import { defineTool as defineTool8 } from "eve/tools";
 import { z as z8 } from "zod";
 import { basename as basename2, join as join7 } from "node:path";
 
-// ../../../../../tmp/agent-sdk-mirror-AZw1ol/repo/src/web-fetch.ts
+// ../../../../../tmp/agent-sdk-mirror-EQ4qmQ/repo/src/web-fetch.ts
 import { Parser } from "htmlparser2";
 import { parseHTML as parseHTML2 } from "linkedom";
 import TurndownService from "turndown";
 
-// ../../../../../tmp/agent-sdk-mirror-AZw1ol/repo/src/web-page.ts
+// ../../../../../tmp/agent-sdk-mirror-EQ4qmQ/repo/src/web-page.ts
 import Defuddle from "defuddle";
 import { parseHTML } from "linkedom";
 var asField = (value) => {
@@ -2454,7 +2454,7 @@ function looksLikeRawHtmlOutput(rendered) {
   return tagChars / rendered.length > 0.1;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-AZw1ol/repo/src/web-fetch.ts
+// ../../../../../tmp/agent-sdk-mirror-EQ4qmQ/repo/src/web-fetch.ts
 var WEB_FETCH_MAX_RESPONSE_BYTES = 5 * 1024 * 1024;
 var WEB_FETCH_DEFAULT_TIMEOUT_SECONDS = 30;
 var WEB_FETCH_PDF_DEFAULT_TIMEOUT_SECONDS = 60;
@@ -2644,7 +2644,7 @@ function urlLooksLikePdf(url) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-AZw1ol/repo/src/tools/webfetch.ts
+// ../../../../../tmp/agent-sdk-mirror-EQ4qmQ/repo/src/tools/webfetch.ts
 var SPILL_EXTENSION = {
   markdown: "md",
   text: "txt",
@@ -2879,7 +2879,7 @@ function createWebFetchTool(opts) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-AZw1ol/repo/src/tools/write.ts
+// ../../../../../tmp/agent-sdk-mirror-EQ4qmQ/repo/src/tools/write.ts
 import { defineTool as defineTool9 } from "eve/tools";
 import { z as z9 } from "zod";
 function createWriteTool(opts) {
@@ -2906,7 +2906,7 @@ function createWriteTool(opts) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-AZw1ol/repo/src/sandbox-io.ts
+// ../../../../../tmp/agent-sdk-mirror-EQ4qmQ/repo/src/sandbox-io.ts
 import ignore2 from "ignore";
 function shellSingleQuote(value) {
   return `'${value.replaceAll("'", `'\\''`)}'`;
@@ -3103,11 +3103,11 @@ function parseSearchOutput(stdout, maxMatches, flooded = false) {
   }
   return { matches, stopped, skippedLargeFiles: null };
 }
-// ../../../../../tmp/agent-sdk-mirror-AZw1ol/repo/src/hooks.ts
+// ../../../../../tmp/agent-sdk-mirror-EQ4qmQ/repo/src/hooks.ts
 import { Client } from "eve/client";
 import { defineHook } from "eve/hooks";
 
-// ../../../../../tmp/agent-sdk-mirror-AZw1ol/repo/src/redeliver.ts
+// ../../../../../tmp/agent-sdk-mirror-EQ4qmQ/repo/src/redeliver.ts
 function isRecord5(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
@@ -3177,7 +3177,7 @@ function createRedeliveryState() {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-AZw1ol/repo/src/hooks.ts
+// ../../../../../tmp/agent-sdk-mirror-EQ4qmQ/repo/src/hooks.ts
 var RETRY_DELAYS_MS = [500, 2000, 5000];
 function buildDeliveryMessage(request) {
   const media = request.items.flatMap((item) => item.payload.kind === "media" ? [{ toolCallId: item.key, attachment: item.payload.attachment }] : []);
@@ -3276,7 +3276,7 @@ function createParkDeliveryHook(options = {}) {
     }
   });
 }
-// ../../../../../tmp/agent-sdk-mirror-AZw1ol/repo/src/explore.ts
+// ../../../../../tmp/agent-sdk-mirror-EQ4qmQ/repo/src/explore.ts
 import { defineAgent } from "eve";
 import { defineDynamic as defineDynamic3, defineInstructions as defineInstructions2 } from "eve/instructions";
 var EXPLORE_TOOL_NAMES = ["read", "glob", "grep"];
@@ -3346,7 +3346,7 @@ function createExploreAgent(options) {
     ...options.reasoning !== undefined ? { reasoning: options.reasoning } : {}
   });
 }
-// ../../../../../tmp/agent-sdk-mirror-AZw1ol/repo/src/mock-model.ts
+// ../../../../../tmp/agent-sdk-mirror-EQ4qmQ/repo/src/mock-model.ts
 var STORY_SENTENCES = [
   "The lighthouse keeper counted the waves as they broke against the rocks.",
   "Every seventh wave carried a whisper from the old town beneath the sea.",
@@ -3366,14 +3366,24 @@ function storyChunk(index) {
 ` : " ";
   return `${paragraphBreak}${sentence}`;
 }
-var delay = (ms) => new Promise((r) => setTimeout(r, ms));
+var delay = (ms) => ms > 0 ? new Promise((r) => setTimeout(r, ms)) : Promise.resolve();
 function usageFor(outputTokens) {
   return {
     inputTokens: { total: 100, noCache: 100, cacheRead: 0, cacheWrite: 0 },
     outputTokens: { total: outputTokens, text: outputTokens, reasoning: 0 }
   };
 }
-var MOCK_SCENARIOS = ["hitl", "todo", "explore", "fail", "burst", "markdown"];
+var MOCK_SCENARIOS = [
+  "hitl",
+  "parallel",
+  "todo",
+  "explore",
+  "fail",
+  "burst",
+  "markdown",
+  "interleave",
+  "empty"
+];
 function markdownChunks() {
   return [
     `## Streaming markdown stress
@@ -3434,81 +3444,134 @@ function scriptStepFrom(prompt) {
   for (const message of prompt) {
     if (message.role === "user")
       step = 0;
-    else if (message.role === "tool")
-      step += 1;
+    else if (message.role === "tool") {
+      step += message.content.filter((part) => part.type === "tool-result").length;
+    }
   }
   return step;
 }
 function lastUserTextFrom(prompt) {
   return [...prompt].reverse().flatMap((message) => message.role === "user" ? message.content.flatMap((part) => part.type === "text" ? [part.text] : []) : [])[0];
 }
+function askQuestionCall(prompt, topic) {
+  return {
+    toolName: "ask_question",
+    input: {
+      prompt,
+      options: [
+        {
+          id: "ship",
+          label: `Ship the ${topic}`,
+          style: "primary",
+          description: "Proceed with the happy path."
+        },
+        { id: "hold", label: "Hold for review" },
+        { id: "abort", label: "Abort the run", style: "danger", description: "Stops everything." }
+      ],
+      allowFreeform: true
+    }
+  };
+}
 function scriptActionFor(scenario, step, delegateToolName = "explore") {
   switch (scenario) {
     case "hitl":
       if (step === 0) {
         return {
-          kind: "tool-call",
-          toolName: "ask_question",
-          input: {
-            prompt: "Mock HITL: how should this test proceed?",
-            options: [
-              { id: "ship", label: "Ship it", style: "primary", description: "Proceed with the happy path." },
-              { id: "hold", label: "Hold for review" },
-              { id: "abort", label: "Abort the run", style: "danger", description: "Stops everything." }
-            ],
-            allowFreeform: true
-          }
+          kind: "tool-calls",
+          calls: [askQuestionCall("Mock HITL: how should this test proceed?", "change")]
         };
       }
       return { kind: "text", text: "Answer received — the mock turn resumed and finished cleanly." };
-    case "todo":
+    case "parallel":
       if (step === 0) {
         return {
-          kind: "tool-call",
-          toolName: "todo",
-          input: {
-            todos: [
-              { content: "Survey the harbor charts", status: "completed", priority: "high" },
-              { content: "Polish the tower glass", status: "in_progress", priority: "medium" },
-              { content: "Refill the oil reserves", status: "pending", priority: "medium" },
-              { content: "Log the evening tide", status: "pending", priority: "low" }
-            ]
-          }
+          kind: "tool-calls",
+          calls: [
+            askQuestionCall("Mock parallel HITL (1 of 2): which color?", "color"),
+            askQuestionCall("Mock parallel HITL (2 of 2): which size?", "size")
+          ]
         };
       }
       if (step === 1) {
         return {
-          kind: "tool-call",
-          toolName: "todo",
-          input: {
-            todos: [
-              { content: "Survey the harbor charts", status: "completed", priority: "high" },
-              { content: "Polish the tower glass", status: "completed", priority: "medium" },
-              { content: "Refill the oil reserves", status: "in_progress", priority: "medium" },
-              { content: "Log the evening tide", status: "cancelled", priority: "low" }
-            ]
-          }
+          kind: "text",
+          text: "Only one answer arrived — the parallel HITL scenario ended without the second."
+        };
+      }
+      return {
+        kind: "text",
+        text: "Both answers received — the parallel HITL scenario finished cleanly."
+      };
+    case "todo":
+      if (step === 0) {
+        return {
+          kind: "tool-calls",
+          calls: [
+            {
+              toolName: "todo",
+              input: {
+                todos: [
+                  { content: "Survey the harbor charts", status: "completed", priority: "high" },
+                  { content: "Polish the tower glass", status: "in_progress", priority: "medium" },
+                  { content: "Refill the oil reserves", status: "pending", priority: "medium" },
+                  { content: "Log the evening tide", status: "pending", priority: "low" }
+                ]
+              }
+            }
+          ]
+        };
+      }
+      if (step === 1) {
+        return {
+          kind: "tool-calls",
+          calls: [
+            {
+              toolName: "todo",
+              input: {
+                todos: [
+                  { content: "Survey the harbor charts", status: "completed", priority: "high" },
+                  { content: "Polish the tower glass", status: "completed", priority: "medium" },
+                  { content: "Refill the oil reserves", status: "in_progress", priority: "medium" },
+                  { content: "Log the evening tide", status: "cancelled", priority: "low" }
+                ]
+              }
+            }
+          ]
         };
       }
       return { kind: "text", text: "Todo list written and updated — checklist scenario complete." };
     case "explore":
       if (step === 0) {
         return {
-          kind: "tool-call",
-          toolName: "explore",
-          input: {
-            message: "Mock delegation: describe the lighthouse keeper's routine. Reply with a short report."
-          }
+          kind: "tool-calls",
+          calls: [
+            {
+              toolName: delegateToolName,
+              input: {
+                message: "Mock delegation: describe the lighthouse keeper's routine. Reply with a short report."
+              }
+            }
+          ]
         };
       }
       return { kind: "text", text: "The explorer reported back — delegation scenario complete." };
   }
+}
+function toolInputFragments(inputJson, fragmentSize = 24) {
+  if (inputJson.length === 0)
+    return [];
+  const fragments = [];
+  for (let i = 0;i < inputJson.length; i += fragmentSize) {
+    fragments.push(inputJson.slice(i, i + fragmentSize));
+  }
+  return fragments;
 }
 function createMockStoryModel(options = {}) {
   const chunkCount = options.chunkCount ?? 240;
   const chunkDelayMs = options.chunkDelayMs ?? 250;
   const burstChunks = options.burstChunks ?? 600;
   const delegateToolName = options.delegateToolName ?? "explore";
+  const now = options.now ?? Date.now;
   return {
     specificationVersion: "v4",
     provider: "anthropic",
@@ -3533,9 +3596,9 @@ function createMockStoryModel(options = {}) {
           controller.enqueue({ type: "stream-start", warnings: [] });
           controller.enqueue({
             type: "response-metadata",
-            id: `mock-${Date.now()}`,
+            id: `mock-${now()}`,
             modelId: "claude-sonnet-4-6",
-            timestamp: new Date
+            timestamp: new Date(now())
           });
           if (scenario === "fail") {
             controller.enqueue({ type: "text-start", id: "t1" });
@@ -3545,6 +3608,7 @@ function createMockStoryModel(options = {}) {
               await delay(chunkDelayMs);
               controller.enqueue({ type: "text-delta", id: "t1", delta: storyChunk(i) });
             }
+            controller.enqueue({ type: "text-end", id: "t1" });
             controller.enqueue({
               type: "error",
               error: new Error("mock: injected mid-stream failure [mock:fail]")
@@ -3599,6 +3663,63 @@ function createMockStoryModel(options = {}) {
             controller.close();
             return;
           }
+          if (scenario === "interleave") {
+            const blocks = [
+              {
+                kind: "reasoning",
+                id: "r1",
+                text: "First thought: check the tide tables before anything else."
+              },
+              {
+                kind: "text",
+                id: "t1",
+                text: `The tide tables say low water at dusk.
+
+That changes the plan.`
+              },
+              {
+                kind: "reasoning",
+                id: "r2",
+                text: "Second thought: the bell only rings when the fog is thick."
+              },
+              {
+                kind: "text",
+                id: "t2",
+                text: "So the keeper waits for the bell — interleave scenario complete."
+              }
+            ];
+            for (const block of blocks) {
+              const startType = block.kind === "reasoning" ? "reasoning-start" : "text-start";
+              const deltaType = block.kind === "reasoning" ? "reasoning-delta" : "text-delta";
+              const endType = block.kind === "reasoning" ? "reasoning-end" : "text-end";
+              controller.enqueue({ type: startType, id: block.id });
+              for (const word of block.text.split(" ")) {
+                if (abortSignal?.aborted)
+                  break;
+                await delay(Math.min(chunkDelayMs, 80));
+                controller.enqueue({ type: deltaType, id: block.id, delta: `${word} ` });
+              }
+              controller.enqueue({ type: endType, id: block.id });
+              if (abortSignal?.aborted)
+                break;
+            }
+            controller.enqueue({
+              type: "finish",
+              finishReason: { unified: "stop", raw: "stop" },
+              usage: usageFor(120)
+            });
+            controller.close();
+            return;
+          }
+          if (scenario === "empty") {
+            controller.enqueue({
+              type: "finish",
+              finishReason: { unified: "stop", raw: "stop" },
+              usage: usageFor(0)
+            });
+            controller.close();
+            return;
+          }
           if (scenario !== null) {
             const action = scriptActionFor(scenario, step, delegateToolName);
             controller.enqueue({ type: "reasoning-start", id: "r1" });
@@ -3609,22 +3730,33 @@ function createMockStoryModel(options = {}) {
               controller.enqueue({ type: "reasoning-delta", id: "r1", delta: `${word} ` });
             }
             controller.enqueue({ type: "reasoning-end", id: "r1" });
-            if (action.kind === "tool-call") {
-              const toolCallId = `mock-call-${scenario}-${step}`;
-              const inputJson = JSON.stringify(action.input);
-              controller.enqueue({ type: "tool-input-start", id: toolCallId, toolName: action.toolName });
-              controller.enqueue({ type: "tool-input-delta", id: toolCallId, delta: inputJson });
-              controller.enqueue({ type: "tool-input-end", id: toolCallId });
-              controller.enqueue({
-                type: "tool-call",
-                toolCallId,
-                toolName: action.toolName,
-                input: inputJson
-              });
+            if (action.kind === "tool-calls") {
+              for (const [callIndex, call] of action.calls.entries()) {
+                const toolCallId = `mock-call-${scenario}-${step}-${callIndex}`;
+                const inputJson = JSON.stringify(call.input);
+                controller.enqueue({
+                  type: "tool-input-start",
+                  id: toolCallId,
+                  toolName: call.toolName
+                });
+                for (const fragment of toolInputFragments(inputJson)) {
+                  if (abortSignal?.aborted)
+                    break;
+                  await delay(Math.min(chunkDelayMs, 80));
+                  controller.enqueue({ type: "tool-input-delta", id: toolCallId, delta: fragment });
+                }
+                controller.enqueue({ type: "tool-input-end", id: toolCallId });
+                controller.enqueue({
+                  type: "tool-call",
+                  toolCallId,
+                  toolName: call.toolName,
+                  input: inputJson
+                });
+              }
               controller.enqueue({
                 type: "finish",
                 finishReason: { unified: "tool-calls", raw: "tool_use" },
-                usage: usageFor(50)
+                usage: usageFor(50 * action.calls.length)
               });
               controller.close();
               return;
@@ -3677,7 +3809,7 @@ function createMockStoryModel(options = {}) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-AZw1ol/repo/src/index.ts
+// ../../../../../tmp/agent-sdk-mirror-EQ4qmQ/repo/src/index.ts
 function createStdlib(options) {
   const noun = options.workspaceNoun ?? "workspace";
   const workspace2 = createWorkspace(options.workspaceRoot);
@@ -3802,6 +3934,7 @@ export {
   withSteerDelivery,
   walkFiles,
   videoMediaType,
+  toolInputFragments,
   stripSteerFromOutput,
   shellSingleQuote,
   setParkNotificationHandler,
@@ -3828,6 +3961,7 @@ export {
   localIoProvider,
   loadFileContent,
   listGitFiles,
+  lastUserTextFrom,
   isHtmlContentType,
   imageMediaType,
   globToRegExp,

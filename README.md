@@ -206,6 +206,58 @@ bun install
 CODER_WORKDIR=/path/to/project AI_GATEWAY_API_KEY=… bun dev
 ```
 
+## Mock model (credential-free testing)
+
+`createMockStoryModel()` is a scripted `LanguageModelV4` that turns the whole
+eve stack into a deterministic test rig: session routes, the harness, framework
+tools (`ask_question`, `todo`), declared subagents, and durable streams all run
+REAL — only inference is canned. Gate it behind an env flag in `agent.ts` and
+never set that flag in a normal run:
+
+```ts
+// agent/agent.ts
+import { defineAgent } from "eve";
+import { createMockStoryModel } from "@zocomputer/agent-sdk";
+
+export default function agent() {
+  if (process.env.MY_AGENT_MOCK_MODEL === "1") {
+    return defineAgent({ model: createMockStoryModel() });
+  }
+  return defineAgent({ model: "anthropic/claude-opus-4.8" });
+}
+```
+
+(The coder example wires this as `CODER_MOCK_MODEL=1`; rib as
+`RIB_MOCK_MODEL=1`.)
+
+A turn with no directive streams a long, paced deterministic story — a turn
+that stays in-flight exactly as long as your test needs (`chunkCount` ×
+`chunkDelayMs`), with the asking prompt echoed into the output so parallel
+chats stay distinguishable. A `[mock:<scenario>]` directive in the user
+message scripts the turn instead:
+
+| Directive | What it drives |
+| --- | --- |
+| `[mock:hitl]` | One `ask_question` call (styled options + freeform) → park → answer → wrap-up. |
+| `[mock:parallel]` | TWO `ask_question` calls in one response — both pend on a single park; one respond resumes. |
+| `[mock:todo]` | Writes a 4-item todo list, then updates it (completed/cancelled), then wraps up. |
+| `[mock:explore]` | Delegates to a declared subagent (default tool name `explore` — requires one; see step 6). |
+| `[mock:fail]` | A few deltas, then a terminal stream error — the deterministic failed-turn trigger. |
+| `[mock:burst]` | `burstChunks` unpaced deltas — the renderer-throughput probe. |
+| `[mock:markdown]` | Structure-heavy markdown split across deltas (fences, tables, unicode) — streaming-renderer stability. |
+| `[mock:interleave]` | Alternating reasoning and text blocks in one message, like extended-thinking models stream. |
+| `[mock:empty]` | A completion with zero content parts. |
+
+Scripted tool inputs stream as fragmented `tool-input-delta` parts (like a
+real model), each scripted step opens with a reasoning burst so "Thinking…"
+renders, and every stream — including aborted ones — is grammatical (blocks
+close, a terminal part ends the stream; pinned by the package's conformance
+tests, which also validate the scripted `ask_question`/`todo` inputs against
+the installed eve's own framework-tool schemas). Inject `now` for
+byte-deterministic streams. Because the mock is credential-free, `eve eval`
+suites built on it can run end-to-end in CI — rib's `evals-mock/` tree is the
+reference setup.
+
 ## Tool behavior
 
 The names are deliberately boring; the behavior behind them is the point:
