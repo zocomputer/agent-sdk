@@ -93,7 +93,7 @@ function runOverSsh(
 ): Promise<{ exitCode: number; stdout: string; stderr: string }> {
   return new Promise((resolve, reject) => {
     conn.exec(command, (err, stream) => {
-      if (err) return reject(err);
+      if (err) { reject(err); return; }
       let stdout = "";
       let stderr = "";
       stream
@@ -187,7 +187,7 @@ export async function streamToBytes(
   let onAbort: (() => void) | undefined;
   const aborted = new Promise<never>((_, reject) => {
     if (abortSignal === undefined) return;
-    if (abortSignal.aborted) return reject(abortReason());
+    if (abortSignal.aborted) { reject(abortReason()); return; }
     onAbort = () => reject(abortReason());
     abortSignal.addEventListener("abort", onAbort, { once: true });
   });
@@ -199,10 +199,8 @@ export async function streamToBytes(
           ? await reader.read()
           : await Promise.race([reader.read(), aborted]);
       if (done) break;
-      if (value !== undefined) {
-        chunks.push(value);
-        total += value.length;
-      }
+      chunks.push(value);
+      total += value.length;
     }
   } catch (e) {
     await reader.cancel(e); // abort (or a read error) → release the producer
@@ -294,7 +292,7 @@ function spawnOverSsh(
 }> {
   return new Promise((resolve, reject) => {
     conn.exec(command, (err, stream) => {
-      if (err) return reject(err);
+      if (err) { reject(err); return; }
       resolve(buildSpawnedProcess(stream, options));
     });
   });

@@ -1,7 +1,7 @@
-// ../../../../../tmp/agent-sdk-mirror-hCq5RY/repo/platform/agent-sandbox/zo-sandbox.ts
+// ../../../../../tmp/agent-sdk-mirror-UOn1CJ/repo/platform/agent-sandbox/zo-sandbox.ts
 import { defineSandbox } from "eve/sandbox";
 
-// ../../../../../tmp/agent-sdk-mirror-hCq5RY/repo/platform/runtime-auth/index.ts
+// ../../../../../tmp/agent-sdk-mirror-UOn1CJ/repo/platform/runtime-auth/index.ts
 import { SignJWT, jwtVerify } from "jose";
 var AGENT_TOKEN_HEADER = "x-zo-agent-token";
 var EVE_SESSION_HEADER = "x-zo-eve-session";
@@ -16,7 +16,7 @@ var BUILDER_AGENT_IDENTITY = {
   ownerOrgId: ZO_PLATFORM_ORG.id
 };
 
-// ../../../../../tmp/agent-sdk-mirror-hCq5RY/repo/platform/agent-sandbox/api-client.ts
+// ../../../../../tmp/agent-sdk-mirror-UOn1CJ/repo/platform/agent-sandbox/api-client.ts
 function parseSandboxAccess(value) {
   if (typeof value !== "object" || value === null)
     return null;
@@ -49,11 +49,11 @@ async function requestSandboxAccess(input) {
   return parsed;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-hCq5RY/repo/platform/agent-sandbox/ssh-session.ts
+// ../../../../../tmp/agent-sdk-mirror-UOn1CJ/repo/platform/agent-sandbox/ssh-session.ts
 import { Client } from "ssh2";
 import { extractLines } from "@ai-sdk/provider-utils";
 
-// ../../../../../tmp/agent-sdk-mirror-hCq5RY/repo/platform/agent-sandbox/pure.ts
+// ../../../../../tmp/agent-sdk-mirror-UOn1CJ/repo/platform/agent-sandbox/pure.ts
 import { Buffer as Buffer2 } from "node:buffer";
 import path from "node:path";
 function resolveSandboxPath(workDir, p) {
@@ -93,7 +93,7 @@ function encodeText(text, encoding) {
   return new Uint8Array(Buffer2.from(text, enc));
 }
 
-// ../../../../../tmp/agent-sdk-mirror-hCq5RY/repo/platform/agent-sandbox/ssh-connection.ts
+// ../../../../../tmp/agent-sdk-mirror-UOn1CJ/repo/platform/agent-sandbox/ssh-connection.ts
 function isExpired(access, skewMs, now) {
   const expiry = Date.parse(access.expiresAt);
   if (Number.isNaN(expiry))
@@ -184,7 +184,7 @@ class SshConnectionManager {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-hCq5RY/repo/platform/agent-sandbox/ssh-exec.ts
+// ../../../../../tmp/agent-sdk-mirror-UOn1CJ/repo/platform/agent-sandbox/ssh-exec.ts
 var SIGNAL_EXIT_CODE = 137;
 function abortError(signal) {
   return signal.reason instanceof Error ? signal.reason : new Error(typeof signal.reason === "string" ? signal.reason : "aborted");
@@ -206,10 +206,14 @@ function awaitCommand(stream, abortSignal) {
         return;
       settled = true;
       abortSignal?.removeEventListener("abort", onAbort);
-      if (abortSignal?.aborted)
-        return reject(abortError(abortSignal));
-      if (channelError !== undefined)
-        return reject(channelError);
+      if (abortSignal?.aborted) {
+        reject(abortError(abortSignal));
+        return;
+      }
+      if (channelError !== undefined) {
+        reject(channelError);
+        return;
+      }
       const sig = signal;
       const reconciled = sig != null ? SIGNAL_EXIT_CODE : code ?? 0;
       resolve({ exitCode: reconciled, signal: sig });
@@ -233,7 +237,7 @@ function awaitCommand(stream, abortSignal) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-hCq5RY/repo/platform/agent-sandbox/sftp.ts
+// ../../../../../tmp/agent-sdk-mirror-UOn1CJ/repo/platform/agent-sandbox/sftp.ts
 import path2 from "node:path";
 var SFTP_NO_SUCH_FILE = 2;
 function isNoSuchFile(error) {
@@ -246,8 +250,10 @@ function getSftp(client) {
     return existing;
   const opening = new Promise((resolve, reject) => {
     client.sftp((err, sftp) => {
-      if (err)
-        return reject(err);
+      if (err) {
+        reject(err);
+        return;
+      }
       const evict = () => {
         if (sftpByClient.get(client) === opening)
           sftpByClient.delete(client);
@@ -266,8 +272,10 @@ function getSftp(client) {
 function exec(client, command) {
   return new Promise((resolve, reject) => {
     client.exec(command, (err, stream) => {
-      if (err)
-        return reject(err);
+      if (err) {
+        reject(err);
+        return;
+      }
       let stderr = "";
       stream.on("data", () => {}).stderr.on("data", (d) => stderr += d.toString());
       awaitCommand(stream).then(({ exitCode }) => resolve({ exitCode, stderr }), reject);
@@ -287,8 +295,13 @@ async function sftpReadBytes(client, remotePath) {
   const sftp = await getSftp(client);
   return await new Promise((resolve, reject) => {
     sftp.readFile(remotePath, (err, buf) => {
-      if (err)
-        return isNoSuchFile(err) ? resolve(null) : reject(err);
+      if (err) {
+        if (isNoSuchFile(err))
+          resolve(null);
+        else
+          reject(err);
+        return;
+      }
       resolve(new Uint8Array(buf));
     });
   });
@@ -309,7 +322,7 @@ async function removePath(client, remotePath, opts = {}) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-hCq5RY/repo/platform/agent-sandbox/ssh-session.ts
+// ../../../../../tmp/agent-sdk-mirror-UOn1CJ/repo/platform/agent-sandbox/ssh-session.ts
 var WORK_DIR = "/home/daytona";
 var EXPIRY_SKEW_MS = 30000;
 var SSH_PORT = 22;
@@ -327,8 +340,10 @@ function connectSsh(access) {
 function runOverSsh(conn, command, options = {}) {
   return new Promise((resolve, reject) => {
     conn.exec(command, (err, stream) => {
-      if (err)
-        return reject(err);
+      if (err) {
+        reject(err);
+        return;
+      }
       let stdout = "";
       let stderr = "";
       stream.on("data", (d) => stdout += d.toString()).stderr.on("data", (d) => stderr += d.toString());
@@ -372,8 +387,10 @@ async function streamToBytes(stream, abortSignal) {
   const aborted = new Promise((_, reject) => {
     if (abortSignal === undefined)
       return;
-    if (abortSignal.aborted)
-      return reject(abortReason());
+    if (abortSignal.aborted) {
+      reject(abortReason());
+      return;
+    }
     onAbort = () => reject(abortReason());
     abortSignal.addEventListener("abort", onAbort, { once: true });
   });
@@ -382,10 +399,8 @@ async function streamToBytes(stream, abortSignal) {
       const { done, value } = abortSignal === undefined ? await reader.read() : await Promise.race([reader.read(), aborted]);
       if (done)
         break;
-      if (value !== undefined) {
-        chunks.push(value);
-        total += value.length;
-      }
+      chunks.push(value);
+      total += value.length;
     }
   } catch (e) {
     await reader.cancel(e);
@@ -445,8 +460,10 @@ function nodeToWebStream(node) {
 function spawnOverSsh(conn, command, options = {}) {
   return new Promise((resolve, reject) => {
     conn.exec(command, (err, stream) => {
-      if (err)
-        return reject(err);
+      if (err) {
+        reject(err);
+        return;
+      }
       resolve(buildSpawnedProcess(stream, options));
     });
   });
@@ -561,7 +578,7 @@ function sshSandboxSession(id, acquireAccess) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-hCq5RY/repo/platform/agent-sandbox/zo-backend.ts
+// ../../../../../tmp/agent-sdk-mirror-UOn1CJ/repo/platform/agent-sandbox/zo-backend.ts
 var BACKEND_NAME = "zo";
 function zoBackend(options) {
   return {
@@ -596,7 +613,7 @@ function zoBackend(options) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-hCq5RY/repo/platform/agent-sandbox/zo-sandbox.ts
+// ../../../../../tmp/agent-sdk-mirror-UOn1CJ/repo/platform/agent-sandbox/zo-sandbox.ts
 var DEFAULT_API_URL = "http://api.zo.localhost:4000";
 function zoSandbox(options = {}) {
   return defineSandbox({

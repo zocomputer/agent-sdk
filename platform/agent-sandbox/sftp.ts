@@ -38,7 +38,7 @@ function getSftp(client: Client): Promise<SFTPWrapper> {
   if (existing !== undefined) return existing;
   const opening = new Promise<SFTPWrapper>((resolve, reject) => {
     client.sftp((err, sftp) => {
-      if (err) return reject(err);
+      if (err) { reject(err); return; }
       // Drop the cache entry if this channel dies, so we reopen next time.
       const evict = (): void => {
         if (sftpByClient.get(client) === opening) sftpByClient.delete(client);
@@ -66,7 +66,7 @@ function exec(
 ): Promise<{ exitCode: number; stderr: string }> {
   return new Promise((resolve, reject) => {
     client.exec(command, (err, stream) => {
-      if (err) return reject(err);
+      if (err) { reject(err); return; }
       let stderr = "";
       stream.on("data", () => {}).stderr.on("data", (d: Buffer) => (stderr += d.toString()));
       awaitCommand(stream).then(
@@ -95,7 +95,11 @@ export async function sftpReadBytes(
   const sftp = await getSftp(client);
   return await new Promise<Uint8Array | null>((resolve, reject) => {
     sftp.readFile(remotePath, (err, buf) => {
-      if (err) return isNoSuchFile(err) ? resolve(null) : reject(err);
+      if (err) {
+        if (isNoSuchFile(err)) resolve(null);
+        else reject(err);
+        return;
+      }
       resolve(new Uint8Array(buf));
     });
   });

@@ -136,9 +136,12 @@ describe("SshConnectionManager", () => {
   });
 
   test("dispose mid-connect: closes the connection, doesn't install it", async () => {
-    // Gate the connect so we can dispose() while it's in flight.
-    let releaseConnect: (() => void) | null = null;
-    const gate = new Promise<void>((r) => (releaseConnect = r));
+    // Gate the connect so we can dispose() while it's in flight. The no-op is
+    // replaced synchronously by the Promise executor before anything awaits.
+    let releaseConnect = (): void => {};
+    const gate = new Promise<void>((r) => {
+      releaseConnect = r;
+    });
     const conns: ReturnType<typeof fakeConn>[] = [];
     let mintCount = 0;
 
@@ -159,7 +162,7 @@ describe("SshConnectionManager", () => {
 
     const pending = manager.ensure();
     manager.dispose(); // dispose while connect is blocked
-    releaseConnect!(); // now let connect resolve
+    releaseConnect(); // now let connect resolve
 
     await expect(pending).rejects.toThrow(/disposed/);
     // No connection is left installed or leaked: either we bailed before connect

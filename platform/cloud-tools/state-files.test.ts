@@ -1,10 +1,16 @@
 import { describe, expect, test } from "bun:test";
 import { createRuntimeStateFilesClient, normalizeStateFilePath, stateAssetReference } from "./state-files";
 
-function jsonResponse(body: unknown, init?: ResponseInit): Response {
+// `headers` is a plain record (not the full `HeadersInit`) so the object
+// spread below can't hit the array/`Headers` forms, which would spread into
+// numeric indices.
+function jsonResponse(
+  body: unknown,
+  init?: { status?: number; headers?: Record<string, string> },
+): Response {
   return new Response(JSON.stringify(body), {
     ...init,
-    headers: { "content-type": "application/json", ...(init?.headers ?? {}) },
+    headers: { "content-type": "application/json", ...init?.headers },
   });
 }
 

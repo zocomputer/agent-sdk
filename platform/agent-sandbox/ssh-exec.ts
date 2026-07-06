@@ -65,8 +65,8 @@ export function awaitCommand(
       if (settled) return;
       settled = true;
       abortSignal?.removeEventListener("abort", onAbort);
-      if (abortSignal?.aborted) return reject(abortError(abortSignal));
-      if (channelError !== undefined) return reject(channelError);
+      if (abortSignal?.aborted) { reject(abortError(abortSignal)); return; }
+      if (channelError !== undefined) { reject(channelError); return; }
       const sig = signal;
       const reconciled = sig != null ? SIGNAL_EXIT_CODE : (code ?? 0);
       resolve({ exitCode: reconciled, signal: sig });

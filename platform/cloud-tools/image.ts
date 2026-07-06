@@ -152,7 +152,10 @@ function warningText(warning: unknown): string {
     return warning;
   }
 
-  return JSON.stringify(warning) ?? String(warning);
+  // The lib overload says `JSON.stringify` returns `string`, but it really
+  // returns `undefined` for symbols/functions — widen it back.
+  const json = JSON.stringify(warning) as string | undefined;
+  return json ?? String(warning);
 }
 
 function randomImageId(): string {

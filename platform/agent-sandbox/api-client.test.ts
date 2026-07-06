@@ -38,9 +38,9 @@ function jsonResponse(body: unknown, status = 200): Response {
 
 describe("requestSandboxAccess", () => {
   test("POSTs the eve session key and returns the scoped access", async () => {
-    let captured: { url: string; body: unknown } | null = null;
+    const calls: { url: string; body: unknown }[] = [];
     const fakeFetch = (async (url, init) => {
-      captured = { url: String(url), body: JSON.parse(bodyText(init)) };
+      calls.push({ url, body: JSON.parse(bodyText(init)) });
       return jsonResponse(OK_BODY);
     }) satisfies FetchLike;
 
@@ -51,8 +51,10 @@ describe("requestSandboxAccess", () => {
     });
 
     expect(access).toEqual(OK_BODY);
-    expect(captured!.url).toBe("http://api.test/sandbox/session");
-    expect(captured!.body).toEqual({ eveSessionKey: "ses-abc" });
+    const captured = calls[0];
+    if (captured === undefined) throw new Error("fetch was never called");
+    expect(captured.url).toBe("http://api.test/sandbox/session");
+    expect(captured.body).toEqual({ eveSessionKey: "ses-abc" });
   });
 
   test("sends only the session key (API is authoritative on the sandbox)", async () => {
