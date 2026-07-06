@@ -6,6 +6,8 @@
     "node": "24.x"
   },
   "scripts": {
+    "preinstall": "rm -rf node_modules/@zocomputer/agent-sdk",
+    "postinstall": "rm -rf node_modules/@zocomputer/agent-sdk && mkdir -p node_modules/@zocomputer && ln -s ../../../.. node_modules/@zocomputer/agent-sdk",
     "dev": "eve dev",
     "build": "eve build",
     "start": "eve start",
@@ -14,7 +16,6 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@zocomputer/agent-sdk": "file:../..",
     "eve": "^0.16.0",
     "zod": "^4.4.3"
   },
