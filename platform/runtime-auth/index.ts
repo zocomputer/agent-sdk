@@ -20,6 +20,15 @@ export const AGENT_TOKEN_HEADER = "x-zo-agent-token";
 /** The eve session the agent's call is for — carried onto the context as `eveSessionId`. */
 export const EVE_SESSION_HEADER = "x-zo-eve-session";
 
+/**
+ * The eve turn the agent's call belongs to. Descriptive metering detail (it lands
+ * in `UsageEvent.metadata.turnId`, never attribution/ownership): a model step's
+ * usage row is turn-linkable via its generation id against eve's stored steps,
+ * but a Zo-paid tool's own gateway call is invisible to eve's step machinery —
+ * this header is what pins a `tool_use` row to its exact turn.
+ */
+export const EVE_TURN_HEADER = "x-zo-eve-turn";
+
 /** Env var a runtime reads its agent token from (injected by its launcher). */
 export const AGENT_TOKEN_ENV = "ZO_AGENT_TOKEN";
 

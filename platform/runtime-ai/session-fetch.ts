@@ -25,11 +25,21 @@
  */
 export const EVE_SESSION_HEADER = "x-zo-eve-session";
 
+/**
+ * Mirrors `@zocomputer/runtime-auth`'s `EVE_TURN_HEADER` (same duplication rule).
+ * Descriptive metering detail — it lands in `UsageEvent.metadata.turnId` and pins a
+ * Zo-paid tool's own gateway call (invisible to eve's step machinery) to its turn.
+ */
+export const EVE_TURN_HEADER = "x-zo-eve-turn";
+
 /** The process-wide slot eve publishes its context `AsyncLocalStorage` under. */
 const EVE_CONTEXT_STORAGE_KEY = Symbol.for("eve.context-storage");
 
 /** `SessionIdKey.name` in eve — a durable serialized key, so it can't drift casually. */
 const SESSION_ID_KEY_NAME = "eve.sessionId";
+
+/** `SessionKey.name` in eve — the durable session object carrying `turn.id`. */
+const SESSION_KEY_NAME = "eve.session";
 
 /** Narrow structural check: a non-null object carrying a function under `name`. */
 function hasMethod<K extends string>(
@@ -49,13 +59,32 @@ function hasMethod<K extends string>(
  * background model-metadata refresh) or a runtime without eve simply reads no slot.
  */
 export function ambientEveSessionId(): string | undefined {
+  const value = ambientContextValue(SESSION_ID_KEY_NAME);
+  return typeof value === "string" && value.trim().length > 0 ? value : undefined;
+}
+
+/**
+ * The eve turn id of the call currently in scope, or `undefined`. Read from the
+ * durable session object (`SessionKey` → `{ sessionId, turn: { id } }`) with the
+ * same runtime checks as the session read — never throws, never trusts shape.
+ */
+export function ambientEveTurnId(): string | undefined {
+  const session = ambientContextValue(SESSION_KEY_NAME);
+  if (typeof session !== "object" || session === null) return undefined;
+  const turn = (session as Record<string, unknown>)["turn"];
+  if (typeof turn !== "object" || turn === null) return undefined;
+  const id = (turn as Record<string, unknown>)["id"];
+  return typeof id === "string" && id.trim().length > 0 ? id : undefined;
+}
+
+/** One guarded read of eve's process-wide context slot by key name. */
+function ambientContextValue(keyName: string): unknown {
   const storage: unknown = Reflect.get(globalThis, EVE_CONTEXT_STORAGE_KEY);
   if (!hasMethod(storage, "getStore")) return undefined;
   const store = storage.getStore();
   // The store is eve's context container; `get` reads a key by its `.name`.
   if (!hasMethod(store, "get")) return undefined;
-  const value = store.get({ name: SESSION_ID_KEY_NAME });
-  return typeof value === "string" && value.trim().length > 0 ? value : undefined;
+  return store.get({ name: keyName });
 }
 
 /**
@@ -71,6 +100,7 @@ type FetchInit = Parameters<typeof globalThis.fetch>[1];
 export function eveSessionFetch(
   getSessionId: () => string | undefined = ambientEveSessionId,
   baseFetch: typeof globalThis.fetch = globalThis.fetch,
+  getTurnId: () => string | undefined = ambientEveTurnId,
 ): typeof globalThis.fetch {
   return Object.assign((input: FetchInput, init?: FetchInit) => {
     const sessionId = getSessionId()?.trim();
@@ -81,6 +111,14 @@ export function eveSessionFetch(
       init?.headers ?? (input instanceof Request ? input.headers : undefined),
     );
     headers.set(EVE_SESSION_HEADER, sessionId);
+    // The turn only rides with a session — a turn id with no session id would be
+    // unjoinable noise, so the whole stamp is gated on the session being present.
+    // Like the session header, the ambient value is AUTHORITATIVE either way: a
+    // stale pre-existing turn header is overwritten when a turn is in scope and
+    // removed when one isn't, so it can never mislabel a row's metadata.turnId.
+    const turnId = getTurnId()?.trim();
+    if (turnId) headers.set(EVE_TURN_HEADER, turnId);
+    else headers.delete(EVE_TURN_HEADER);
     return baseFetch(input, { ...init, headers });
   }, baseFetch);
 }

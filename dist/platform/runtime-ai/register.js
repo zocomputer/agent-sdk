@@ -1,35 +1,55 @@
-// ../../../../../tmp/agent-sdk-mirror-Qk3IdS/repo/platform/runtime-ai/gateway.ts
+// ../../../../../tmp/agent-sdk-mirror-Fbmnuq/repo/platform/runtime-ai/gateway.ts
 import { createGateway } from "ai";
 
-// ../../../../../tmp/agent-sdk-mirror-Qk3IdS/repo/platform/runtime-ai/session-fetch.ts
+// ../../../../../tmp/agent-sdk-mirror-Fbmnuq/repo/platform/runtime-ai/session-fetch.ts
 var EVE_SESSION_HEADER = "x-zo-eve-session";
+var EVE_TURN_HEADER = "x-zo-eve-turn";
 var EVE_CONTEXT_STORAGE_KEY = Symbol.for("eve.context-storage");
 var SESSION_ID_KEY_NAME = "eve.sessionId";
+var SESSION_KEY_NAME = "eve.session";
 function hasMethod(value, name) {
   return typeof value === "object" && value !== null && typeof value[name] === "function";
 }
 function ambientEveSessionId() {
+  const value = ambientContextValue(SESSION_ID_KEY_NAME);
+  return typeof value === "string" && value.trim().length > 0 ? value : undefined;
+}
+function ambientEveTurnId() {
+  const session = ambientContextValue(SESSION_KEY_NAME);
+  if (typeof session !== "object" || session === null)
+    return;
+  const turn = session["turn"];
+  if (typeof turn !== "object" || turn === null)
+    return;
+  const id = turn["id"];
+  return typeof id === "string" && id.trim().length > 0 ? id : undefined;
+}
+function ambientContextValue(keyName) {
   const storage = Reflect.get(globalThis, EVE_CONTEXT_STORAGE_KEY);
   if (!hasMethod(storage, "getStore"))
     return;
   const store = storage.getStore();
   if (!hasMethod(store, "get"))
     return;
-  const value = store.get({ name: SESSION_ID_KEY_NAME });
-  return typeof value === "string" && value.trim().length > 0 ? value : undefined;
+  return store.get({ name: keyName });
 }
-function eveSessionFetch(getSessionId = ambientEveSessionId, baseFetch = globalThis.fetch) {
+function eveSessionFetch(getSessionId = ambientEveSessionId, baseFetch = globalThis.fetch, getTurnId = ambientEveTurnId) {
   return Object.assign((input, init) => {
     const sessionId = getSessionId()?.trim();
     if (!sessionId)
       return baseFetch(input, init);
     const headers = new Headers(init?.headers ?? (input instanceof Request ? input.headers : undefined));
     headers.set(EVE_SESSION_HEADER, sessionId);
+    const turnId = getTurnId()?.trim();
+    if (turnId)
+      headers.set(EVE_TURN_HEADER, turnId);
+    else
+      headers.delete(EVE_TURN_HEADER);
     return baseFetch(input, { ...init, headers });
   }, baseFetch);
 }
 
-// ../../../../../tmp/agent-sdk-mirror-Qk3IdS/repo/platform/runtime-ai/gateway.ts
+// ../../../../../tmp/agent-sdk-mirror-Fbmnuq/repo/platform/runtime-ai/gateway.ts
 var DEFAULT_ZO_AI_BASE_URL = "http://localhost:4000/runtime/ai/v4/ai";
 var DEFAULT_ZO_AI_KEY = "dev-proxy";
 function resolveZoGatewayBaseUrl(baseURL = process.env.ZO_AI_BASE_URL) {
@@ -49,7 +69,7 @@ function zoGateway(options = {}) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-Qk3IdS/repo/platform/runtime-ai/register.ts
+// ../../../../../tmp/agent-sdk-mirror-Fbmnuq/repo/platform/runtime-ai/register.ts
 var SLOT = "AI_SDK_DEFAULT_PROVIDER";
 if (!(SLOT in globalThis)) {
   Object.defineProperty(globalThis, SLOT, {

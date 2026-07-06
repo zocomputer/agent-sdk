@@ -4,7 +4,9 @@ import { dirname, join } from "node:path";
 import { pathToFileURL } from "node:url";
 import {
   EVE_SESSION_HEADER,
+  EVE_TURN_HEADER,
   ambientEveSessionId,
+  ambientEveTurnId,
   eveSessionFetch,
 } from "./session-fetch";
 
@@ -81,6 +83,53 @@ describe("eveSessionFetch", () => {
     expect(onlyCall(calls).init).toBeUndefined();
   });
 
+  test("stamps the turn id alongside the session id", async () => {
+    const { calls, fetch } = captureFetch();
+    const wrapped = eveSessionFetch(() => "ses-123", fetch, () => "turn-9");
+    await wrapped("https://api.example.com/v4/ai");
+    const call = onlyCall(calls);
+    expect(headerOf(call, EVE_SESSION_HEADER)).toBe("ses-123");
+    expect(headerOf(call, EVE_TURN_HEADER)).toBe("turn-9");
+  });
+
+  test("no turn in scope → only the session header", async () => {
+    const { calls, fetch } = captureFetch();
+    const wrapped = eveSessionFetch(() => "ses-123", fetch, () => undefined);
+    await wrapped("https://api.example.com/v4/ai");
+    const call = onlyCall(calls);
+    expect(headerOf(call, EVE_SESSION_HEADER)).toBe("ses-123");
+    expect(headerOf(call, EVE_TURN_HEADER)).toBeNull();
+  });
+
+  test("a stale pre-existing turn header is overwritten or removed (ambient is authoritative)", async () => {
+    const { calls, fetch } = captureFetch();
+    // Ambient turn present → stale value overwritten.
+    const withTurn = eveSessionFetch(() => "ses-123", fetch, () => "turn-new");
+    await withTurn("https://api.example.com/v4/ai", {
+      headers: { [EVE_TURN_HEADER]: "turn-stale" },
+    });
+    expect(headerOf(onlyCall(calls), EVE_TURN_HEADER)).toBe("turn-new");
+    // Ambient turn absent → stale value removed, never forwarded.
+    calls.length = 0;
+    const withoutTurn = eveSessionFetch(() => "ses-123", fetch, () => undefined);
+    await withoutTurn("https://api.example.com/v4/ai", {
+      headers: { [EVE_TURN_HEADER]: "turn-stale" },
+    });
+    const call = calls[0];
+    if (!call) throw new Error("fetch not called");
+    expect(headerOf(call, EVE_TURN_HEADER)).toBeNull();
+    expect(headerOf(call, EVE_SESSION_HEADER)).toBe("ses-123");
+  });
+
+  test("a turn with no session stamps nothing (unjoinable noise)", async () => {
+    const { calls, fetch } = captureFetch();
+    const wrapped = eveSessionFetch(() => undefined, fetch, () => "turn-9");
+    await wrapped("https://api.example.com/v4/ai");
+    const call = onlyCall(calls);
+    expect(headerOf(call, EVE_SESSION_HEADER)).toBeNull();
+    expect(headerOf(call, EVE_TURN_HEADER)).toBeNull();
+  });
+
   test("carries a Request input's headers when no init is given", async () => {
     const { calls, fetch } = captureFetch();
     const wrapped = eveSessionFetch(() => "ses-123", fetch);
@@ -135,6 +184,23 @@ describe("ambientEveSessionId", () => {
     expect(withSlot(storage, () => ambientEveSessionId())).toBeUndefined();
   });
 
+  test("ambientEveTurnId reads session.turn.id, rejecting malformed shapes", () => {
+    const storageOf = (value: unknown) => ({
+      getStore: () => ({
+        get: (key: { name: string }) => (key.name === "eve.session" ? value : undefined),
+      }),
+    });
+    expect(
+      withSlot(storageOf({ sessionId: "s", turn: { id: "turn-1", sequence: 0 } }), () =>
+        ambientEveTurnId(),
+      ),
+    ).toBe("turn-1");
+    expect(withSlot(storageOf(null), () => ambientEveTurnId())).toBeUndefined();
+    expect(withSlot(storageOf({ turn: null }), () => ambientEveTurnId())).toBeUndefined();
+    expect(withSlot(storageOf({ turn: { id: 42 } }), () => ambientEveTurnId())).toBeUndefined();
+    expect(withSlot(storageOf({ turn: { id: "  " } }), () => ambientEveTurnId())).toBeUndefined();
+  });
+
   test("non-string or blank slot value → undefined", () => {
     const storageOf = (value: unknown) => ({
       getStore: () => ({ get: () => value }),
@@ -177,8 +243,12 @@ describe("eve contract", () => {
         run<T>(store: unknown, fn: () => T): T;
       };
     };
-    const { SessionIdKey } = keysMod as { SessionIdKey: { name: string } };
+    const { SessionIdKey, SessionKey } = keysMod as {
+      SessionIdKey: { name: string };
+      SessionKey: { name: string };
+    };
     expect(SessionIdKey.name).toBe("eve.sessionId");
+    expect(SessionKey.name).toBe("eve.session");
     // Importing eve's container module published the storage on the global slot.
     expect(Reflect.get(globalThis, Symbol.for("eve.context-storage"))).toBe(
       contextStorage,
@@ -186,13 +256,21 @@ describe("eve contract", () => {
 
     const container = new ContextContainer();
     container.set(SessionIdKey, "ses-real-eve");
+    // The durable session object, as eve seeds it (the shape ambientEveTurnId reads).
+    container.set(SessionKey, {
+      sessionId: "ses-real-eve",
+      auth: { current: null, initiator: null },
+      turn: { id: "turn-real-eve", sequence: 3 },
+    });
 
     const { calls, fetch } = captureFetch();
     const wrapped = eveSessionFetch(undefined, fetch);
     await contextStorage.run(container, () =>
       wrapped("https://api.example.com/v4/ai", { method: "POST" }),
     );
-    expect(headerOf(onlyCall(calls), EVE_SESSION_HEADER)).toBe("ses-real-eve");
+    const call = onlyCall(calls);
+    expect(headerOf(call, EVE_SESSION_HEADER)).toBe("ses-real-eve");
+    expect(headerOf(call, EVE_TURN_HEADER)).toBe("turn-real-eve");
   });
 
   test("outside the ALS scope the wrapper stamps nothing", async () => {

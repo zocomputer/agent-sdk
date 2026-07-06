@@ -1,41 +1,61 @@
-// ../../../../../tmp/agent-sdk-mirror-Qk3IdS/repo/platform/cloud-tools/image.ts
+// ../../../../../tmp/agent-sdk-mirror-Fbmnuq/repo/platform/cloud-tools/image.ts
 import { randomUUID } from "node:crypto";
 import { generateImage } from "ai";
 import { defineTool } from "eve/tools";
 import { z } from "zod";
 
-// ../../../../../tmp/agent-sdk-mirror-Qk3IdS/repo/platform/runtime-ai/gateway.ts
+// ../../../../../tmp/agent-sdk-mirror-Fbmnuq/repo/platform/runtime-ai/gateway.ts
 import { createGateway } from "ai";
 
-// ../../../../../tmp/agent-sdk-mirror-Qk3IdS/repo/platform/runtime-ai/session-fetch.ts
+// ../../../../../tmp/agent-sdk-mirror-Fbmnuq/repo/platform/runtime-ai/session-fetch.ts
 var EVE_SESSION_HEADER = "x-zo-eve-session";
+var EVE_TURN_HEADER = "x-zo-eve-turn";
 var EVE_CONTEXT_STORAGE_KEY = Symbol.for("eve.context-storage");
 var SESSION_ID_KEY_NAME = "eve.sessionId";
+var SESSION_KEY_NAME = "eve.session";
 function hasMethod(value, name) {
   return typeof value === "object" && value !== null && typeof value[name] === "function";
 }
 function ambientEveSessionId() {
+  const value = ambientContextValue(SESSION_ID_KEY_NAME);
+  return typeof value === "string" && value.trim().length > 0 ? value : undefined;
+}
+function ambientEveTurnId() {
+  const session = ambientContextValue(SESSION_KEY_NAME);
+  if (typeof session !== "object" || session === null)
+    return;
+  const turn = session["turn"];
+  if (typeof turn !== "object" || turn === null)
+    return;
+  const id = turn["id"];
+  return typeof id === "string" && id.trim().length > 0 ? id : undefined;
+}
+function ambientContextValue(keyName) {
   const storage = Reflect.get(globalThis, EVE_CONTEXT_STORAGE_KEY);
   if (!hasMethod(storage, "getStore"))
     return;
   const store = storage.getStore();
   if (!hasMethod(store, "get"))
     return;
-  const value = store.get({ name: SESSION_ID_KEY_NAME });
-  return typeof value === "string" && value.trim().length > 0 ? value : undefined;
+  return store.get({ name: keyName });
 }
-function eveSessionFetch(getSessionId = ambientEveSessionId, baseFetch = globalThis.fetch) {
+function eveSessionFetch(getSessionId = ambientEveSessionId, baseFetch = globalThis.fetch, getTurnId = ambientEveTurnId) {
   return Object.assign((input, init) => {
     const sessionId = getSessionId()?.trim();
     if (!sessionId)
       return baseFetch(input, init);
     const headers = new Headers(init?.headers ?? (input instanceof Request ? input.headers : undefined));
     headers.set(EVE_SESSION_HEADER, sessionId);
+    const turnId = getTurnId()?.trim();
+    if (turnId)
+      headers.set(EVE_TURN_HEADER, turnId);
+    else
+      headers.delete(EVE_TURN_HEADER);
     return baseFetch(input, { ...init, headers });
   }, baseFetch);
 }
 
-// ../../../../../tmp/agent-sdk-mirror-Qk3IdS/repo/platform/runtime-ai/gateway.ts
+// ../../../../../tmp/agent-sdk-mirror-Fbmnuq/repo/platform/runtime-ai/gateway.ts
 var ZO_TOOL_HEADER = "x-zo-tool";
 var DEFAULT_ZO_AI_BASE_URL = "http://localhost:4000/runtime/ai/v4/ai";
 var DEFAULT_ZO_AI_KEY = "dev-proxy";
@@ -55,7 +75,7 @@ function zoGateway(options = {}) {
     fetch: eveSessionFetch(undefined, options.fetch)
   });
 }
-// ../../../../../tmp/agent-sdk-mirror-Qk3IdS/repo/platform/cloud-tools/image-path.ts
+// ../../../../../tmp/agent-sdk-mirror-Fbmnuq/repo/platform/cloud-tools/image-path.ts
 var DEFAULT_IMAGE_OUTPUT_DIR = "generated";
 var MEDIA_TYPE_EXTENSIONS = {
   "image/jpeg": "jpg",
@@ -79,14 +99,14 @@ function imageOutputPath(input) {
   return `${normalizedOutputDir(input.outputDir)}/${slugForPrompt(input.prompt)}-${input.id}.${extensionForMediaType(input.mediaType)}`;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-Qk3IdS/repo/platform/cloud-tools/tool-meta.ts
+// ../../../../../tmp/agent-sdk-mirror-Fbmnuq/repo/platform/cloud-tools/tool-meta.ts
 var CLOUD_TOOL_META = {
   image: {
     description: "Generate an image from a text prompt and save it as an external state asset."
   }
 };
 
-// ../../../../../tmp/agent-sdk-mirror-Qk3IdS/repo/platform/cloud-tools/state-files.ts
+// ../../../../../tmp/agent-sdk-mirror-Fbmnuq/repo/platform/cloud-tools/state-files.ts
 var DEFAULT_STATE_ASSET_DECLARATION_NAME = "files";
 var STATE_FILES_HANDLE_PATH = "/state/handles";
 var ZO_AGENT_TOKEN_HEADER = "x-zo-agent-token";
@@ -339,7 +359,7 @@ function readString(record, key) {
   return typeof value === "string" && value.length > 0 ? value : null;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-Qk3IdS/repo/platform/cloud-tools/image.ts
+// ../../../../../tmp/agent-sdk-mirror-Fbmnuq/repo/platform/cloud-tools/image.ts
 var DEFAULT_IMAGE_MODEL = "bfl/flux-2-pro";
 function isImageSize(value) {
   return typeof value === "string" && /^[1-9]\d{1,4}x[1-9]\d{1,4}$/u.test(value);
@@ -462,7 +482,7 @@ function generateImageTool(options = {}) {
   });
 }
 var image_default = generateImageTool();
-// ../../../../../tmp/agent-sdk-mirror-Qk3IdS/repo/platform/cloud-tools/web-search.ts
+// ../../../../../tmp/agent-sdk-mirror-Fbmnuq/repo/platform/cloud-tools/web-search.ts
 function webSearch(config) {
   const gateway = zoGateway();
   return config === undefined ? gateway.tools.exaSearch() : gateway.tools.exaSearch(config);

@@ -9,7 +9,9 @@ export {
 export type { ZoGatewayOptions } from "./gateway";
 export {
   EVE_SESSION_HEADER,
+  EVE_TURN_HEADER,
   ambientEveSessionId,
+  ambientEveTurnId,
   eveSessionFetch,
 } from "./session-fetch";
 
