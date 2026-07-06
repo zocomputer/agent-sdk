@@ -1,5 +1,4 @@
 import { randomUUID } from "node:crypto";
-import { ReadableStream } from "node:stream/web";
 
 import { generateImage } from "ai";
 import { defineTool } from "eve/tools";
@@ -7,6 +6,13 @@ import { z } from "zod";
 
 import { ZO_TOOL_HEADER, zoGateway } from "../runtime-ai/index.ts";
 import { imageOutputPath } from "./image-path";
+import {
+  createRuntimeStateFilesClient,
+  DEFAULT_STATE_ASSET_DECLARATION_NAME,
+  stateAssetReference,
+  type StateAssetReference,
+  type StateFilesAssetWriter,
+} from "./state-files";
 
 export const DEFAULT_IMAGE_MODEL = "bfl/flux-2-pro";
 
@@ -57,8 +63,8 @@ const OutputDirSchema = z
   .min(1)
   .max(200)
   .regex(
-    /^(?!\/)(?!.*(?:^|\/)\.\.(?:\/|$))[A-Za-z0-9._/-]+$/u,
-    "Use a relative workspace path without .. segments.",
+    /^(?!\/)(?!.*\/$)(?!.*\/\/)(?!.*(?:^|\/)(?:\.|\.\.)(?:\/|$))[A-Za-z0-9._/-]+$/u,
+    "Use a relative state file path without empty, . or .. segments.",
   );
 
 export const GenerateImageInputSchema = z
@@ -71,8 +77,19 @@ export const GenerateImageInputSchema = z
   })
   .strict();
 
+const StateAssetReferenceSchema = z
+  .object({
+    bytes: z.number().int().nonnegative().optional(),
+    contentType: z.string().optional(),
+    declarationName: z.string(),
+    path: z.string(),
+    type: z.literal("state_asset"),
+  })
+  .strict();
+
 export const GenerateImageOutputSchema = z
   .object({
+    asset: StateAssetReferenceSchema,
     bytes: z.number().int().nonnegative(),
     mediaType: z.string(),
     model: z.string(),
@@ -85,6 +102,21 @@ export const GenerateImageOutputSchema = z
 export type GenerateImageDimensions = z.infer<typeof ImageDimensionsSchema>;
 export type GenerateImageInput = z.infer<typeof GenerateImageInputSchema>;
 export type GenerateImageOutput = z.infer<typeof GenerateImageOutputSchema>;
+
+interface GeneratedImageResult {
+  readonly image: {
+    readonly mediaType: string;
+    readonly uint8Array: Uint8Array;
+  };
+  readonly warnings: readonly unknown[];
+}
+
+export interface GenerateImageToolOptions {
+  readonly assetWriter?: StateFilesAssetWriter;
+  readonly declarationName?: string;
+  readonly generate?: (options: Parameters<typeof generateImage>[0]) => Promise<GeneratedImageResult>;
+  readonly randomId?: () => string;
+}
 
 interface ImageDimensionSettings {
   readonly aspectRatio?: ImageAspectRatio;
@@ -127,23 +159,20 @@ function randomImageId(): string {
   return randomUUID().slice(0, 8);
 }
 
-function streamFromBytes(bytes: Uint8Array): ReadableStream<Uint8Array> {
-  return new ReadableStream<Uint8Array>({
-    start(controller) {
-      controller.enqueue(bytes);
-      controller.close();
-    },
-  });
-}
+export function generateImageTool(options: GenerateImageToolOptions = {}) {
+  const declarationName = options.declarationName ?? DEFAULT_STATE_ASSET_DECLARATION_NAME;
+  const assetWriter =
+    options.assetWriter ?? createRuntimeStateFilesClient({ declarationName });
+  const generate = options.generate ?? generateImage;
+  const randomId = options.randomId ?? randomImageId;
 
-export function generateImageTool() {
   return defineTool({
-    description: "Generate an image from a text prompt and save it into the workspace.",
+    description: "Generate an image from a text prompt and save it as an external state asset.",
     inputSchema: GenerateImageInputSchema,
     outputSchema: GenerateImageOutputSchema,
-    async execute(input, ctx): Promise<GenerateImageOutput> {
+    async execute(input): Promise<GenerateImageOutput> {
       const model = input.model ?? DEFAULT_IMAGE_MODEL;
-      const result = await generateImage({
+      const result = await generate({
         headers: { [ZO_TOOL_HEADER]: "generate_image" },
         model: zoGateway().imageModel(model),
         prompt: input.prompt,
@@ -152,16 +181,23 @@ export function generateImageTool() {
       });
       const image = result.image;
       const path = imageOutputPath({
-        id: randomImageId(),
+        id: randomId(),
         mediaType: image.mediaType,
         outputDir: input.outputDir,
         prompt: input.prompt,
       });
 
-      const sandbox = await ctx.getSandbox();
-      await sandbox.writeFile({ content: streamFromBytes(image.uint8Array), path });
+      await assetWriter.write(path, image.uint8Array, { contentType: image.mediaType });
+      const asset: StateAssetReference = stateAssetReference({
+        type: "state_asset",
+        declarationName,
+        path,
+        contentType: image.mediaType,
+        bytes: image.uint8Array.byteLength,
+      });
 
       return {
+        asset,
         bytes: image.uint8Array.byteLength,
         mediaType: image.mediaType,
         model,
@@ -171,20 +207,12 @@ export function generateImageTool() {
       };
     },
     toModelOutput(output) {
-      // The chat UI can't display workspace files yet: nothing serves the sandbox over
-      // HTTP, and the markdown renderer blocks a bare workspace path outright (it renders
-      // as "[Image blocked: …]"). Say so explicitly, or the model embeds the path as a
-      // markdown image and the user sees the blocked placeholder. How generated images
-      // reach the chat (blob upload → URL, a served-files route, or transcript
-      // attachments) is still an open decision — see the display note in
-      // plans/ray/built-in-cloud-tools-design.md.
       return {
         type: "text",
         value:
-          `Generated image saved to ${output.path}. ` +
-          `The chat interface cannot display workspace images yet — do not embed this ` +
-          `path as a markdown image (it will render as a blocked placeholder). ` +
-          `Just tell the user the image was generated and where it is saved.`,
+          `Generated image saved as state asset ${output.asset.declarationName}:${output.asset.path}. ` +
+          `The asset is available to the chat UI through the state_asset reference; ` +
+          `do not invent or expose a temporary URL.`,
       };
     },
   });

@@ -26,6 +26,12 @@ describe("generate_image input schema", () => {
     ).toBe(true);
   });
 
+  test("rejects outputDir values that are not valid state file prefixes", () => {
+    for (const outputDir of ["/generated", "generated/", "generated//images", ".", "generated/./images", "../generated", "generated/../images"]) {
+      expect(GenerateImageInputSchema.safeParse({ prompt: "p", outputDir }).success).toBe(false);
+    }
+  });
+
   test("rejects malformed dimensions", () => {
     for (const dimensions of [
       { kind: "size", size: "axb" },
