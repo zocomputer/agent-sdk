@@ -6,6 +6,7 @@ import { z } from "zod";
 
 import { ZO_TOOL_HEADER, zoGateway } from "../runtime-ai/index.ts";
 import { imageOutputPath } from "./image-path";
+import { CLOUD_TOOL_META } from "./tool-meta";
 import {
   createRuntimeStateFilesClient,
   DEFAULT_STATE_ASSET_DECLARATION_NAME,
@@ -170,7 +171,7 @@ export function generateImageTool(options: GenerateImageToolOptions = {}) {
   const randomId = options.randomId ?? randomImageId;
 
   return defineTool({
-    description: "Generate an image from a text prompt and save it as an external state asset.",
+    description: CLOUD_TOOL_META.image.description,
     inputSchema: GenerateImageInputSchema,
     outputSchema: GenerateImageOutputSchema,
     async execute(input): Promise<GenerateImageOutput> {
