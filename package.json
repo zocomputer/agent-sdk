@@ -20,6 +20,10 @@
       "types": "./src/attachments.ts",
       "import": "./dist/attachments.js"
     },
+    "./gateway-fetch": {
+      "types": "./src/gateway-fetch.ts",
+      "import": "./dist/gateway-fetch.js"
+    },
     "./state": {
       "types": "./src/state.ts",
       "import": "./dist/state.js"

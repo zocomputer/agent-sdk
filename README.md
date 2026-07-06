@@ -476,6 +476,35 @@ channel into a running turn. The SDK's channel rides the tool results:
   project delivered steers into user-message bubbles without pulling in the
   extraction deps.
 
+## Gateway stream guards (surviving a dead connection)
+
+Neither eve's `defineAgent` nor the AI SDK's gateway provider exposes
+per-attempt timeouts, so a model call that hangs — response headers never
+arrive, or the SSE body goes quiet mid-stream on a dropped connection —
+hangs the turn forever. The one seam the provider does expose is `fetch`;
+`withStreamGuards` (`@zocomputer/agent-sdk/gateway-fetch`) wraps it with the
+two guards a streaming call needs:
+
+- **first byte** — abort when response headers don't arrive in time;
+- **idle** — abort when the response body goes quiet between chunks (a dead
+  connection the TCP stack never surfaces).
+
+A guard firing rejects like any network failure, so the AI SDK's normal
+retry-with-backoff takes over instead of waiting on a dead socket:
+
+```ts
+import { createGateway } from "ai";
+import { withStreamGuards } from "@zocomputer/agent-sdk/gateway-fetch";
+
+const gateway = createGateway({ fetch: withStreamGuards(fetch) });
+export default defineAgent({ model: gateway("anthropic/claude-sonnet-5") });
+```
+
+The defaults (60s to first byte, 180s idle) are deliberately generous: the
+point is converting a *dead* connection into a retryable error, not racing a
+slow-but-alive reasoning model. Override via the second argument
+(`{ firstByteMs, idleMs }`).
+
 ## Zo platform modules (`platform/`)
 
 Everything above is the generic stdlib — nothing in it assumes Zo. The
