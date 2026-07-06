@@ -1,4 +1,4 @@
-// ../../../../../tmp/agent-sdk-mirror-Zn3kW7/repo/platform/runtime-auth/index.ts
+// ../../../../../tmp/agent-sdk-mirror-KpJ0lM/repo/platform/runtime-auth/index.ts
 import { SignJWT, jwtVerify } from "jose";
 var AGENT_TOKEN_HEADER = "x-zo-agent-token";
 var EVE_SESSION_HEADER = "x-zo-eve-session";
@@ -13,6 +13,14 @@ var BUILDER_AGENT_IDENTITY = {
   agentProjectId: "agt_builder",
   ownerOrgId: ZO_PLATFORM_ORG.id
 };
+var LOCAL_AGENT_IDENTITY = {
+  agentProjectId: "agt_local",
+  ownerOrgId: ZO_PLATFORM_ORG.id
+};
+var RESERVED_AGENT_PROJECT_IDS = [
+  BUILDER_AGENT_IDENTITY.agentProjectId,
+  LOCAL_AGENT_IDENTITY.agentProjectId
+];
 var ISSUER = "zo-api";
 var AGENT_TOKEN_TYP = "zo-agent";
 var defaultClock = () => Math.floor(Date.now() / 1000);
@@ -122,6 +130,8 @@ export {
   mintAgentToken,
   formatInitiator,
   ZO_PLATFORM_ORG,
+  RESERVED_AGENT_PROJECT_IDS,
+  LOCAL_AGENT_IDENTITY,
   INITIATOR_HEADER,
   EVE_TURN_HEADER,
   EVE_SESSION_HEADER,

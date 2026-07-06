@@ -92,6 +92,30 @@ export const BUILDER_AGENT_IDENTITY: AgentTokenClaims = {
   ownerOrgId: ZO_PLATFORM_ORG.id,
 };
 
+/**
+ * The dev BUILT agent's hardcoded identity (the `apps/local-agent` working copy
+ * on :2000, launched by `packages/fixtures`). Like the Builder it's a first-party
+ * dev process with no `AgentProject` row — a fixed identity scoped to the platform
+ * org, so its gateway calls are attributed (and metered) instead of anonymous.
+ * Which USER's session a call belongs to still comes from the session join, never
+ * this token.
+ */
+export const LOCAL_AGENT_IDENTITY: AgentTokenClaims = {
+  agentProjectId: "agt_local",
+  ownerOrgId: ZO_PLATFORM_ORG.id,
+};
+
+/**
+ * Reserved first-party project ids that deliberately have NO `AgentProject` row
+ * (#81: no fake product rows) — consumers must never write them into an
+ * AgentProject foreign key. One list so a new reserved identity can't be missed
+ * at one of the call sites.
+ */
+export const RESERVED_AGENT_PROJECT_IDS: readonly string[] = [
+  BUILDER_AGENT_IDENTITY.agentProjectId,
+  LOCAL_AGENT_IDENTITY.agentProjectId,
+];
+
 // ── token wire shapes ────────────────────────────────────────────────────────
 
 const ISSUER = "zo-api";
