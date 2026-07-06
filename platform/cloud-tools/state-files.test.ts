@@ -12,7 +12,10 @@ describe("createRuntimeStateFilesClient", () => {
   test("requests an rw files handle and writes the exact state file object", async () => {
     const calls: { url: string; init?: RequestInit }[] = [];
     const fetch = Object.assign(async (input: Parameters<typeof globalThis.fetch>[0], init?: Parameters<typeof globalThis.fetch>[1]) => {
-      const url = String(input);
+      // The client always calls fetch with a plain string URL; narrow rather
+      // than `String()`/`.toString()` (a bare `Request`'s type allows it, and
+      // `Request` doesn't override the default "[object Request]" stringification).
+      const url = typeof input === "string" ? input : input instanceof URL ? input.href : input.url;
       calls.push({ url, ...(init === undefined ? {} : { init }) });
       if (url === "https://api.example.test/runtime/state/handles") {
         return jsonResponse({

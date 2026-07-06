@@ -16,6 +16,12 @@ function header(init: RequestInit | undefined, name: string): string | undefined
   return (h as Record<string, string>)[name];
 }
 
+/** The client always sends a JSON string body; narrow rather than blind `String()`
+ * (RequestInit.body's real type covers Blob/ReadableStream/etc, which don't stringify meaningfully). */
+function bodyText(init: RequestInit | undefined): string {
+  return typeof init?.body === "string" ? init.body : "";
+}
+
 const OK_BODY = {
   sandboxId: "sbx-1",
   sshHost: "ssh.app.daytona.io",
@@ -34,7 +40,7 @@ describe("requestSandboxAccess", () => {
   test("POSTs the eve session key and returns the scoped access", async () => {
     let captured: { url: string; body: unknown } | null = null;
     const fakeFetch = (async (url, init) => {
-      captured = { url: String(url), body: JSON.parse(String(init?.body)) };
+      captured = { url: String(url), body: JSON.parse(bodyText(init)) };
       return jsonResponse(OK_BODY);
     }) satisfies FetchLike;
 
@@ -52,7 +58,7 @@ describe("requestSandboxAccess", () => {
   test("sends only the session key (API is authoritative on the sandbox)", async () => {
     let body: unknown = null;
     const fakeFetch = (async (_url, init) => {
-      body = JSON.parse(String(init?.body));
+      body = JSON.parse(bodyText(init));
       return jsonResponse(OK_BODY);
     }) satisfies FetchLike;
 

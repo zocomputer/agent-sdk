@@ -92,7 +92,9 @@ describe("generateImageTool", () => {
 
     expect(modelOutput).toEqual({
       type: "text",
-      value: expect.stringContaining("files:generated/cat-abc12345.png"),
+      // bun-types' `AsymmetricMatcher` is a bare `any`; narrow it to the real
+      // field type so this assignment stays type-checked.
+      value: expect.stringContaining("files:generated/cat-abc12345.png") as string,
     });
     expect(JSON.stringify(modelOutput)).toContain("state_asset");
     expect(JSON.stringify(modelOutput)).not.toContain("http");

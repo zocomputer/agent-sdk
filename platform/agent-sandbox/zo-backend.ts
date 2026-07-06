@@ -29,9 +29,11 @@ export function zoBackend(options: ZoBackendOptions): SandboxBackend {
   return {
     name: BACKEND_NAME,
 
-    async create(
-      input: SandboxBackendCreateInput,
-    ): Promise<SandboxBackendHandle> {
+    // None of these await directly — the real I/O is the SSH connect/exec
+    // inside `sshSandboxSession`'s lazily-called `acquireAccess`, plumbed
+    // through as a callback rather than awaited here — so they return an
+    // already-resolved Promise instead of using `async` with no `await`.
+    create(input: SandboxBackendCreateInput): Promise<SandboxBackendHandle> {
       // The sandbox id eve remembered, if any — kept only for eve's own
       // reconnect state (captureState below). The API doesn't take it: it keys
       // this session's sandbox off the eve session key + caller's org itself.
@@ -50,32 +52,32 @@ export function zoBackend(options: ZoBackendOptions): SandboxBackend {
       const ssh = sshSandboxSession(input.sessionKey, acquireAccess);
 
       // No per-session options for MVP, so `use()` just yields the session.
-      const useSessionFn = async (): Promise<SandboxSession> => ssh.session;
+      const useSessionFn = (): Promise<SandboxSession> => Promise.resolve(ssh.session);
 
-      return {
+      return Promise.resolve({
         session: ssh.session,
         useSessionFn,
-        captureState: async () => ({
-          backendName: BACKEND_NAME,
-          sessionKey: input.sessionKey,
-          // The id we've provisioned this session, else the one eve remembered
-          // (a session that never ran a command has nothing new to persist).
-          metadata: {
-            daytonaSandboxId: ssh.currentSandboxId() ?? rememberedId ?? "",
-          } satisfies DaytonaSessionMetadata,
-        }),
+        captureState: () =>
+          Promise.resolve({
+            backendName: BACKEND_NAME,
+            sessionKey: input.sessionKey,
+            // The id we've provisioned this session, else the one eve remembered
+            // (a session that never ran a command has nothing new to persist).
+            metadata: {
+              daytonaSandboxId: ssh.currentSandboxId() ?? rememberedId ?? "",
+            } satisfies DaytonaSessionMetadata,
+          }),
         // Close the local SSH connection; never destroy the sandbox (the next
         // reply reattaches via the captured id).
-        dispose: async () => {
+        dispose: () => {
           ssh.dispose();
+          return Promise.resolve();
         },
-      };
+      });
     },
 
-    async prewarm(
-      _input: SandboxBackendPrewarmInput,
-    ): Promise<{ reused: boolean }> {
-      return { reused: false };
+    prewarm(_input: SandboxBackendPrewarmInput): Promise<{ reused: boolean }> {
+      return Promise.resolve({ reused: false });
     },
   };
 }

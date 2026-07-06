@@ -174,7 +174,7 @@ function bytesToStream(bytes: Uint8Array): ReadableStream<Uint8Array> {
  */
 export async function streamToBytes(
   stream: ReadableStream<Uint8Array>,
-  abortSignal?: AbortSignal | undefined,
+  abortSignal?: AbortSignal,
 ): Promise<Uint8Array> {
   const chunks: Uint8Array[] = [];
   let total = 0;
