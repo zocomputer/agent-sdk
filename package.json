@@ -32,6 +32,10 @@
       "types": "./src/state-files.ts",
       "import": "./dist/state-files.js"
     },
+    "./state-sandbox": {
+      "types": "./src/state-sandbox.ts",
+      "import": "./dist/state-sandbox.js"
+    },
     "./steer": {
       "types": "./src/steer.ts",
       "import": "./dist/steer.js"
