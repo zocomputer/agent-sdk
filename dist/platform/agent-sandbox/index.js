@@ -1,7 +1,7 @@
-// ../../../../../tmp/agent-sdk-mirror-Fbmnuq/repo/platform/agent-sandbox/zo-sandbox.ts
+// ../../../../../tmp/agent-sdk-mirror-Zn3kW7/repo/platform/agent-sandbox/zo-sandbox.ts
 import { defineSandbox } from "eve/sandbox";
 
-// ../../../../../tmp/agent-sdk-mirror-Fbmnuq/repo/platform/runtime-auth/index.ts
+// ../../../../../tmp/agent-sdk-mirror-Zn3kW7/repo/platform/runtime-auth/index.ts
 import { SignJWT, jwtVerify } from "jose";
 var AGENT_TOKEN_HEADER = "x-zo-agent-token";
 var EVE_SESSION_HEADER = "x-zo-eve-session";
@@ -16,7 +16,20 @@ var BUILDER_AGENT_IDENTITY = {
   ownerOrgId: ZO_PLATFORM_ORG.id
 };
 
-// ../../../../../tmp/agent-sdk-mirror-Fbmnuq/repo/platform/agent-sandbox/api-client.ts
+// ../../../../../tmp/agent-sdk-mirror-Zn3kW7/repo/platform/agent-sandbox/api-client.ts
+var SCRATCH_DECLARATION = "scratch";
+var STATE_HANDLE_PATH = "/state/handles";
+
+class SandboxBrokerError extends Error {
+  status;
+  code;
+  constructor(message, options) {
+    super(message);
+    this.name = "SandboxBrokerError";
+    this.status = options.status;
+    this.code = options.code ?? null;
+  }
+}
 function parseSandboxAccess(value) {
   if (typeof value !== "object" || value === null)
     return null;
@@ -27,33 +40,72 @@ function parseSandboxAccess(value) {
   }
   return null;
 }
-async function requestSandboxAccess(input) {
+function parseSandboxHandleAccess(value) {
+  if (typeof value !== "object" || value === null)
+    return null;
+  const v = value;
+  if (v.engine !== "sandbox-daytona")
+    return null;
+  return parseSandboxAccess(v.sandbox);
+}
+async function requestScratchSandboxAccess(input) {
   const doFetch = input.fetch ?? fetch;
   const agentToken = (input.agentToken ?? process.env[AGENT_TOKEN_ENV])?.trim() || undefined;
+  const eveSessionKey = input.eveSessionKey.trim() || undefined;
   const headers = { "content-type": "application/json" };
   if (agentToken)
     headers[AGENT_TOKEN_HEADER] = agentToken;
-  headers[EVE_SESSION_HEADER] = input.eveSessionKey;
-  const res = await doFetch(`${input.apiBaseUrl}/sandbox/session`, {
+  if (eveSessionKey)
+    headers[EVE_SESSION_HEADER] = eveSessionKey;
+  const res = await doFetch(`${input.apiBaseUrl}${STATE_HANDLE_PATH}`, {
     method: "POST",
     headers,
-    body: JSON.stringify({ eveSessionKey: input.eveSessionKey })
+    body: JSON.stringify({
+      declarationName: SCRATCH_DECLARATION,
+      interface: "exec",
+      access: "rw",
+      suggestedDefaults: { engine: "sandbox-daytona", partition: "session" }
+    })
   });
+  const json = await res.json().catch(() => null);
   if (!res.ok) {
-    throw new Error(`sandbox provisioning failed: ${res.status} ${await res.text().catch(() => "")}`.trim());
+    const { code, message } = parseBrokerError(json);
+    throw new SandboxBrokerError(describeBrokerError(res.status, code, message), {
+      status: res.status,
+      code
+    });
   }
-  const parsed = parseSandboxAccess(await res.json().catch(() => null));
-  if (parsed === null) {
-    throw new Error("sandbox provisioning returned an unexpected response shape");
+  const access = parseSandboxHandleAccess(json);
+  if (access === null) {
+    throw new SandboxBrokerError("sandbox broker returned a non-sandbox or malformed state handle", { status: res.status, code: "malformed_handle" });
   }
-  return parsed;
+  return access;
+}
+function parseBrokerError(value) {
+  if (typeof value !== "object" || value === null)
+    return { code: null, message: null };
+  const v = value;
+  return {
+    code: typeof v.error === "string" ? v.error : null,
+    message: typeof v.message === "string" ? v.message : null
+  };
+}
+function describeBrokerError(status, code, message) {
+  if (code === "unsupported_actor") {
+    return "sandbox broker rejected the caller: POST /state/handles requires an agent token, not a human session (unsupported_actor). Ensure ZO_AGENT_TOKEN is set.";
+  }
+  if (code === "eve_session_required") {
+    return "sandbox broker requires an eve session: send the x-zo-eve-session header (eve_session_required).";
+  }
+  const detail = [code, message].filter((s) => s !== null && s.length > 0).join(" — ");
+  return `sandbox provisioning failed: ${status}${detail ? ` ${detail}` : ""}`.trim();
 }
 
-// ../../../../../tmp/agent-sdk-mirror-Fbmnuq/repo/platform/agent-sandbox/ssh-session.ts
+// ../../../../../tmp/agent-sdk-mirror-Zn3kW7/repo/platform/agent-sandbox/ssh-session.ts
 import { Client } from "ssh2";
 import { extractLines } from "@ai-sdk/provider-utils";
 
-// ../../../../../tmp/agent-sdk-mirror-Fbmnuq/repo/platform/agent-sandbox/pure.ts
+// ../../../../../tmp/agent-sdk-mirror-Zn3kW7/repo/platform/agent-sandbox/pure.ts
 import { Buffer as Buffer2 } from "node:buffer";
 import path from "node:path";
 function resolveSandboxPath(workDir, p) {
@@ -93,7 +145,7 @@ function encodeText(text, encoding) {
   return new Uint8Array(Buffer2.from(text, enc));
 }
 
-// ../../../../../tmp/agent-sdk-mirror-Fbmnuq/repo/platform/agent-sandbox/ssh-connection.ts
+// ../../../../../tmp/agent-sdk-mirror-Zn3kW7/repo/platform/agent-sandbox/ssh-connection.ts
 function isExpired(access, skewMs, now) {
   const expiry = Date.parse(access.expiresAt);
   if (Number.isNaN(expiry))
@@ -184,7 +236,7 @@ class SshConnectionManager {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-Fbmnuq/repo/platform/agent-sandbox/ssh-exec.ts
+// ../../../../../tmp/agent-sdk-mirror-Zn3kW7/repo/platform/agent-sandbox/ssh-exec.ts
 var SIGNAL_EXIT_CODE = 137;
 function abortError(signal) {
   return signal.reason instanceof Error ? signal.reason : new Error(typeof signal.reason === "string" ? signal.reason : "aborted");
@@ -237,7 +289,7 @@ function awaitCommand(stream, abortSignal) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-Fbmnuq/repo/platform/agent-sandbox/sftp.ts
+// ../../../../../tmp/agent-sdk-mirror-Zn3kW7/repo/platform/agent-sandbox/sftp.ts
 import path2 from "node:path";
 var SFTP_NO_SUCH_FILE = 2;
 function isNoSuchFile(error) {
@@ -322,7 +374,7 @@ async function removePath(client, remotePath, opts = {}) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-Fbmnuq/repo/platform/agent-sandbox/ssh-session.ts
+// ../../../../../tmp/agent-sdk-mirror-Zn3kW7/repo/platform/agent-sandbox/ssh-session.ts
 var WORK_DIR = "/home/daytona";
 var EXPIRY_SKEW_MS = 30000;
 var SSH_PORT = 22;
@@ -578,14 +630,14 @@ function sshSandboxSession(id, acquireAccess) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-Fbmnuq/repo/platform/agent-sandbox/zo-backend.ts
+// ../../../../../tmp/agent-sdk-mirror-Zn3kW7/repo/platform/agent-sandbox/zo-backend.ts
 var BACKEND_NAME = "zo";
 function zoBackend(options) {
   return {
     name: BACKEND_NAME,
     create(input) {
       const rememberedId = readSandboxId(input.existingMetadata);
-      const acquireAccess = async () => await requestSandboxAccess({
+      const acquireAccess = async () => await requestScratchSandboxAccess({
         apiBaseUrl: options.apiBaseUrl,
         eveSessionKey: input.sessionKey
       });
@@ -613,7 +665,7 @@ function zoBackend(options) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-Fbmnuq/repo/platform/agent-sandbox/zo-sandbox.ts
+// ../../../../../tmp/agent-sdk-mirror-Zn3kW7/repo/platform/agent-sandbox/zo-sandbox.ts
 var DEFAULT_API_URL = "http://api.zo.localhost:4000";
 function zoSandbox(options = {}) {
   return defineSandbox({
@@ -626,5 +678,6 @@ export {
   zoSandbox,
   zoBackend,
   sshSandboxSession,
-  requestSandboxAccess
+  requestScratchSandboxAccess,
+  SandboxBrokerError
 };

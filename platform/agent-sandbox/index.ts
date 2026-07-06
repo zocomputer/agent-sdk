@@ -14,7 +14,8 @@ export { zoBackend, type ZoBackendOptions } from "./zo-backend";
 // route, which gets no `ctx.getSandbox()` (see the Builder's `agent/channels/
 // flush.ts`, plans/sachin/code-storage-phase3-implementation.md).
 export {
-  requestSandboxAccess,
+  requestScratchSandboxAccess,
+  SandboxBrokerError,
   type FetchLike,
   type RequestSandboxInput,
   type SandboxSessionResponse,

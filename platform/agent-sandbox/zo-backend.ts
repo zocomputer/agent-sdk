@@ -5,17 +5,21 @@ import type {
   SandboxBackendPrewarmInput,
   SandboxSession,
 } from "eve/sandbox";
-import { requestSandboxAccess } from "./api-client";
+import { requestScratchSandboxAccess } from "./api-client";
 import { type SshSandboxAccess, sshSandboxSession } from "./ssh-session";
 import { type DaytonaSessionMetadata, readSandboxId } from "./pure";
 
-// The Zo sandbox backend for eve. It holds NO provider key: on `create` it asks
-// the control plane (apps/api) to provision/reattach this session's sandbox and
-// return scoped SSH access, then connects over SSH. eve persists the sandbox id
-// in its per-session metadata and hands it back as `existingMetadata` on a
-// reply, so the API reattaches the same sandbox. `dispose` closes the SSH
-// connection but never destroys the sandbox — Daytona idles it out and the next
-// reply reattaches. See plans/rc2/sandbox-per-session.md.
+// The Zo sandbox backend for eve. It holds NO provider key: on `create` it
+// resolves this session's `scratch` sandbox through the control-plane state
+// broker (POST /state/handles) and gets back scoped SSH access, then connects
+// over SSH. The default per-session sandbox is now the `scratch` external-state
+// declaration (design-doc D10) — the same broker every other state uses. eve
+// persists the sandbox id in its per-session metadata and hands it back as
+// `existingMetadata` on a reply; the broker keys the session-partitioned
+// instance off the eve session key, so a reply reattaches the same sandbox.
+// `dispose` closes the SSH connection but never destroys the sandbox — Daytona
+// idles it out and the next reply reattaches. See
+// plans/dcosson/external-state-sandbox.md and plans/rc2/sandbox-per-session.md.
 
 /** Backend name; participates in eve's reconnect-state matching. */
 const BACKEND_NAME = "zo";
@@ -39,12 +43,13 @@ export function zoBackend(options: ZoBackendOptions): SandboxBackend {
       // this session's sandbox off the eve session key + caller's org itself.
       const rememberedId = readSandboxId(input.existingMetadata);
 
-      // Provision (or re-provision) scoped SSH access from the control plane.
-      // Called LAZILY on first `run` — so opening a session the agent never
-      // uses provisions nothing — and again when the short-lived token expires
-      // or the connection drops, so a long session keeps working.
+      // Resolve (or re-resolve) scoped SSH access from the control-plane state
+      // broker — the `scratch` sandbox declaration for this eve session. Called
+      // LAZILY on first `run` — so opening a session the agent never uses
+      // provisions nothing — and again when the short-lived token expires or the
+      // connection drops, so a long session keeps working.
       const acquireAccess = async (): Promise<SshSandboxAccess> =>
-        await requestSandboxAccess({
+        await requestScratchSandboxAccess({
           apiBaseUrl: options.apiBaseUrl,
           eveSessionKey: input.sessionKey,
         });
