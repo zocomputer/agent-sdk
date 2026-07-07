@@ -30,9 +30,16 @@ export function clientContinuationToken(runtimeToken: string): string {
   const sep = runtimeToken.indexOf(":");
   if (sep <= 0) return runtimeToken;
   const rest = runtimeToken.slice(sep + 1);
-  // A client token itself carries a scheme prefix (`eve:<uuid>`). If the
-  // remainder has no colon, the input was already client-facing — keep it.
-  return rest.includes(":") ? rest : runtimeToken;
+  // A client token itself carries a scheme prefix (`eve:<uuid>`, id
+  // colon-free), so strip exactly when the remainder is one `<scheme>:<id>`.
+  // No colon there means the input was already client-facing; two or more
+  // means the input isn't the `<ns>:<scheme>:<id>` grammar at all — pass both
+  // through unchanged. Exactly-one (not "any colon") is what makes stripping
+  // idempotent: a stripped result never matches the grammar again, so a
+  // degenerate many-colon string can't lose a second layer on a re-strip.
+  const schemeSep = rest.indexOf(":");
+  if (schemeSep < 0) return runtimeToken;
+  return rest.includes(":", schemeSep + 1) ? runtimeToken : rest;
 }
 
 /**

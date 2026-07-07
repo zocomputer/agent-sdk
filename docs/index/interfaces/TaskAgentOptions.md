@@ -6,7 +6,7 @@
 
 # Interface: TaskAgentOptions
 
-Defined in: [packages/agent-sdk/src/task.ts:253](https://github.com/zocomputer/zov2-code/blob/ce93d09ec2812425a1522360ec5d53274fce9d8d/packages/agent-sdk/src/task.ts#L253)
+Defined in: [packages/agent-sdk/src/task.ts:253](https://github.com/zocomputer/zov2-code/blob/ea621634e36cbd869fece8585e35d7f842c47a15/packages/agent-sdk/src/task.ts#L253)
 
 Options for `createTaskAgent`: extends `TaskDescriptionOptions` with the
 child's pinned model, optional description override, and reasoning effort.
@@ -21,7 +21,7 @@ child's pinned model, optional description override, and reasoning effort.
 
 > `optional` **build?**: `AgentBuildDefinition`
 
-Defined in: [packages/agent-sdk/src/task.ts:270](https://github.com/zocomputer/zov2-code/blob/ce93d09ec2812425a1522360ec5d53274fce9d8d/packages/agent-sdk/src/task.ts#L270)
+Defined in: [packages/agent-sdk/src/task.ts:270](https://github.com/zocomputer/zov2-code/blob/ea621634e36cbd869fece8585e35d7f842c47a15/packages/agent-sdk/src/task.ts#L270)
 
 Packaging controls forwarded to the child's `defineAgent`. A declared
 subagent compiles with its own manifest config — the parent's
@@ -34,7 +34,7 @@ subagent compiles with its own manifest config — the parent's
 
 > `optional` **capabilityNote?**: `string`
 
-Defined in: [packages/agent-sdk/src/task.ts:234](https://github.com/zocomputer/zov2-code/blob/ce93d09ec2812425a1522360ec5d53274fce9d8d/packages/agent-sdk/src/task.ts#L234)
+Defined in: [packages/agent-sdk/src/task.ts:234](https://github.com/zocomputer/zov2-code/blob/ea621634e36cbd869fece8585e35d7f842c47a15/packages/agent-sdk/src/task.ts#L234)
 
 What the child CANNOT do relative to the parent, as one complete
 sentence — name the excluded tools when the consumer excludes any
@@ -52,7 +52,7 @@ authored toolset.
 
 > `optional` **description?**: `string`
 
-Defined in: [packages/agent-sdk/src/task.ts:261](https://github.com/zocomputer/zov2-code/blob/ce93d09ec2812425a1522360ec5d53274fce9d8d/packages/agent-sdk/src/task.ts#L261)
+Defined in: [packages/agent-sdk/src/task.ts:261](https://github.com/zocomputer/zov2-code/blob/ea621634e36cbd869fece8585e35d7f842c47a15/packages/agent-sdk/src/task.ts#L261)
 
 Parent-facing tool description override (eve requires one on a declared
 subagent). Defaults to [buildTaskDescription](../functions/buildTaskDescription.md) over the other
@@ -64,7 +64,7 @@ options.
 
 > **model**: `LanguageModel`
 
-Defined in: [packages/agent-sdk/src/task.ts:255](https://github.com/zocomputer/zov2-code/blob/ce93d09ec2812425a1522360ec5d53274fce9d8d/packages/agent-sdk/src/task.ts#L255)
+Defined in: [packages/agent-sdk/src/task.ts:255](https://github.com/zocomputer/zov2-code/blob/ea621634e36cbd869fece8585e35d7f842c47a15/packages/agent-sdk/src/task.ts#L255)
 
 The child's pinned model — the tier this subagent encodes.
 
@@ -74,7 +74,7 @@ The child's pinned model — the tier this subagent encodes.
 
 > `optional` **modelBlurb?**: `string`
 
-Defined in: [packages/agent-sdk/src/task.ts:226](https://github.com/zocomputer/zov2-code/blob/ce93d09ec2812425a1522360ec5d53274fce9d8d/packages/agent-sdk/src/task.ts#L226)
+Defined in: [packages/agent-sdk/src/task.ts:226](https://github.com/zocomputer/zov2-code/blob/ea621634e36cbd869fece8585e35d7f842c47a15/packages/agent-sdk/src/task.ts#L226)
 
 The model's own catalog description (from the AI Gateway model catalog —
 see [fetchGatewayModelCatalog](../functions/fetchGatewayModelCatalog.md)). Checked in by the consumer, never
@@ -95,7 +95,7 @@ explicit `undefined` reads the same as omitting the blurb.
 
 > **modelName**: `string`
 
-Defined in: [packages/agent-sdk/src/task.ts:208](https://github.com/zocomputer/zov2-code/blob/ce93d09ec2812425a1522360ec5d53274fce9d8d/packages/agent-sdk/src/task.ts#L208)
+Defined in: [packages/agent-sdk/src/task.ts:208](https://github.com/zocomputer/zov2-code/blob/ea621634e36cbd869fece8585e35d7f842c47a15/packages/agent-sdk/src/task.ts#L208)
 
 Display name of the pinned model (e.g. "Claude Sonnet 5").
 
@@ -109,7 +109,7 @@ Display name of the pinned model (e.g. "Claude Sonnet 5").
 
 > `optional` **reasoning?**: `AgentReasoningDefinition`
 
-Defined in: [packages/agent-sdk/src/task.ts:263](https://github.com/zocomputer/zov2-code/blob/ce93d09ec2812425a1522360ec5d53274fce9d8d/packages/agent-sdk/src/task.ts#L263)
+Defined in: [packages/agent-sdk/src/task.ts:263](https://github.com/zocomputer/zov2-code/blob/ea621634e36cbd869fece8585e35d7f842c47a15/packages/agent-sdk/src/task.ts#L263)
 
 Reasoning effort forwarded to the child's model calls.
 
@@ -119,7 +119,7 @@ Reasoning effort forwarded to the child's model calls.
 
 > **use**: `string`
 
-Defined in: [packages/agent-sdk/src/task.ts:215](https://github.com/zocomputer/zov2-code/blob/ce93d09ec2812425a1522360ec5d53274fce9d8d/packages/agent-sdk/src/task.ts#L215)
+Defined in: [packages/agent-sdk/src/task.ts:215](https://github.com/zocomputer/zov2-code/blob/ea621634e36cbd869fece8585e35d7f842c47a15/packages/agent-sdk/src/task.ts#L215)
 
 When the parent should pick this tier over its siblings, as one complete
 sentence (e.g. "Prefer it for quick, well-scoped subtasks — exploration,
@@ -136,7 +136,7 @@ enough.").
 
 > `optional` **workspaceNoun?**: `string`
 
-Defined in: [packages/agent-sdk/src/task.ts:236](https://github.com/zocomputer/zov2-code/blob/ce93d09ec2812425a1522360ec5d53274fce9d8d/packages/agent-sdk/src/task.ts#L236)
+Defined in: [packages/agent-sdk/src/task.ts:236](https://github.com/zocomputer/zov2-code/blob/ea621634e36cbd869fece8585e35d7f842c47a15/packages/agent-sdk/src/task.ts#L236)
 
 What the description calls the workspace. Defaults to "workspace".
 

@@ -118,6 +118,19 @@ describe("clientContinuationToken", () => {
     expect(clientContinuationToken("eve:1234-abcd")).toBe("eve:1234-abcd");
     expect(clientContinuationToken("tok-1")).toBe("tok-1");
   });
+
+  test("passes many-colon strings through unchanged — outside the <ns>:<scheme>:<id> grammar", () => {
+    // Shrunk fast-check counterexample (seed 436587612): the old "strip when
+    // the remainder has any colon" rule turned " : ::" into " ::", which a
+    // second call stripped again to ":" — not idempotent. Anything whose
+    // remainder holds two or more colons isn't a namespaced runtime token,
+    // so it passes through.
+    expect(clientContinuationToken(" : ::")).toBe(" : ::");
+    expect(clientContinuationToken("a:b:c:d")).toBe("a:b:c:d");
+    // A stripped result never re-strips.
+    const once = clientContinuationToken("eve:eve:1234-abcd");
+    expect(clientContinuationToken(once)).toBe(once);
+  });
 });
 
 describe("notification bridge", () => {
