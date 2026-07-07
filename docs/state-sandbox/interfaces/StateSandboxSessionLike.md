@@ -6,7 +6,7 @@
 
 # Interface: StateSandboxSessionLike
 
-Defined in: [packages/agent-sdk/src/state-sandbox.ts:269](https://github.com/zocomputer/zov2-code/blob/87d4918f2a9361e41a43075d722493e3ed6872e1/packages/agent-sdk/src/state-sandbox.ts#L269)
+Defined in: [packages/agent-sdk/src/state-sandbox.ts:269](https://github.com/zocomputer/zov2-code/blob/ea2754383255c8c5c02ffe9d50fe4b5dbea37395/packages/agent-sdk/src/state-sandbox.ts#L269)
 
 The low-level sandbox session interface that exec/spawn and file I/O operations run over.
 Implemented by SSH-backed or mock sandbox sessions.
@@ -17,7 +17,7 @@ Implemented by SSH-backed or mock sandbox sessions.
 
 > `optional` **dispose**(): `void` \| `PromiseLike`\<`void`\>
 
-Defined in: [packages/agent-sdk/src/state-sandbox.ts:300](https://github.com/zocomputer/zov2-code/blob/87d4918f2a9361e41a43075d722493e3ed6872e1/packages/agent-sdk/src/state-sandbox.ts#L300)
+Defined in: [packages/agent-sdk/src/state-sandbox.ts:300](https://github.com/zocomputer/zov2-code/blob/ea2754383255c8c5c02ffe9d50fe4b5dbea37395/packages/agent-sdk/src/state-sandbox.ts#L300)
 
 Cleans up the session, closing any open connections.
 
@@ -31,7 +31,7 @@ Cleans up the session, closing any open connections.
 
 > **readBinaryFile**(`options`): `PromiseLike`\<`Uint8Array`\<`ArrayBufferLike`\> \| `null`\>
 
-Defined in: [packages/agent-sdk/src/state-sandbox.ts:285](https://github.com/zocomputer/zov2-code/blob/87d4918f2a9361e41a43075d722493e3ed6872e1/packages/agent-sdk/src/state-sandbox.ts#L285)
+Defined in: [packages/agent-sdk/src/state-sandbox.ts:285](https://github.com/zocomputer/zov2-code/blob/ea2754383255c8c5c02ffe9d50fe4b5dbea37395/packages/agent-sdk/src/state-sandbox.ts#L285)
 
 Reads a file as binary. Returns `null` if the file does not exist.
 
@@ -53,7 +53,7 @@ Reads a file as binary. Returns `null` if the file does not exist.
 
 > **removePath**(`options`): `PromiseLike`\<`void`\>
 
-Defined in: [packages/agent-sdk/src/state-sandbox.ts:294](https://github.com/zocomputer/zov2-code/blob/87d4918f2a9361e41a43075d722493e3ed6872e1/packages/agent-sdk/src/state-sandbox.ts#L294)
+Defined in: [packages/agent-sdk/src/state-sandbox.ts:294](https://github.com/zocomputer/zov2-code/blob/ea2754383255c8c5c02ffe9d50fe4b5dbea37395/packages/agent-sdk/src/state-sandbox.ts#L294)
 
 Removes a file or directory.
 
@@ -83,7 +83,7 @@ Removes a file or directory.
 
 > **run**(`options`): `PromiseLike`\<[`StateSandboxRunResult`](StateSandboxRunResult.md)\>
 
-Defined in: [packages/agent-sdk/src/state-sandbox.ts:271](https://github.com/zocomputer/zov2-code/blob/87d4918f2a9361e41a43075d722493e3ed6872e1/packages/agent-sdk/src/state-sandbox.ts#L271)
+Defined in: [packages/agent-sdk/src/state-sandbox.ts:271](https://github.com/zocomputer/zov2-code/blob/ea2754383255c8c5c02ffe9d50fe4b5dbea37395/packages/agent-sdk/src/state-sandbox.ts#L271)
 
 Runs a shell command to completion and returns stdout, stderr, and exit code.
 
@@ -117,7 +117,7 @@ Runs a shell command to completion and returns stdout, stderr, and exit code.
 
 > **spawn**(`options`): `PromiseLike`\<[`StateSandboxSpawnedProcess`](StateSandboxSpawnedProcess.md)\>
 
-Defined in: [packages/agent-sdk/src/state-sandbox.ts:278](https://github.com/zocomputer/zov2-code/blob/87d4918f2a9361e41a43075d722493e3ed6872e1/packages/agent-sdk/src/state-sandbox.ts#L278)
+Defined in: [packages/agent-sdk/src/state-sandbox.ts:278](https://github.com/zocomputer/zov2-code/blob/ea2754383255c8c5c02ffe9d50fe4b5dbea37395/packages/agent-sdk/src/state-sandbox.ts#L278)
 
 Spawns a shell command and returns a handle to the running process with streaming output.
 
@@ -151,7 +151,7 @@ Spawns a shell command and returns a handle to the running process with streamin
 
 > **writeBinaryFile**(`options`): `PromiseLike`\<`void`\>
 
-Defined in: [packages/agent-sdk/src/state-sandbox.ts:289](https://github.com/zocomputer/zov2-code/blob/87d4918f2a9361e41a43075d722493e3ed6872e1/packages/agent-sdk/src/state-sandbox.ts#L289)
+Defined in: [packages/agent-sdk/src/state-sandbox.ts:289](https://github.com/zocomputer/zov2-code/blob/ea2754383255c8c5c02ffe9d50fe4b5dbea37395/packages/agent-sdk/src/state-sandbox.ts#L289)
 
 Writes a file as binary, creating parent directories if needed.
 

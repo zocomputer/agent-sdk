@@ -6,7 +6,7 @@
 
 # Interface: TaskChildToolsOptions
 
-Defined in: [packages/agent-sdk/src/task.ts:100](https://github.com/zocomputer/zov2-code/blob/87d4918f2a9361e41a43075d722493e3ed6872e1/packages/agent-sdk/src/task.ts#L100)
+Defined in: [packages/agent-sdk/src/task.ts:100](https://github.com/zocomputer/zov2-code/blob/ea2754383255c8c5c02ffe9d50fe4b5dbea37395/packages/agent-sdk/src/task.ts#L100)
 
 Options for `createTaskChildTools`: workspace root the child is confined to,
 where oversized output spills, and whether to inject directory conventions
@@ -18,7 +18,7 @@ on first read.
 
 > `optional` **conventionsFileName?**: `string`
 
-Defined in: [packages/agent-sdk/src/task.ts:113](https://github.com/zocomputer/zov2-code/blob/87d4918f2a9361e41a43075d722493e3ed6872e1/packages/agent-sdk/src/task.ts#L113)
+Defined in: [packages/agent-sdk/src/task.ts:113](https://github.com/zocomputer/zov2-code/blob/ea2754383255c8c5c02ffe9d50fe4b5dbea37395/packages/agent-sdk/src/task.ts#L113)
 
 Conventions filename the read riders look for. Defaults to "AGENTS.md".
 
@@ -28,7 +28,7 @@ Conventions filename the read riders look for. Defaults to "AGENTS.md".
 
 > `optional` **injectDirConventions?**: `boolean`
 
-Defined in: [packages/agent-sdk/src/task.ts:111](https://github.com/zocomputer/zov2-code/blob/87d4918f2a9361e41a43075d722493e3ed6872e1/packages/agent-sdk/src/task.ts#L111)
+Defined in: [packages/agent-sdk/src/task.ts:111](https://github.com/zocomputer/zov2-code/blob/ea2754383255c8c5c02ffe9d50fe4b5dbea37395/packages/agent-sdk/src/task.ts#L111)
 
 Attach a directory's conventions file to the first `read` under it, once
 per directory per session (see ./dir-conventions.ts). Defaults to `true`.
@@ -39,7 +39,7 @@ per directory per session (see ./dir-conventions.ts). Defaults to `true`.
 
 > **spillDir**: `string`
 
-Defined in: [packages/agent-sdk/src/task.ts:106](https://github.com/zocomputer/zov2-code/blob/87d4918f2a9361e41a43075d722493e3ed6872e1/packages/agent-sdk/src/task.ts#L106)
+Defined in: [packages/agent-sdk/src/task.ts:106](https://github.com/zocomputer/zov2-code/blob/ea2754383255c8c5c02ffe9d50fe4b5dbea37395/packages/agent-sdk/src/task.ts#L106)
 
 Where oversized grep/webfetch output spills (the parent's spill dir).
 
@@ -49,7 +49,7 @@ Where oversized grep/webfetch output spills (the parent's spill dir).
 
 > `optional` **workspaceNoun?**: `string`
 
-Defined in: [packages/agent-sdk/src/task.ts:104](https://github.com/zocomputer/zov2-code/blob/87d4918f2a9361e41a43075d722493e3ed6872e1/packages/agent-sdk/src/task.ts#L104)
+Defined in: [packages/agent-sdk/src/task.ts:104](https://github.com/zocomputer/zov2-code/blob/ea2754383255c8c5c02ffe9d50fe4b5dbea37395/packages/agent-sdk/src/task.ts#L104)
 
 What tool descriptions call the workspace. Defaults to "workspace".
 
@@ -59,6 +59,6 @@ What tool descriptions call the workspace. Defaults to "workspace".
 
 > **workspaceRoot**: `string`
 
-Defined in: [packages/agent-sdk/src/task.ts:102](https://github.com/zocomputer/zov2-code/blob/87d4918f2a9361e41a43075d722493e3ed6872e1/packages/agent-sdk/src/task.ts#L102)
+Defined in: [packages/agent-sdk/src/task.ts:102](https://github.com/zocomputer/zov2-code/blob/ea2754383255c8c5c02ffe9d50fe4b5dbea37395/packages/agent-sdk/src/task.ts#L102)
 
 Directory the child works in; tools refuse paths that escape it.
