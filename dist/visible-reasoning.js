@@ -1,6 +1,7 @@
-// ../../../../../tmp/agent-sdk-mirror-fB1xdG/repo/src/visible-reasoning.ts
+// ../../../../../tmp/agent-sdk-mirror-jmYRlO/repo/src/visible-reasoning.ts
 var ANTHROPIC_ADAPTIVE_THINKING_MODELS = [
   /^anthropic\/claude-fable-/,
+  /^anthropic\/claude-mythos-/,
   /^anthropic\/claude-(?:opus|sonnet)-4\.(?:[6-9]|\d{2,})/,
   /^anthropic\/claude-(?:opus|sonnet)-(?:[5-9]|\d{2,})/
 ];

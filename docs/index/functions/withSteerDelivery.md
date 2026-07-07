@@ -8,7 +8,7 @@
 
 > **withSteerDelivery**\<`TInput`, `TOutput`\>(`tool`, `inbox`): `ToolDefinition`\<`TInput`, `TOutput`\>
 
-Defined in: [packages/agent-sdk/src/steer-tool.ts:37](https://github.com/zocomputer/zov2-code/blob/e58b3bae5fbd35c5f457130033750c9c33ee334c/packages/agent-sdk/src/steer-tool.ts#L37)
+Defined in: [packages/agent-sdk/src/steer-tool.ts:37](https://github.com/zocomputer/zov2-code/blob/27ad75132e5ee857792f30c55f5617b1fdae5408/packages/agent-sdk/src/steer-tool.ts#L37)
 
 Wrap one tool with steer delivery. Structurally output-preserving for
 record outputs (the steer field spreads in alongside the tool's own keys);

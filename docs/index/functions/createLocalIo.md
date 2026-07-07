@@ -8,7 +8,7 @@
 
 > **createLocalIo**(`root`): [`WorkspaceIO`](../interfaces/WorkspaceIO.md)
 
-Defined in: [packages/agent-sdk/src/workspace-io.ts:141](https://github.com/zocomputer/zov2-code/blob/e58b3bae5fbd35c5f457130033750c9c33ee334c/packages/agent-sdk/src/workspace-io.ts#L141)
+Defined in: [packages/agent-sdk/src/workspace-io.ts:141](https://github.com/zocomputer/zov2-code/blob/27ad75132e5ee857792f30c55f5617b1fdae5408/packages/agent-sdk/src/workspace-io.ts#L141)
 
 The local backend: node:fs against the harness process's own disk.
 

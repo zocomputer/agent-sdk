@@ -8,7 +8,7 @@
 
 > **createGrepTool**(`opts`): `ToolDefinition`\<\{ `glob?`: `string`; `ignore_case?`: `boolean`; `max_results?`: `number`; `path?`: `string`; `pattern`: `string`; \}, [`GrepResult`](../interfaces/GrepResult.md)\>
 
-Defined in: [packages/agent-sdk/src/tools/grep.ts:45](https://github.com/zocomputer/zov2-code/blob/e58b3bae5fbd35c5f457130033750c9c33ee334c/packages/agent-sdk/src/tools/grep.ts#L45)
+Defined in: [packages/agent-sdk/src/tools/grep.ts:45](https://github.com/zocomputer/zov2-code/blob/27ad75132e5ee857792f30c55f5617b1fdae5408/packages/agent-sdk/src/tools/grep.ts#L45)
 
 Build the grep tool for searching file contents by regex, with optional overflow spill to a result file.
 

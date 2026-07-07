@@ -8,7 +8,7 @@
 
 > **withStreamGuards**(`baseFetch`, `options?`): *typeof* `fetch`
 
-Defined in: [packages/agent-sdk/src/gateway-fetch.ts:48](https://github.com/zocomputer/zov2-code/blob/e58b3bae5fbd35c5f457130033750c9c33ee334c/packages/agent-sdk/src/gateway-fetch.ts#L48)
+Defined in: [packages/agent-sdk/src/gateway-fetch.ts:48](https://github.com/zocomputer/zov2-code/blob/27ad75132e5ee857792f30c55f5617b1fdae5408/packages/agent-sdk/src/gateway-fetch.ts#L48)
 
 Wrap a fetch with first-byte and idle timeouts. The returned fetch chains
 any caller-provided abort signal, preserves status/headers, and passes

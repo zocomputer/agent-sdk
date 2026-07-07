@@ -17,6 +17,9 @@ describe("visibleReasoningModelOptions", () => {
   test.each([
     "anthropic/claude-fable-5",
     "anthropic/claude-fable-5.1",
+    "anthropic/claude-mythos-5",
+    "anthropic/claude-mythos-preview",
+    "anthropic/claude-opus-4.7",
     "anthropic/claude-opus-4.8",
     "anthropic/claude-opus-4.6",
     "anthropic/claude-opus-4.10",

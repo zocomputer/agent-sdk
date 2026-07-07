@@ -8,7 +8,7 @@
 
 > **buildHitlMarkdown**(): `string`
 
-Defined in: [packages/agent-sdk/src/instructions.ts:140](https://github.com/zocomputer/zov2-code/blob/e58b3bae5fbd35c5f457130033750c9c33ee334c/packages/agent-sdk/src/instructions.ts#L140)
+Defined in: [packages/agent-sdk/src/instructions.ts:140](https://github.com/zocomputer/zov2-code/blob/27ad75132e5ee857792f30c55f5617b1fdae5408/packages/agent-sdk/src/instructions.ts#L140)
 
 Pure markdown for the ask_question playbook; see createHitlInstruction.
 

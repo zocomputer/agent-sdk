@@ -8,7 +8,7 @@
 
 > **createWriteTool**(`opts`): `ToolDefinition`\<\{ `content`: `string`; `path`: `string`; \}, \{ `bytes`: `number`; `created`: `boolean`; `ok`: `boolean`; `path`: `string`; \}\>
 
-Defined in: [packages/agent-sdk/src/tools/write.ts:11](https://github.com/zocomputer/zov2-code/blob/e58b3bae5fbd35c5f457130033750c9c33ee334c/packages/agent-sdk/src/tools/write.ts#L11)
+Defined in: [packages/agent-sdk/src/tools/write.ts:11](https://github.com/zocomputer/zov2-code/blob/27ad75132e5ee857792f30c55f5617b1fdae5408/packages/agent-sdk/src/tools/write.ts#L11)
 
 Build the write tool for creating or overwriting complete files.
 

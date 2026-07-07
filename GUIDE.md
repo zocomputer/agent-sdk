@@ -374,6 +374,34 @@ yourself (prompt-caching directives, custom knobs), spread
 exported at the dependency-free `@zocomputer/agent-sdk/visible-reasoning`
 subpath.
 
+### The provider landscape
+
+Hidden-by-default is the exception. Surveyed live through the gateway
+(2026-07-07, `reasoning: "medium"` unless noted) plus provider docs:
+
+| Provider / family | Reasoning with plain `reasoning` effort | Convention |
+| --- | --- | --- |
+| Anthropic Fable 5, Mythos 5, Sonnet 5, Opus 4.7+ | **Hidden** — encrypted block, empty text | Thinking `display` defaults to `"omitted"` on these models; set `display: "summarized"` (what this module does). You're billed for thinking tokens either way. |
+| Anthropic Sonnet/Opus 4.6 and older | Visible (summarized) | 4.5-and-older **reject** `thinking.type.adaptive` with a 400 — never send it to them. |
+| Google Gemini 3 | **Hidden** — no reasoning parts at all | Needs `thinkingConfig: { includeThoughts: true }` (what this module does). Some older/lite Gemini models reject `include_thoughts`. |
+| OpenAI GPT-5.x | Visible (summaries) | The gateway defaults `reasoningSummary`; on the native Responses API you'd set `reasoningSummary: "auto"` yourself. |
+| xAI Grok 4.3 | Visible (summaries) | Older Grok models expose only encrypted reasoning content. |
+| DeepSeek v4, Z.ai GLM 5.x, Moonshot Kimi K2.x, MiniMax M-series | Visible — often the FULL raw chain of thought (DeepSeek streamed 85k chars on one prompt) | The OpenAI-compatible `reasoning_content` convention; the gateway maps it to reasoning parts. Consider a UI that collapses long reasoning. |
+| Alibaba Qwen | Visible when the model thinks | Hybrid-thinking family: `-thinking` variants and 3.6+ think; `qwen3-max` is a non-thinking model — the effort knob is a silent no-op. |
+| Mistral Magistral | Visible | Always-thinking; the gateway warns the effort knob is unsupported (harmless). |
+| Amazon Nova 2 | **The `reasoning` effort knob itself 400s** | The gateway maps effort to a `reasoningConfig` Bedrock rejects ("maxReasoningEffort is only allowed when type is 'enabled'"). Don't set `reasoning` on Nova models until the gateway fixes the mapping — this module can't help (the failure is the effort knob, not display). |
+| Meta Llama | No reasoning | Effort knob silently ignored. |
+
+Two structural takeaways. First, watch new Anthropic families: every family
+since Opus 4.7 has shipped with `display` defaulting to `"omitted"`, so a new
+family name (like `mythos`) needs adding to
+`ANTHROPIC_ADAPTIVE_THINKING_MODELS` or the invisible-thinking regression
+returns. Second, "reasoning didn't show" has three distinct causes worth
+distinguishing when debugging: hidden output (Anthropic omitted / Gemini —
+this module's job), a model that never reasons (Llama, qwen3-max — nothing to
+show), and a rejected request (Nova's effort knob, adaptive on old Claude —
+the call fails before any stream).
+
 ## Compile-time externals (fast cold boots)
 
 eve compiles every authored module — each tool, hook, instruction, and

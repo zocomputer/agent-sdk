@@ -6,7 +6,7 @@
 
 # Interface: VisibleReasoningModelOptions
 
-Defined in: [packages/agent-sdk/src/visible-reasoning.ts:60](https://github.com/zocomputer/zov2-code/blob/e58b3bae5fbd35c5f457130033750c9c33ee334c/packages/agent-sdk/src/visible-reasoning.ts#L60)
+Defined in: [packages/agent-sdk/src/visible-reasoning.ts:72](https://github.com/zocomputer/zov2-code/blob/27ad75132e5ee857792f30c55f5617b1fdae5408/packages/agent-sdk/src/visible-reasoning.ts#L72)
 
 The `modelOptions` value for `defineAgent` — eve's provider-options shape.
 
@@ -16,4 +16,4 @@ The `modelOptions` value for `defineAgent` — eve's provider-options shape.
 
 > `readonly` **providerOptions**: `Record`\<`string`, \{\[`key`: `string`\]: [`VisibleReasoningJsonValue`](../type-aliases/VisibleReasoningJsonValue.md); \}\>
 
-Defined in: [packages/agent-sdk/src/visible-reasoning.ts:61](https://github.com/zocomputer/zov2-code/blob/e58b3bae5fbd35c5f457130033750c9c33ee334c/packages/agent-sdk/src/visible-reasoning.ts#L61)
+Defined in: [packages/agent-sdk/src/visible-reasoning.ts:73](https://github.com/zocomputer/zov2-code/blob/27ad75132e5ee857792f30c55f5617b1fdae5408/packages/agent-sdk/src/visible-reasoning.ts#L73)

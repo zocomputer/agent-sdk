@@ -6,7 +6,7 @@
 
 # Interface: TaskRegistry
 
-Defined in: [packages/agent-sdk/src/async-tasks.ts:56](https://github.com/zocomputer/zov2-code/blob/e58b3bae5fbd35c5f457130033750c9c33ee334c/packages/agent-sdk/src/async-tasks.ts#L56)
+Defined in: [packages/agent-sdk/src/async-tasks.ts:56](https://github.com/zocomputer/zov2-code/blob/27ad75132e5ee857792f30c55f5617b1fdae5408/packages/agent-sdk/src/async-tasks.ts#L56)
 
 Background task registry: spawn work and return an id immediately, list/get
 task state, update progress, and await settlement with a timeout.
@@ -17,7 +17,7 @@ task state, update progress, and await settlement with a timeout.
 
 > **awaitTask**(`id`, `waitMs`): `Promise`\<[`Task`](../type-aliases/Task.md) \| `undefined`\>
 
-Defined in: [packages/agent-sdk/src/async-tasks.ts:69](https://github.com/zocomputer/zov2-code/blob/e58b3bae5fbd35c5f457130033750c9c33ee334c/packages/agent-sdk/src/async-tasks.ts#L69)
+Defined in: [packages/agent-sdk/src/async-tasks.ts:69](https://github.com/zocomputer/zov2-code/blob/27ad75132e5ee857792f30c55f5617b1fdae5408/packages/agent-sdk/src/async-tasks.ts#L69)
 
 Block until the task settles or `waitMs` elapses, then return its current
 state (still "running" if the wait timed out). Undefined for an unknown id.
@@ -42,7 +42,7 @@ state (still "running" if the wait timed out). Undefined for an unknown id.
 
 > **getTask**(`id`): [`Task`](../type-aliases/Task.md) \| `undefined`
 
-Defined in: [packages/agent-sdk/src/async-tasks.ts:64](https://github.com/zocomputer/zov2-code/blob/e58b3bae5fbd35c5f457130033750c9c33ee334c/packages/agent-sdk/src/async-tasks.ts#L64)
+Defined in: [packages/agent-sdk/src/async-tasks.ts:64](https://github.com/zocomputer/zov2-code/blob/27ad75132e5ee857792f30c55f5617b1fdae5408/packages/agent-sdk/src/async-tasks.ts#L64)
 
 Retrieve one task by id; undefined when not found.
 
@@ -62,7 +62,7 @@ Retrieve one task by id; undefined when not found.
 
 > **listTasks**(): [`Task`](../type-aliases/Task.md)[]
 
-Defined in: [packages/agent-sdk/src/async-tasks.ts:62](https://github.com/zocomputer/zov2-code/blob/e58b3bae5fbd35c5f457130033750c9c33ee334c/packages/agent-sdk/src/async-tasks.ts#L62)
+Defined in: [packages/agent-sdk/src/async-tasks.ts:62](https://github.com/zocomputer/zov2-code/blob/27ad75132e5ee857792f30c55f5617b1fdae5408/packages/agent-sdk/src/async-tasks.ts#L62)
 
 List all tasks, sorted by start time.
 
@@ -76,7 +76,7 @@ List all tasks, sorted by start time.
 
 > **spawnTask**(`tool`, `label`, `work`): `string`
 
-Defined in: [packages/agent-sdk/src/async-tasks.ts:58](https://github.com/zocomputer/zov2-code/blob/e58b3bae5fbd35c5f457130033750c9c33ee334c/packages/agent-sdk/src/async-tasks.ts#L58)
+Defined in: [packages/agent-sdk/src/async-tasks.ts:58](https://github.com/zocomputer/zov2-code/blob/27ad75132e5ee857792f30c55f5617b1fdae5408/packages/agent-sdk/src/async-tasks.ts#L58)
 
 Register `work` as a background task and return its id immediately.
 
@@ -104,7 +104,7 @@ Register `work` as a background task and return its id immediately.
 
 > **updateTaskProgress**(`id`, `progress`): `void`
 
-Defined in: [packages/agent-sdk/src/async-tasks.ts:60](https://github.com/zocomputer/zov2-code/blob/e58b3bae5fbd35c5f457130033750c9c33ee334c/packages/agent-sdk/src/async-tasks.ts#L60)
+Defined in: [packages/agent-sdk/src/async-tasks.ts:60](https://github.com/zocomputer/zov2-code/blob/27ad75132e5ee857792f30c55f5617b1fdae5408/packages/agent-sdk/src/async-tasks.ts#L60)
 
 Update a running task's progress field; no-op when the task isn't running or doesn't exist.
 

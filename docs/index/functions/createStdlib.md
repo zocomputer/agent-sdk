@@ -8,7 +8,7 @@
 
 > **createStdlib**(`options`): `object`
 
-Defined in: [packages/agent-sdk/src/index.ts:142](https://github.com/zocomputer/zov2-code/blob/e58b3bae5fbd35c5f457130033750c9c33ee334c/packages/agent-sdk/src/index.ts#L142)
+Defined in: [packages/agent-sdk/src/index.ts:142](https://github.com/zocomputer/zov2-code/blob/27ad75132e5ee857792f30c55f5617b1fdae5408/packages/agent-sdk/src/index.ts#L142)
 
 Create the standard library for a real-filesystem eve agent: workspace-scoped
 file tools (read/edit/write/glob/grep), host bash, webfetch, the background-

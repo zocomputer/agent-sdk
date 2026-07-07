@@ -6,7 +6,7 @@
 
 # Interface: StateSandboxSpawnedProcess
 
-Defined in: [packages/agent-sdk/src/state-sandbox.ts:257](https://github.com/zocomputer/zov2-code/blob/e58b3bae5fbd35c5f457130033750c9c33ee334c/packages/agent-sdk/src/state-sandbox.ts#L257)
+Defined in: [packages/agent-sdk/src/state-sandbox.ts:257](https://github.com/zocomputer/zov2-code/blob/27ad75132e5ee857792f30c55f5617b1fdae5408/packages/agent-sdk/src/state-sandbox.ts#L257)
 
 A running process spawned in a state sandbox.
 Provides streaming stdout/stderr and a promise that resolves to the exit code.
@@ -17,7 +17,7 @@ Provides streaming stdout/stderr and a promise that resolves to the exit code.
 
 > `readonly` **exitCode**: `Promise`\<`number`\>
 
-Defined in: [packages/agent-sdk/src/state-sandbox.ts:260](https://github.com/zocomputer/zov2-code/blob/e58b3bae5fbd35c5f457130033750c9c33ee334c/packages/agent-sdk/src/state-sandbox.ts#L260)
+Defined in: [packages/agent-sdk/src/state-sandbox.ts:260](https://github.com/zocomputer/zov2-code/blob/27ad75132e5ee857792f30c55f5617b1fdae5408/packages/agent-sdk/src/state-sandbox.ts#L260)
 
 ***
 
@@ -25,7 +25,7 @@ Defined in: [packages/agent-sdk/src/state-sandbox.ts:260](https://github.com/zoc
 
 > `readonly` **stderr**: `AsyncIterable`\<`Uint8Array`\<`ArrayBufferLike`\>\>
 
-Defined in: [packages/agent-sdk/src/state-sandbox.ts:259](https://github.com/zocomputer/zov2-code/blob/e58b3bae5fbd35c5f457130033750c9c33ee334c/packages/agent-sdk/src/state-sandbox.ts#L259)
+Defined in: [packages/agent-sdk/src/state-sandbox.ts:259](https://github.com/zocomputer/zov2-code/blob/27ad75132e5ee857792f30c55f5617b1fdae5408/packages/agent-sdk/src/state-sandbox.ts#L259)
 
 ***
 
@@ -33,7 +33,7 @@ Defined in: [packages/agent-sdk/src/state-sandbox.ts:259](https://github.com/zoc
 
 > `readonly` **stdout**: `AsyncIterable`\<`Uint8Array`\<`ArrayBufferLike`\>\>
 
-Defined in: [packages/agent-sdk/src/state-sandbox.ts:258](https://github.com/zocomputer/zov2-code/blob/e58b3bae5fbd35c5f457130033750c9c33ee334c/packages/agent-sdk/src/state-sandbox.ts#L258)
+Defined in: [packages/agent-sdk/src/state-sandbox.ts:258](https://github.com/zocomputer/zov2-code/blob/27ad75132e5ee857792f30c55f5617b1fdae5408/packages/agent-sdk/src/state-sandbox.ts#L258)
 
 ## Methods
 
@@ -41,7 +41,7 @@ Defined in: [packages/agent-sdk/src/state-sandbox.ts:258](https://github.com/zoc
 
 > **kill**(`signal?`): `void` \| `Promise`\<`void`\>
 
-Defined in: [packages/agent-sdk/src/state-sandbox.ts:262](https://github.com/zocomputer/zov2-code/blob/e58b3bae5fbd35c5f457130033750c9c33ee334c/packages/agent-sdk/src/state-sandbox.ts#L262)
+Defined in: [packages/agent-sdk/src/state-sandbox.ts:262](https://github.com/zocomputer/zov2-code/blob/27ad75132e5ee857792f30c55f5617b1fdae5408/packages/agent-sdk/src/state-sandbox.ts#L262)
 
 Kills the process with an optional signal (e.g. `"SIGTERM"`, `"SIGKILL"`).
 
