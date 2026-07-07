@@ -8,7 +8,7 @@
 
 > **formatCompletionNotification**(`opts`): `string`
 
-Defined in: [packages/agent-sdk/src/watch-output.ts:105](https://github.com/zocomputer/zov2-code/blob/6ab5ae927225cb2a14ac9cd70c43ecf9eb01921d/packages/agent-sdk/src/watch-output.ts#L105)
+Defined in: [packages/agent-sdk/src/watch-output.ts:105](https://github.com/zocomputer/zov2-code/blob/ca3547b2cec605405cb2885ac6f0edc660b55992/packages/agent-sdk/src/watch-output.ts#L105)
 
 The message text for a completion notice (run_async notify_on_complete).
 

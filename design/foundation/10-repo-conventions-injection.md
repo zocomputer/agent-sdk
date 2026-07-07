@@ -44,7 +44,7 @@ hostagent independently validated the shape (its `read_file` collects the
 directory hierarchy's docs as breadcrumbs).
 
 First-class `AGENTS.md` ingestion belongs upstream in eve; it's on the
-README's asks list ([13](./13-work-with-the-grain-of-eve.md)). Until then,
+upstream-asks list ([13](./13-work-with-the-grain-of-eve.md)). Until then,
 this is the app-side bridge, and it ships in the SDK because every eve agent
 working in a documented repo needs it, not just ours.
 

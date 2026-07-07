@@ -21,7 +21,7 @@ export default function agent() {
   // credential-free test rig where everything past the model call — session
   // routes, harness, framework tools, subagents, durable streams — runs real,
   // and only inference is canned. Drive it with `[mock:<scenario>]` directives
-  // (see the README's "Mock model" section); the evals-mock/ suite runs the
+  // (see the GUIDE's "Mock model" section); the evals-mock/ suite runs the
   // scenarios end-to-end via `bun run eval`. Never set in a normal run.
   if (process.env.CODER_MOCK_MODEL === "1") {
     return defineAgent({

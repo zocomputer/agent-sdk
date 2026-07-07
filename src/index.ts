@@ -72,7 +72,7 @@ export interface StdlibOptions {
   /**
    * When `read` or `webfetch` hits an image, embed its bytes on the tool
    * result so a client can re-inject it as a viewable attachment on the next
-   * turn (see ./attachments and the README). Requires a client that consumes
+   * turn (see ./attachments and GUIDE.md). Requires a client that consumes
    * the attachment (rib, Zo); generic eve consumers can leave this off and get
    * the metadata-only "ask the user" note. Defaults to `true`.
    */

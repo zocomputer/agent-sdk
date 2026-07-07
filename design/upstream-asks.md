@@ -10,8 +10,8 @@ built, verified patches) graduate to [`proposals/`](./proposals).
 - **Multimodal tool results.** `ToolModelOutput` is `text | json` only, so
   `read` can't return an image directly — we work around it by smuggling the
   bytes past on the raw result and having a hook send them back as the next
-  user turn (see the README's
-  [Media reads](../README.md#media-reads-images-video-audio)), which costs
+  user turn (see the guide's
+  [Media reads](../GUIDE.md#media-reads-images-video-audio)), which costs
   an extra turn and an extra copy of the bytes in the durable stream.
   `@workflow/ai`'s DurableAgent already merged multimodal tool-result
   pass-through (`type: "content"`, vercel/workflow#848 → #1385); exposing that

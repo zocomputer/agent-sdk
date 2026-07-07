@@ -91,6 +91,7 @@
     }
   },
   "files": [
+    "GUIDE.md",
     "src",
     "!src/**/*.test.ts",
     "!src/**/*.test-helpers.ts",

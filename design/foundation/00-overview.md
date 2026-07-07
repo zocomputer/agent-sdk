@@ -86,9 +86,10 @@ make.
 
 ## Relation to the other docs
 
-- The package `README.md` is the **how**: quick start, tool behavior. These
-  docs are the **why** — including [`../upstream-asks.md`](../upstream-asks.md),
-  the maintained list of eve gaps the package works around.
+- The package `README.md` (install + quick start) and `GUIDE.md` (each
+  subsystem in depth) are the **how**. These docs are the **why** — including
+  [`../upstream-asks.md`](../upstream-asks.md), the maintained list of eve
+  gaps the package works around.
 - `rib/learnings/` (in the parent monorepo) is the live design log — the
   running notes that motivated each extraction and track what to extract
   next. This directory is the curated, stable subset: the decisions that

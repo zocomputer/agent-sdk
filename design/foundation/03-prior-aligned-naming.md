@@ -75,7 +75,7 @@ flag), alias tables — live in the learning note below.
   shipping `disableTool()` shims for `read_file`/`write_file` — otherwise the
   model sees two file readers, a silent split-brain. The quick start
   prescribes the shims; the upstream ask (prior-aligned defaults, or
-  config-level disable) is on the README's list.
+  config-level disable) is on the upstream-asks list.
 - **SDK-specific tools keep descriptive names** (`run_async`, `check_tasks`,
   `await_task`, `webfetch`): no prior exists for them, so clarity wins over
   mimicry.

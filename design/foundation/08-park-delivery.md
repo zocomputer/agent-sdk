@@ -53,7 +53,7 @@ turn (eve hooks can't); it starts the next one.
 This is a workaround with a documented expiry: native multimodal tool results
 upstream would delete the image leg, and a first-class "deliver to this
 session when it parks" API would delete the park detection. Both are on the
-README's upstream-asks list ([13](./13-work-with-the-grain-of-eve.md)). Until
+upstream-asks list ([13](./13-work-with-the-grain-of-eve.md)). Until
 then the pattern is fully app-side and portable to any eve agent.
 
 ## Sources
