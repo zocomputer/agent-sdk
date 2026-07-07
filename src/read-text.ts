@@ -1,21 +1,20 @@
 import { readFileSync, statSync } from "node:fs";
 
-// Search tools skip anything bigger — no source file we'd grep comes close,
-// and the cap keeps a stray artifact from stalling a search.
+/** Search tools skip anything bigger — no source file we'd grep comes close, and the cap keeps a stray artifact from stalling a search. */
 export const MAX_SEARCH_FILE_BYTES = 1_500_000;
 
 // A NUL byte in the first 8 KB marks a file binary — the same heuristic git
 // and ripgrep use.
 const BINARY_SNIFF_BYTES = 8_192;
 
+/** The result of a bounded, binary-sniffed read for search tools. */
 export type SearchRead =
   | { kind: "text"; content: string }
   | { kind: "too-large"; bytes: number }
   | { kind: "binary" }
   | { kind: "unreadable" };
 
-// Bounded read for search: stat before read so an oversized file is skipped
-// without touching its bytes, and sniff raw bytes for NUL before decoding.
+/** Bounded read for search: stat before read so an oversized file is skipped without touching its bytes, and sniff raw bytes for NUL before decoding. */
 export function readTextForSearch(
   abs: string,
   maxBytes: number = MAX_SEARCH_FILE_BYTES,

@@ -4,17 +4,36 @@
 // mtime+size, insertion-ordered LRU. Failures are not cached: `compute`
 // throwing stores nothing, so a corrupt file is re-tried after it's fixed.
 
+/**
+ * A file's stat-based identity: mtime plus size. The cache validates hits
+ * against both, so a changed file re-extracts.
+ */
 export interface StatIdentity {
   readonly mtimeMs: number;
   readonly size: number;
 }
 
+/**
+ * A stat-validated memo for document extraction: keyed by path, validated by
+ * mtime and size, insertion-ordered LRU. Failures are not cached; `compute`
+ * throwing stores nothing.
+ */
 export interface StatCache<T> {
+  /**
+   * Get a cached value or compute and cache it. A hit whose stat identity
+   * matches the provided one returns immediately; a miss or stale hit calls
+   * `compute`, caches the result, and returns it.
+   */
   get(key: string, id: StatIdentity, compute: () => Promise<T>): Promise<T>;
   /** Current entry count, for tests. */
   size(): number;
 }
 
+/**
+ * Build a stat-validated extraction cache with the given entry limit. LRU
+ * eviction when full; Map iteration order is insertion order, so the first
+ * entry is the oldest.
+ */
 export function createStatCache<T>(limit: number): StatCache<T> {
   const entries = new Map<string, { id: StatIdentity; value: T }>();
   return {

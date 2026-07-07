@@ -1,7 +1,4 @@
-// Convert a glob to an anchored RegExp over forward-slash paths. `**` (or `**/`)
-// spans any number of directories; `*` matches within a single segment; `?` one
-// non-separator char. Pure and dependency-free so `glob`, `grep`, and their
-// tests all share one matcher.
+/** Convert a glob to an anchored RegExp over forward-slash paths. Double-star spans directories; single-star matches within a segment; question mark matches one char. */
 export function globToRegExp(glob: string): RegExp {
   const escaped = glob.replace(/[.+^${}()|[\]\\]/g, "\\$&");
   const body = escaped

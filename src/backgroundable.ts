@@ -14,21 +14,38 @@ export interface OpStartExtras {
   onOutput?: (chunk: string) => void;
 }
 
-// A registered op erases its input type behind a uniform surface: `start`
-// parses the raw tool input with the op's own schema (throwing a clear error on
-// bad input) and returns a label plus the in-flight promise. The parse lives
-// inside the closure, so the registry stays a plain array with no `any`.
+/**
+ * A registered operation run_async can launch in the background: uniform
+ * surface over any input type. `start` parses the raw tool input with the
+ * op's own schema (throwing a clear error on bad input) and returns a label
+ * plus the in-flight promise, with optional progress tap.
+ */
 export interface BackgroundableOp {
   readonly name: string;
   readonly description: string;
   /** JSON Schema of the op's input, surfaced so the model knows what to pass. */
   readonly inputJsonSchema: unknown;
+  /**
+   * Parse input and start the operation. Returns a user-facing label, the
+   * in-flight work promise, and optionally a progress tap that reads the
+   * op's current state (e.g. accumulated output, task count).
+   */
   start(
     rawInput: unknown,
     extras?: OpStartExtras,
-  ): { label: string; work: Promise<unknown>; progress?: () => unknown };
+  ): {
+    label: string;
+    work: Promise<unknown>;
+    /** Optional tap that reads the op's current state (e.g. accumulated output, task count). */
+    progress?: () => unknown;
+  };
 }
 
+/**
+ * Define a backgroundable operation: typed input schema, label builder, and
+ * the work function. The returned `BackgroundableOp` erases the input type
+ * behind a uniform surface so the registry stays a plain array with no `any`.
+ */
 export function defineOp<I>(cfg: {
   name: string;
   description: string;
@@ -60,9 +77,11 @@ function truncate(s: string, max = 80): string {
   return oneLine.length > max ? `${oneLine.slice(0, max)}…` : oneLine;
 }
 
-// The one op every agent wants backgroundable: a shell command through the
-// stdlib's runner. Agents with their own long-running ops append to the array
-// this feeds (see createStdlib's `backgroundables`).
+/**
+ * Build the bash backgroundable op: a shell command through the stdlib's
+ * runner. The one op every agent wants backgroundable; agents with their own
+ * long-running ops append to the array this feeds.
+ */
 export function createBashOp(runner: CommandRunner): BackgroundableOp {
   return defineOp({
     name: "bash",

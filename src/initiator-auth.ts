@@ -58,7 +58,7 @@ export const initiatorAuth: AuthFn = (request) => {
 };
 
 /** What a tool/hook reads off `session.auth.initiator` to authorize its work. */
-interface InitiatorReadable {
+export interface InitiatorReadable {
   readonly attributes?: Readonly<Record<string, string | readonly string[]>>;
   readonly subject?: string;
 }

@@ -8,8 +8,8 @@ GitHub-verified commit signature, so the submitter re-signs
 (`git commit --amend -s -S --no-edit`) with their own key.
 
 Upstream target: `packages/eve/src/harness/attachment-staging.ts` and its
-callers. Tracked on the README's
-[Notes for the eve maintainers](../../README.md#notes-for-the-eve-maintainers).
+callers. Tracked on the
+[upstream-asks list](../upstream-asks.md).
 
 Filed upstream as [vercel/eve#543](https://github.com/vercel/eve/issues/543)
 (eve requires issue discussion before a behavior-change PR); the PR follows
@@ -222,4 +222,4 @@ Four new cases on the real stage-then-hydrate round trip (mock sandbox):
 - Whether hydration downgrades should emit an observable signal (log or
   stream event) — today a stubbed part is invisible to clients, which is how
   the silent-video gap went unnoticed. That ask stands independently of this
-  patch (see the [README note](../../README.md#notes-for-the-eve-maintainers)).
+  patch (see the [upstream-asks entry](../upstream-asks.md)).

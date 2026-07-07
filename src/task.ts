@@ -42,6 +42,11 @@ import { createWorkspace } from "./workspace";
  */
 export const TASK_DISABLED_BUILTINS = ["ask_question"] as const;
 
+/**
+ * Options for `expectedTaskToolNames`: the parent's authored tool names and
+ * the subset deliberately excluded from the child. A typo in the exclusion
+ * list would silently weaken the manifest guard, so it throws on bad names.
+ */
 export interface TaskToolManifestOptions {
   /**
    * The parent's authored tool names — file names (without `.ts`) under the
@@ -86,6 +91,11 @@ export function expectedTaskToolNames(options: TaskToolManifestOptions): string[
   return [...names].sort();
 }
 
+/**
+ * Options for `createTaskChildTools`: workspace root the child is confined to,
+ * where oversized output spills, and whether to inject directory conventions
+ * on first read.
+ */
 export interface TaskChildToolsOptions {
   /** Directory the child works in; tools refuse paths that escape it. */
   workspaceRoot: string;
@@ -188,6 +198,11 @@ export function createTaskInstruction(opts?: { workspaceNoun?: string }) {
   });
 }
 
+/**
+ * Options for `buildTaskDescription`: the pinned model's display name and
+ * catalog blurb, when to pick this tier over its siblings, capability notes
+ * for excluded tools, and what the description calls the workspace.
+ */
 export interface TaskDescriptionOptions {
   /** Display name of the pinned model (e.g. "Claude Sonnet 5"). */
   modelName: string;
@@ -231,6 +246,10 @@ export function buildTaskDescription(options: TaskDescriptionOptions): string {
   return `Delegate one self-contained subtask to a copy of this agent pinned to ${options.modelName} — same ${noun}, fresh conversation. It cannot ask the user anything: it decides and reports.${capability} ${options.use} Pack the message with everything the child needs (it sees none of your history), name the exact deliverable and the thoroughness you want ("quick", "medium", or "very thorough"), and give parallel children non-overlapping write scopes.${blurb}`;
 }
 
+/**
+ * Options for `createTaskAgent`: extends `TaskDescriptionOptions` with the
+ * child's pinned model, optional description override, and reasoning effort.
+ */
 export interface TaskAgentOptions extends TaskDescriptionOptions {
   /** The child's pinned model — the tier this subagent encodes. */
   model: AgentDefinition["model"];
@@ -276,9 +295,10 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 /**
- * Parse the gateway catalog response body (`{ data: [{ id, name?,
- * description? }, …] }`) into typed entries; `null` on any malformed shape.
- * Same catalog the AI SDK's `gateway.getAvailableModels()` reads.
+ * Parse the gateway catalog response body
+ * (`{ data: [{ id, name?, description? }, …] }`) into typed entries; `null`
+ * on any malformed shape. Same catalog the AI SDK's
+ * `gateway.getAvailableModels()` reads.
  */
 export function parseGatewayModelCatalog(value: unknown): GatewayModelInfo[] | null {
   if (!isRecord(value) || !Array.isArray(value.data)) return null;

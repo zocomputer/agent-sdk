@@ -38,6 +38,7 @@ export function shellSingleQuote(value: string): string {
   return `'${value.replaceAll("'", `'\\''`)}'`;
 }
 
+/** Options for creating a sandbox-backed workspace I/O provider that executes file operations over an eve session sandbox. */
 export interface SandboxIoOptions {
   /**
    * Absolute path of the workspace root **inside the sandbox** (e.g.

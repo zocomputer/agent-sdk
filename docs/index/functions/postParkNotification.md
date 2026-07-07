@@ -1,0 +1,29 @@
+[**@zocomputer/agent-sdk**](../../README.md)
+
+***
+
+[@zocomputer/agent-sdk](../../README.md) / [index](../README.md) / postParkNotification
+
+# Function: postParkNotification()
+
+> **postParkNotification**(`sessionId`, `notification`): `void`
+
+Defined in: [packages/agent-sdk/src/park-delivery.ts:236](https://github.com/zocomputer/zov2-code/blob/6ab5ae927225cb2a14ac9cd70c43ecf9eb01921d/packages/agent-sdk/src/park-delivery.ts#L236)
+
+Post a notification for a session. Delivered by the park-delivery hook when
+the session parks (immediately, if it's parked right now). Without a hook
+the post queues — bounded per session — and flushes when one registers.
+
+## Parameters
+
+### sessionId
+
+`string`
+
+### notification
+
+[`ParkNotification`](../interfaces/ParkNotification.md)
+
+## Returns
+
+`void`

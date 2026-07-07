@@ -52,7 +52,7 @@ function full(task: Task) {
 }
 
 /**
- * Build the {run_async, check_tasks, await_task} toolset. Exported with its
+ * Build the `{run_async, check_tasks, await_task}` toolset. Exported with its
  * concrete types for direct testing; agents wire it through createTasksTools
  * (a `defineDynamic` erases entry types on the wire-facing surface).
  */

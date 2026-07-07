@@ -22,6 +22,7 @@ export type DirConventionsRider =
   | { readonly path: string; readonly content: string }
   | { readonly path: string; readonly note: string };
 
+/** Options for a directory-conventions tracker that delivers nested convention files on first read. */
 export interface DirConventionsOptions {
   /** Workspace root; the chain walks from here (exclusive) down to the file. */
   workspaceRoot: string;
@@ -53,6 +54,7 @@ export interface DirConventionsOptions {
   maxSessions?: number;
 }
 
+/** Tracks which directories have delivered their conventions files to each session. */
 export interface DirConventionsTracker {
   /**
    * Riders for a read of `relPath` (workspace-relative), marking every
@@ -134,6 +136,7 @@ export function __resetDirConventionsCacheForTests(): void {
   trackerStateCache().clear();
 }
 
+/** Build a conventions tracker that delivers directory-specific convention files once per directory per session. */
 export function createDirConventionsTracker(
   options: DirConventionsOptions,
 ): DirConventionsTracker {

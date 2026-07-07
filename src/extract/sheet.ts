@@ -7,20 +7,34 @@ import { read, utils } from "xlsx";
 // reading data. TSV over CSV: tabs survive the line-numbered view better than
 // quoted commas.
 
+/**
+ * Metadata for one sheet in a workbook: its name, row count, and column count.
+ */
 export interface SheetMeta {
   readonly name: string;
   readonly rows: number;
   readonly cols: number;
 }
 
+/**
+ * Result of spreadsheet extraction: either TSV text under explicit sheet
+ * markers plus metadata for each sheet, or a failure reason.
+ */
 export type SheetExtraction =
   | { readonly ok: true; readonly text: string; readonly sheets: readonly SheetMeta[] }
   | { readonly ok: false; readonly reason: string };
 
-// Per-sheet row cap. The 50 KB view budget usually bites first; this keeps a
-// pathological million-row sheet from being TSV-serialized at all.
+/**
+ * Per-sheet row cap. The 50 KB view budget usually bites first; this keeps a
+ * pathological million-row sheet from being TSV-serialized at all.
+ */
 export const SHEET_ROW_CAP = 5_000;
 
+/**
+ * Extract spreadsheet bytes (xlsx/xlsm/xls/ods) into TSV text under explicit
+ * sheet markers. Cells read as computed values; each sheet is capped at
+ * `rowCap` rows. Returns metadata for every sheet plus the full TSV text.
+ */
 export function extractSheets(buffer: Buffer, rowCap: number = SHEET_ROW_CAP): SheetExtraction {
   let workbook: ReturnType<typeof read>;
   try {

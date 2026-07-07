@@ -14,14 +14,19 @@
 // A guard firing rejects/errors like any network failure, so the AI SDK's
 // normal retry-with-backoff takes over instead of waiting on a dead socket.
 
-type FetchLike = typeof globalThis.fetch;
-// The call signature alone: Bun's `typeof fetch` also carries `preconnect`,
-// which test doubles (and the wrapper itself) shouldn't have to fake.
-type FetchCall = (
+/** The full global fetch type, as the AI SDK's gateway provider expects. */
+export type FetchLike = typeof globalThis.fetch;
+/**
+ * The fetch call signature alone: Bun's `typeof fetch` also carries
+ * `preconnect`, which test doubles (and the wrapper itself) shouldn't have to
+ * fake.
+ */
+export type FetchCall = (
   input: Parameters<FetchLike>[0],
   init?: Parameters<FetchLike>[1],
 ) => Promise<Response>;
 
+/** First-byte and idle timeout options for stream guards. */
 export interface StreamGuardOptions {
   /** Max wait for response headers, ms. */
   readonly firstByteMs: number;
@@ -29,10 +34,7 @@ export interface StreamGuardOptions {
   readonly idleMs: number;
 }
 
-// Generous on purpose: the point is to convert a *dead* connection into a
-// retryable error, not to race a slow-but-alive model. Headers should arrive
-// in seconds; reasoning models can legitimately pause between chunks, so the
-// idle guard gets minutes.
+/** Generous defaults that convert a dead connection into a retryable error without racing slow-but-alive models. Headers should arrive in seconds; reasoning models can pause between chunks, so the idle guard gets minutes. */
 export const DEFAULT_STREAM_GUARDS: StreamGuardOptions = {
   firstByteMs: 60_000,
   idleMs: 180_000,

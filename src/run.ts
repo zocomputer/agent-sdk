@@ -3,13 +3,16 @@ import { join } from "node:path";
 import { createBoundedCapture, type BoundedCapture } from "./bounded-output";
 import type { Workspace } from "./workspace";
 
-// Tool results enter the transcript permanently, so a full-run result is
-// bounded to head + tail (see bounded-output.ts) with the complete output
-// spilled to the runner's spill dir — the model greps/reads the spill instead
-// of re-running the command. Live progress previews keep just the tail (the
-// latest lines matter while it's still running).
+/**
+ * Character cap for live progress previews; the tail alone when output exceeds
+ * it. Full-run results get head + tail instead (see bounded-output.ts).
+ */
 export const MAX_PREVIEW = 20_000;
 
+/**
+ * A completed command run: stdout/stderr (bounded head + tail when overflowing),
+ * exit code (null if the spawn failed), and whether it timed out.
+ */
 export interface RunResult {
   stdout: string;
   stderr: string;
@@ -17,6 +20,10 @@ export interface RunResult {
   timedOut: boolean;
 }
 
+/**
+ * Live progress snapshot while a command is still running: preview text
+ * (tail-only when truncated), byte counts, and truncation flags.
+ */
 export interface RunProgress {
   stdout: string;
   stderr: string;
@@ -26,12 +33,22 @@ export interface RunProgress {
   stderrTruncated: boolean;
 }
 
+/**
+ * A spawned command with live handles: the result promise, a progress snapshot
+ * method, and a kill signal.
+ */
 export interface RunningCommand {
   result: Promise<RunResult>;
+  /** Current progress snapshot (stdout/stderr previews, byte counts, truncation flags). */
   progress(): RunProgress;
+  /** Kill the command's process group via SIGTERM; safe to call after it's already exited. */
   kill(): void;
 }
 
+/**
+ * Options for starting a shell command: working directory, timeout, and an
+ * optional raw-output tap called with every chunk before truncation.
+ */
 export interface StartCommandOptions {
   cwd?: string | undefined;
   timeoutMs?: number;
@@ -42,6 +59,10 @@ export interface StartCommandOptions {
   onOutput?: ((chunk: string) => void) | undefined;
 }
 
+/**
+ * A workspace-rooted shell runner that spawns commands in detached process
+ * groups and captures/spills their output.
+ */
 export interface CommandRunner {
   /** Spawn a shell command and return live handles (progress preview, kill, result). */
   startCommand(command: string, opts?: StartCommandOptions): RunningCommand;
@@ -55,9 +76,11 @@ function previewOf(capture: BoundedCapture): string {
   return `… [earlier output truncated]\n${latest.slice(-MAX_PREVIEW)}`;
 }
 
-// Commands run rooted at the workspace (cwd resolved within it — a real shell
-// otherwise: no sandbox, no undo). Overflowing output spills to `spillDir`,
-// labeled workspace-relative so the model can read/grep the file.
+/**
+ * Create a command runner rooted at the workspace. Commands run in a real
+ * shell (no sandbox), cwd resolves within the workspace, and overflowing
+ * output spills to files under `spillDir` (labeled workspace-relative).
+ */
 export function createCommandRunner(opts: {
   workspace: Workspace;
   spillDir: string;

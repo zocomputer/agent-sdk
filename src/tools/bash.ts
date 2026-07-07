@@ -16,6 +16,7 @@ import type { Workspace } from "../workspace";
 const DEFAULT_INTERACTIVE_HINT =
   "This is a piped shell with NO tty: avoid interactive or full-screen CLIs (a REPL, vim, an interactive installer/prompt) — those programs hang or degrade without a real terminal.";
 
+/** Build the bash tool that runs shell commands on the real host, rooted at the workspace. */
 export function createBashTool(opts: {
   workspace: Workspace;
   runner: CommandRunner;

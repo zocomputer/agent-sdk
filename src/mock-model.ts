@@ -21,6 +21,11 @@ import type {
   LanguageModelV4Usage,
 } from "@ai-sdk/provider";
 
+/**
+ * Configuration for the slow-streaming mock model's behavior: how long each
+ * story turn runs, how many deltas a burst emits, which subagent tool
+ * `[mock:delegate]` calls, and the clock for deterministic test streams.
+ */
 export interface MockStoryModelOptions {
   /** Text deltas per story turn. Default 240 (~60s at the default delay). */
   chunkCount?: number;
@@ -68,16 +73,13 @@ function usageFor(outputTokens: number): LanguageModelV4Usage {
 
 // --- Scripted scenarios (pure helpers, unit-tested) -------------------------
 
-// Multi-step tool scripts plus four stream shapes: `fail` ends the stream in
-// a terminal error part (the deterministic trigger for the failed-turn UX),
-// `burst` streams RIB_MOCK_BURST_CHUNKS deltas with no pacing delay — a
-// renderer-throughput probe for the cockpits' streaming pipelines —
-// `markdown` streams structure-heavy markdown (fences, tables, nested lists)
-// that opens blocks mid-delta (the streaming-renderer stability probe),
-// `interleave` alternates reasoning and text blocks in one message (multiple
-// reasoning/text parts per response — how extended-thinking models actually
-// stream), and `empty` finishes with zero content parts (a real model edge
-// case that has broken assistant-message rendering before).
+/**
+ * Every recognized `[mock:<scenario>]` directive: multi-step tool scripts
+ * (`hitl`, `parallel`, `todo`, `delegate`) plus special stream shapes
+ * (`fail` ends in a terminal error, `burst` streams with no pacing,
+ * `markdown` splits structure across deltas, `interleave` alternates
+ * reasoning and text blocks, `empty` finishes with zero content parts).
+ */
 export const MOCK_SCENARIOS = [
   "hitl",
   "parallel",
@@ -89,7 +91,14 @@ export const MOCK_SCENARIOS = [
   "interleave",
   "empty",
 ] as const;
+/**
+ * Any scenario the mock model recognizes in a `[mock:<scenario>]` directive.
+ */
 export type MockScenario = (typeof MOCK_SCENARIOS)[number];
+/**
+ * The multi-step tool scripts (not the stream-shape tests): `hitl`, `parallel`,
+ * `todo`, `delegate`. Each scenario emits tool calls across multiple turns.
+ */
 export type MockScriptedScenario = Extract<
   MockScenario,
   "hitl" | "parallel" | "todo" | "delegate"
@@ -315,6 +324,12 @@ export function toolInputFragments(inputJson: string, fragmentSize = 24): readon
 
 // --- The model ---------------------------------------------------------------
 
+/**
+ * Build a slow-streaming mock model for testing eve clients without inference
+ * credentials: streams canned "story" text with configurable pacing or runs
+ * scripted tool-call scenarios (`[mock:<scenario>]` in the user prompt).
+ * Everything past the model call runs real — sessions, tools, hooks, framework.
+ */
 export function createMockStoryModel(options: MockStoryModelOptions = {}): LanguageModelV4 {
   const chunkCount = options.chunkCount ?? 240;
   const chunkDelayMs = options.chunkDelayMs ?? 250;

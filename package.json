@@ -106,6 +106,7 @@
     "provenance": false
   },
   "scripts": {
+    "lint": "eslint .",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
@@ -135,9 +136,11 @@
     "@types/turndown": "^5.0.6",
     "ai": "^7.0.2",
     "eslint": "^9",
+    "eslint-plugin-tsdoc": "^0.5.2",
     "eve": "^0.16.0",
     "fast-check": "^4.8.0",
     "typescript": "^6.0.3",
+    "typescript-eslint": "^8",
     "zod": "^4.4.3"
   }
 }

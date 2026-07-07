@@ -36,6 +36,7 @@ export const DEFAULT_MAX_INLINE_MEDIA_BYTES = 10 * 1024 * 1024;
  * factories only attach them when the consumer opts in). */
 export type ChatAttachmentKind = "image" | "video" | "audio";
 
+/** A model-hidden media payload smuggled on a read/webfetch result, carrying bytes as a data URL for client redelivery. */
 export type ChatAttachment =
   | {
       readonly kind: "image";

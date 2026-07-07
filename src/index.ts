@@ -39,6 +39,11 @@ import { sandboxIoProvider, type SandboxIoOptions } from "./sandbox-io";
 // read_file/write_file/bash with disable shims). Everything is also exported à
 // la carte for agents that want a subset.
 
+/**
+ * Options for building the stdlib: workspace root, state directory, display
+ * noun, attachment/media settings, steering, subagent roster, and optional
+ * extra backgroundable operations.
+ */
 export interface StdlibOptions {
   /** Directory the agent works in; file tools refuse paths that escape it. */
   workspaceRoot: string;
@@ -85,8 +90,8 @@ export interface StdlibOptions {
    * Attach video files (mp4/mov/webm/mkv/avi) the way images attach. Defaults
    * to `false`: video input is provider-gated (Gemini accepts it; Claude and
    * most others don't), and eve's attachment staging currently hydrates only
-   * images/PDFs back into the model call (see the README's eve-maintainer
-   * notes) — enable once both hold for your agent.
+   * images/PDFs back into the model call (see design/upstream-asks.md) —
+   * enable once both hold for your agent.
    */
   attachVideoToChat?: boolean;
   /** Attach audio files (mp3/wav/ogg/flac/m4a). Same gating as video. */
@@ -128,6 +133,12 @@ export interface StdlibOptions {
   subagentRoster?: readonly SubagentRosterEntry[];
 }
 
+/**
+ * Create the standard library for a real-filesystem eve agent: workspace-scoped
+ * file tools (read/edit/write/glob/grep), host bash, webfetch, the background-
+ * task registry, and the matching dynamic instructions. Returns tools, the
+ * workspace, runner, registry, and instructions.
+ */
 export function createStdlib(options: StdlibOptions) {
   const noun = options.workspaceNoun ?? "workspace";
   const workspace = createWorkspace(options.workspaceRoot);
@@ -222,6 +233,10 @@ export function createStdlib(options: StdlibOptions) {
   };
 }
 
+/**
+ * The stdlib return type: workspace, runner, registry, spill dir,
+ * backgroundables, steerInbox, tools, and instructions.
+ */
 export type Stdlib = ReturnType<typeof createStdlib>;
 
 // The sandbox-backed counterpart to the stdlib's file tools, for the hosted
@@ -238,6 +253,10 @@ export type Stdlib = ReturnType<typeof createStdlib>;
 // registry, steering) is deliberately absent: on a hosted agent those either
 // stay eve built-ins or don't apply.
 
+/**
+ * Options for the sandbox file tools: workspace root (inside the sandbox),
+ * display noun, session resolver, spill dir, and attachment/media settings.
+ */
 export interface SandboxFileToolsOptions {
   /**
    * Absolute workspace root **inside the sandbox** (e.g. "/workspace").
@@ -281,6 +300,11 @@ export interface SandboxFileToolsOptions {
   conventionsFileName?: string;
 }
 
+/**
+ * Create sandbox-backed file tools for hosted agents: read/edit/write/glob/grep
+ * route through the sandbox session instead of the harness's local disk. Returns
+ * the workspace, IO provider, and the five tools.
+ */
 export function createSandboxFileTools(options: SandboxFileToolsOptions) {
   const noun = options.workspaceNoun ?? "workspace";
   const workspace = createWorkspace(options.workspaceRoot);
@@ -331,6 +355,10 @@ export function createSandboxFileTools(options: SandboxFileToolsOptions) {
   };
 }
 
+/**
+ * The sandbox file tools return type: workspace, IO provider, and tools
+ * (read/edit/write/glob/grep).
+ */
 export type SandboxFileTools = ReturnType<typeof createSandboxFileTools>;
 
 // À la carte surface: the tool/instruction factories and every lib module the
@@ -338,7 +366,7 @@ export type SandboxFileTools = ReturnType<typeof createSandboxFileTools>;
 export { createBashTool } from "./tools/bash";
 export { createEditTool } from "./tools/edit";
 export { createGlobTool } from "./tools/glob";
-export { createGrepTool } from "./tools/grep";
+export { createGrepTool, type GrepResult } from "./tools/grep";
 export { createReadTool } from "./tools/read";
 export { buildTasksToolset, createTasksTools } from "./tools/tasks";
 export { createWebFetchTool } from "./tools/webfetch";

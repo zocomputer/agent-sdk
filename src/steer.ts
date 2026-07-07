@@ -38,6 +38,7 @@ export interface SteerPayload {
   messages: SteerMessage[];
 }
 
+/** Build the payload that rides a tool result carrying steered messages. */
 export function buildSteerPayload(messages: readonly SteerMessage[]): SteerPayload {
   return { note: STEER_NOTE, messages: [...messages] };
 }

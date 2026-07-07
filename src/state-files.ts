@@ -1,14 +1,26 @@
 /** Runtime client contract for the external-state `files` interface. */
 
 export type StateFilesAccess = "r" | "rw";
+
+/** The external-state interface type for object-store file access. */
 export type StateFilesInterface = "files";
+
+/** Cloud object-store engine backed by Cloudflare R2. */
 export type StateFilesEngine = "zo-blob-r2";
+
+/** How file-store instances subdivide. Drives the bucket-key prefix scoping. */
 export type StateFilesPartition = "none" | "team" | "user" | "session";
 
+/** Runtime broker route path for requesting a state-files handle. */
 export const STATE_FILES_HANDLE_PATH = "/state/handles";
+
+/** Header name carrying the agent bearer token to the runtime broker. */
 export const ZO_AGENT_TOKEN_HEADER = "x-zo-agent-token";
+
+/** Header name carrying the eve session key to the runtime broker. */
 export const ZO_EVE_SESSION_HEADER = "x-zo-eve-session";
 
+/** Temporary S3-compatible credentials for direct object-store access. Never log the secrets. */
 export interface StateFilesCredentials {
   readonly accessKeyId: string;
   readonly secretAccessKey: string;
@@ -37,21 +49,25 @@ export interface StateFilesHandle {
   readonly credentials: StateFilesCredentials;
 }
 
+/** Request body sent to the runtime broker to obtain a state-files handle. */
 export interface StateFilesHandleRequest {
   readonly declarationName: string;
   readonly interface: StateFilesInterface;
   readonly access: StateFilesAccess;
 }
 
+/** Fetch-compatible function for issuing HTTP requests. Accepts the standard `fetch` signature. */
 export interface StateFilesHandleFetch {
   (input: string | URL | Request, init?: RequestInit): Promise<Response>;
 }
 
+/** Union of accepted header-initialization shapes: Headers instance, array of pairs, or record. */
 export type StateFilesHeadersInit =
   | Headers
   | ReadonlyArray<readonly [string, string]>
   | Readonly<Record<string, string>>;
 
+/** Options for requesting a state-files handle from the runtime broker. */
 export interface RequestStateFilesHandleOptions {
   readonly fetch: StateFilesHandleFetch;
   readonly apiBaseUrl: string | URL;
@@ -65,6 +81,7 @@ export interface RequestStateFilesHandleOptions {
   readonly headers?: StateFilesHeadersInit;
 }
 
+/** Error thrown when requesting a state-files handle fails. Carries the HTTP status and broker error code. */
 export class StateFilesHandleError extends Error {
   readonly status: number;
   readonly code: string | null;
@@ -77,6 +94,10 @@ export class StateFilesHandleError extends Error {
   }
 }
 
+/**
+ * Requests a state-files handle from the runtime broker.
+ * Throws `StateFilesHandleError` on failure or malformed response.
+ */
 export async function requestStateFilesHandle(
   options: RequestStateFilesHandleOptions,
 ): Promise<StateFilesHandle> {
@@ -103,6 +124,7 @@ export async function requestStateFilesHandle(
   return handle;
 }
 
+/** Parses a runtime-broker response into a `StateFilesHandle`, or `null` if malformed. */
 export function parseStateFilesHandle(value: unknown): StateFilesHandle | null {
   if (!isRecord(value)) {
     return null;
@@ -151,6 +173,7 @@ export function parseStateFilesHandle(value: unknown): StateFilesHandle | null {
   });
 }
 
+/** Metadata for a single object in the state-files store. */
 export interface StateFilesObject {
   readonly key: string;
   readonly size?: number;
@@ -158,8 +181,10 @@ export interface StateFilesObject {
   readonly lastModified?: Date;
 }
 
+/** Accepted body types for writing to the state-files store. */
 export type StateFilesBody = string | Uint8Array | ArrayBuffer | Blob;
 
+/** S3-client input for listing objects in a state-files bucket. */
 export interface StateFilesS3ListInput {
   readonly endpoint: string;
   readonly bucketName: string;
@@ -167,6 +192,7 @@ export interface StateFilesS3ListInput {
   readonly prefix?: string;
 }
 
+/** S3-client input for reading an object from a state-files bucket. */
 export interface StateFilesS3ReadInput {
   readonly endpoint: string;
   readonly bucketName: string;
@@ -174,6 +200,7 @@ export interface StateFilesS3ReadInput {
   readonly key: string;
 }
 
+/** S3-client input for writing an object to a state-files bucket. */
 export interface StateFilesS3WriteInput {
   readonly endpoint: string;
   readonly bucketName: string;
@@ -183,6 +210,7 @@ export interface StateFilesS3WriteInput {
   readonly contentType?: string;
 }
 
+/** S3-client input for deleting an object from a state-files bucket. */
 export interface StateFilesS3DeleteInput {
   readonly endpoint: string;
   readonly bucketName: string;
@@ -190,29 +218,45 @@ export interface StateFilesS3DeleteInput {
   readonly key: string;
 }
 
+/** S3-compatible client interface for low-level state-files bucket operations. */
 export interface StateFilesS3Client {
+  /** Lists objects in the bucket, optionally filtered by prefix. */
   listObjects(input: StateFilesS3ListInput): Promise<readonly StateFilesObject[]>;
+  /** Reads an object's body as bytes. */
   readObject(input: StateFilesS3ReadInput): Promise<Uint8Array>;
+  /** Writes an object to the bucket. */
   writeObject(input: StateFilesS3WriteInput): Promise<void>;
+  /** Deletes an object from the bucket. */
   deleteObject(input: StateFilesS3DeleteInput): Promise<void>;
 }
 
+/** Optional settings for writing a file to the state-files store. */
 export interface StateFilesWriteOptions {
   readonly contentType?: string;
 }
 
+/** High-level client for state-files operations. Paths are relative; handles are managed internally. */
 export interface StateFilesClient {
+  /** Lists files under the optional prefix. Returns metadata for each match. */
   list(prefix?: string): Promise<readonly StateFilesObject[]>;
+  /** Reads a file's body as bytes. */
   read(path: string): Promise<Uint8Array>;
+  /** Writes a file. Requires a handle with `rw` access. */
   write(path: string, body: StateFilesBody, options?: StateFilesWriteOptions): Promise<void>;
+  /** Deletes a file. Requires a handle with `rw` access. */
   delete(path: string): Promise<void>;
 }
 
+/** Options for creating a state-files client with a static handle. */
 export interface CreateStateFilesClientOptions {
   readonly handle: StateFilesHandle;
   readonly s3: StateFilesS3Client;
 }
 
+/**
+ * Creates a state-files client backed by a single static handle.
+ * For credentials that expire, use `createRefreshingStateFilesClient` instead.
+ */
 export function createStateFilesClient(options: CreateStateFilesClientOptions): StateFilesClient {
   return createStateFilesClientFromHandleSource({
     getHandle: async () => options.handle,
@@ -220,14 +264,21 @@ export function createStateFilesClient(options: CreateStateFilesClientOptions): 
   });
 }
 
+/** Options for creating a state-files client that auto-refreshes expiring handles. */
 export interface CreateRefreshingStateFilesClientOptions {
+  /** Loads a fresh handle when the current one is near expiration. */
   readonly loadHandle: () => Promise<StateFilesHandle>;
   readonly s3: StateFilesS3Client;
+  /** Returns the current time. Defaults to `() => new Date()`. Inject for testing. */
   readonly now?: () => Date;
   /** Reload when the handle expires within this window. Defaults to 60 seconds. */
   readonly refreshWindowMs?: number;
 }
 
+/**
+ * Creates a state-files client that reloads the handle when it nears expiration.
+ * Checks before each operation; if the handle expires within `refreshWindowMs`, calls `loadHandle`.
+ */
 export function createRefreshingStateFilesClient(
   options: CreateRefreshingStateFilesClientOptions,
 ): StateFilesClient {
@@ -245,6 +296,10 @@ export function createRefreshingStateFilesClient(
   });
 }
 
+/**
+ * Determines whether a state-files handle needs refreshing based on its expiration.
+ * Returns `true` if the handle expires within `refreshWindowMs` or if `expiresAt` is malformed.
+ */
 export function shouldRefreshStateFilesHandle(
   handle: StateFilesHandle,
   now: Date,
@@ -300,6 +355,10 @@ function createStateFilesClientFromHandleSource(options: {
   };
 }
 
+/**
+ * Validates and normalizes a state-file path for S3 operations.
+ * Throws if the path is empty, absolute, or contains invalid segments (`.`, `..`, or empty).
+ */
 export function normalizeStateFilePath(path: string): string {
   if (path.length === 0) {
     throw new Error("state file path must not be empty");
@@ -314,6 +373,10 @@ export function normalizeStateFilePath(path: string): string {
   return path;
 }
 
+/**
+ * Validates and normalizes a state-file prefix for list operations.
+ * Returns `undefined` for empty/undefined input; ensures trailing slash for directory-style prefixes.
+ */
 export function normalizeStateFilePrefix(prefix: string | undefined): string | undefined {
   if (prefix === undefined || prefix.length === 0) {
     return undefined;

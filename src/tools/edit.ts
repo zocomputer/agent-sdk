@@ -7,6 +7,7 @@ import { localIoProvider, type WorkspaceIoProvider } from "../workspace-io";
 // A new tool (no eve default, so no disable shim needed): exact-string
 // replacement in an existing file, the workhorse for focused edits. old_string
 // must match once unless replace_all. Named `edit` to match Claude Code / opencode.
+/** Build the edit tool for exact-string replacement in existing files. */
 export function createEditTool(opts: {
   workspace: Workspace;
   noun: string;

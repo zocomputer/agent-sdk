@@ -7,6 +7,7 @@ import { localIoProvider, type WorkspaceIoProvider } from "../workspace-io";
 // Replaces eve's sandbox `write_file` (vacate the framework name with a
 // disable shim), writing to the workspace under the Claude Code /
 // opencode name `write`.
+/** Build the write tool for creating or overwriting complete files. */
 export function createWriteTool(opts: {
   workspace: Workspace;
   noun: string;

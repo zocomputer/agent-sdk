@@ -46,7 +46,8 @@ export function buildMediaHint(
 // back to a metadata-only note. Images attach by default; video/audio are
 // opt-in because model support is provider-gated (Gemini takes them, Claude
 // does not) and eve's attachment staging today hydrates only images/PDFs back
-// into the model call (see the README's eve-maintainer notes).
+// into the model call (see design/upstream-asks.md).
+/** Build the read tool that returns line-numbered text, converts PDFs/DOCX/spreadsheets, and queues image/video/audio attachments. */
 export function createReadTool(opts: {
   workspace: Workspace;
   noun: string;

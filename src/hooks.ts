@@ -85,6 +85,7 @@ function isSessionWaiting(event: unknown): boolean {
   return isRecord(event) && event.type === "session.waiting";
 }
 
+/** Options for the park-delivery hook that sends queued media/notes/steers on session parks. */
 export interface ParkDeliveryOptions {
   /**
    * Base URL of this agent's own eve server. Defaults to loopback on the
@@ -101,6 +102,7 @@ export interface ParkDeliveryOptions {
   steer?: { dir: string };
 }
 
+/** Build the park-delivery hook that sends read media, notifications, and steered messages when a session parks. */
 export function createParkDeliveryHook(options: ParkDeliveryOptions = {}) {
   const serverUrl =
     options.serverUrl ?? `http://127.0.0.1:${process.env.PORT ?? "2000"}`;
@@ -172,6 +174,7 @@ export function createParkDeliveryHook(options: ParkDeliveryOptions = {}) {
 
   return defineHook({
     events: {
+      /** Observe every stream event to detect parks and queue deliveries. */
       "*"(event, ctx) {
         const meta = {
           sessionId: ctx.session.id,

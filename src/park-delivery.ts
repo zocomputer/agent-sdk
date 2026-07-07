@@ -35,12 +35,21 @@ export function clientContinuationToken(runtimeToken: string): string {
   return rest.includes(":") ? rest : runtimeToken;
 }
 
+/**
+ * One item queued for park delivery: a dedupe key plus its payload. An item
+ * with a key already delivered (or currently pending) is dropped.
+ */
 export interface ParkDeliveryItem<T> {
   /** Dedupe key: an item delivers at most once per session per process. */
   readonly key: string;
   readonly payload: T;
 }
 
+/**
+ * A park-delivery flush: the session id, its client-facing continuation token,
+ * and the batch of items ready to deliver. The caller performs the send and
+ * reports back with `settle`.
+ */
 export interface ParkDeliveryRequest<T> {
   readonly sessionId: string;
   readonly continuationToken: string;
@@ -49,12 +58,12 @@ export interface ParkDeliveryRequest<T> {
 
 /**
  * Per-process delivery state across sessions. Feed it every stream event via
- * `observe`; queue items with `enqueue`. Either returns a request exactly when
- * a parked, reachable session has items to deliver. The caller performs the
- * send and reports back with `settle` — on failure the items re-queue.
- *
- * Dedup is by item key for the session's lifetime in this process, so an item
- * never delivers twice even if a failed send races a user message.
+ * `observe`; queue items with `enqueue` or `enqueueAll`. Either returns a
+ * request exactly when a parked, reachable session has items to deliver. The
+ * caller performs the send and reports back with `settle` — on failure the
+ * items re-queue. Dedup is by item key for the session's lifetime in this
+ * process, so an item never delivers twice even if a failed send races a user
+ * message.
  */
 export function createParkDeliveryState<T>() {
   interface SessionState {
@@ -87,7 +96,7 @@ export function createParkDeliveryState<T>() {
 
   /**
    * Queue several items at once — all of them enter pending before any drain,
-   * so a batch enqueued into an already-parked session goes out as ONE
+   * so a batch enqueued into an already-parked session goes out as one
    * delivery. Enqueuing the same batch item-by-item would let the first
    * item's immediate flush strand the rest into a second turn.
    */
@@ -145,6 +154,10 @@ export function createParkDeliveryState<T>() {
       return enqueueAll(sessionId, [item]);
     },
 
+    /**
+     * Queue several items at once — all enter pending before any drain, so a
+     * batch enqueued into an already-parked session goes out as one delivery.
+     */
     enqueueAll,
 
     /**
@@ -170,6 +183,11 @@ export function createParkDeliveryState<T>() {
   };
 }
 
+/**
+ * The park-delivery state object: `observe` consumes stream events, `enqueue` /
+ * `enqueueAll` queue items, `settle` reports send outcomes. Each method
+ * returns a `ParkDeliveryRequest` exactly when a parked session has items ready.
+ */
 export type ParkDeliveryState<T> = ReturnType<typeof createParkDeliveryState<T>>;
 
 // ---------------------------------------------------------------------------

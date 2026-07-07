@@ -4,6 +4,11 @@
 // (posting a park notification per match batch) lives with the tools; this
 // module is the testable decision core.
 
+/**
+ * Configuration for an output watcher: the regex pattern matched against
+ * complete output lines, debounce/cap to limit notification flood, and
+ * injectable clock for tests.
+ */
 export interface OutputWatcherOptions {
   /** Regex source matched against complete output lines. */
   pattern: string;
@@ -15,6 +20,11 @@ export interface OutputWatcherOptions {
   now?: () => number;
 }
 
+/**
+ * A live output watcher for background commands: feed it output chunks, get
+ * back the complete lines that match the regex — debounced and capped so a
+ * chatty pattern can't flood the session.
+ */
 export interface OutputWatcher {
   /**
    * Consume an output chunk (any framing — watcher handles line buffering).
@@ -25,7 +35,9 @@ export interface OutputWatcher {
   flush(): string[] | null;
 }
 
+/** Minimum ms between match batches; matches inside the window drop. */
 export const DEFAULT_WATCH_DEBOUNCE_MS = 5_000;
+/** Max match batches over one watcher's lifetime; later matches drop. */
 export const DEFAULT_MAX_WATCH_NOTIFICATIONS = 5;
 
 /**

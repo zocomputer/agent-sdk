@@ -27,10 +27,13 @@ export function relativizeWithin(root: string, abs: string): string {
 /** One workspace root plus the two path operations every file tool needs. */
 export interface Workspace {
   readonly root: string;
+  /** Resolve a path against the workspace root and refuse anything that escapes it. */
   resolve(path: string): string;
+  /** Turn an absolute path into a root-relative, forward-slash display path. */
   relativize(abs: string): string;
 }
 
+/** Build a Workspace bound to one root directory. */
 export function createWorkspace(root: string): Workspace {
   const abs = resolve(root);
   return {

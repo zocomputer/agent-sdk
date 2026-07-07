@@ -34,6 +34,10 @@ export interface IoSearchMatch {
   readonly text: string;
 }
 
+/**
+ * Content-search parameters: regex pattern, case-sensitivity, scope, glob
+ * filter, and max-match bound.
+ */
 export interface IoSearchOptions {
   /** JavaScript regex source. The tool validates it before calling. */
   readonly pattern: string;
@@ -49,6 +53,10 @@ export interface IoSearchOptions {
   readonly maxMatches: number;
 }
 
+/**
+ * Content-search result: matched lines, a stop reason (false if complete), and
+ * the count of files skipped for size.
+ */
 export interface IoSearchResult {
   readonly matches: readonly IoSearchMatch[];
   /**
@@ -94,13 +102,16 @@ export interface WorkspaceIO {
  * missing file, writes create parent directories.
  */
 export interface SandboxSessionLike {
+  /** Read a file's bytes; null when it doesn't exist. */
   readonly readBinaryFile: (options: {
     path: string;
   }) => PromiseLike<Uint8Array | null>;
+  /** Write a file, creating parent directories and overwriting. */
   readonly writeBinaryFile: (options: {
     path: string;
     content: Uint8Array;
   }) => PromiseLike<void>;
+  /** Run a shell command and wait for its completion. */
   readonly run: (options: {
     command: string;
     workingDirectory?: string;
@@ -115,6 +126,7 @@ export interface SandboxSessionLike {
  */
 export interface IoToolContext {
   readonly session?: { readonly id: string };
+  /** Resolve the sandbox session for the current tool call. */
   getSandbox(): PromiseLike<SandboxSessionLike>;
 }
 

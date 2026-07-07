@@ -36,6 +36,7 @@ export interface SuggestedStateDefaults {
   readonly lifecycle?: Readonly<Record<string, string | number | boolean>>;
 }
 
+/** What an agent declares it depends on: the interface, access, visibility intent, and deployment hints for one external-state capability. */
 export interface ExternalStateDeclaration {
   /**
    * What tools reference at runtime. Must equal the declaring filename

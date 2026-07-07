@@ -26,6 +26,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
+/** One read-media attachment queued for delivery on the next park. */
 export interface PendingRedelivery {
   readonly toolCallId: string;
   readonly attachment: ChatAttachment;
@@ -78,6 +79,7 @@ export function buildRedeliveryMessage(
   ];
 }
 
+/** A park-triggered delivery of read-media attachments to a session. */
 export interface RedeliveryRequest {
   readonly sessionId: string;
   readonly continuationToken: string;
@@ -152,4 +154,5 @@ export function createRedeliveryState() {
   };
 }
 
+/** The redelivery state machine instance returned by `createRedeliveryState`. */
 export type RedeliveryState = ReturnType<typeof createRedeliveryState>;

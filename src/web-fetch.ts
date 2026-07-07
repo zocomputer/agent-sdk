@@ -21,17 +21,23 @@ import {
 
 /** Hard cap on the fetched body; larger responses error rather than truncate. */
 export const WEB_FETCH_MAX_RESPONSE_BYTES = 5 * 1024 * 1024;
+/** Default fetch timeout for HTML/text pages, in seconds. */
 export const WEB_FETCH_DEFAULT_TIMEOUT_SECONDS = 30;
 /** PDFs are routinely tens of MB behind slow servers; give them a longer default. */
 export const WEB_FETCH_PDF_DEFAULT_TIMEOUT_SECONDS = 60;
+/** Maximum allowed timeout across all resource types, in seconds. */
 export const WEB_FETCH_MAX_TIMEOUT_SECONDS = 120;
 
+/** Output format for HTML rendering: markdown (default), raw text, or untouched HTML. */
 export type WebFetchFormat = "markdown" | "text" | "html";
 
-// A real browser UA gets past naive bot filters; sites that inspect the TLS
-// fingerprint (Cloudflare) see through it, hence the honest-UA retry below.
+/**
+ * Browser UA for the initial fetch; gets past naive bot filters but not
+ * TLS-fingerprint checks (Cloudflare), which trigger the honest-UA retry.
+ */
 export const BROWSER_USER_AGENT =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36";
+/** Honest user-agent for the Cloudflare-challenge retry. */
 export const FALLBACK_USER_AGENT = "agent-sdk";
 
 function acceptHeader(format: WebFetchFormat): string {
@@ -45,6 +51,10 @@ function acceptHeader(format: WebFetchFormat): string {
   }
 }
 
+/**
+ * Build request headers for a webfetch: Accept q-values per format,
+ * Accept-Language, and User-Agent.
+ */
 export function buildWebFetchHeaders(
   format: WebFetchFormat,
   userAgent: string = BROWSER_USER_AGENT,
@@ -56,6 +66,11 @@ export function buildWebFetchHeaders(
   };
 }
 
+/**
+ * Convert HTML to markdown via TurndownService, parsing with linkedom instead
+ * of handing turndown a string directly so polyfilled DOM hosts (happy-dom
+ * test preloads) don't silently collapse the output to an empty string.
+ */
 export function convertHtmlToMarkdown(html: string): string {
   const turndown = new TurndownService({
     headingStyle: "atx",
@@ -81,6 +96,10 @@ export function convertHtmlToMarkdown(html: string): string {
 
 const SKIPPED_HTML_TAGS = ["script", "style", "noscript", "iframe", "object", "embed"];
 
+/**
+ * Extract visible text from HTML via htmlparser2, skipping script/style/iframe
+ * and collapsing whitespace runs left by stripped markup.
+ */
 export function extractTextFromHtml(html: string): string {
   let text = "";
   const skipStack: string[] = [];
@@ -110,6 +129,10 @@ export function extractTextFromHtml(html: string): string {
     .trim();
 }
 
+/**
+ * Check if a Content-Type header value is HTML (text/html or
+ * application/xhtml+xml).
+ */
 export function isHtmlContentType(contentType: string): boolean {
   const mime = contentType.split(";", 1)[0]?.trim().toLowerCase() ?? "";
   return mime === "text/html" || mime === "application/xhtml+xml";
@@ -128,6 +151,10 @@ export function looksLikeHtml(content: string): boolean {
   );
 }
 
+/**
+ * Rendered web page text: the converted/extracted content plus an optional
+ * note when the render looks suspect (content collapse, raw HTML in markdown).
+ */
 export interface RenderedWebText {
   readonly text: string;
   /** Honest-failure signal (content collapse, leftover raw HTML); absent when the render looks healthy. */
@@ -179,6 +206,10 @@ export function renderWebText(
  */
 export type FetchLike = (url: string, init?: RequestInit) => Promise<Response>;
 
+/**
+ * A fetched HTTP resource: its body, Content-Type header, and the final URL
+ * after redirects.
+ */
 export interface FetchedWebResource {
   readonly body: Buffer;
   /** Raw `content-type` header value; empty string when absent. */

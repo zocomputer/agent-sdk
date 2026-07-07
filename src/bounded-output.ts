@@ -8,13 +8,21 @@ import { dirname } from "node:path";
 // file the model can grep/read instead of re-running the command (opencode's
 // truncate-with-spill design). See plans/ben/rib-speed-opencode-lessons.md.
 
+/** Default head character cap for bounded captures. */
 export const HEAD_CHARS = 25_000;
+/** Default tail character cap for bounded captures. */
 export const TAIL_CHARS = 25_000;
 
-// Directory name for spilled outputs under the agent's state dir. Exported so
-// retention sweeps (e.g. rib's) can find and prune old spills.
+/**
+ * Directory name for spilled tool outputs under the agent's state dir.
+ * Retention sweeps (e.g. rib's) can locate and prune old spills via this.
+ */
 export const TOOL_OUTPUT_DIRNAME = "tool-outputs";
 
+/**
+ * Point-in-time capture snapshot: bounded text (head + marker + tail when
+ * truncated), total character count, truncation flag, and the spill file path.
+ */
 export interface CaptureSnapshot {
   /** Bounded text; when truncated, head + a marker naming the spill file + tail. */
   readonly text: string;
@@ -24,11 +32,18 @@ export interface CaptureSnapshot {
   readonly spillPath: string | null;
 }
 
+/**
+ * A growing stream capture that keeps head + tail in-memory and spills the
+ * complete output to a file on first overflow.
+ */
 export interface BoundedCapture {
+  /** Add a chunk to the capture; updates head/tail/spill accordingly. */
   append(chunk: string): void;
+  /** Point-in-time snapshot of bounded text, total chars, truncation, and spill path. */
   snapshot(): CaptureSnapshot;
   /** The most recent text we hold: the whole output until overflow, the rolling tail after. */
   latest(): string;
+  /** Total characters appended so far. */
   totalChars(): number;
 }
 
@@ -50,6 +65,11 @@ function takeTail(text: string, cap: number): string {
   return text.slice(start);
 }
 
+/**
+ * Create a bounded stream capture: keeps head + tail in-memory (within the
+ * caps) and, on first overflow, spills the complete output to a file. Handles
+ * surrogate pairs carefully so slices never land inside one.
+ */
 export function createBoundedCapture(
   opts: {
     headChars?: number;

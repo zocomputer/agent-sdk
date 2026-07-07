@@ -9,6 +9,7 @@ import { localIoProvider, type WorkspaceIoProvider } from "../workspace-io";
 // ls-files` (exact .gitignore semantics — one fast spawn instead of walking
 // build output) with the in-process walk as fallback; on a sandbox, the same
 // git listing executed remotely.
+/** Build the glob tool for finding files by pattern, backed by git ls-files or the fallback walk. */
 export function createGlobTool(opts: {
   workspace: Workspace;
   noun: string;

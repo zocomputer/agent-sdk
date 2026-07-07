@@ -30,7 +30,7 @@ export const GREP_SPILL_MAX_MATCHES = 5000;
 const MATCH_TEXT_MAX_CHARS = 300;
 
 /** The tool's result shape, uniform across the complete/capped/spilled paths. */
-interface GrepResult {
+export interface GrepResult {
   pattern: string;
   count: number;
   truncated: boolean;
@@ -41,6 +41,7 @@ interface GrepResult {
   note?: string;
 }
 
+/** Build the grep tool for searching file contents by regex, with optional overflow spill to a result file. */
 export function createGrepTool(opts: {
   workspace: Workspace;
   noun: string;

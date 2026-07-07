@@ -2,14 +2,7 @@ import { readFileSync, readdirSync } from "node:fs";
 import { join, relative, sep } from "node:path";
 import ignore, { type Ignore } from "ignore";
 
-// The *fallback* candidate source — `listGitFiles` (git's own ignore
-// semantics) is preferred — so it honors `.gitignore` files itself (root,
-// nested, and ancestors between `base` and `root` for scoped walks) rather
-// than duplicating the repo's ignore list here. The hardcoded set is only a
-// safety net for trees with no `.gitignore` at all: VCS stores plus the one
-// universally-huge dependency dir. Exported so the sandbox search backend
-// (../sandbox-io.ts) applies the same unconditional skips — the two backends
-// must not drift on what a search can wander into.
+/** VCS stores and dependency dirs unconditionally skipped by the fallback walk — git's ignore semantics are preferred, but this ensures we never flood into huge dirs even in non-git trees. Exported so the sandbox search backend applies the same skips. */
 export const ALWAYS_IGNORED = new Set([".git", ".jj", ".hg", ".svn", "node_modules"]);
 
 // One .gitignore's matcher, scoped to the directory that holds it. `prefix` is
@@ -57,12 +50,7 @@ type Frame = {
   scopes: ScopedIgnore[]; // .gitignore scopes from ancestors (not `dir` itself)
 };
 
-// Depth-first walk yielding `base`-relative, forward-slash file paths. glob
-// and grep run in-process (no ripgrep dependency), so this is deliberately
-// modest — it exists to serve interactive searches, not to index the world.
-// `base` defaults to `root` for whole-workspace walks; a scoped walk passes
-// the subtree as `root` and the workspace as `base` so paths stay
-// base-relative and ancestor .gitignores still apply.
+/** Depth-first walk yielding base-relative, forward-slash file paths, honoring gitignore semantics. Modest by design — it exists to serve interactive searches, not to index the world. */
 export function* walkFiles(root: string, base: string = root): Generator<string> {
   // Ancestor .gitignore chain: when walking a subtree, patterns from `base`
   // down to `root`'s parent still apply to it (git semantics). `root`'s own

@@ -6,6 +6,7 @@ import { extname } from "node:path";
 // magic; xls/doc/ppt share the same CFB magic; telling them apart from content
 // would mean parsing container entries).
 
+/** Image formats the read tool detects and delivers to vision models. */
 export type ImageFormat = "png" | "jpeg" | "gif" | "webp";
 
 /** The MIME type for a detected image format (for data URLs / file parts). */
@@ -59,6 +60,7 @@ export type SheetFormat = "xlsx" | "xlsm" | "xls" | "ods";
  * would misclassify UTF-16 text — common in Windows-exported CSVs — as binary). */
 export type TextEncoding = "utf8" | "utf16le" | "utf16be";
 
+/** File classification by magic bytes and structure, driving read-tool content routing. */
 export type FileKind =
   | { readonly kind: "text"; readonly encoding: TextEncoding }
   | { readonly kind: "pdf" }
@@ -220,6 +222,7 @@ function cfbKind(path: string): FileKind {
   }
 }
 
+/** Classify a file by its magic bytes and path. Magic bytes decide the family; the path disambiguates containers. */
 export function detectFileKind(buf: Buffer, path: string): FileKind {
   if (startsWith(buf, PDF_MAGIC)) return { kind: "pdf" };
   if (startsWith(buf, PNG_MAGIC)) return { kind: "image", format: "png" };

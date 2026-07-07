@@ -18,6 +18,7 @@ import { extractSheets, type SheetMeta } from "./extract/sheet";
 // rendering. Kept free of the workspace module so tests can feed fixture
 // paths directly.
 
+/** Content routed by detected file kind: text (native or extracted), image/video/audio metadata, or a thrown error for unsupported binaries. */
 export type FileContent =
   | { readonly kind: "text"; readonly text: string }
   | { readonly kind: "pdf"; readonly text: string; readonly pages: number }

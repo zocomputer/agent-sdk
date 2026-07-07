@@ -2,14 +2,22 @@
 
 import { normalizeStateFilePath } from "./state-files";
 
+/** Read-only or read-write access to a sandbox state instance. */
 export type StateSandboxAccess = "r" | "rw";
+/** The interface a state sandbox handle exposes: `exec` for shell commands, `files` for read/write. */
 export type StateSandboxInterface = "exec" | "files";
+/** The sandbox engine serving this state instance. Only Daytona is supported. */
 export type StateSandboxEngine = "sandbox-daytona";
+/** How state instances subdivide: unshared, team-scoped, user-scoped, or session-ephemeral. */
 export type StateSandboxPartition = "none" | "team" | "user" | "session";
+/** The sandbox lifecycle state when a handle is issued: ready to use or still resuming from hibernation. */
 export type StateSandboxLifecycle = "ready" | "resuming";
 
+/** API path for requesting a state sandbox handle from the runtime broker. */
 export const STATE_SANDBOX_HANDLE_PATH = "/state/handles";
+/** HTTP header for the agent's long-lived bearer token when requesting a sandbox handle. */
 export const ZO_AGENT_TOKEN_HEADER = "x-zo-agent-token";
+/** HTTP header for the eve session key when requesting a sandbox handle. */
 export const ZO_EVE_SESSION_HEADER = "x-zo-eve-session";
 
 /**
@@ -45,11 +53,19 @@ export interface StateSandboxHandle {
   readonly sandbox: StateSandboxSshAccess;
 }
 
+/**
+ * Optional engine and partition defaults to suggest when requesting a sandbox handle.
+ * The broker may ignore these; they influence zero-config binding, not enforcement.
+ */
 export interface StateSandboxSuggestedDefaults {
   readonly engine?: StateSandboxEngine;
   readonly partition?: StateSandboxPartition;
 }
 
+/**
+ * The request body sent to the runtime broker when requesting a state sandbox handle.
+ * Names the state declaration and specifies required interface, access, and suggested defaults.
+ */
 export interface StateSandboxHandleRequest {
   readonly declarationName: string;
   readonly interface: StateSandboxInterface;
@@ -57,15 +73,27 @@ export interface StateSandboxHandleRequest {
   readonly suggestedDefaults: StateSandboxSuggestedDefaults;
 }
 
+/**
+ * Fetch-compatible HTTP client for requesting sandbox handles.
+ * Accepts the same signature as global `fetch`.
+ */
 export interface StateSandboxHandleFetch {
   (input: string | URL | Request, init?: RequestInit): Promise<Response>;
 }
 
+/**
+ * Headers as a `Headers` object, tuple array, or string-keyed record.
+ * Compatible with the `fetch` API's `HeadersInit`.
+ */
 export type StateSandboxHeadersInit =
   | Headers
   | ReadonlyArray<readonly [string, string]>
   | Readonly<Record<string, string>>;
 
+/**
+ * Options for requesting a state sandbox handle from the runtime broker.
+ * Specifies the HTTP client, API base URL, state declaration details, and optional auth credentials.
+ */
 export interface RequestStateSandboxHandleOptions {
   readonly fetch: StateSandboxHandleFetch;
   readonly apiBaseUrl: string | URL;
@@ -86,6 +114,10 @@ export interface RequestStateSandboxHandleOptions {
   readonly headers?: StateSandboxHeadersInit;
 }
 
+/**
+ * Error thrown when a state sandbox handle request fails.
+ * Carries the HTTP status and an optional error code from the broker.
+ */
 export class StateSandboxHandleError extends Error {
   readonly status: number;
   readonly code: string | null;
@@ -101,6 +133,10 @@ export class StateSandboxHandleError extends Error {
   }
 }
 
+/**
+ * Requests a state sandbox handle from the runtime broker.
+ * Throws `StateSandboxHandleError` if the request fails or the response is malformed.
+ */
 export async function requestStateSandboxHandle(
   options: RequestStateSandboxHandleOptions,
 ): Promise<StateSandboxHandle> {
@@ -133,6 +169,10 @@ export async function requestStateSandboxHandle(
   return handle;
 }
 
+/**
+ * Parses a runtime broker response into a `StateSandboxHandle`.
+ * Returns `null` if the shape is invalid or required fields are missing.
+ */
 export function parseStateSandboxHandle(
   value: unknown,
 ): StateSandboxHandle | null {
@@ -189,6 +229,10 @@ export function parseStateSandboxHandle(
   });
 }
 
+/**
+ * Options for running a command in a state sandbox.
+ * Specifies working directory, environment variables, and an optional abort signal.
+ */
 export interface StateSandboxRunOptions {
   readonly workingDirectory?: string;
   /** Extra env for this command. Ambient process env is never read implicitly. */
@@ -196,82 +240,131 @@ export interface StateSandboxRunOptions {
   readonly abortSignal?: AbortSignal;
 }
 
+/**
+ * The result of running a shell command in a state sandbox.
+ * Contains exit code, stdout, and stderr as UTF-8 strings.
+ */
 export interface StateSandboxRunResult {
   readonly exitCode: number;
   readonly stdout: string;
   readonly stderr: string;
 }
 
+/**
+ * A running process spawned in a state sandbox.
+ * Provides streaming stdout/stderr and a promise that resolves to the exit code.
+ */
 export interface StateSandboxSpawnedProcess {
   readonly stdout: AsyncIterable<Uint8Array>;
   readonly stderr: AsyncIterable<Uint8Array>;
   readonly exitCode: Promise<number>;
+  /** Kills the process with an optional signal (e.g. `"SIGTERM"`, `"SIGKILL"`). */
   kill(signal?: string): Promise<void> | void;
 }
 
+/**
+ * The low-level sandbox session interface that exec/spawn and file I/O operations run over.
+ * Implemented by SSH-backed or mock sandbox sessions.
+ */
 export interface StateSandboxSessionLike {
+  /** Runs a shell command to completion and returns stdout, stderr, and exit code. */
   run(options: {
     readonly command: string;
     readonly workingDirectory?: string;
     readonly env?: Readonly<Record<string, string>>;
     readonly abortSignal?: AbortSignal;
   }): PromiseLike<StateSandboxRunResult>;
+  /** Spawns a shell command and returns a handle to the running process with streaming output. */
   spawn(options: {
     readonly command: string;
     readonly workingDirectory?: string;
     readonly env?: Readonly<Record<string, string>>;
     readonly abortSignal?: AbortSignal;
   }): PromiseLike<StateSandboxSpawnedProcess>;
+  /** Reads a file as binary. Returns `null` if the file does not exist. */
   readBinaryFile(options: {
     readonly path: string;
   }): PromiseLike<Uint8Array | null>;
+  /** Writes a file as binary, creating parent directories if needed. */
   writeBinaryFile(options: {
     readonly path: string;
     readonly content: Uint8Array;
   }): PromiseLike<void>;
+  /** Removes a file or directory. */
   removePath(options: {
     readonly path: string;
     readonly recursive?: boolean;
     readonly force?: boolean;
   }): PromiseLike<void>;
+  /** Cleans up the session, closing any open connections. */
   dispose?(): PromiseLike<void> | void;
 }
 
+/**
+ * Factory function that creates a sandbox session from a handle.
+ * Typically implemented by an SSH client that connects to the sandbox's access credentials.
+ */
 export interface StateSandboxSessionFactory {
   (handle: StateSandboxHandle): PromiseLike<StateSandboxSessionLike>;
 }
 
+/**
+ * High-level file I/O client for a state sandbox.
+ * Paths are relative to the sandbox's root; the client resolves them automatically.
+ */
 export interface StateSandboxFilesClient {
+  /** Reads a file as binary. Returns `null` if the file does not exist. */
   read(path: string): Promise<Uint8Array | null>;
+  /** Writes a file from a UTF-8 string or binary content, creating parent directories if needed. */
   write(path: string, content: string | Uint8Array): Promise<void>;
+  /** Deletes a file or directory. */
   delete(
     path: string,
     options?: { readonly recursive?: boolean; readonly force?: boolean },
   ): Promise<void>;
 }
 
+/**
+ * The lifecycle state of a sandbox client: idle (no handle loaded), resuming (handle loaded but sandbox still waking), or ready.
+ * Transitions from idle to resuming when a handle is requested, then to ready once the session establishes.
+ */
 export type StateSandboxStatus =
   | { readonly status: "idle" }
   | { readonly status: "resuming"; readonly handleId: string }
   | { readonly status: "ready"; readonly handleId: string };
 
+/**
+ * High-level client for a state sandbox with automatic handle renewal and session caching.
+ * Exposes exec, spawn, and file I/O; manages the underlying session lifecycle transparently.
+ */
 export interface StateSandboxClient {
   readonly files: StateSandboxFilesClient;
+  /** Returns the current lifecycle state of the client. */
   status(): StateSandboxStatus;
+  /** Runs a shell command to completion in the sandbox. Requires `rw` access. */
   exec(
     command: string,
     options?: StateSandboxRunOptions,
   ): Promise<StateSandboxRunResult>;
+  /** Spawns a long-running shell command with streaming output. Requires `rw` access. */
   spawn(
     command: string,
     options?: StateSandboxRunOptions,
   ): Promise<StateSandboxSpawnedProcess>;
+  /** Disposes the client, closing the underlying session and any pending operations. */
   dispose(): Promise<void>;
 }
 
+/**
+ * Options for creating a sandbox client with automatic handle renewal and session caching.
+ * The client calls `loadHandle` when the handle expires or on first use, then builds a session via `createSession`.
+ */
 export interface CreateStateSandboxClientOptions {
+  /** Loads a fresh sandbox handle, typically by calling `requestStateSandboxHandle`. */
   readonly loadHandle: () => Promise<StateSandboxHandle>;
+  /** Creates a session from a handle, typically an SSH client connection. */
   readonly createSession: StateSandboxSessionFactory;
+  /** Returns the current time for expiry checks. Defaults to `() => new Date()`. */
   readonly now?: () => Date;
   /** Reload the handle and rebuild the session when it expires within this window. Defaults to 60 seconds. */
   readonly refreshWindowMs?: number;
@@ -287,6 +380,10 @@ export interface CreateStateSandboxClientOptions {
   readonly passAmbientEnvToSessionPartition?: boolean;
 }
 
+/**
+ * Creates a sandbox client that automatically renews its handle and caches the underlying session.
+ * Manages handle expiry, session disposal, and request queuing transparently.
+ */
 export function createStateSandboxClient(
   options: CreateStateSandboxClientOptions,
 ): StateSandboxClient {
@@ -536,6 +633,10 @@ export function createStateSandboxClient(
   };
 }
 
+/**
+ * Checks whether a sandbox handle should be refreshed based on its SSH access expiry.
+ * Returns `true` if the handle expires within the refresh window or has an invalid expiry timestamp.
+ */
 export function shouldRefreshStateSandboxHandle(
   handle: StateSandboxHandle,
   now: Date,

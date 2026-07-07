@@ -1,0 +1,35 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "entryPoints": [
+    "src/index.ts",
+    "src/attachments.ts",
+    "src/gateway-fetch.ts",
+    "src/initiator-auth.ts",
+    "src/state.ts",
+    "src/state-files.ts",
+    "src/state-sandbox.ts",
+    "src/steer.ts",
+    "src/steer-inbox.ts"
+  ],
+  "tsconfig": "tsconfig.json",
+  "readme": "none",
+  "validation": {
+    "notExported": true,
+    "invalidLink": true,
+    "rewrittenLink": true,
+    "notDocumented": true,
+    "unusedMergeModuleWith": true
+  },
+  "requiredToBeDocumented": [
+    "Class",
+    "Enum",
+    "EnumMember",
+    "Function",
+    "Interface",
+    "Method",
+    "TypeAlias",
+    "Variable"
+  ],
+  "treatWarningsAsErrors": true,
+  "excludeInternal": true
+}

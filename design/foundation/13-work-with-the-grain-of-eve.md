@@ -4,9 +4,10 @@
 
 The SDK builds on eve as it is, never forks or patches it, and treats every
 gap the same way: build the workaround **app-side and portable**, then
-document the gap as a concrete upstream ask in the README's "Notes for the
-eve maintainers" section. Each workaround is written with its own expiry in
-mind — the upstream change that would delete it is named in the ask.
+document the gap as a concrete upstream ask in
+[`../upstream-asks.md`](../upstream-asks.md). Each workaround is written with
+its own expiry in mind — the upstream change that would delete it is named in
+the ask.
 
 ## Why
 
@@ -26,7 +27,7 @@ The posture has three rules:
   over loopback, tool results, dynamic instructions), so they port to any eve
   project and survive upgrades.
 - **Every gap becomes a written ask**, specific enough to act on — the
-  README's list names the type to widen, the event to emit, the flag to add,
+  asks list names the type to widen, the event to emit, the flag to add,
   often with the upstream PR that already did the groundwork.
 - **When upstream ships, the workaround is deleted**, not kept as a fallback
   (the monorepo's no-compatibility-shims rule, applied outward).
@@ -45,7 +46,8 @@ The posture has three rules:
 - **In-history tool-output pruning** → complements source-side bounding,
   which composes with it but can't substitute for it.
 
-(The live list is the README's; this snapshot shows the pattern.)
+(The live list is [`../upstream-asks.md`](../upstream-asks.md); this snapshot
+shows the pattern.)
 
 ## The inspiration
 
@@ -59,7 +61,7 @@ feed what's learned back upstream instead of hoarding patches.
 
 ## Sources
 
-- The package `README.md` — the maintained asks list.
+- [`../upstream-asks.md`](../upstream-asks.md) — the maintained asks list.
 - `rib/learnings/00-overview.md` — the design log this posture runs on.
 - `journal/ben/2026-07-03-week-one-in-review.md` — the study-then-build
   method.

@@ -5,16 +5,23 @@
 // (opencode's 2000-line / 50 KB tool-output budget, adapted). See
 // plans/ben/rib-speed-opencode-lessons.md.
 
-// Default window when the caller passes no `limit`.
+/** Default window when the caller passes no limit. */
 export const READ_FILE_DEFAULT_LINE_LIMIT = 2_000;
-// A single line longer than this (minified bundles, data blobs) is clipped.
+/** A single line longer than this (minified bundles, data blobs) is clipped. */
 export const READ_FILE_MAX_LINE_CHARS = 2_000;
-// Total budget for the numbered content of one call.
+/** Total character budget for the numbered content of one call. */
 export const READ_FILE_MAX_CONTENT_CHARS = 50_000;
-// `read` refuses files bigger than this outright (stat guard — the file
-// is never read); the model is steered to `bash` for surgical extraction.
+/**
+ * `read` refuses files bigger than this outright (stat guard — the file is
+ * never read); the model is steered to bash for surgical extraction.
+ */
 export const READ_FILE_MAX_BYTES = 10_000_000;
 
+/**
+ * A bounded, line-numbered window of a file's content: the result of applying
+ * read's offset/limit and budget constraints. `truncated` flags when a line
+ * was clipped or the budget stopped short; `note` guides continuation.
+ */
 export interface FileView {
   readonly totalLines: number;
   /** 1-based first line of the window. */

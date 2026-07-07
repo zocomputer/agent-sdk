@@ -28,7 +28,8 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname } from "node:path";
 
-interface BaseTask {
+/** Fields every task carries regardless of status — see `Task`. */
+export interface BaseTask {
   readonly id: string;
   /** Short human label, e.g. the command or query. */
   readonly label: string;
@@ -38,18 +39,28 @@ interface BaseTask {
   readonly progress?: unknown;
 }
 
-// Discriminated union so callers can't read `result` off a still-running task.
+/**
+ * Discriminated task union: running (no result yet), done (settled with a
+ * result), error (failed), or lost (was running when the agent restarted).
+ */
 export type Task =
   | (BaseTask & { readonly status: "running" })
   | (BaseTask & { readonly status: "done"; readonly finishedAt: number; readonly result: unknown })
   | (BaseTask & { readonly status: "error"; readonly finishedAt: number; readonly error: string })
   | (BaseTask & { readonly status: "lost"; readonly finishedAt: number; readonly error: string });
 
+/**
+ * Background task registry: spawn work and return an id immediately, list/get
+ * task state, update progress, and await settlement with a timeout.
+ */
 export interface TaskRegistry {
   /** Register `work` as a background task and return its id immediately. */
   spawnTask(tool: string, label: string, work: Promise<unknown>): string;
+  /** Update a running task's progress field; no-op when the task isn't running or doesn't exist. */
   updateTaskProgress(id: string, progress: unknown): void;
+  /** List all tasks, sorted by start time. */
   listTasks(): Task[];
+  /** Retrieve one task by id; undefined when not found. */
   getTask(id: string): Task | undefined;
   /**
    * Block until the task settles or `waitMs` elapses, then return its current
@@ -112,6 +123,11 @@ export function __resetTaskRegistryCacheForTests(): void {
 /** How often awaitTask re-reads the store for a task another instance owns. */
 const STORE_POLL_MS = 500;
 
+/**
+ * Create a task registry backed by a JSON store. Registries are deduped per
+ * `storePath` on `globalThis` so multiple module copies (across rebuilds or
+ * static vs dynamic exports) converge on one instance.
+ */
 export function createTaskRegistry(opts: { storePath: string }): TaskRegistry {
   const cache = registryCache();
   const cached = cache.get(opts.storePath);

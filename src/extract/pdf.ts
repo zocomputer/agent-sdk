@@ -4,21 +4,35 @@ import { openPdf } from "clawpdf";
 // are joined under explicit markers so the model can cite page numbers and
 // `read`'s offset/limit pagination has stable anchors.
 
+/**
+ * Result of PDF extraction: either text with explicit page markers plus the
+ * true page count (which may exceed extracted pages if the cap bit), or a
+ * failure reason.
+ */
 export type PdfExtraction =
   | { readonly ok: true; readonly text: string; readonly pages: number }
   | { readonly ok: false; readonly reason: string };
 
-// Shown in place of a page with no text layer. eve tool results are
-// text/json only, so the agent can't fall back to rendering the page for the
-// model the way OpenClaw does — say so instead of showing silent emptiness.
+/**
+ * Shown in place of a page with no text layer. Eve tool results are text/json
+ * only, so the agent can't fall back to rendering the page for the model the
+ * way OpenClaw does — say so instead of showing silent emptiness.
+ */
 export const PDF_EMPTY_PAGE_NOTE =
   "[no text on this page — likely scanned or image-only; rendered pages cannot be attached]";
 
-// Extraction page cap. `read`'s view budget paginates the *text*; this bounds
-// the extraction work itself, so a 10,000-page PDF doesn't churn PDFium for
-// pages nobody asked for. `pages` still reports the true total.
+/**
+ * Extraction page cap. Read's view budget paginates the text; this bounds the
+ * extraction work itself, so a 10,000-page PDF doesn't churn PDFium for pages
+ * nobody asked for. `pages` still reports the true total.
+ */
 export const PDF_PAGE_CAP = 200;
 
+/**
+ * Extract PDF bytes into text via clawpdf (PDFium compiled to WASM). Pages are
+ * joined under explicit markers so the model can cite page numbers. Extraction
+ * stops at `pageCap` pages; `pages` reports the true total.
+ */
 export async function extractPdf(
   bytes: Uint8Array,
   options: { readonly pageCap?: number } = {},

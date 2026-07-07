@@ -16,6 +16,7 @@ import {
 import { join } from "node:path";
 import { parseSteerLine, serializeSteerLine, type SteerMessage } from "./steer";
 
+/** Options for creating a steer inbox that manages steered messages per session. */
 export interface SteerInboxOptions {
   /** Directory holding the per-session inbox files (created on first append). */
   dir: string;
@@ -27,6 +28,7 @@ export interface SteerInboxOptions {
   readFile?: (path: string) => string;
 }
 
+/** A per-session NDJSON file queue for steered messages, with race-safe drain. */
 export interface SteerInbox {
   /** Queue a new steered message for a session; returns the stored message. */
   append(sessionId: string, text: string): SteerMessage;
@@ -39,6 +41,7 @@ export interface SteerInbox {
 // Process-wide so two inbox instances over one dir can't collide on temp names.
 let drainSequence = 0;
 
+/** Build a steer inbox over a directory holding per-session NDJSON files. */
 export function createSteerInbox(options: SteerInboxOptions): SteerInbox {
   const now = options.now ?? Date.now;
   const newId = options.newId ?? (() => crypto.randomUUID());

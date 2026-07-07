@@ -134,6 +134,7 @@ function pathLabelForFetch(finalUrl: string, contentType: string, body: Buffer):
   return pathname + ext;
 }
 
+/** Build the webfetch tool that fetches URLs, renders HTML to markdown, extracts documents, and queues media attachments. */
 export function createWebFetchTool(opts: {
   workspace: Workspace;
   spillDir: string;
