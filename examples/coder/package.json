@@ -16,7 +16,16 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "clawpdf": "0.3.0",
+    "defuddle": "^0.19.1",
     "eve": "^0.16.0",
+    "htmlparser2": "^12.0.0",
+    "ignore": "^7.0.5",
+    "image-size": "2.0.2",
+    "linkedom": "^0.18.12",
+    "mammoth": "1.12.0",
+    "turndown": "^7.2.4",
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz",
     "zod": "^4.4.3"
   },
   "devDependencies": {

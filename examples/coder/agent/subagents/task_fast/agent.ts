@@ -1,4 +1,8 @@
-import { createMockStoryModel, createTaskAgent } from "@zocomputer/agent-sdk";
+import {
+  createMockStoryModel,
+  createTaskAgent,
+  STDLIB_EXTERNAL_DEPENDENCIES,
+} from "@zocomputer/agent-sdk";
 
 // The fast task tier: a full-capability copy of the coder pinned to a fast,
 // cheap model. Eve has no per-call model parameter — a subagent's model
@@ -23,4 +27,7 @@ export default createTaskAgent({
   capabilityNote:
     "Images it reads degrade to metadata — it reports paths instead of viewing pixels.",
   workspaceNoun: "project",
+  // A declared subagent compiles with its own manifest config — the parent's
+  // externalDependencies list doesn't reach it (see agent/agent.ts).
+  build: { externalDependencies: [...STDLIB_EXTERNAL_DEPENDENCIES] },
 });

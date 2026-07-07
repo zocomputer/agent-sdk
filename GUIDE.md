@@ -341,6 +341,40 @@ point is converting a *dead* connection into a retryable error, not racing a
 slow-but-alive reasoning model. Override via the second argument
 (`{ firstByteMs, idleMs }`).
 
+## Compile-time externals (fast cold boots)
+
+eve compiles every authored module — each tool, hook, instruction, and
+subagent — into its own bundle, and by default each bundle inlines this
+package's whole dependency graph (`xlsx`, `mammoth`, `linkedom`, …). That's
+the dominant cost of a cold `eve dev` boot or first turn: minutes on a slow
+machine like a CI runner. `STDLIB_EXTERNAL_DEPENDENCIES` is the list to keep
+external instead — packaging only, no behavior change; the same modules load
+from `node_modules` at run time, and eve traces them into hosted build
+output:
+
+```ts
+import { STDLIB_EXTERNAL_DEPENDENCIES } from "@zocomputer/agent-sdk";
+
+export default defineAgent({
+  model: "anthropic/claude-opus-4.8",
+  build: { externalDependencies: [...STDLIB_EXTERNAL_DEPENDENCIES] },
+});
+```
+
+Two rules make it work:
+
+- **Your app must declare the same packages in its own `dependencies`.** An
+  externalized import stays a bare specifier in the compiled bundle, which
+  resolves from the app's `node_modules` — and under an isolating installer
+  (bun's isolated linker, pnpm) the SDK's transitive deps aren't reachable
+  from there. Mirror the versions this package pins.
+- **Pass the list to every declared subagent too** (via
+  `createTaskAgent({ build: ... })`): a subagent compiles with its own
+  manifest config, so the parent's list doesn't reach it.
+
+Append your agent's other heavy config-time imports (e.g. `"ai"` when
+`agent.ts` builds a gateway) to the spread.
+
 ## Mock model (credential-free testing)
 
 `createMockStoryModel()` is a scripted `LanguageModelV4` that turns the whole

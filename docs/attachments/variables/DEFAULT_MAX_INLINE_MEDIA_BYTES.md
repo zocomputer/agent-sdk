@@ -8,7 +8,7 @@
 
 > `const` **DEFAULT\_MAX\_INLINE\_MEDIA\_BYTES**: `number`
 
-Defined in: [packages/agent-sdk/src/attachments.ts:32](https://github.com/zocomputer/zov2-code/blob/92a3d351e1799d1814d68c9b8b478ce63ec2feb9/packages/agent-sdk/src/attachments.ts#L32)
+Defined in: [packages/agent-sdk/src/attachments.ts:32](https://github.com/zocomputer/zov2-code/blob/ce93d09ec2812425a1522360ec5d53274fce9d8d/packages/agent-sdk/src/attachments.ts#L32)
 
 Default cap for inlining video/audio bytes: 10 MB, matching read's stat
 guard (bigger files never reach the attach decision). Bounds durable-stream

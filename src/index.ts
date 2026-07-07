@@ -399,6 +399,7 @@ export {
 export * from "./async-tasks";
 export * from "./backgroundable";
 export * from "./bounded-output";
+export * from "./build-externals";
 export * from "./dir-conventions";
 export * from "./task";
 export * from "./extract/cache";

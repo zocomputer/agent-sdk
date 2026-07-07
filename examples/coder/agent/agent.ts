@@ -1,5 +1,11 @@
 import { defineAgent } from "eve";
-import { createMockStoryModel } from "@zocomputer/agent-sdk";
+import { createMockStoryModel, STDLIB_EXTERNAL_DEPENDENCIES } from "@zocomputer/agent-sdk";
+
+// Keep the SDK's dependency graph out of every authored-module bundle — eve
+// compiles each tool/hook/instruction separately, and inlining xlsx/mammoth/
+// linkedom into each one is the dominant cost of a cold compile. Packaging
+// only; the same modules load from node_modules at run time.
+const build = { externalDependencies: [...STDLIB_EXTERNAL_DEPENDENCIES] };
 
 // A minimal coding agent built on @zocomputer/agent-sdk. Inference runs through
 // eve's default Vercel AI Gateway — set AI_GATEWAY_API_KEY and pick any model
@@ -30,10 +36,12 @@ export default function agent() {
         chunkDelayMs: envNumber("CODER_MOCK_DELAY_MS", 250),
         burstChunks: envNumber("CODER_MOCK_BURST_CHUNKS", 600),
       }),
+      build,
     });
   }
   return defineAgent({
     model: "anthropic/claude-opus-4.8",
     reasoning: "medium",
+    build,
   });
 }

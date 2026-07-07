@@ -261,6 +261,13 @@ export interface TaskAgentOptions extends TaskDescriptionOptions {
   description?: string;
   /** Reasoning effort forwarded to the child's model calls. */
   reasoning?: AgentDefinition["reasoning"];
+  /**
+   * Packaging controls forwarded to the child's `defineAgent`. A declared
+   * subagent compiles with its own manifest config — the parent's
+   * `build.externalDependencies` does not reach it — so pass the same list
+   * (see `STDLIB_EXTERNAL_DEPENDENCIES`) to every tier.
+   */
+  build?: AgentDefinition["build"];
 }
 
 /**
@@ -275,6 +282,7 @@ export function createTaskAgent(options: TaskAgentOptions) {
     description: options.description ?? buildTaskDescription(options),
     model: options.model,
     ...(options.reasoning !== undefined ? { reasoning: options.reasoning } : {}),
+    ...(options.build !== undefined ? { build: options.build } : {}),
   });
 }
 

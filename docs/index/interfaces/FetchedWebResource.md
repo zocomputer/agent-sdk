@@ -6,7 +6,7 @@
 
 # Interface: FetchedWebResource
 
-Defined in: [packages/agent-sdk/src/web-fetch.ts:213](https://github.com/zocomputer/zov2-code/blob/92a3d351e1799d1814d68c9b8b478ce63ec2feb9/packages/agent-sdk/src/web-fetch.ts#L213)
+Defined in: [packages/agent-sdk/src/web-fetch.ts:213](https://github.com/zocomputer/zov2-code/blob/ce93d09ec2812425a1522360ec5d53274fce9d8d/packages/agent-sdk/src/web-fetch.ts#L213)
 
 A fetched HTTP resource: its body, Content-Type header, and the final URL
 after redirects.
@@ -17,7 +17,7 @@ after redirects.
 
 > `readonly` **body**: `Buffer`
 
-Defined in: [packages/agent-sdk/src/web-fetch.ts:214](https://github.com/zocomputer/zov2-code/blob/92a3d351e1799d1814d68c9b8b478ce63ec2feb9/packages/agent-sdk/src/web-fetch.ts#L214)
+Defined in: [packages/agent-sdk/src/web-fetch.ts:214](https://github.com/zocomputer/zov2-code/blob/ce93d09ec2812425a1522360ec5d53274fce9d8d/packages/agent-sdk/src/web-fetch.ts#L214)
 
 ***
 
@@ -25,7 +25,7 @@ Defined in: [packages/agent-sdk/src/web-fetch.ts:214](https://github.com/zocompu
 
 > `readonly` **contentType**: `string`
 
-Defined in: [packages/agent-sdk/src/web-fetch.ts:216](https://github.com/zocomputer/zov2-code/blob/92a3d351e1799d1814d68c9b8b478ce63ec2feb9/packages/agent-sdk/src/web-fetch.ts#L216)
+Defined in: [packages/agent-sdk/src/web-fetch.ts:216](https://github.com/zocomputer/zov2-code/blob/ce93d09ec2812425a1522360ec5d53274fce9d8d/packages/agent-sdk/src/web-fetch.ts#L216)
 
 Raw `content-type` header value; empty string when absent.
 
@@ -35,6 +35,6 @@ Raw `content-type` header value; empty string when absent.
 
 > `readonly` **finalUrl**: `string`
 
-Defined in: [packages/agent-sdk/src/web-fetch.ts:218](https://github.com/zocomputer/zov2-code/blob/92a3d351e1799d1814d68c9b8b478ce63ec2feb9/packages/agent-sdk/src/web-fetch.ts#L218)
+Defined in: [packages/agent-sdk/src/web-fetch.ts:218](https://github.com/zocomputer/zov2-code/blob/ce93d09ec2812425a1522360ec5d53274fce9d8d/packages/agent-sdk/src/web-fetch.ts#L218)
 
 URL after redirects when the fetch implementation exposes it; else the request URL.

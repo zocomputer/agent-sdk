@@ -1,4 +1,4 @@
-// ../../../../../tmp/agent-sdk-mirror-6RLeFh/repo/src/gateway-fetch.ts
+// ../../../../../tmp/agent-sdk-mirror-O12ioS/repo/src/gateway-fetch.ts
 var DEFAULT_STREAM_GUARDS = {
   firstByteMs: 60000,
   idleMs: 180000
