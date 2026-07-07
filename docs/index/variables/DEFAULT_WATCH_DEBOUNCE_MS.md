@@ -8,6 +8,6 @@
 
 > `const` **DEFAULT\_WATCH\_DEBOUNCE\_MS**: `5000` = `5_000`
 
-Defined in: [packages/agent-sdk/src/watch-output.ts:39](https://github.com/zocomputer/zov2-code/blob/ca3547b2cec605405cb2885ac6f0edc660b55992/packages/agent-sdk/src/watch-output.ts#L39)
+Defined in: [packages/agent-sdk/src/watch-output.ts:39](https://github.com/zocomputer/zov2-code/blob/92a3d351e1799d1814d68c9b8b478ce63ec2feb9/packages/agent-sdk/src/watch-output.ts#L39)
 
 Minimum ms between match batches; matches inside the window drop.

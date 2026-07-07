@@ -12,13 +12,29 @@ import { zoBackend } from "./zo-backend";
 // BEFORE any SSH connect, so it rejects at the broker with no socket opened. The
 // broker request/parse contract itself is covered exhaustively in api-client.test.ts.
 
-/** zoBackend only reads `sessionKey` + `existingMetadata`; the rest is unused here. */
-function createInput(sessionKey: string, existingMetadata?: Record<string, unknown>): SandboxBackendCreateInput {
+// eve hands the backend TWO ids: `sessionKey` is eve's WRAPPED internal key
+// (`eve-sbx-ses-…-<sessionId>-__root__`); `tags.sessionId` is the RAW eve session
+// id (`wrun_…`). The backend keys the broker off the RAW id (so it matches the
+// flush + repo path), and persists the WRAPPED key for eve's own reconnect match.
+// These fixtures make the two distinct so a regression that keys on the wrong one
+// is caught. `rawSessionId` defaults to the wrapped key ONLY in the fail-loud test,
+// which omits tags entirely.
+function createInput(
+  wrappedSessionKey: string,
+  opts: { rawSessionId?: string; existingMetadata?: Record<string, unknown>; omitTags?: boolean } = {},
+): SandboxBackendCreateInput {
   return {
-    sessionKey,
-    ...(existingMetadata === undefined ? {} : { existingMetadata }),
+    sessionKey: wrappedSessionKey,
+    ...(opts.omitTags
+      ? {}
+      : { tags: { sessionId: opts.rawSessionId ?? "wrun_raw", agent: "builder", channel: "eve" } }),
+    ...(opts.existingMetadata === undefined ? {} : { existingMetadata: opts.existingMetadata }),
   } as unknown as SandboxBackendCreateInput;
 }
+
+/** A realistic pair: eve's wrapped key vs the raw `wrun_…` it also supplies via tags. */
+const WRAPPED_KEY = "eve-sbx-ses-zo-b6f09584-wrun_01KWWB23-__root__";
+const RAW_SESSION_ID = "wrun_01KWWB23FSPB6VH77DT9S47BP0";
 
 function header(init: RequestInit | undefined, name: string): string | undefined {
   const h = init?.headers;
@@ -51,9 +67,12 @@ describe("zoBackend", () => {
       return new Response("{}", { headers: { "content-type": "application/json" } });
     }) as unknown as typeof fetch;
 
-    const handle = await zoBackend({ apiBaseUrl: "http://api.test" }).create(createInput("ses-1"));
+    const handle = await zoBackend({ apiBaseUrl: "http://api.test" }).create(
+      createInput(WRAPPED_KEY, { rawSessionId: RAW_SESSION_ID }),
+    );
 
-    expect(handle.session.id).toBe("ses-1");
+    // `SandboxSession.id` is the RAW eve session id, not eve's wrapped key.
+    expect(handle.session.id).toBe(RAW_SESSION_ID);
     // The full SandboxSession surface is present (constructed, not a stub).
     expect(typeof handle.session.run).toBe("function");
     expect(typeof handle.session.spawn).toBe("function");
@@ -74,7 +93,9 @@ describe("zoBackend", () => {
       });
     }) as typeof fetch;
 
-    const handle = await zoBackend({ apiBaseUrl: "http://api.test" }).create(createInput("ses-1"));
+    const handle = await zoBackend({ apiBaseUrl: "http://api.test" }).create(
+      createInput(WRAPPED_KEY, { rawSessionId: RAW_SESSION_ID }),
+    );
     await expect(handle.session.run({ command: "echo hi" })).rejects.toThrow(/provider_unconfigured|503/);
 
     const request = requests[0];
@@ -88,23 +109,50 @@ describe("zoBackend", () => {
     });
     // Agent-token auth (the broker is agent-token-only), eve session on its header.
     expect(header(request.init, AGENT_TOKEN_HEADER)).toBe("agent.jwt.value");
-    expect(header(request.init, EVE_SESSION_HEADER)).toBe("ses-1");
+    // The broker partition key is the RAW session id (tags.sessionId) — NOT eve's
+    // wrapped `sessionKey`. This is the crux: the flush and the repo path both key
+    // on the raw id, so the runtime must too or Save promotes an empty seed tree.
+    expect(header(request.init, EVE_SESSION_HEADER)).toBe(RAW_SESSION_ID);
+    expect(header(request.init, EVE_SESSION_HEADER)).not.toBe(WRAPPED_KEY);
+  });
+
+  test("create fails loud when eve supplies no tags.sessionId (never falls back to the wrapped key)", async () => {
+    // A silent fallback to the wrapped key would re-introduce the runtime/flush
+    // sandbox split invisibly — so an absent raw id is a hard construction error.
+    expect(() =>
+      zoBackend({ apiBaseUrl: "http://api.test" }).create(createInput(WRAPPED_KEY, { omitTags: true })),
+    ).toThrow(/tags\.sessionId/);
+  });
+
+  test("create fails loud on a blank/whitespace tags.sessionId (matching api-client's trim-and-omit)", async () => {
+    // `requestScratchSandboxAccess` trims and OMITS a blank `x-zo-eve-session`
+    // header, so a whitespace-only id must be rejected HERE with the explicit
+    // create-time error, not slip through and fail later at the broker with
+    // `eve_session_required`.
+    for (const blank of ["", "   ", "\t\n"]) {
+      expect(() =>
+        zoBackend({ apiBaseUrl: "http://api.test" }).create(createInput(WRAPPED_KEY, { rawSessionId: blank })),
+      ).toThrow(/tags\.sessionId/);
+    }
   });
 
   test("captureState falls back to the remembered id before anything is provisioned", async () => {
     const handle = await zoBackend({ apiBaseUrl: "http://api.test" }).create(
-      createInput("ses-1", { daytonaSandboxId: "remembered" }),
+      createInput(WRAPPED_KEY, { rawSessionId: RAW_SESSION_ID, existingMetadata: { daytonaSandboxId: "remembered" } }),
     );
     const state = await handle.captureState();
     expect(state).toMatchObject({
       backendName: "zo",
-      sessionKey: "ses-1",
+      // eve's reconnect state keys on the WRAPPED key, not the raw broker id.
+      sessionKey: WRAPPED_KEY,
       metadata: { daytonaSandboxId: "remembered" },
     });
   });
 
   test("captureState records an empty id when neither provisioned nor remembered", async () => {
-    const handle = await zoBackend({ apiBaseUrl: "http://api.test" }).create(createInput("ses-1"));
+    const handle = await zoBackend({ apiBaseUrl: "http://api.test" }).create(
+      createInput(WRAPPED_KEY, { rawSessionId: RAW_SESSION_ID }),
+    );
     const state = await handle.captureState();
     expect(state.metadata).toEqual({ daytonaSandboxId: "" });
   });
@@ -116,7 +164,9 @@ describe("zoBackend", () => {
       return new Response("{}");
     }) as unknown as typeof fetch;
 
-    const handle = await zoBackend({ apiBaseUrl: "http://api.test" }).create(createInput("ses-1"));
+    const handle = await zoBackend({ apiBaseUrl: "http://api.test" }).create(
+      createInput(WRAPPED_KEY, { rawSessionId: RAW_SESSION_ID }),
+    );
     await handle.dispose();
     await expect(handle.session.run({ command: "echo hi" })).rejects.toThrow(/disposed/);
     // Disposed before any run — the broker was never called.

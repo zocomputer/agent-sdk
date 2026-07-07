@@ -43,6 +43,29 @@ export function zoBackend(options: ZoBackendOptions): SandboxBackend {
       // this session's sandbox off the eve session key + caller's org itself.
       const rememberedId = readSandboxId(input.existingMetadata);
 
+      // The broker keys the session-partitioned `scratch` instance off the
+      // `x-zo-eve-session` value VERBATIM, so every caller for one session must
+      // send the SAME string. eve hands the backend TWO ids: `input.sessionKey`
+      // is eve's WRAPPED internal key (`eve-sbx-ses-<backend>-<scope>-<sessionId>
+      // -<nodeId>`), while `input.tags.sessionId` is the RAW eve session id
+      // (`wrun_…`). The Save flush channel (apps/local-builder-agent's flush.ts)
+      // only has the raw id and sends THAT, as does the git-remote/AgentWorkspace
+      // path — so we must send the raw id here too, or the runtime and the flush
+      // provision two separate sandboxes and Save promotes an empty seed tree
+      // (see plans/rc2/builder-sandbox-key-mismatch.md). Fail loud if it's
+      // absent rather than falling back to the wrapped key — a silent fallback
+      // would re-introduce the split invisibly. Trim and reject blank/whitespace
+      // too: `requestScratchSandboxAccess` trims and OMITS a blank
+      // `x-zo-eve-session` header, so a whitespace-only id would otherwise slip
+      // past this guard and fail later at the broker with `eve_session_required`
+      // instead of this explicit create-time error.
+      const eveSessionKey = input.tags?.sessionId?.trim();
+      if (eveSessionKey === undefined || eveSessionKey.length === 0) {
+        throw new Error(
+          "zoBackend.create: eve did not supply a non-blank tags.sessionId (the raw session id the state broker partitions on)",
+        );
+      }
+
       // Resolve (or re-resolve) scoped SSH access from the control-plane state
       // broker — the `scratch` sandbox declaration for this eve session. Called
       // LAZILY on first `run` — so opening a session the agent never uses
@@ -51,10 +74,13 @@ export function zoBackend(options: ZoBackendOptions): SandboxBackend {
       const acquireAccess = async (): Promise<SshSandboxAccess> =>
         await requestScratchSandboxAccess({
           apiBaseUrl: options.apiBaseUrl,
-          eveSessionKey: input.sessionKey,
+          eveSessionKey,
         });
 
-      const ssh = sshSandboxSession(input.sessionKey, acquireAccess);
+      // `SandboxSession.id` is the raw eve session key too (same string the
+      // flush uses), so the session surface is labelled by the id the broker
+      // and the repo path both key on — not eve's wrapped internal key.
+      const ssh = sshSandboxSession(eveSessionKey, acquireAccess);
 
       // No per-session options for MVP, so `use()` just yields the session.
       const useSessionFn = (): Promise<SandboxSession> => Promise.resolve(ssh.session);
@@ -65,6 +91,10 @@ export function zoBackend(options: ZoBackendOptions): SandboxBackend {
         captureState: () =>
           Promise.resolve({
             backendName: BACKEND_NAME,
+            // eve's own reconnect state — it matches a persisted handle by
+            // `state.sessionKey === input.sessionKey`, so this MUST stay eve's
+            // WRAPPED key (not the raw `eveSessionKey` we send the broker), or
+            // reattach on reply silently misses and re-provisions.
             sessionKey: input.sessionKey,
             // The id we've provisioned this session, else the one eve remembered
             // (a session that never ran a command has nothing new to persist).

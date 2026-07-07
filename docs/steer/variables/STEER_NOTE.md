@@ -8,6 +8,6 @@
 
 > `const` **STEER\_NOTE**: `"The user sent these messages while this tool was running. They take priority: address them now and adjust your current approach before continuing."` = `"The user sent these messages while this tool was running. They take priority: address them now and adjust your current approach before continuing."`
 
-Defined in: [packages/agent-sdk/src/steer.ts:22](https://github.com/zocomputer/zov2-code/blob/ca3547b2cec605405cb2885ac6f0edc660b55992/packages/agent-sdk/src/steer.ts#L22)
+Defined in: [packages/agent-sdk/src/steer.ts:22](https://github.com/zocomputer/zov2-code/blob/92a3d351e1799d1814d68c9b8b478ce63ec2feb9/packages/agent-sdk/src/steer.ts#L22)
 
 The note the model reads alongside steered messages.
