@@ -8,7 +8,7 @@
 
 > **createSandboxFileTools**(`options`): `object`
 
-Defined in: [packages/agent-sdk/src/index.ts:308](https://github.com/zocomputer/zov2-code/blob/df4b939a34db36cf82bffe0187f8c98f4e308c18/packages/agent-sdk/src/index.ts#L308)
+Defined in: [packages/agent-sdk/src/index.ts:308](https://github.com/zocomputer/zov2-code/blob/e58b3bae5fbd35c5f457130033750c9c33ee334c/packages/agent-sdk/src/index.ts#L308)
 
 Create sandbox-backed file tools for hosted agents: read/edit/write/glob/grep
 route through the sandbox session instead of the harness's local disk. Returns

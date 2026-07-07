@@ -442,6 +442,7 @@ export {
   type MockToolCall,
 } from "./mock-model";
 export * from "./sandbox-io";
+export * from "./visible-reasoning";
 export * from "./walk";
 export * from "./watch-output";
 export * from "./workspace";

@@ -1,5 +1,9 @@
 import { defineAgent } from "eve";
-import { createMockStoryModel, STDLIB_EXTERNAL_DEPENDENCIES } from "@zocomputer/agent-sdk";
+import {
+  createMockStoryModel,
+  STDLIB_EXTERNAL_DEPENDENCIES,
+  visibleReasoningModelOptions,
+} from "@zocomputer/agent-sdk";
 
 // Keep the SDK's dependency graph out of every authored-module bundle — eve
 // compiles each tool/hook/instruction separately, and inlining xlsx/mammoth/
@@ -39,9 +43,15 @@ export default function agent() {
       build,
     });
   }
+  const model = "anthropic/claude-opus-4.8";
+  // Opus 4.8's thinking arrives encrypted (empty reasoning deltas) without
+  // these provider options — reasoning happens but no "Thinking…" text ever
+  // streams. See the SDK's visible-reasoning module.
+  const modelOptions = visibleReasoningModelOptions(model);
   return defineAgent({
-    model: "anthropic/claude-opus-4.8",
+    model,
     reasoning: "medium",
+    ...(modelOptions ? { modelOptions } : {}),
     build,
   });
 }

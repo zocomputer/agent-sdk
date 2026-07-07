@@ -53,6 +53,7 @@
 - [TaskDescriptionOptions](interfaces/TaskDescriptionOptions.md)
 - [TaskRegistry](interfaces/TaskRegistry.md)
 - [TaskToolManifestOptions](interfaces/TaskToolManifestOptions.md)
+- [VisibleReasoningModelOptions](interfaces/VisibleReasoningModelOptions.md)
 - [Workspace](interfaces/Workspace.md)
 - [WorkspaceIO](interfaces/WorkspaceIO.md)
 
@@ -81,6 +82,7 @@
 - [Task](type-aliases/Task.md)
 - [TextEncoding](type-aliases/TextEncoding.md)
 - [VideoFormat](type-aliases/VideoFormat.md)
+- [VisibleReasoningJsonValue](type-aliases/VisibleReasoningJsonValue.md)
 - [WebFetchFormat](type-aliases/WebFetchFormat.md)
 - [WorkspaceIoProvider](type-aliases/WorkspaceIoProvider.md)
 
@@ -207,6 +209,7 @@
 - [shellSingleQuote](functions/shellSingleQuote.md)
 - [toolInputFragments](functions/toolInputFragments.md)
 - [videoMediaType](functions/videoMediaType.md)
+- [visibleReasoningModelOptions](functions/visibleReasoningModelOptions.md)
 - [walkFiles](functions/walkFiles.md)
 - [withSteerDelivery](functions/withSteerDelivery.md)
 

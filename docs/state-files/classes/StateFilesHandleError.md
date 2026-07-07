@@ -6,7 +6,7 @@
 
 # Class: StateFilesHandleError
 
-Defined in: [packages/agent-sdk/src/state-files.ts:85](https://github.com/zocomputer/zov2-code/blob/df4b939a34db36cf82bffe0187f8c98f4e308c18/packages/agent-sdk/src/state-files.ts#L85)
+Defined in: [packages/agent-sdk/src/state-files.ts:85](https://github.com/zocomputer/zov2-code/blob/e58b3bae5fbd35c5f457130033750c9c33ee334c/packages/agent-sdk/src/state-files.ts#L85)
 
 Error thrown when requesting a state-files handle fails. Carries the HTTP status and broker error code.
 
@@ -20,7 +20,7 @@ Error thrown when requesting a state-files handle fails. Carries the HTTP status
 
 > **new StateFilesHandleError**(`message`, `options`): `StateFilesHandleError`
 
-Defined in: [packages/agent-sdk/src/state-files.ts:89](https://github.com/zocomputer/zov2-code/blob/df4b939a34db36cf82bffe0187f8c98f4e308c18/packages/agent-sdk/src/state-files.ts#L89)
+Defined in: [packages/agent-sdk/src/state-files.ts:89](https://github.com/zocomputer/zov2-code/blob/e58b3bae5fbd35c5f457130033750c9c33ee334c/packages/agent-sdk/src/state-files.ts#L89)
 
 #### Parameters
 
@@ -66,7 +66,7 @@ The cause of the error.
 
 > `readonly` **code**: `string` \| `null`
 
-Defined in: [packages/agent-sdk/src/state-files.ts:87](https://github.com/zocomputer/zov2-code/blob/df4b939a34db36cf82bffe0187f8c98f4e308c18/packages/agent-sdk/src/state-files.ts#L87)
+Defined in: [packages/agent-sdk/src/state-files.ts:87](https://github.com/zocomputer/zov2-code/blob/e58b3bae5fbd35c5f457130033750c9c33ee334c/packages/agent-sdk/src/state-files.ts#L87)
 
 ***
 
@@ -110,7 +110,7 @@ Defined in: node\_modules/.bun/typescript@6.0.3/node\_modules/typescript/lib/lib
 
 > `readonly` **status**: `number`
 
-Defined in: [packages/agent-sdk/src/state-files.ts:86](https://github.com/zocomputer/zov2-code/blob/df4b939a34db36cf82bffe0187f8c98f4e308c18/packages/agent-sdk/src/state-files.ts#L86)
+Defined in: [packages/agent-sdk/src/state-files.ts:86](https://github.com/zocomputer/zov2-code/blob/e58b3bae5fbd35c5f457130033750c9c33ee334c/packages/agent-sdk/src/state-files.ts#L86)
 
 ***
 

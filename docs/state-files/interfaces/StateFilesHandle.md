@@ -6,7 +6,7 @@
 
 # Interface: StateFilesHandle
 
-Defined in: [packages/agent-sdk/src/state-files.ts:38](https://github.com/zocomputer/zov2-code/blob/df4b939a34db36cf82bffe0187f8c98f4e308c18/packages/agent-sdk/src/state-files.ts#L38)
+Defined in: [packages/agent-sdk/src/state-files.ts:38](https://github.com/zocomputer/zov2-code/blob/e58b3bae5fbd35c5f457130033750c9c33ee334c/packages/agent-sdk/src/state-files.ts#L38)
 
 Bearer-secret handle for direct object-store access.
 
@@ -20,7 +20,7 @@ debugging. Never log the full object: `credentials.secretAccessKey` and
 
 > `readonly` **access**: [`StateFilesAccess`](../type-aliases/StateFilesAccess.md)
 
-Defined in: [packages/agent-sdk/src/state-files.ts:42](https://github.com/zocomputer/zov2-code/blob/df4b939a34db36cf82bffe0187f8c98f4e308c18/packages/agent-sdk/src/state-files.ts#L42)
+Defined in: [packages/agent-sdk/src/state-files.ts:42](https://github.com/zocomputer/zov2-code/blob/e58b3bae5fbd35c5f457130033750c9c33ee334c/packages/agent-sdk/src/state-files.ts#L42)
 
 ***
 
@@ -28,7 +28,7 @@ Defined in: [packages/agent-sdk/src/state-files.ts:42](https://github.com/zocomp
 
 > `readonly` **bucketName**: `string`
 
-Defined in: [packages/agent-sdk/src/state-files.ts:47](https://github.com/zocomputer/zov2-code/blob/df4b939a34db36cf82bffe0187f8c98f4e308c18/packages/agent-sdk/src/state-files.ts#L47)
+Defined in: [packages/agent-sdk/src/state-files.ts:47](https://github.com/zocomputer/zov2-code/blob/e58b3bae5fbd35c5f457130033750c9c33ee334c/packages/agent-sdk/src/state-files.ts#L47)
 
 ***
 
@@ -36,7 +36,7 @@ Defined in: [packages/agent-sdk/src/state-files.ts:47](https://github.com/zocomp
 
 > `readonly` **credentials**: [`StateFilesCredentials`](StateFilesCredentials.md)
 
-Defined in: [packages/agent-sdk/src/state-files.ts:49](https://github.com/zocomputer/zov2-code/blob/df4b939a34db36cf82bffe0187f8c98f4e308c18/packages/agent-sdk/src/state-files.ts#L49)
+Defined in: [packages/agent-sdk/src/state-files.ts:49](https://github.com/zocomputer/zov2-code/blob/e58b3bae5fbd35c5f457130033750c9c33ee334c/packages/agent-sdk/src/state-files.ts#L49)
 
 ***
 
@@ -44,7 +44,7 @@ Defined in: [packages/agent-sdk/src/state-files.ts:49](https://github.com/zocomp
 
 > `readonly` **declarationName**: `string`
 
-Defined in: [packages/agent-sdk/src/state-files.ts:40](https://github.com/zocomputer/zov2-code/blob/df4b939a34db36cf82bffe0187f8c98f4e308c18/packages/agent-sdk/src/state-files.ts#L40)
+Defined in: [packages/agent-sdk/src/state-files.ts:40](https://github.com/zocomputer/zov2-code/blob/e58b3bae5fbd35c5f457130033750c9c33ee334c/packages/agent-sdk/src/state-files.ts#L40)
 
 ***
 
@@ -52,7 +52,7 @@ Defined in: [packages/agent-sdk/src/state-files.ts:40](https://github.com/zocomp
 
 > `readonly` **endpoint**: `string`
 
-Defined in: [packages/agent-sdk/src/state-files.ts:48](https://github.com/zocomputer/zov2-code/blob/df4b939a34db36cf82bffe0187f8c98f4e308c18/packages/agent-sdk/src/state-files.ts#L48)
+Defined in: [packages/agent-sdk/src/state-files.ts:48](https://github.com/zocomputer/zov2-code/blob/e58b3bae5fbd35c5f457130033750c9c33ee334c/packages/agent-sdk/src/state-files.ts#L48)
 
 ***
 
@@ -60,7 +60,7 @@ Defined in: [packages/agent-sdk/src/state-files.ts:48](https://github.com/zocomp
 
 > `readonly` **engine**: `"zo-blob-r2"`
 
-Defined in: [packages/agent-sdk/src/state-files.ts:43](https://github.com/zocomputer/zov2-code/blob/df4b939a34db36cf82bffe0187f8c98f4e308c18/packages/agent-sdk/src/state-files.ts#L43)
+Defined in: [packages/agent-sdk/src/state-files.ts:43](https://github.com/zocomputer/zov2-code/blob/e58b3bae5fbd35c5f457130033750c9c33ee334c/packages/agent-sdk/src/state-files.ts#L43)
 
 ***
 
@@ -68,7 +68,7 @@ Defined in: [packages/agent-sdk/src/state-files.ts:43](https://github.com/zocomp
 
 > `readonly` **handleId**: `string`
 
-Defined in: [packages/agent-sdk/src/state-files.ts:39](https://github.com/zocomputer/zov2-code/blob/df4b939a34db36cf82bffe0187f8c98f4e308c18/packages/agent-sdk/src/state-files.ts#L39)
+Defined in: [packages/agent-sdk/src/state-files.ts:39](https://github.com/zocomputer/zov2-code/blob/e58b3bae5fbd35c5f457130033750c9c33ee334c/packages/agent-sdk/src/state-files.ts#L39)
 
 ***
 
@@ -76,7 +76,7 @@ Defined in: [packages/agent-sdk/src/state-files.ts:39](https://github.com/zocomp
 
 > `readonly` **interface**: `"files"`
 
-Defined in: [packages/agent-sdk/src/state-files.ts:41](https://github.com/zocomputer/zov2-code/blob/df4b939a34db36cf82bffe0187f8c98f4e308c18/packages/agent-sdk/src/state-files.ts#L41)
+Defined in: [packages/agent-sdk/src/state-files.ts:41](https://github.com/zocomputer/zov2-code/blob/e58b3bae5fbd35c5f457130033750c9c33ee334c/packages/agent-sdk/src/state-files.ts#L41)
 
 ***
 
@@ -84,7 +84,7 @@ Defined in: [packages/agent-sdk/src/state-files.ts:41](https://github.com/zocomp
 
 > `readonly` **partition**: [`StateFilesPartition`](../type-aliases/StateFilesPartition.md)
 
-Defined in: [packages/agent-sdk/src/state-files.ts:46](https://github.com/zocomputer/zov2-code/blob/df4b939a34db36cf82bffe0187f8c98f4e308c18/packages/agent-sdk/src/state-files.ts#L46)
+Defined in: [packages/agent-sdk/src/state-files.ts:46](https://github.com/zocomputer/zov2-code/blob/e58b3bae5fbd35c5f457130033750c9c33ee334c/packages/agent-sdk/src/state-files.ts#L46)
 
 ***
 
@@ -92,7 +92,7 @@ Defined in: [packages/agent-sdk/src/state-files.ts:46](https://github.com/zocomp
 
 > `readonly` **stateInstanceId**: `string`
 
-Defined in: [packages/agent-sdk/src/state-files.ts:45](https://github.com/zocomputer/zov2-code/blob/df4b939a34db36cf82bffe0187f8c98f4e308c18/packages/agent-sdk/src/state-files.ts#L45)
+Defined in: [packages/agent-sdk/src/state-files.ts:45](https://github.com/zocomputer/zov2-code/blob/e58b3bae5fbd35c5f457130033750c9c33ee334c/packages/agent-sdk/src/state-files.ts#L45)
 
 ***
 
@@ -100,4 +100,4 @@ Defined in: [packages/agent-sdk/src/state-files.ts:45](https://github.com/zocomp
 
 > `readonly` **storeId**: `string`
 
-Defined in: [packages/agent-sdk/src/state-files.ts:44](https://github.com/zocomputer/zov2-code/blob/df4b939a34db36cf82bffe0187f8c98f4e308c18/packages/agent-sdk/src/state-files.ts#L44)
+Defined in: [packages/agent-sdk/src/state-files.ts:44](https://github.com/zocomputer/zov2-code/blob/e58b3bae5fbd35c5f457130033750c9c33ee334c/packages/agent-sdk/src/state-files.ts#L44)

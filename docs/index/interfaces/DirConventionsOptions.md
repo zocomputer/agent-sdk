@@ -6,7 +6,7 @@
 
 # Interface: DirConventionsOptions
 
-Defined in: [packages/agent-sdk/src/dir-conventions.ts:26](https://github.com/zocomputer/zov2-code/blob/df4b939a34db36cf82bffe0187f8c98f4e308c18/packages/agent-sdk/src/dir-conventions.ts#L26)
+Defined in: [packages/agent-sdk/src/dir-conventions.ts:26](https://github.com/zocomputer/zov2-code/blob/e58b3bae5fbd35c5f457130033750c9c33ee334c/packages/agent-sdk/src/dir-conventions.ts#L26)
 
 Options for a directory-conventions tracker that delivers nested convention files on first read.
 
@@ -16,7 +16,7 @@ Options for a directory-conventions tracker that delivers nested convention file
 
 > `optional` **fileName?**: `string`
 
-Defined in: [packages/agent-sdk/src/dir-conventions.ts:30](https://github.com/zocomputer/zov2-code/blob/df4b939a34db36cf82bffe0187f8c98f4e308c18/packages/agent-sdk/src/dir-conventions.ts#L30)
+Defined in: [packages/agent-sdk/src/dir-conventions.ts:30](https://github.com/zocomputer/zov2-code/blob/e58b3bae5fbd35c5f457130033750c9c33ee334c/packages/agent-sdk/src/dir-conventions.ts#L30)
 
 Conventions filename to look for in each directory. Default "AGENTS.md".
 
@@ -26,7 +26,7 @@ Conventions filename to look for in each directory. Default "AGENTS.md".
 
 > `optional` **loadFile?**: (`absPath`) => `string` \| `Promise`\<`string` \| `null`\> \| `null`
 
-Defined in: [packages/agent-sdk/src/dir-conventions.ts:49](https://github.com/zocomputer/zov2-code/blob/df4b939a34db36cf82bffe0187f8c98f4e308c18/packages/agent-sdk/src/dir-conventions.ts#L49)
+Defined in: [packages/agent-sdk/src/dir-conventions.ts:49](https://github.com/zocomputer/zov2-code/blob/e58b3bae5fbd35c5f457130033750c9c33ee334c/packages/agent-sdk/src/dir-conventions.ts#L49)
 
 File loader, injectable for tests. Returns the file's content or null
 when it doesn't exist (sync or async — a sandbox-backed read is async).
@@ -50,7 +50,7 @@ instead, which overrides this one.
 
 > `optional` **maxBytesPerFile?**: `number`
 
-Defined in: [packages/agent-sdk/src/dir-conventions.ts:35](https://github.com/zocomputer/zov2-code/blob/df4b939a34db36cf82bffe0187f8c98f4e308c18/packages/agent-sdk/src/dir-conventions.ts#L35)
+Defined in: [packages/agent-sdk/src/dir-conventions.ts:35](https://github.com/zocomputer/zov2-code/blob/e58b3bae5fbd35c5f457130033750c9c33ee334c/packages/agent-sdk/src/dir-conventions.ts#L35)
 
 Per-file content cap in bytes; an oversized conventions file becomes a
 pointer note instead of inline content. Default 16 KB.
@@ -61,7 +61,7 @@ pointer note instead of inline content. Default 16 KB.
 
 > `optional` **maxFilesPerRead?**: `number`
 
-Defined in: [packages/agent-sdk/src/dir-conventions.ts:41](https://github.com/zocomputer/zov2-code/blob/df4b939a34db36cf82bffe0187f8c98f4e308c18/packages/agent-sdk/src/dir-conventions.ts#L41)
+Defined in: [packages/agent-sdk/src/dir-conventions.ts:41](https://github.com/zocomputer/zov2-code/blob/e58b3bae5fbd35c5f457130033750c9c33ee334c/packages/agent-sdk/src/dir-conventions.ts#L41)
 
 Max conventions files inlined per read; on a first read deep in a tree,
 the directories nearest the file get content and the rest get pointer
@@ -73,7 +73,7 @@ notes. Default 4.
 
 > `optional` **maxSessions?**: `number`
 
-Defined in: [packages/agent-sdk/src/dir-conventions.ts:54](https://github.com/zocomputer/zov2-code/blob/df4b939a34db36cf82bffe0187f8c98f4e308c18/packages/agent-sdk/src/dir-conventions.ts#L54)
+Defined in: [packages/agent-sdk/src/dir-conventions.ts:54](https://github.com/zocomputer/zov2-code/blob/e58b3bae5fbd35c5f457130033750c9c33ee334c/packages/agent-sdk/src/dir-conventions.ts#L54)
 
 Max sessions tracked per workspace; least-recently-used sessions evict
 first (an evicted session that reappears re-delivers). Default 100.
@@ -84,6 +84,6 @@ first (an evicted session that reappears re-delivers). Default 100.
 
 > **workspaceRoot**: `string`
 
-Defined in: [packages/agent-sdk/src/dir-conventions.ts:28](https://github.com/zocomputer/zov2-code/blob/df4b939a34db36cf82bffe0187f8c98f4e308c18/packages/agent-sdk/src/dir-conventions.ts#L28)
+Defined in: [packages/agent-sdk/src/dir-conventions.ts:28](https://github.com/zocomputer/zov2-code/blob/e58b3bae5fbd35c5f457130033750c9c33ee334c/packages/agent-sdk/src/dir-conventions.ts#L28)
 
 Workspace root; the chain walks from here (exclusive) down to the file.

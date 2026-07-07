@@ -8,7 +8,7 @@
 
 > **createTaskAgent**(`options`): `object`
 
-Defined in: [packages/agent-sdk/src/task.ts:280](https://github.com/zocomputer/zov2-code/blob/df4b939a34db36cf82bffe0187f8c98f4e308c18/packages/agent-sdk/src/task.ts#L280)
+Defined in: [packages/agent-sdk/src/task.ts:289](https://github.com/zocomputer/zov2-code/blob/e58b3bae5fbd35c5f457130033750c9c33ee334c/packages/agent-sdk/src/task.ts#L289)
 
 The `defineAgent` config for a consumer's
 `agent/subagents/task_<tier>/agent.ts`. The description is what the parent
@@ -37,6 +37,10 @@ written for the parent, not the child.
 ### model
 
 > **model**: `LanguageModel` = `options.model`
+
+### modelOptions?
+
+> `optional` **modelOptions?**: `AgentModelOptionsDefinition`
 
 ### reasoning?
 

@@ -53,6 +53,10 @@
       "types": "./src/steer-inbox.ts",
       "import": "./dist/steer-inbox.js"
     },
+    "./visible-reasoning": {
+      "types": "./src/visible-reasoning.ts",
+      "import": "./dist/visible-reasoning.js"
+    },
     "./runtime-auth": {
       "types": "./platform/runtime-auth/index.ts",
       "import": "./dist/platform/runtime-auth/index.js"

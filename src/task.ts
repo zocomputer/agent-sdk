@@ -3,6 +3,7 @@ import { defineDynamic, defineInstructions } from "eve/instructions";
 import { createDirConventionsTracker } from "./dir-conventions";
 import { createReadTool } from "./tools/read";
 import { createWebFetchTool } from "./tools/webfetch";
+import { visibleReasoningModelOptions } from "./visible-reasoning";
 import { createWorkspace } from "./workspace";
 
 // The task subagent kit: a generic, full-capability child preset for eve's
@@ -268,6 +269,14 @@ export interface TaskAgentOptions extends TaskDescriptionOptions {
    * (see `STDLIB_EXTERNAL_DEPENDENCIES`) to every tier.
    */
   build?: AgentDefinition["build"];
+  /**
+   * Provider option overrides forwarded to the child's model calls. Defaults
+   * to {@link visibleReasoningModelOptions} over the pinned model slug, so a
+   * tier whose model hides thinking by default (Anthropic's adaptive
+   * generation, Gemini) still streams visible reasoning. Pass explicitly to
+   * override; the default only applies when `model` is a slug string.
+   */
+  modelOptions?: AgentDefinition["modelOptions"];
 }
 
 /**
@@ -278,11 +287,17 @@ export interface TaskAgentOptions extends TaskDescriptionOptions {
  * written for the parent, not the child.
  */
 export function createTaskAgent(options: TaskAgentOptions) {
+  const modelOptions =
+    options.modelOptions ??
+    (typeof options.model === "string"
+      ? visibleReasoningModelOptions(options.model)
+      : undefined);
   return defineAgent({
     description: options.description ?? buildTaskDescription(options),
     model: options.model,
     ...(options.reasoning !== undefined ? { reasoning: options.reasoning } : {}),
     ...(options.build !== undefined ? { build: options.build } : {}),
+    ...(modelOptions !== undefined ? { modelOptions } : {}),
   });
 }
 

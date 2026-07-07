@@ -341,6 +341,39 @@ point is converting a *dead* connection into a retryable error, not racing a
 slow-but-alive reasoning model. Override via the second argument
 (`{ firstByteMs, idleMs }`).
 
+## Visible reasoning (the invisible-thinking gotcha)
+
+`defineAgent`'s `reasoning` effort turns extended thinking ON, but on several
+gateway models the thinking arrives HIDDEN by default: Anthropic's
+adaptive-thinking generation (Sonnet 5, Opus 4.8, and newer) returns it
+encrypted — the stream carries one reasoning delta per step with empty text
+and only a signature — and Gemini omits thoughts entirely. The model pays the
+full reasoning latency, eve emits empty `reasoning.appended` events, and the
+UI never shows a "Thinking…" block, so the agent just looks stalled until the
+first tool call. `visibleReasoningModelOptions(modelId)` returns the provider
+options that make the thinking stream as visible text, and `undefined` for
+models whose default already streams it (OpenAI, pre-adaptive Anthropic — for
+which the adaptive options would be rejected):
+
+```ts
+import { visibleReasoningModelOptions } from "@zocomputer/agent-sdk";
+
+const model = "anthropic/claude-opus-4.8";
+const modelOptions = visibleReasoningModelOptions(model);
+export default defineAgent({
+  model,
+  reasoning: "medium",
+  ...(modelOptions ? { modelOptions } : {}),
+});
+```
+
+`createTaskAgent` applies this automatically when its `model` is a slug
+string (pass `modelOptions` to override). If you build `providerOptions`
+yourself (prompt-caching directives, custom knobs), spread
+`visibleReasoningModelOptions(modelId)?.providerOptions` into it. Also
+exported at the dependency-free `@zocomputer/agent-sdk/visible-reasoning`
+subpath.
+
 ## Compile-time externals (fast cold boots)
 
 eve compiles every authored module — each tool, hook, instruction, and

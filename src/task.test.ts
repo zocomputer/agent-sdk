@@ -15,6 +15,7 @@ import {
   TASK_CHILD_TOOL_OVERRIDES,
   TASK_DISABLED_BUILTINS,
 } from "./task";
+import { visibleReasoningModelOptions } from "./visible-reasoning";
 
 describe("expectedTaskToolNames", () => {
   test("parent tools minus exclusions plus the disable shims, sorted", () => {
@@ -202,6 +203,34 @@ describe("createTaskAgent", () => {
     });
     expect(agent.description).toBe("my worker");
     expect(agent.reasoning).toBe("low");
+  });
+
+  test("defaults modelOptions to the slug's visible-reasoning options", () => {
+    const agent = createTaskAgent({
+      model: "anthropic/claude-sonnet-5",
+      modelName: "Claude Sonnet 5",
+      use: "Use it.",
+    });
+    expect(agent.modelOptions).toEqual(
+      visibleReasoningModelOptions("anthropic/claude-sonnet-5"),
+    );
+  });
+
+  test("leaves modelOptions unset for models with visible defaults, and honors an explicit override", () => {
+    const visibleByDefault = createTaskAgent({
+      model: "openai/gpt-5.5",
+      modelName: "GPT-5.5",
+      use: "Use it.",
+    });
+    expect(visibleByDefault.modelOptions).toBeUndefined();
+
+    const overridden = createTaskAgent({
+      model: "anthropic/claude-sonnet-5",
+      modelName: "Claude Sonnet 5",
+      use: "Use it.",
+      modelOptions: { providerOptions: { anthropic: {} } },
+    });
+    expect(overridden.modelOptions).toEqual({ providerOptions: { anthropic: {} } });
   });
 });
 
