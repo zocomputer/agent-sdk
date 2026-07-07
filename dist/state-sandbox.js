@@ -1,4 +1,4 @@
-// ../../../../../tmp/agent-sdk-mirror-XY6QZ2/repo/src/state-files.ts
+// ../../../../../tmp/agent-sdk-mirror-OYfL3c/repo/src/state-files.ts
 function normalizeStateFilePath(path) {
   if (path.length === 0) {
     throw new Error("state file path must not be empty");
@@ -13,7 +13,7 @@ function normalizeStateFilePath(path) {
   return path;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-XY6QZ2/repo/src/state-sandbox.ts
+// ../../../../../tmp/agent-sdk-mirror-OYfL3c/repo/src/state-sandbox.ts
 var STATE_SANDBOX_HANDLE_PATH = "/state/handles";
 var ZO_AGENT_TOKEN_HEADER = "x-zo-agent-token";
 var ZO_EVE_SESSION_HEADER = "x-zo-eve-session";

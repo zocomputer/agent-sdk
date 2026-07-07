@@ -6,7 +6,7 @@
 
 # Interface: RunningCommand
 
-Defined in: [packages/agent-sdk/src/run.ts:40](https://github.com/zocomputer/zov2-code/blob/ea621634e36cbd869fece8585e35d7f842c47a15/packages/agent-sdk/src/run.ts#L40)
+Defined in: [packages/agent-sdk/src/run.ts:40](https://github.com/zocomputer/zov2-code/blob/df4b939a34db36cf82bffe0187f8c98f4e308c18/packages/agent-sdk/src/run.ts#L40)
 
 A spawned command with live handles: the result promise, a progress snapshot
 method, and a kill signal.
@@ -17,7 +17,7 @@ method, and a kill signal.
 
 > **result**: `Promise`\<[`RunResult`](RunResult.md)\>
 
-Defined in: [packages/agent-sdk/src/run.ts:41](https://github.com/zocomputer/zov2-code/blob/ea621634e36cbd869fece8585e35d7f842c47a15/packages/agent-sdk/src/run.ts#L41)
+Defined in: [packages/agent-sdk/src/run.ts:41](https://github.com/zocomputer/zov2-code/blob/df4b939a34db36cf82bffe0187f8c98f4e308c18/packages/agent-sdk/src/run.ts#L41)
 
 ## Methods
 
@@ -25,7 +25,7 @@ Defined in: [packages/agent-sdk/src/run.ts:41](https://github.com/zocomputer/zov
 
 > **kill**(): `void`
 
-Defined in: [packages/agent-sdk/src/run.ts:45](https://github.com/zocomputer/zov2-code/blob/ea621634e36cbd869fece8585e35d7f842c47a15/packages/agent-sdk/src/run.ts#L45)
+Defined in: [packages/agent-sdk/src/run.ts:45](https://github.com/zocomputer/zov2-code/blob/df4b939a34db36cf82bffe0187f8c98f4e308c18/packages/agent-sdk/src/run.ts#L45)
 
 Kill the command's process group via SIGTERM; safe to call after it's already exited.
 
@@ -39,7 +39,7 @@ Kill the command's process group via SIGTERM; safe to call after it's already ex
 
 > **progress**(): [`RunProgress`](RunProgress.md)
 
-Defined in: [packages/agent-sdk/src/run.ts:43](https://github.com/zocomputer/zov2-code/blob/ea621634e36cbd869fece8585e35d7f842c47a15/packages/agent-sdk/src/run.ts#L43)
+Defined in: [packages/agent-sdk/src/run.ts:43](https://github.com/zocomputer/zov2-code/blob/df4b939a34db36cf82bffe0187f8c98f4e308c18/packages/agent-sdk/src/run.ts#L43)
 
 Current progress snapshot (stdout/stderr previews, byte counts, truncation flags).
 

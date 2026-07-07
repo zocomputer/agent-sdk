@@ -125,7 +125,7 @@
     "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"
   },
   "peerDependencies": {
-    "ai": "^7.0.2",
+    "ai": "^7.0.15",
     "eve": "^0.16.0",
     "zod": "^4.4.3"
   },
@@ -135,7 +135,7 @@
     "@types/node": "^20",
     "@types/ssh2": "^1.15.5",
     "@types/turndown": "^5.0.6",
-    "ai": "^7.0.2",
+    "ai": "^7.0.15",
     "eslint": "^9",
     "eslint-plugin-tsdoc": "^0.5.2",
     "eve": "^0.16.0",

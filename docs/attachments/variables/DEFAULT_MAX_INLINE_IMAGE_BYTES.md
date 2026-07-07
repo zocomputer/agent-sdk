@@ -8,7 +8,7 @@
 
 > `const` **DEFAULT\_MAX\_INLINE\_IMAGE\_BYTES**: `number`
 
-Defined in: [packages/agent-sdk/src/attachments.ts:25](https://github.com/zocomputer/zov2-code/blob/ea621634e36cbd869fece8585e35d7f842c47a15/packages/agent-sdk/src/attachments.ts#L25)
+Defined in: [packages/agent-sdk/src/attachments.ts:25](https://github.com/zocomputer/zov2-code/blob/df4b939a34db36cf82bffe0187f8c98f4e308c18/packages/agent-sdk/src/attachments.ts#L25)
 
 Default cap for inlining image bytes on a `read`/`webfetch` result: 3 MiB,
 matching eve's attachment-staging hydration cap (`shouldInlineSandboxRefAsBytes`,
