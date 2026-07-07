@@ -27,6 +27,7 @@
 - [MockStoryModelOptions](interfaces/MockStoryModelOptions.md)
 - [MockToolCall](interfaces/MockToolCall.md)
 - [OpStartExtras](interfaces/OpStartExtras.md)
+- [OrphanedTurnInput](interfaces/OrphanedTurnInput.md)
 - [OutputWatcher](interfaces/OutputWatcher.md)
 - [OutputWatcherOptions](interfaces/OutputWatcherOptions.md)
 - [ParkDeliveryItem](interfaces/ParkDeliveryItem.md)
@@ -185,6 +186,7 @@
 - [globToRegExp](functions/globToRegExp.md)
 - [imageMediaType](functions/imageMediaType.md)
 - [isHtmlContentType](functions/isHtmlContentType.md)
+- [isOrphanedTurn](functions/isOrphanedTurn.md)
 - [lastUserTextFrom](functions/lastUserTextFrom.md)
 - [listGitFiles](functions/listGitFiles.md)
 - [loadFileContent](functions/loadFileContent.md)
@@ -212,6 +214,7 @@
 - [visibleReasoningModelOptions](functions/visibleReasoningModelOptions.md)
 - [walkFiles](functions/walkFiles.md)
 - [withSteerDelivery](functions/withSteerDelivery.md)
+- [workerEpochMs](functions/workerEpochMs.md)
 
 ## References
 

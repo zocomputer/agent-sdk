@@ -8,7 +8,7 @@
 
 > **createCommunicationInstruction**(): `DynamicSentinel`
 
-Defined in: [packages/agent-sdk/src/instructions.ts:130](https://github.com/zocomputer/zov2-code/blob/ea2754383255c8c5c02ffe9d50fe4b5dbea37395/packages/agent-sdk/src/instructions.ts#L130)
+Defined in: [packages/agent-sdk/src/instructions.ts:130](https://github.com/zocomputer/zov2-code/blob/ad31c397882c72b933077cb2108bebb0430d6e9d/packages/agent-sdk/src/instructions.ts#L130)
 
 The reporting contract: lead with the outcome, keep prose readable,
 assess-don't-fix when the user is diagnosing, act without permission-seeking

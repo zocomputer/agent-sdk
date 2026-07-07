@@ -6,7 +6,7 @@
 
 # Interface: CreateRefreshingStateFilesClientOptions
 
-Defined in: [packages/agent-sdk/src/state-files.ts:268](https://github.com/zocomputer/zov2-code/blob/ea2754383255c8c5c02ffe9d50fe4b5dbea37395/packages/agent-sdk/src/state-files.ts#L268)
+Defined in: [packages/agent-sdk/src/state-files.ts:268](https://github.com/zocomputer/zov2-code/blob/ad31c397882c72b933077cb2108bebb0430d6e9d/packages/agent-sdk/src/state-files.ts#L268)
 
 Options for creating a state-files client that auto-refreshes expiring handles.
 
@@ -16,7 +16,7 @@ Options for creating a state-files client that auto-refreshes expiring handles.
 
 > `readonly` **loadHandle**: () => `Promise`\<[`StateFilesHandle`](StateFilesHandle.md)\>
 
-Defined in: [packages/agent-sdk/src/state-files.ts:270](https://github.com/zocomputer/zov2-code/blob/ea2754383255c8c5c02ffe9d50fe4b5dbea37395/packages/agent-sdk/src/state-files.ts#L270)
+Defined in: [packages/agent-sdk/src/state-files.ts:270](https://github.com/zocomputer/zov2-code/blob/ad31c397882c72b933077cb2108bebb0430d6e9d/packages/agent-sdk/src/state-files.ts#L270)
 
 Loads a fresh handle when the current one is near expiration.
 
@@ -30,7 +30,7 @@ Loads a fresh handle when the current one is near expiration.
 
 > `readonly` `optional` **now?**: () => `Date`
 
-Defined in: [packages/agent-sdk/src/state-files.ts:273](https://github.com/zocomputer/zov2-code/blob/ea2754383255c8c5c02ffe9d50fe4b5dbea37395/packages/agent-sdk/src/state-files.ts#L273)
+Defined in: [packages/agent-sdk/src/state-files.ts:273](https://github.com/zocomputer/zov2-code/blob/ad31c397882c72b933077cb2108bebb0430d6e9d/packages/agent-sdk/src/state-files.ts#L273)
 
 Returns the current time. Defaults to `() => new Date()`. Inject for testing.
 
@@ -44,7 +44,7 @@ Returns the current time. Defaults to `() => new Date()`. Inject for testing.
 
 > `readonly` `optional` **refreshWindowMs?**: `number`
 
-Defined in: [packages/agent-sdk/src/state-files.ts:275](https://github.com/zocomputer/zov2-code/blob/ea2754383255c8c5c02ffe9d50fe4b5dbea37395/packages/agent-sdk/src/state-files.ts#L275)
+Defined in: [packages/agent-sdk/src/state-files.ts:275](https://github.com/zocomputer/zov2-code/blob/ad31c397882c72b933077cb2108bebb0430d6e9d/packages/agent-sdk/src/state-files.ts#L275)
 
 Reload when the handle expires within this window. Defaults to 60 seconds.
 
@@ -54,4 +54,4 @@ Reload when the handle expires within this window. Defaults to 60 seconds.
 
 > `readonly` **s3**: [`StateFilesS3Client`](StateFilesS3Client.md)
 
-Defined in: [packages/agent-sdk/src/state-files.ts:271](https://github.com/zocomputer/zov2-code/blob/ea2754383255c8c5c02ffe9d50fe4b5dbea37395/packages/agent-sdk/src/state-files.ts#L271)
+Defined in: [packages/agent-sdk/src/state-files.ts:271](https://github.com/zocomputer/zov2-code/blob/ad31c397882c72b933077cb2108bebb0430d6e9d/packages/agent-sdk/src/state-files.ts#L271)

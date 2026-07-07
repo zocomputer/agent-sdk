@@ -126,6 +126,21 @@ built, verified patches) graduate to [`proposals/`](./proposals).
 - **No turn cancellation.** Aborting the client stream leaves the server-side
   turn running to completion; there's no API to actually stop it. Stop
   buttons today can only detach and re-attach.
+- **A worker death mid-turn writes no terminal event.** A structural reload
+  (env-file change, dep change) or crash kills every in-flight step, and the
+  durable stream just ends mid-turn — no `turn.failed`, so the last assistant
+  message's metadata reads `streaming` forever and every status projection
+  downstream shows a busy chat that will never settle. opencode makes this
+  state unrepresentable: its session processor finalizes parts on every turn
+  exit (`Effect.ensuring(cleanup())` flips orphaned tool calls to an
+  interrupted error state), and its busy status is in-memory-only, so a
+  process restart reads idle by construction. Our workaround is a whole heal
+  layer — an app-side orphan verdict written after the startup reconcile
+  (`isOrphanedTurn`/`workerEpochMs` in this package; rib's `ruled_dead_at`)
+  plus a read-time part settlement in chat-core (`settleInterruptedTurn`).
+  Emitting `turn.failed` (with a worker-death reason) when a reload/crash
+  orphans a turn — or re-driving the in-flight turn from the durable stream
+  on worker start, as redeploys are documented to — would delete all of it.
 - **Continuation-token scoping.** A hook's `ctx.channel.continuationToken` is
   the runtime-namespaced form (`eve:eve:<uuid>`), but `ClientSession.send`
   needs the client-facing token (`eve:<uuid>`) — and posting the namespaced

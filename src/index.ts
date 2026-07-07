@@ -441,6 +441,11 @@ export {
   type MockStoryModelOptions,
   type MockToolCall,
 } from "./mock-model";
+export {
+  isOrphanedTurn,
+  type OrphanedTurnInput,
+  workerEpochMs,
+} from "./orphaned-turns";
 export * from "./sandbox-io";
 export * from "./visible-reasoning";
 export * from "./walk";

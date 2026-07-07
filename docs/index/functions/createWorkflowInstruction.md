@@ -8,7 +8,7 @@
 
 > **createWorkflowInstruction**(`opts?`): `DynamicSentinel`
 
-Defined in: [packages/agent-sdk/src/instructions.ts:102](https://github.com/zocomputer/zov2-code/blob/ea2754383255c8c5c02ffe9d50fe4b5dbea37395/packages/agent-sdk/src/instructions.ts#L102)
+Defined in: [packages/agent-sdk/src/instructions.ts:102](https://github.com/zocomputer/zov2-code/blob/ad31c397882c72b933077cb2108bebb0430d6e9d/packages/agent-sdk/src/instructions.ts#L102)
 
 The how-to-work contract: explore→read→edit→verify, todo tracking, and the
 end-of-turn completeness check. Static markdown, session-stable

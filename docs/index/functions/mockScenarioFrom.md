@@ -8,7 +8,7 @@
 
 > **mockScenarioFrom**(`text`): `"markdown"` \| `"hitl"` \| `"parallel"` \| `"todo"` \| `"delegate"` \| `"fail"` \| `"burst"` \| `"interleave"` \| `"empty"` \| `null`
 
-Defined in: [packages/agent-sdk/src/mock-model.ts:156](https://github.com/zocomputer/zov2-code/blob/ea2754383255c8c5c02ffe9d50fe4b5dbea37395/packages/agent-sdk/src/mock-model.ts#L156)
+Defined in: [packages/agent-sdk/src/mock-model.ts:156](https://github.com/zocomputer/zov2-code/blob/ad31c397882c72b933077cb2108bebb0430d6e9d/packages/agent-sdk/src/mock-model.ts#L156)
 
 The `[mock:<scenario>]` directive in the turn's user text, if any.
 

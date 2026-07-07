@@ -1,4 +1,4 @@
-// ../../../../../tmp/agent-sdk-mirror-5wvaZt/repo/src/state.ts
+// ../../../../../tmp/agent-sdk-mirror-KBSPID/repo/src/state.ts
 var STATE_NAME_PATTERN = /^[a-z][a-z0-9_-]{0,63}$/;
 var INTERFACES = ["files", "sql", "kv", "http", "exec"];
 var ACCESSES = ["r", "rw"];
