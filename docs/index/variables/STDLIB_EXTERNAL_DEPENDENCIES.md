@@ -8,7 +8,7 @@
 
 > `const` **STDLIB\_EXTERNAL\_DEPENDENCIES**: readonly `string`[]
 
-Defined in: [packages/agent-sdk/src/build-externals.ts:38](https://github.com/zocomputer/zov2-code/blob/94be7c286c5c8961c9d40350c41cf663e8ab4554/packages/agent-sdk/src/build-externals.ts#L38)
+Defined in: [packages/agent-sdk/src/build-externals.ts:38](https://github.com/zocomputer/zov2-code/blob/87d4918f2a9361e41a43075d722493e3ed6872e1/packages/agent-sdk/src/build-externals.ts#L38)
 
 The packages `@zocomputer/agent-sdk` pulls in at run time that an agent
 should keep external while eve compiles its authored modules: the SDK's own

@@ -8,7 +8,7 @@
 
 > **FetchCall** = (`input`, `init?`) => `Promise`\<`Response`\>
 
-Defined in: [packages/agent-sdk/src/gateway-fetch.ts:24](https://github.com/zocomputer/zov2-code/blob/94be7c286c5c8961c9d40350c41cf663e8ab4554/packages/agent-sdk/src/gateway-fetch.ts#L24)
+Defined in: [packages/agent-sdk/src/gateway-fetch.ts:24](https://github.com/zocomputer/zov2-code/blob/87d4918f2a9361e41a43075d722493e3ed6872e1/packages/agent-sdk/src/gateway-fetch.ts#L24)
 
 The fetch call signature alone: Bun's `typeof fetch` also carries
 `preconnect`, which test doubles (and the wrapper itself) shouldn't have to

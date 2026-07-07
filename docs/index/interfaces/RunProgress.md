@@ -6,7 +6,7 @@
 
 # Interface: RunProgress
 
-Defined in: [packages/agent-sdk/src/run.ts:27](https://github.com/zocomputer/zov2-code/blob/94be7c286c5c8961c9d40350c41cf663e8ab4554/packages/agent-sdk/src/run.ts#L27)
+Defined in: [packages/agent-sdk/src/run.ts:27](https://github.com/zocomputer/zov2-code/blob/87d4918f2a9361e41a43075d722493e3ed6872e1/packages/agent-sdk/src/run.ts#L27)
 
 Live progress snapshot while a command is still running: preview text
 (tail-only when truncated), byte counts, and truncation flags.
@@ -17,7 +17,7 @@ Live progress snapshot while a command is still running: preview text
 
 > **stderr**: `string`
 
-Defined in: [packages/agent-sdk/src/run.ts:29](https://github.com/zocomputer/zov2-code/blob/94be7c286c5c8961c9d40350c41cf663e8ab4554/packages/agent-sdk/src/run.ts#L29)
+Defined in: [packages/agent-sdk/src/run.ts:29](https://github.com/zocomputer/zov2-code/blob/87d4918f2a9361e41a43075d722493e3ed6872e1/packages/agent-sdk/src/run.ts#L29)
 
 ***
 
@@ -25,7 +25,7 @@ Defined in: [packages/agent-sdk/src/run.ts:29](https://github.com/zocomputer/zov
 
 > **stderrBytes**: `number`
 
-Defined in: [packages/agent-sdk/src/run.ts:31](https://github.com/zocomputer/zov2-code/blob/94be7c286c5c8961c9d40350c41cf663e8ab4554/packages/agent-sdk/src/run.ts#L31)
+Defined in: [packages/agent-sdk/src/run.ts:31](https://github.com/zocomputer/zov2-code/blob/87d4918f2a9361e41a43075d722493e3ed6872e1/packages/agent-sdk/src/run.ts#L31)
 
 ***
 
@@ -33,7 +33,7 @@ Defined in: [packages/agent-sdk/src/run.ts:31](https://github.com/zocomputer/zov
 
 > **stderrTruncated**: `boolean`
 
-Defined in: [packages/agent-sdk/src/run.ts:33](https://github.com/zocomputer/zov2-code/blob/94be7c286c5c8961c9d40350c41cf663e8ab4554/packages/agent-sdk/src/run.ts#L33)
+Defined in: [packages/agent-sdk/src/run.ts:33](https://github.com/zocomputer/zov2-code/blob/87d4918f2a9361e41a43075d722493e3ed6872e1/packages/agent-sdk/src/run.ts#L33)
 
 ***
 
@@ -41,7 +41,7 @@ Defined in: [packages/agent-sdk/src/run.ts:33](https://github.com/zocomputer/zov
 
 > **stdout**: `string`
 
-Defined in: [packages/agent-sdk/src/run.ts:28](https://github.com/zocomputer/zov2-code/blob/94be7c286c5c8961c9d40350c41cf663e8ab4554/packages/agent-sdk/src/run.ts#L28)
+Defined in: [packages/agent-sdk/src/run.ts:28](https://github.com/zocomputer/zov2-code/blob/87d4918f2a9361e41a43075d722493e3ed6872e1/packages/agent-sdk/src/run.ts#L28)
 
 ***
 
@@ -49,7 +49,7 @@ Defined in: [packages/agent-sdk/src/run.ts:28](https://github.com/zocomputer/zov
 
 > **stdoutBytes**: `number`
 
-Defined in: [packages/agent-sdk/src/run.ts:30](https://github.com/zocomputer/zov2-code/blob/94be7c286c5c8961c9d40350c41cf663e8ab4554/packages/agent-sdk/src/run.ts#L30)
+Defined in: [packages/agent-sdk/src/run.ts:30](https://github.com/zocomputer/zov2-code/blob/87d4918f2a9361e41a43075d722493e3ed6872e1/packages/agent-sdk/src/run.ts#L30)
 
 ***
 
@@ -57,4 +57,4 @@ Defined in: [packages/agent-sdk/src/run.ts:30](https://github.com/zocomputer/zov
 
 > **stdoutTruncated**: `boolean`
 
-Defined in: [packages/agent-sdk/src/run.ts:32](https://github.com/zocomputer/zov2-code/blob/94be7c286c5c8961c9d40350c41cf663e8ab4554/packages/agent-sdk/src/run.ts#L32)
+Defined in: [packages/agent-sdk/src/run.ts:32](https://github.com/zocomputer/zov2-code/blob/87d4918f2a9361e41a43075d722493e3ed6872e1/packages/agent-sdk/src/run.ts#L32)
