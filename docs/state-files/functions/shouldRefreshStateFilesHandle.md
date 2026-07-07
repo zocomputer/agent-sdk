@@ -8,7 +8,7 @@
 
 > **shouldRefreshStateFilesHandle**(`handle`, `now`, `refreshWindowMs?`): `boolean`
 
-Defined in: [packages/agent-sdk/src/state-files.ts:303](https://github.com/zocomputer/zov2-code/blob/27ad75132e5ee857792f30c55f5617b1fdae5408/packages/agent-sdk/src/state-files.ts#L303)
+Defined in: [packages/agent-sdk/src/state-files.ts:303](https://github.com/zocomputer/zov2-code/blob/94be7c286c5c8961c9d40350c41cf663e8ab4554/packages/agent-sdk/src/state-files.ts#L303)
 
 Determines whether a state-files handle needs refreshing based on its expiration.
 Returns `true` if the handle expires within `refreshWindowMs` or if `expiresAt` is malformed.

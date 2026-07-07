@@ -8,6 +8,6 @@
 
 > **MockScenario** = *typeof* [`MOCK_SCENARIOS`](../variables/MOCK_SCENARIOS.md)\[`number`\]
 
-Defined in: [packages/agent-sdk/src/mock-model.ts:97](https://github.com/zocomputer/zov2-code/blob/27ad75132e5ee857792f30c55f5617b1fdae5408/packages/agent-sdk/src/mock-model.ts#L97)
+Defined in: [packages/agent-sdk/src/mock-model.ts:97](https://github.com/zocomputer/zov2-code/blob/94be7c286c5c8961c9d40350c41cf663e8ab4554/packages/agent-sdk/src/mock-model.ts#L97)
 
 Any scenario the mock model recognizes in a `[mock:<scenario>]` directive.

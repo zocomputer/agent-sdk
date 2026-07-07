@@ -6,7 +6,7 @@
 
 # Interface: ParkNotification
 
-Defined in: [packages/agent-sdk/src/park-delivery.ts:210](https://github.com/zocomputer/zov2-code/blob/27ad75132e5ee857792f30c55f5617b1fdae5408/packages/agent-sdk/src/park-delivery.ts#L210)
+Defined in: [packages/agent-sdk/src/park-delivery.ts:210](https://github.com/zocomputer/zov2-code/blob/94be7c286c5c8961c9d40350c41cf663e8ab4554/packages/agent-sdk/src/park-delivery.ts#L210)
 
 A background notification for the model, delivered as its next user turn.
 
@@ -16,7 +16,7 @@ A background notification for the model, delivered as its next user turn.
 
 > `readonly` **key**: `string`
 
-Defined in: [packages/agent-sdk/src/park-delivery.ts:212](https://github.com/zocomputer/zov2-code/blob/27ad75132e5ee857792f30c55f5617b1fdae5408/packages/agent-sdk/src/park-delivery.ts#L212)
+Defined in: [packages/agent-sdk/src/park-delivery.ts:212](https://github.com/zocomputer/zov2-code/blob/94be7c286c5c8961c9d40350c41cf663e8ab4554/packages/agent-sdk/src/park-delivery.ts#L212)
 
 Dedupe key (e.g. `task_3#2`); one delivery per key per session.
 
@@ -26,6 +26,6 @@ Dedupe key (e.g. `task_3#2`); one delivery per key per session.
 
 > `readonly` **text**: `string`
 
-Defined in: [packages/agent-sdk/src/park-delivery.ts:214](https://github.com/zocomputer/zov2-code/blob/27ad75132e5ee857792f30c55f5617b1fdae5408/packages/agent-sdk/src/park-delivery.ts#L214)
+Defined in: [packages/agent-sdk/src/park-delivery.ts:214](https://github.com/zocomputer/zov2-code/blob/94be7c286c5c8961c9d40350c41cf663e8ab4554/packages/agent-sdk/src/park-delivery.ts#L214)
 
 The message text, complete and self-describing.

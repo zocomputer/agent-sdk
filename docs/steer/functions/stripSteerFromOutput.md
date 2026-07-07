@@ -8,7 +8,7 @@
 
 > **stripSteerFromOutput**(`record`): `unknown`
 
-Defined in: [packages/agent-sdk/src/steer.ts:84](https://github.com/zocomputer/zov2-code/blob/27ad75132e5ee857792f30c55f5617b1fdae5408/packages/agent-sdk/src/steer.ts#L84)
+Defined in: [packages/agent-sdk/src/steer.ts:84](https://github.com/zocomputer/zov2-code/blob/94be7c286c5c8961c9d40350c41cf663e8ab4554/packages/agent-sdk/src/steer.ts#L84)
 
 Inverse of `attachSteerToOutput`: drop the steer field and unwrap a
 non-record original. Only unwraps when the wrapper key is the sole

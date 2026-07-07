@@ -8,7 +8,7 @@
 
 > **StateIntent** = `"private"` \| `"shared"`
 
-Defined in: [packages/agent-sdk/src/state.ts:22](https://github.com/zocomputer/zov2-code/blob/27ad75132e5ee857792f30c55f5617b1fdae5408/packages/agent-sdk/src/state.ts#L22)
+Defined in: [packages/agent-sdk/src/state.ts:22](https://github.com/zocomputer/zov2-code/blob/94be7c286c5c8961c9d40350c41cf663e8ab4554/packages/agent-sdk/src/state.ts#L22)
 
 The visibility model the author designed for. Drives the zero-config default
 and consent copy; never a constraint — the data's owner can override it.
