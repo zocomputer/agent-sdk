@@ -6,7 +6,7 @@
 
 # Interface: OrphanedTurnInput
 
-Defined in: [packages/agent-sdk/src/orphaned-turns.ts:25](https://github.com/zocomputer/zov2-code/blob/1e3454bf19fec73047afd6e825710b7db25d004a/packages/agent-sdk/src/orphaned-turns.ts#L25)
+Defined in: [packages/agent-sdk/src/orphaned-turns.ts:25](https://github.com/zocomputer/zov2-code/blob/5cd4dc50234e29b61bac1ae63f95c9b3f3a18361/packages/agent-sdk/src/orphaned-turns.ts#L25)
 
 The evidence [isOrphanedTurn](../functions/isOrphanedTurn.md) weighs for one mid-turn session,
 gathered after a tail backfill against the agent's durable stream.
@@ -17,7 +17,7 @@ gathered after a tail backfill against the agent's durable stream.
 
 > `readonly` **inFlightAfter**: `boolean`
 
-Defined in: [packages/agent-sdk/src/orphaned-turns.ts:36](https://github.com/zocomputer/zov2-code/blob/1e3454bf19fec73047afd6e825710b7db25d004a/packages/agent-sdk/src/orphaned-turns.ts#L36)
+Defined in: [packages/agent-sdk/src/orphaned-turns.ts:36](https://github.com/zocomputer/zov2-code/blob/5cd4dc50234e29b61bac1ae63f95c9b3f3a18361/packages/agent-sdk/src/orphaned-turns.ts#L36)
 
 Whether the session's log still ends mid-turn (its last event is not a
 turn-boundary event) after the backfill.
@@ -28,7 +28,7 @@ turn-boundary event) after the backfill.
 
 > `readonly` **lastEventAtMs**: `number` \| `undefined`
 
-Defined in: [packages/agent-sdk/src/orphaned-turns.ts:42](https://github.com/zocomputer/zov2-code/blob/1e3454bf19fec73047afd6e825710b7db25d004a/packages/agent-sdk/src/orphaned-turns.ts#L42)
+Defined in: [packages/agent-sdk/src/orphaned-turns.ts:42](https://github.com/zocomputer/zov2-code/blob/5cd4dc50234e29b61bac1ae63f95c9b3f3a18361/packages/agent-sdk/src/orphaned-turns.ts#L42)
 
 When the session's last recorded event was written (ms since the Unix
 epoch), or `undefined` when unknown. Unknown never rules — a wrong "dead"
@@ -40,7 +40,7 @@ verdict invites the user to abandon or fork a live, expensive turn.
 
 > `readonly` **reconciled**: `boolean`
 
-Defined in: [packages/agent-sdk/src/orphaned-turns.ts:31](https://github.com/zocomputer/zov2-code/blob/1e3454bf19fec73047afd6e825710b7db25d004a/packages/agent-sdk/src/orphaned-turns.ts#L31)
+Defined in: [packages/agent-sdk/src/orphaned-turns.ts:31](https://github.com/zocomputer/zov2-code/blob/5cd4dc50234e29b61bac1ae63f95c9b3f3a18361/packages/agent-sdk/src/orphaned-turns.ts#L31)
 
 Whether the tail backfill consulted the durable stream successfully. A
 failed backfill means the missing terminal event may simply not have been
@@ -52,7 +52,7 @@ copied into the log yet — never rule on a log that could be behind.
 
 > `readonly` **workerEpochMs**: `number`
 
-Defined in: [packages/agent-sdk/src/orphaned-turns.ts:47](https://github.com/zocomputer/zov2-code/blob/1e3454bf19fec73047afd6e825710b7db25d004a/packages/agent-sdk/src/orphaned-turns.ts#L47)
+Defined in: [packages/agent-sdk/src/orphaned-turns.ts:47](https://github.com/zocomputer/zov2-code/blob/5cd4dc50234e29b61bac1ae63f95c9b3f3a18361/packages/agent-sdk/src/orphaned-turns.ts#L47)
 
 When the current worker realm started (ms since the Unix epoch) — see
 [workerEpochMs](../functions/workerEpochMs.md).

@@ -1,7 +1,7 @@
-// ../../../../../tmp/agent-sdk-mirror-DVtvvP/repo/src/index.ts
+// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/index.ts
 import { join as join8 } from "node:path";
 
-// ../../../../../tmp/agent-sdk-mirror-DVtvvP/repo/src/attachments.ts
+// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/attachments.ts
 var CHAT_ATTACHMENT_FIELD = "chatAttachment";
 var DEFAULT_MAX_INLINE_IMAGE_BYTES = 3 * 1024 * 1024;
 var DEFAULT_MAX_INLINE_MEDIA_BYTES = 10 * 1024 * 1024;
@@ -48,7 +48,7 @@ function readChatAttachment(toolOutput) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-DVtvvP/repo/src/async-tasks.ts
+// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/async-tasks.ts
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname } from "node:path";
 function isRecord2(value) {
@@ -226,7 +226,7 @@ function buildTaskRegistry(opts) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-DVtvvP/repo/src/backgroundable.ts
+// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/backgroundable.ts
 import { z } from "zod";
 function defineOp(cfg) {
   return {
@@ -270,7 +270,7 @@ function createBashOp(runner) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-DVtvvP/repo/src/bounded-output.ts
+// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/bounded-output.ts
 import { appendFileSync, mkdirSync as mkdirSync2, writeFileSync as writeFileSync2 } from "node:fs";
 import { dirname as dirname2 } from "node:path";
 var HEAD_CHARS = 25000;
@@ -371,7 +371,7 @@ function createBoundedCapture(opts = {}) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-DVtvvP/repo/src/dir-conventions.ts
+// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/dir-conventions.ts
 import { readFileSync as readFileSync2 } from "node:fs";
 import { join } from "node:path";
 var DEFAULT_MAX_BYTES_PER_FILE = 16 * 1024;
@@ -483,7 +483,7 @@ function createDirConventionsTracker(options) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-DVtvvP/repo/src/instructions.ts
+// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/instructions.ts
 import { readFileSync as readFileSync3 } from "node:fs";
 import { resolve } from "node:path";
 import { defineDynamic, defineInstructions } from "eve/instructions";
@@ -623,7 +623,7 @@ function createSubagentInstruction(opts) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-DVtvvP/repo/src/run.ts
+// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/run.ts
 import { spawn } from "node:child_process";
 import { join as join2 } from "node:path";
 var MAX_PREVIEW = 20000;
@@ -724,7 +724,7 @@ function createCommandRunner(opts) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-DVtvvP/repo/src/steer-inbox.ts
+// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/steer-inbox.ts
 import {
   appendFileSync as appendFileSync2,
   linkSync,
@@ -735,7 +735,7 @@ import {
 } from "node:fs";
 import { join as join3 } from "node:path";
 
-// ../../../../../tmp/agent-sdk-mirror-DVtvvP/repo/src/steer.ts
+// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/steer.ts
 var STEER_FIELD = "user_steer";
 var STEER_WRAPPED_OUTPUT_FIELD = "steer_wrapped_output";
 var STEER_DIRNAME = "steer";
@@ -805,7 +805,7 @@ function parseSteerLine(line) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-DVtvvP/repo/src/steer-inbox.ts
+// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/steer-inbox.ts
 var drainSequence = 0;
 function createSteerInbox(options) {
   const now = options.now ?? Date.now;
@@ -854,7 +854,7 @@ function createSteerInbox(options) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-DVtvvP/repo/src/steer-tool.ts
+// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/steer-tool.ts
 import { defineTool } from "eve/tools";
 function withSteerDelivery(tool, inbox) {
   const originalToModelOutput = tool.toModelOutput?.bind(tool);
@@ -886,11 +886,11 @@ function createSteerWrapper(inbox) {
   return (tool) => withSteerDelivery(tool, inbox);
 }
 
-// ../../../../../tmp/agent-sdk-mirror-DVtvvP/repo/src/tools/bash.ts
+// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/tools/bash.ts
 import { defineTool as defineTool2 } from "eve/tools";
 import { z as z2 } from "zod";
 
-// ../../../../../tmp/agent-sdk-mirror-DVtvvP/repo/src/park-delivery.ts
+// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/park-delivery.ts
 function isRecord4(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
@@ -1006,7 +1006,7 @@ function setParkNotificationHandler(handler) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-DVtvvP/repo/src/watch-output.ts
+// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/watch-output.ts
 var DEFAULT_WATCH_DEBOUNCE_MS = 5000;
 var DEFAULT_MAX_WATCH_NOTIFICATIONS = 5;
 function createOutputWatcher(options) {
@@ -1064,7 +1064,7 @@ function formatCompletionNotification(opts) {
   return `Background task ${opts.taskId} (${opts.label}) ${outcome}. Call await_task to collect its result.`;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-DVtvvP/repo/src/tools/bash.ts
+// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/tools/bash.ts
 var DEFAULT_INTERACTIVE_HINT = "This is a piped shell with NO tty: avoid interactive or full-screen CLIs (a REPL, vim, an interactive installer/prompt) — those programs hang or degrade without a real terminal.";
 function createBashTool(opts) {
   const { workspace, runner, registry, noun } = opts;
@@ -1152,11 +1152,11 @@ function createBashTool(opts) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-DVtvvP/repo/src/tools/edit.ts
+// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/tools/edit.ts
 import { defineTool as defineTool3 } from "eve/tools";
 import { z as z3 } from "zod";
 
-// ../../../../../tmp/agent-sdk-mirror-DVtvvP/repo/src/edit-match.ts
+// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/edit-match.ts
 class EditNotFoundError extends Error {
   constructor() {
     super("old_string not found. It must match the file contents exactly, including whitespace and indentation.");
@@ -1551,7 +1551,7 @@ function joinBom(text, bom) {
   return bom ? BOM + stripped : stripped;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-DVtvvP/repo/src/path-locks.ts
+// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/path-locks.ts
 var LOCKS_KEY = Symbol.for("zocomputer.agent-sdk.path-locks");
 function lockChains() {
   const holder = globalThis;
@@ -1577,18 +1577,18 @@ async function withPathLock(path, fn) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-DVtvvP/repo/src/workspace-io.ts
+// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/workspace-io.ts
 import { mkdirSync as mkdirSync4, readFileSync as readFileSync7, statSync as statSync2, writeFileSync as writeFileSync3 } from "node:fs";
 import { dirname as dirname3, join as join5 } from "node:path";
 
-// ../../../../../tmp/agent-sdk-mirror-DVtvvP/repo/src/glob-match.ts
+// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/glob-match.ts
 function globToRegExp(glob) {
   const escaped = glob.replace(/[.+^${}()|[\]\\]/g, "\\$&");
   const body = escaped.replace(/\*\*\/?/g, "\x00").replace(/\*/g, "[^/]*").replace(/\?/g, "[^/]").replace(/\u0000/g, "(?:.*/)?");
   return new RegExp(`^${body}$`);
 }
 
-// ../../../../../tmp/agent-sdk-mirror-DVtvvP/repo/src/list-files.ts
+// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/list-files.ts
 import { spawnSync } from "node:child_process";
 var MAX_BUFFER = 64 * 1024 * 1024;
 function gitPaths(root, args) {
@@ -1616,7 +1616,7 @@ function listGitFiles(root, scope) {
   return files.filter((path) => !gone.has(path));
 }
 
-// ../../../../../tmp/agent-sdk-mirror-DVtvvP/repo/src/read-text.ts
+// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/read-text.ts
 import { readFileSync as readFileSync5, statSync } from "node:fs";
 var MAX_SEARCH_FILE_BYTES = 1500000;
 var BINARY_SNIFF_BYTES = 8192;
@@ -1643,7 +1643,7 @@ function readTextForSearch(abs, maxBytes = MAX_SEARCH_FILE_BYTES) {
   return { kind: "text", content: buf.toString("utf8") };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-DVtvvP/repo/src/walk.ts
+// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/walk.ts
 import { readFileSync as readFileSync6, readdirSync } from "node:fs";
 import { join as join4, relative, sep } from "node:path";
 import ignore from "ignore";
@@ -1725,7 +1725,7 @@ function* walkFiles(root, base = root) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-DVtvvP/repo/src/workspace.ts
+// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/workspace.ts
 import { isAbsolute, relative as relative2, resolve as resolve2, sep as sep2 } from "node:path";
 function resolveWithin(root, path) {
   const abs = isAbsolute(path) ? resolve2(path) : resolve2(root, path);
@@ -1747,7 +1747,7 @@ function createWorkspace(root) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-DVtvvP/repo/src/workspace-io.ts
+// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/workspace-io.ts
 function createLocalIo(root) {
   return {
     async stat(abs) {
@@ -1835,7 +1835,7 @@ async function searchLocal(root, options) {
   return { matches, stopped, skippedLargeFiles };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-DVtvvP/repo/src/tools/edit.ts
+// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/tools/edit.ts
 function createEditTool(opts) {
   const { workspace, noun } = opts;
   const io = opts.io ?? localIoProvider(workspace.root);
@@ -1878,7 +1878,7 @@ function createEditTool(opts) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-DVtvvP/repo/src/tools/glob.ts
+// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/tools/glob.ts
 import { defineTool as defineTool4 } from "eve/tools";
 import { z as z4 } from "zod";
 function createGlobTool(opts) {
@@ -1917,7 +1917,7 @@ function createGlobTool(opts) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-DVtvvP/repo/src/tools/grep.ts
+// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/tools/grep.ts
 import { defineTool as defineTool5 } from "eve/tools";
 import { z as z5 } from "zod";
 import { join as join6 } from "node:path";
@@ -2010,12 +2010,12 @@ function createGrepTool(opts) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-DVtvvP/repo/src/tools/read.ts
+// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/tools/read.ts
 import { defineTool as defineTool6 } from "eve/tools";
 import { z as z6 } from "zod";
 import { basename } from "node:path";
 
-// ../../../../../tmp/agent-sdk-mirror-DVtvvP/repo/src/file-kind.ts
+// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/file-kind.ts
 import { extname } from "node:path";
 function imageMediaType(format) {
   return `image/${format}`;
@@ -2072,6 +2072,7 @@ var OGG_MAGIC = [79, 103, 103, 83];
 var FLAC_MAGIC = [102, 76, 97, 67];
 var ZIP_MAGIC = [80, 75, 3, 4];
 var CFB_MAGIC = [208, 207, 17, 224, 161, 177, 26, 225];
+var RTF_MAGIC = [123, 92, 114, 116, 102];
 var UTF16LE_BOM = [255, 254];
 var UTF16BE_BOM = [254, 255];
 var BMFF_IMAGE_BRANDS = new Set([
@@ -2135,14 +2136,13 @@ function zipKind(path) {
     case ".ods":
       return { kind: "sheet", format: "ods" };
     case ".pptx":
-      return { kind: "binary", description: "a PowerPoint deck (.pptx) with no text extractor" };
+      return { kind: "pptx" };
     case ".odt":
-      return {
-        kind: "binary",
-        description: "an OpenDocument text file (.odt) with no text extractor"
-      };
+      return { kind: "odt" };
+    case ".odp":
+      return { kind: "odp" };
     case ".epub":
-      return { kind: "binary", description: "an EPUB e-book with no text extractor" };
+      return { kind: "epub" };
     default:
       return { kind: "binary", description: "a zip archive" };
   }
@@ -2199,6 +2199,8 @@ function detectFileKind(buf, path) {
     return zipKind(path);
   if (startsWith(buf, CFB_MAGIC))
     return cfbKind(path);
+  if (startsWith(buf, RTF_MAGIC))
+    return { kind: "rtf" };
   if (startsWith(buf, UTF16LE_BOM))
     return { kind: "text", encoding: "utf16le" };
   if (startsWith(buf, UTF16BE_BOM))
@@ -2206,10 +2208,12 @@ function detectFileKind(buf, path) {
   if (buf.subarray(0, BINARY_SNIFF_BYTES2).includes(0)) {
     return { kind: "binary", description: "binary data (unrecognized format)" };
   }
+  if (extname(path).toLowerCase() === ".ipynb")
+    return { kind: "ipynb" };
   return { kind: "text", encoding: "utf8" };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-DVtvvP/repo/src/file-view.ts
+// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/file-view.ts
 var READ_FILE_DEFAULT_LINE_LIMIT = 2000;
 var READ_FILE_MAX_LINE_CHARS = 2000;
 var READ_FILE_MAX_CONTENT_CHARS = 50000;
@@ -2253,10 +2257,10 @@ function buildFileView(text, opts = {}) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-DVtvvP/repo/src/read-file-content.ts
+// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/read-file-content.ts
 import { imageSize } from "image-size";
 
-// ../../../../../tmp/agent-sdk-mirror-DVtvvP/repo/src/extract/cache.ts
+// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/extract/cache.ts
 function createStatCache(limit) {
   const entries = new Map;
   return {
@@ -2281,7 +2285,7 @@ function createStatCache(limit) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-DVtvvP/repo/src/extract/docx.ts
+// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/extract/docx.ts
 import mammoth from "mammoth";
 async function extractDocx(buffer) {
   try {
@@ -2293,7 +2297,432 @@ async function extractDocx(buffer) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-DVtvvP/repo/src/extract/pdf.ts
+// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/extract/epub.ts
+import { Parser } from "htmlparser2";
+
+// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/extract/zip.ts
+import { inflateRawSync } from "node:zlib";
+var EOCD_SIGNATURE = 101010256;
+var CENTRAL_SIGNATURE = 33639248;
+var LOCAL_SIGNATURE = 67324752;
+var EOCD_SCAN_LIMIT = 22 + 65535;
+var METHOD_STORED = 0;
+var METHOD_DEFLATE = 8;
+function findEndOfCentralDirectory(buffer) {
+  const stop = Math.max(0, buffer.length - EOCD_SCAN_LIMIT);
+  for (let at = buffer.length - 22;at >= stop; at--) {
+    if (buffer.readUInt32LE(at) !== EOCD_SIGNATURE)
+      continue;
+    const commentLength = buffer.readUInt16LE(at + 20);
+    if (at + 22 + commentLength === buffer.length)
+      return at;
+  }
+  throw new Error("not a readable zip archive (no end-of-central-directory record)");
+}
+function openZip(buffer) {
+  if (buffer.length < 22) {
+    throw new Error("not a readable zip archive (too small)");
+  }
+  const eocd = findEndOfCentralDirectory(buffer);
+  const entryCount = buffer.readUInt16LE(eocd + 10);
+  const centralOffset = buffer.readUInt32LE(eocd + 16);
+  const entries = new Map;
+  const names = [];
+  let at = centralOffset;
+  for (let i = 0;i < entryCount; i++) {
+    if (at + 46 > buffer.length || buffer.readUInt32LE(at) !== CENTRAL_SIGNATURE) {
+      throw new Error("not a readable zip archive (corrupt central directory)");
+    }
+    const flags = buffer.readUInt16LE(at + 8);
+    const method = buffer.readUInt16LE(at + 10);
+    const compressedSize = buffer.readUInt32LE(at + 20);
+    const nameLength = buffer.readUInt16LE(at + 28);
+    const extraLength = buffer.readUInt16LE(at + 30);
+    const commentLength = buffer.readUInt16LE(at + 32);
+    const localHeaderOffset = buffer.readUInt32LE(at + 42);
+    const name = buffer.subarray(at + 46, at + 46 + nameLength).toString("utf8");
+    if (!name.endsWith("/")) {
+      if (!entries.has(name))
+        names.push(name);
+      entries.set(name, {
+        localHeaderOffset,
+        compressedSize,
+        method,
+        encrypted: (flags & 1) !== 0
+      });
+    }
+    at += 46 + nameLength + extraLength + commentLength;
+  }
+  return {
+    names,
+    has: (name) => entries.has(name),
+    read(name) {
+      const entry = entries.get(name);
+      if (entry === undefined) {
+        throw new Error(`zip archive has no entry named ${name}`);
+      }
+      if (entry.encrypted) {
+        throw new Error(`zip entry ${name} is encrypted (password-protected archives are not supported)`);
+      }
+      const local = entry.localHeaderOffset;
+      if (local + 30 > buffer.length || buffer.readUInt32LE(local) !== LOCAL_SIGNATURE) {
+        throw new Error(`zip entry ${name} has a corrupt local header`);
+      }
+      const nameLength = buffer.readUInt16LE(local + 26);
+      const extraLength = buffer.readUInt16LE(local + 28);
+      const dataStart = local + 30 + nameLength + extraLength;
+      const dataEnd = dataStart + entry.compressedSize;
+      if (dataEnd > buffer.length) {
+        throw new Error(`zip entry ${name} is truncated`);
+      }
+      const data = buffer.subarray(dataStart, dataEnd);
+      switch (entry.method) {
+        case METHOD_STORED:
+          return Buffer.from(data);
+        case METHOD_DEFLATE:
+          return inflateRawSync(data);
+        default:
+          throw new Error(`zip entry ${name} uses unsupported compression method ${entry.method}`);
+      }
+    }
+  };
+}
+
+// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/extract/epub.ts
+var EPUB_SECTION_CAP = 200;
+var BLOCK_TAGS = new Set([
+  "p",
+  "div",
+  "h1",
+  "h2",
+  "h3",
+  "h4",
+  "h5",
+  "h6",
+  "li",
+  "tr",
+  "br",
+  "section",
+  "article",
+  "blockquote",
+  "pre",
+  "figcaption"
+]);
+function xhtmlToText(html) {
+  let text = "";
+  let skipDepth = 0;
+  const parser = new Parser({
+    onopentag(name) {
+      if (name === "script" || name === "style" || name === "head")
+        skipDepth++;
+      else if (BLOCK_TAGS.has(name))
+        text += `
+`;
+    },
+    ontext(chunk) {
+      if (skipDepth === 0)
+        text += chunk;
+    },
+    onclosetag(name) {
+      if (name === "script" || name === "style" || name === "head")
+        skipDepth--;
+      else if (BLOCK_TAGS.has(name))
+        text += `
+`;
+    }
+  });
+  parser.write(html);
+  parser.end();
+  return text.split(`
+`).map((line) => line.trim()).filter((line) => line.length > 0).join(`
+`);
+}
+function attributeOf(xml, tag, attribute) {
+  const pattern = new RegExp(`<${tag}[^>]*\\s${attribute}="([^"]*)"`, "i");
+  return pattern.exec(xml)?.[1] ?? null;
+}
+function dirnamePosix(path) {
+  const at = path.lastIndexOf("/");
+  return at === -1 ? "" : path.slice(0, at);
+}
+function resolveHref(opfDir, href) {
+  if (opfDir === "")
+    return href;
+  const parts = `${opfDir}/${href}`.split("/");
+  const resolved = [];
+  for (const part of parts) {
+    if (part === "" || part === ".")
+      continue;
+    if (part === "..")
+      resolved.pop();
+    else
+      resolved.push(part);
+  }
+  return resolved.join("/");
+}
+function spineEntries(zip) {
+  if (!zip.has("META-INF/container.xml"))
+    return [];
+  const container = zip.read("META-INF/container.xml").toString("utf8");
+  const opfPath = attributeOf(container, "rootfile", "full-path");
+  if (opfPath === null || !zip.has(opfPath))
+    return [];
+  const opf = zip.read(opfPath).toString("utf8");
+  const opfDir = dirnamePosix(opfPath);
+  const hrefById = new Map;
+  const itemPattern = /<item\s[^>]*>/gi;
+  for (const [tag] of opf.matchAll(itemPattern)) {
+    const id = /\sid="([^"]*)"/i.exec(tag)?.[1];
+    const href = /\shref="([^"]*)"/i.exec(tag)?.[1];
+    if (id !== undefined && href !== undefined)
+      hrefById.set(id, href);
+  }
+  const entries = [];
+  const itemrefPattern = /<itemref\s[^>]*idref="([^"]*)"/gi;
+  for (const match of opf.matchAll(itemrefPattern)) {
+    const idref = match[1];
+    if (idref === undefined)
+      continue;
+    const href = hrefById.get(idref);
+    if (href === undefined)
+      continue;
+    const entry = resolveHref(opfDir, decodeURIComponent(href));
+    if (zip.has(entry))
+      entries.push(entry);
+  }
+  return entries;
+}
+function extractEpub(bytes, options = {}) {
+  const sectionCap = options.sectionCap ?? EPUB_SECTION_CAP;
+  try {
+    const zip = openZip(Buffer.from(bytes.buffer, bytes.byteOffset, bytes.byteLength));
+    let entries = spineEntries(zip);
+    if (entries.length === 0) {
+      entries = zip.names.filter((name) => /\.x?html$/i.test(name)).sort();
+    }
+    if (entries.length === 0) {
+      return {
+        ok: false,
+        reason: "the archive has no readable sections (no OPF spine, no .xhtml/.html entries) — this does not look like an EPUB book"
+      };
+    }
+    const total = entries.length;
+    const extracted = entries.slice(0, sectionCap);
+    const parts = [];
+    for (const [i, entry] of extracted.entries()) {
+      parts.push(`=== section ${i + 1} of ${total} (${entry}) ===`);
+      const text = xhtmlToText(zip.read(entry).toString("utf8"));
+      parts.push(text.length > 0 ? text : "[no text in this section]");
+    }
+    if (extracted.length < total) {
+      parts.push(`[extraction stopped at the section cap — ${extracted.length} of ${total} sections extracted]`);
+    }
+    return { ok: true, text: parts.join(`
+`), sections: total };
+  } catch (error) {
+    return { ok: false, reason: error instanceof Error ? error.message : String(error) };
+  }
+}
+
+// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/extract/ipynb.ts
+function joinSource(value) {
+  if (typeof value === "string")
+    return value;
+  if (Array.isArray(value)) {
+    return value.filter((line) => typeof line === "string").join("");
+  }
+  return "";
+}
+var ANSI_ESCAPE = /\u001b\[[0-9;]*[A-Za-z]/g;
+function isRecord5(value) {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+function renderOutput(output) {
+  if (!isRecord5(output))
+    return [];
+  const lines = [];
+  switch (output["output_type"]) {
+    case "stream": {
+      const text = joinSource(output["text"]).trimEnd();
+      if (text.length > 0)
+        lines.push(text);
+      break;
+    }
+    case "execute_result":
+    case "display_data": {
+      const data = isRecord5(output["data"]) ? output["data"] : {};
+      const plain = joinSource(data["text/plain"]).trimEnd();
+      if (plain.length > 0)
+        lines.push(plain);
+      for (const mime of Object.keys(data)) {
+        if (mime !== "text/plain")
+          lines.push(`[${mime} output]`);
+      }
+      break;
+    }
+    case "error": {
+      const name = typeof output["ename"] === "string" ? output["ename"] : "Error";
+      const value = typeof output["evalue"] === "string" ? output["evalue"] : "";
+      lines.push(`${name}: ${value}`);
+      const traceback = output["traceback"];
+      if (Array.isArray(traceback)) {
+        for (const frame of traceback) {
+          if (typeof frame === "string")
+            lines.push(frame.replace(ANSI_ESCAPE, ""));
+        }
+      }
+      break;
+    }
+    default:
+      break;
+  }
+  return lines;
+}
+function notebookLanguage(notebook) {
+  const metadata = isRecord5(notebook["metadata"]) ? notebook["metadata"] : {};
+  const languageInfo = isRecord5(metadata["language_info"]) ? metadata["language_info"] : {};
+  if (typeof languageInfo["name"] === "string")
+    return languageInfo["name"];
+  const kernelspec = isRecord5(metadata["kernelspec"]) ? metadata["kernelspec"] : {};
+  if (typeof kernelspec["language"] === "string")
+    return kernelspec["language"];
+  return "";
+}
+function extractNotebook(bytes) {
+  let parsed;
+  try {
+    parsed = JSON.parse(Buffer.from(bytes.buffer, bytes.byteOffset, bytes.byteLength).toString("utf8"));
+  } catch (error) {
+    return {
+      ok: false,
+      reason: `not valid JSON (${error instanceof Error ? error.message : String(error)})`
+    };
+  }
+  if (!isRecord5(parsed))
+    return { ok: false, reason: "not a JSON object" };
+  const cells = parsed["cells"];
+  if (!Array.isArray(cells)) {
+    if (Array.isArray(parsed["worksheets"])) {
+      return {
+        ok: false,
+        reason: "this is an nbformat 3 notebook — convert it with `jupyter nbconvert --to notebook` first"
+      };
+    }
+    return { ok: false, reason: "no cells array — this does not look like a notebook" };
+  }
+  const language = notebookLanguage(parsed);
+  const parts = [];
+  for (const [i, cell] of cells.entries()) {
+    if (!isRecord5(cell))
+      continue;
+    const type = typeof cell["cell_type"] === "string" ? cell["cell_type"] : "unknown";
+    parts.push(`=== cell ${i + 1} of ${cells.length} (${type}) ===`);
+    const source = joinSource(cell["source"]).trimEnd();
+    if (type === "code") {
+      parts.push(`\`\`\`${language}`);
+      parts.push(source);
+      parts.push("```");
+      const outputs = cell["outputs"];
+      if (Array.isArray(outputs)) {
+        for (const output of outputs)
+          parts.push(...renderOutput(output));
+      }
+    } else if (source.length > 0) {
+      parts.push(source);
+    }
+  }
+  return { ok: true, text: parts.join(`
+`), cells: cells.length };
+}
+
+// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/extract/odf.ts
+import { Parser as Parser2 } from "htmlparser2";
+var ODP_EMPTY_SLIDE_NOTE = "[no text on this slide — likely image-only; images cannot be extracted]";
+function parseContentXml(xml) {
+  const implicit = { paragraphs: [] };
+  const pages = [];
+  let current = implicit;
+  let paragraph = "";
+  let paragraphDepth = 0;
+  const parser = new Parser2({
+    onopentag(name, attribs) {
+      if (name === "draw:page") {
+        current = { paragraphs: [] };
+        pages.push(current);
+      } else if (name === "text:p" || name === "text:h") {
+        if (paragraphDepth === 0)
+          paragraph = "";
+        paragraphDepth++;
+      } else if (paragraphDepth > 0 && name === "text:tab") {
+        paragraph += "\t";
+      } else if (paragraphDepth > 0 && name === "text:line-break") {
+        paragraph += `
+`;
+      } else if (paragraphDepth > 0 && name === "text:s") {
+        const count = Number(attribs["text:c"] ?? "1");
+        paragraph += " ".repeat(Number.isFinite(count) && count > 0 ? count : 1);
+      }
+    },
+    ontext(text) {
+      if (paragraphDepth > 0)
+        paragraph += text;
+    },
+    onclosetag(name) {
+      if (name === "draw:page") {
+        current = implicit;
+      } else if (name === "text:p" || name === "text:h") {
+        paragraphDepth--;
+        if (paragraphDepth === 0) {
+          const trimmed = paragraph.trim();
+          if (trimmed.length > 0)
+            current.paragraphs.push(trimmed);
+          paragraph = "";
+        }
+      }
+    }
+  }, { xmlMode: true });
+  parser.write(xml);
+  parser.end();
+  return { pages, implicit };
+}
+function readContentXml(bytes) {
+  const zip = openZip(Buffer.from(bytes.buffer, bytes.byteOffset, bytes.byteLength));
+  if (!zip.has("content.xml")) {
+    throw new Error("the package has no content.xml entry — this does not look like an OpenDocument file");
+  }
+  return zip.read("content.xml").toString("utf8");
+}
+function extractOdt(bytes) {
+  try {
+    const content = parseContentXml(readContentXml(bytes));
+    const paragraphs = [
+      ...content.implicit.paragraphs,
+      ...content.pages.flatMap((page) => page.paragraphs)
+    ];
+    return { ok: true, text: paragraphs.join(`
+`) };
+  } catch (error) {
+    return { ok: false, reason: error instanceof Error ? error.message : String(error) };
+  }
+}
+function extractOdp(bytes) {
+  try {
+    const content = parseContentXml(readContentXml(bytes));
+    const pages = content.pages.length > 0 ? content.pages : [content.implicit];
+    const parts = [];
+    for (const [i, page] of pages.entries()) {
+      parts.push(`=== slide ${i + 1} of ${pages.length} ===`);
+      parts.push(page.paragraphs.length > 0 ? page.paragraphs.join(`
+`) : ODP_EMPTY_SLIDE_NOTE);
+    }
+    return { ok: true, text: parts.join(`
+`), slides: pages.length };
+  } catch (error) {
+    return { ok: false, reason: error instanceof Error ? error.message : String(error) };
+  }
+}
+
+// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/extract/pdf.ts
 import { openPdf } from "clawpdf";
 var PDF_EMPTY_PAGE_NOTE = "[no text on this page — likely scanned or image-only; rendered pages cannot be attached]";
 var PDF_PAGE_CAP = 200;
@@ -2328,7 +2757,361 @@ async function extractPdf(bytes, options = {}) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-DVtvvP/repo/src/extract/sheet.ts
+// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/extract/pptx.ts
+import { Parser as Parser3 } from "htmlparser2";
+var PPTX_EMPTY_SLIDE_NOTE = "[no text on this slide — likely image-only; images cannot be extracted]";
+var PPTX_SLIDE_CAP = 200;
+function slideParagraphs(xml) {
+  const paragraphs = [];
+  let current = "";
+  let inParagraph = false;
+  let inText = false;
+  const parser = new Parser3({
+    onopentag(name) {
+      if (name === "a:p") {
+        inParagraph = true;
+        current = "";
+      } else if (name === "a:t") {
+        inText = true;
+      } else if (name === "a:br" && inParagraph) {
+        current += `
+`;
+      }
+    },
+    ontext(text) {
+      if (inText)
+        current += text;
+    },
+    onclosetag(name) {
+      if (name === "a:t") {
+        inText = false;
+      } else if (name === "a:p") {
+        inParagraph = false;
+        const trimmed = current.trim();
+        if (trimmed.length > 0)
+          paragraphs.push(trimmed);
+        current = "";
+      }
+    }
+  }, { xmlMode: true });
+  parser.write(xml);
+  parser.end();
+  return paragraphs;
+}
+var SLIDE_ENTRY = /^ppt\/slides\/slide(\d+)\.xml$/;
+function resolveSlideTarget(target) {
+  if (target.startsWith("/"))
+    return target.slice(1);
+  const parts = `ppt/${target}`.split("/");
+  const resolved = [];
+  for (const part of parts) {
+    if (part === "" || part === ".")
+      continue;
+    if (part === "..")
+      resolved.pop();
+    else
+      resolved.push(part);
+  }
+  return resolved.join("/");
+}
+function presentationRelTargets(xml) {
+  const targets = new Map;
+  const parser = new Parser3({
+    onopentag(name, attribs) {
+      if (name !== "Relationship")
+        return;
+      const id = attribs["Id"];
+      const target = attribs["Target"];
+      if (id !== undefined && target !== undefined) {
+        targets.set(id, resolveSlideTarget(target));
+      }
+    }
+  }, { xmlMode: true });
+  parser.write(xml);
+  parser.end();
+  return targets;
+}
+function slideIdOrder(xml) {
+  const ids = [];
+  let inList = false;
+  const parser = new Parser3({
+    onopentag(name, attribs) {
+      if (name === "p:sldIdLst")
+        inList = true;
+      else if (inList && name === "p:sldId") {
+        const rid = attribs["r:id"];
+        if (rid !== undefined)
+          ids.push(rid);
+      }
+    },
+    onclosetag(name) {
+      if (name === "p:sldIdLst")
+        inList = false;
+    }
+  }, { xmlMode: true });
+  parser.write(xml);
+  parser.end();
+  return ids;
+}
+function orderedSlideEntries(zip) {
+  if (zip.has("ppt/presentation.xml") && zip.has("ppt/_rels/presentation.xml.rels")) {
+    const targets = presentationRelTargets(zip.read("ppt/_rels/presentation.xml.rels").toString("utf8"));
+    const ordered = slideIdOrder(zip.read("ppt/presentation.xml").toString("utf8")).map((rid) => targets.get(rid)).filter((entry) => entry !== undefined && zip.has(entry));
+    if (ordered.length > 0)
+      return ordered;
+  }
+  const numbered = [];
+  for (const name of zip.names) {
+    const match = SLIDE_ENTRY.exec(name);
+    const captured = match?.[1];
+    if (captured !== undefined)
+      numbered.push({ entry: name, n: Number(captured) });
+  }
+  return numbered.sort((a, b) => a.n - b.n).map(({ entry }) => entry);
+}
+function notesEntryFor(slideEntry) {
+  const match = SLIDE_ENTRY.exec(slideEntry);
+  const captured = match?.[1];
+  return captured === undefined ? null : `ppt/notesSlides/notesSlide${captured}.xml`;
+}
+function extractPptx(bytes, options = {}) {
+  const slideCap = options.slideCap ?? PPTX_SLIDE_CAP;
+  try {
+    const zip = openZip(Buffer.from(bytes.buffer, bytes.byteOffset, bytes.byteLength));
+    const entries = orderedSlideEntries(zip);
+    if (entries.length === 0) {
+      return {
+        ok: false,
+        reason: "the package has no ppt/slides/*.xml entries — this does not look like a PowerPoint deck"
+      };
+    }
+    const total = entries.length;
+    const extracted = entries.slice(0, slideCap);
+    const parts = [];
+    for (const [i, entry] of extracted.entries()) {
+      parts.push(`=== slide ${i + 1} of ${total} ===`);
+      const body = slideParagraphs(zip.read(entry).toString("utf8"));
+      parts.push(body.length > 0 ? body.join(`
+`) : PPTX_EMPTY_SLIDE_NOTE);
+      const notesEntry = notesEntryFor(entry);
+      if (notesEntry !== null && zip.has(notesEntry)) {
+        const notes = slideParagraphs(zip.read(notesEntry).toString("utf8"));
+        if (notes.length > 0) {
+          parts.push("[speaker notes]");
+          parts.push(notes.join(`
+`));
+        }
+      }
+    }
+    if (extracted.length < total) {
+      parts.push(`[extraction stopped at the slide cap — ${extracted.length} of ${total} slides extracted]`);
+    }
+    return { ok: true, text: parts.join(`
+`), slides: total };
+  } catch (error) {
+    return { ok: false, reason: error instanceof Error ? error.message : String(error) };
+  }
+}
+
+// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/extract/rtf.ts
+var SKIP_DESTINATIONS = new Set([
+  "fonttbl",
+  "colortbl",
+  "stylesheet",
+  "info",
+  "pict",
+  "object",
+  "header",
+  "footer",
+  "headerl",
+  "headerr",
+  "headerf",
+  "footerl",
+  "footerr",
+  "footerf",
+  "ftnsep",
+  "ftnsepc",
+  "generator",
+  "themedata",
+  "colorschememapping",
+  "datastore",
+  "latentstyles",
+  "listtable",
+  "listoverridetable",
+  "revtbl",
+  "xmlnstbl",
+  "fldinst"
+]);
+var CHARACTER_WORDS = new Map([
+  ["par", `
+`],
+  ["line", `
+`],
+  ["tab", "\t"],
+  ["emdash", "—"],
+  ["endash", "–"],
+  ["emspace", " "],
+  ["enspace", " "],
+  ["qmspace", " "],
+  ["bullet", "•"],
+  ["lquote", "‘"],
+  ["rquote", "’"],
+  ["ldblquote", "“"],
+  ["rdblquote", "”"],
+  ["cell", "\t"],
+  ["row", `
+`]
+]);
+var CP1252_HIGH = {
+  128: "€",
+  130: "‚",
+  131: "ƒ",
+  132: "„",
+  133: "…",
+  134: "†",
+  135: "‡",
+  136: "ˆ",
+  137: "‰",
+  138: "Š",
+  139: "‹",
+  140: "Œ",
+  142: "Ž",
+  145: "‘",
+  146: "’",
+  147: "“",
+  148: "”",
+  149: "•",
+  150: "–",
+  151: "—",
+  152: "˜",
+  153: "™",
+  154: "š",
+  155: "›",
+  156: "œ",
+  158: "ž",
+  159: "Ÿ"
+};
+function cp1252Char(byte) {
+  return CP1252_HIGH[byte] ?? String.fromCharCode(byte);
+}
+function isAsciiLetter(code) {
+  return code >= 65 && code <= 90 || code >= 97 && code <= 122;
+}
+function isAsciiDigit(code) {
+  return code >= 48 && code <= 57;
+}
+function extractRtf(bytes) {
+  const input = Buffer.from(bytes.buffer, bytes.byteOffset, bytes.byteLength).toString("latin1");
+  if (!input.startsWith("{\\rtf")) {
+    return { ok: false, reason: "does not start with an {\\rtf header" };
+  }
+  let text = "";
+  const stack = [];
+  let group = { skipped: false, unicodeSkip: 1 };
+  let pendingFallback = 0;
+  const emit = (chunk) => {
+    if (group.skipped)
+      return;
+    if (pendingFallback > 0) {
+      pendingFallback--;
+      return;
+    }
+    text += chunk;
+  };
+  let at = 0;
+  while (at < input.length) {
+    const ch = input[at];
+    if (ch === "{") {
+      stack.push(group);
+      group = { ...group };
+      at++;
+      if (input.startsWith("\\*", at)) {
+        group.skipped = true;
+        at += 2;
+      }
+      continue;
+    }
+    if (ch === "}") {
+      group = stack.pop() ?? { skipped: false, unicodeSkip: 1 };
+      at++;
+      continue;
+    }
+    if (ch !== "\\") {
+      if (ch === `
+` || ch === "\r") {
+        at++;
+        continue;
+      }
+      emit(ch ?? "");
+      at++;
+      continue;
+    }
+    let wordEnd = at + 1;
+    while (wordEnd < input.length && isAsciiLetter(input.charCodeAt(wordEnd))) {
+      wordEnd++;
+    }
+    if (wordEnd > at + 1) {
+      const word = input.slice(at + 1, wordEnd);
+      let paramEnd = wordEnd;
+      if (input.charCodeAt(paramEnd) === 45)
+        paramEnd++;
+      let digitEnd = paramEnd;
+      while (digitEnd < input.length && isAsciiDigit(input.charCodeAt(digitEnd))) {
+        digitEnd++;
+      }
+      const param = digitEnd > paramEnd ? input.slice(wordEnd, digitEnd) : undefined;
+      at = param === undefined ? wordEnd : digitEnd;
+      if (input[at] === " ")
+        at++;
+      if (SKIP_DESTINATIONS.has(word)) {
+        group.skipped = true;
+        continue;
+      }
+      if (word === "uc") {
+        group.unicodeSkip = param === undefined ? 1 : Math.max(0, Number(param));
+        continue;
+      }
+      if (word === "u" && param !== undefined) {
+        let code = Number(param);
+        if (code < 0)
+          code += 65536;
+        emit(String.fromCharCode(code));
+        if (!group.skipped)
+          pendingFallback = group.unicodeSkip;
+        continue;
+      }
+      const mapped = CHARACTER_WORDS.get(word);
+      if (mapped !== undefined)
+        emit(mapped);
+      continue;
+    }
+    const symbol = input[at + 1];
+    if (symbol === undefined)
+      break;
+    if (symbol === "'") {
+      const hex = input.slice(at + 2, at + 4);
+      const byte = Number.parseInt(hex, 16);
+      if (Number.isFinite(byte))
+        emit(cp1252Char(byte));
+      at += 4;
+      continue;
+    }
+    if (symbol === "\\" || symbol === "{" || symbol === "}")
+      emit(symbol);
+    else if (symbol === "~")
+      emit(" ");
+    else if (symbol === "_")
+      emit("-");
+    else if (symbol === `
+` || symbol === "\r")
+      emit(`
+`);
+    at += 2;
+  }
+  return { ok: true, text: text.replace(/\n+$/, "") };
+}
+
+// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/extract/sheet.ts
 import { read, utils } from "xlsx";
 var SHEET_ROW_CAP = 5000;
 function extractSheets(buffer, rowCap = SHEET_ROW_CAP) {
@@ -2369,7 +3152,7 @@ function extractSheets(buffer, rowCap = SHEET_ROW_CAP) {
 `), sheets };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-DVtvvP/repo/src/read-file-content.ts
+// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/read-file-content.ts
 var EXTRACTION_CACHE_LIMIT = 20;
 var extractionCache = createStatCache(EXTRACTION_CACHE_LIMIT);
 function decodeText(buffer, encoding) {
@@ -2399,6 +3182,41 @@ async function extractDocument(detected, buffer, path) {
       }
       return { kind: "docx", text: result.text };
     }
+    case "pptx": {
+      const result = extractPptx(buffer);
+      if (!result.ok) {
+        throw new Error(`Could not extract text from PPTX ${path}: ${result.reason}`);
+      }
+      return { kind: "pptx", text: result.text, slides: result.slides };
+    }
+    case "odt": {
+      const result = extractOdt(buffer);
+      if (!result.ok) {
+        throw new Error(`Could not extract text from ODT ${path}: ${result.reason}`);
+      }
+      return { kind: "odt", text: result.text };
+    }
+    case "odp": {
+      const result = extractOdp(buffer);
+      if (!result.ok) {
+        throw new Error(`Could not extract text from ODP ${path}: ${result.reason}`);
+      }
+      return { kind: "odp", text: result.text, slides: result.slides };
+    }
+    case "epub": {
+      const result = extractEpub(buffer);
+      if (!result.ok) {
+        throw new Error(`Could not extract text from EPUB ${path}: ${result.reason}`);
+      }
+      return { kind: "epub", text: result.text, sections: result.sections };
+    }
+    case "rtf": {
+      const result = extractRtf(buffer);
+      if (!result.ok) {
+        throw new Error(`Could not extract text from RTF ${path}: ${result.reason}`);
+      }
+      return { kind: "rtf", text: result.text };
+    }
     case "sheet": {
       const result = extractSheets(buffer);
       if (!result.ok) {
@@ -2415,8 +3233,21 @@ async function loadFileContent(buffer, path, id) {
       return { kind: "text", text: decodeText(buffer, detected.encoding) };
     case "pdf":
     case "docx":
+    case "pptx":
+    case "odt":
+    case "odp":
+    case "epub":
+    case "rtf":
     case "sheet":
       return extractionCache.get(path, id, () => extractDocument(detected, buffer, path));
+    case "ipynb":
+      return extractionCache.get(path, id, () => {
+        const result = extractNotebook(buffer);
+        if (!result.ok) {
+          return Promise.resolve({ kind: "text", text: decodeText(buffer, "utf8") });
+        }
+        return Promise.resolve({ kind: "ipynb", text: result.text, cells: result.cells });
+      });
     case "image": {
       let size = null;
       try {
@@ -2440,7 +3271,7 @@ async function loadFileContent(buffer, path, id) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-DVtvvP/repo/src/tools/read.ts
+// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/tools/read.ts
 function buildMediaHint(attach, verb) {
   const kinds = ["image", "video", "audio"];
   const on = kinds.filter((kind) => attach[kind]);
@@ -2465,7 +3296,7 @@ function createReadTool(opts) {
   const mediaHint = buildMediaHint({ image: attachImagesToChat, video: attachVideoToChat, audio: attachAudioToChat }, "reading");
   const editHint = opts.includeEditGuidance ?? true ? " Read a file before editing it so your edits target the current text." : "";
   return defineTool6({
-    description: `Read a file from the ${noun}, returning line-numbered text. PDF, DOCX, and spreadsheet files (.xlsx, .xlsm, .xls, .ods) are converted to plain text (PDFs get per-page markers, spreadsheets render as TSV per sheet); ${mediaHint}.${editHint} Returns up to 2000 lines per call by default; page bigger files with offset/limit.` + conventionsHint,
+    description: `Read a file from the ${noun}, returning line-numbered text. Documents are converted to plain text: PDF (per-page markers), DOCX/ODT/RTF, PPTX/ODP decks (per-slide markers, speaker notes), spreadsheets (.xlsx, .xlsm, .xls, .ods; TSV per sheet), EPUB (per-section markers), and Jupyter notebooks (per-cell markers); ${mediaHint}.${editHint} Returns up to 2000 lines per call by default; page bigger files with offset/limit.` + conventionsHint,
     inputSchema: z6.object({
       path: z6.string().min(1).describe(`File path, relative to the ${noun} root.`),
       offset: z6.number().int().positive().optional().describe("1-based line to start reading from."),
@@ -2521,6 +3352,39 @@ function createReadTool(opts) {
           return {
             path: rel,
             source: "docx",
+            ...buildFileView(content.text, { offset, limit }),
+            ...conventions
+          };
+        case "pptx":
+        case "odp":
+          return {
+            path: rel,
+            source: content.kind,
+            slides: content.slides,
+            ...buildFileView(content.text, { offset, limit }),
+            ...conventions
+          };
+        case "odt":
+        case "rtf":
+          return {
+            path: rel,
+            source: content.kind,
+            ...buildFileView(content.text, { offset, limit }),
+            ...conventions
+          };
+        case "epub":
+          return {
+            path: rel,
+            source: "epub",
+            sections: content.sections,
+            ...buildFileView(content.text, { offset, limit }),
+            ...conventions
+          };
+        case "ipynb":
+          return {
+            path: rel,
+            source: "ipynb",
+            cells: content.cells,
             ...buildFileView(content.text, { offset, limit }),
             ...conventions
           };
@@ -2611,7 +3475,7 @@ function createReadTool(opts) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-DVtvvP/repo/src/tools/tasks.ts
+// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/tools/tasks.ts
 import { defineDynamic as defineDynamic2, defineTool as defineTool7 } from "eve/tools";
 import { z as z7 } from "zod";
 var DEFAULT_WAIT_MS = 120000;
@@ -2768,17 +3632,17 @@ function createTasksTools(opts) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-DVtvvP/repo/src/tools/webfetch.ts
+// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/tools/webfetch.ts
 import { defineTool as defineTool8 } from "eve/tools";
 import { z as z8 } from "zod";
 import { basename as basename2, join as join7 } from "node:path";
 
-// ../../../../../tmp/agent-sdk-mirror-DVtvvP/repo/src/web-fetch.ts
-import { Parser } from "htmlparser2";
+// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/web-fetch.ts
+import { Parser as Parser4 } from "htmlparser2";
 import { parseHTML as parseHTML2 } from "linkedom";
 import TurndownService from "turndown";
 
-// ../../../../../tmp/agent-sdk-mirror-DVtvvP/repo/src/web-page.ts
+// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/web-page.ts
 import Defuddle from "defuddle";
 import { parseHTML } from "linkedom";
 var asField = (value) => {
@@ -2889,7 +3753,7 @@ function looksLikeRawHtmlOutput(rendered) {
   return tagChars / rendered.length > 0.1;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-DVtvvP/repo/src/web-fetch.ts
+// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/web-fetch.ts
 var WEB_FETCH_MAX_RESPONSE_BYTES = 5 * 1024 * 1024;
 var WEB_FETCH_DEFAULT_TIMEOUT_SECONDS = 30;
 var WEB_FETCH_PDF_DEFAULT_TIMEOUT_SECONDS = 60;
@@ -2932,7 +3796,7 @@ var SKIPPED_HTML_TAGS = ["script", "style", "noscript", "iframe", "object", "emb
 function extractTextFromHtml(html) {
   let text = "";
   const skipStack = [];
-  const parser = new Parser({
+  const parser = new Parser4({
     onopentag(name) {
       if (skipStack.length > 0 || SKIPPED_HTML_TAGS.includes(name)) {
         skipStack.push(name);
@@ -3079,7 +3943,7 @@ function urlLooksLikePdf(url) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-DVtvvP/repo/src/tools/webfetch.ts
+// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/tools/webfetch.ts
 var SPILL_EXTENSION = {
   markdown: "md",
   text: "txt",
@@ -3119,6 +3983,10 @@ var CONTENT_TYPE_EXTENSIONS = {
   "application/vnd.oasis.opendocument.spreadsheet": ".ods",
   "application/vnd.oasis.opendocument.presentation": ".odp",
   "application/pdf": ".pdf",
+  "application/epub+zip": ".epub",
+  "application/rtf": ".rtf",
+  "text/rtf": ".rtf",
+  "application/x-ipynb+json": ".ipynb",
   "video/mp4": ".mp4",
   "video/quicktime": ".mov",
   "video/webm": ".webm",
@@ -3183,7 +4051,7 @@ function createWebFetchTool(opts) {
   };
   const mediaHint = buildMediaHint({ image: attachImagesToChat, video: attachVideoToChat, audio: attachAudioToChat }, "fetching");
   return defineTool8({
-    description: `Fetch a URL and return its content. HTML pages are reduced to their main content (boilerplate stripped, title/author/date header) and converted to readable markdown by default (set format to "text" for plain text or "html" for the raw page). Fetched PDF, DOCX, and spreadsheet files are converted to plain text; ${mediaHint}. Content over the in-context budget is truncated head+tail and the complete output is spilled to a file named in the truncation marker — read or grep that file instead of re-fetching. Default timeout ${WEB_FETCH_DEFAULT_TIMEOUT_SECONDS}s (${WEB_FETCH_PDF_DEFAULT_TIMEOUT_SECONDS}s for PDFs), max ${WEB_FETCH_MAX_TIMEOUT_SECONDS}s; responses over 5 MB error. Read-only: one HTTP GET, no side effects.`,
+    description: `Fetch a URL and return its content. HTML pages are reduced to their main content (boilerplate stripped, title/author/date header) and converted to readable markdown by default (set format to "text" for plain text or "html" for the raw page). Fetched documents (PDF, DOCX/ODT/RTF, PPTX/ODP, spreadsheets, EPUB, Jupyter notebooks) are converted to plain text; ${mediaHint}. Content over the in-context budget is truncated head+tail and the complete output is spilled to a file named in the truncation marker — read or grep that file instead of re-fetching. Default timeout ${WEB_FETCH_DEFAULT_TIMEOUT_SECONDS}s (${WEB_FETCH_PDF_DEFAULT_TIMEOUT_SECONDS}s for PDFs), max ${WEB_FETCH_MAX_TIMEOUT_SECONDS}s; responses over 5 MB error. Read-only: one HTTP GET, no side effects.`,
     inputSchema: z8.object({
       url: z8.string().min(1).describe("The URL to fetch. Must start with http:// or https://."),
       format: z8.enum(["markdown", "text", "html"]).optional().describe('How to render HTML responses: "markdown" (default), "text", or "html" (raw). Non-HTML content is unaffected.'),
@@ -3231,6 +4099,35 @@ function createWebFetchTool(opts) {
           return {
             ...meta,
             source: "docx",
+            ...bounded(content.text, renderFormat, "extracted")
+          };
+        case "pptx":
+        case "odp":
+          return {
+            ...meta,
+            source: content.kind,
+            slides: content.slides,
+            ...bounded(content.text, renderFormat, "extracted")
+          };
+        case "odt":
+        case "rtf":
+          return {
+            ...meta,
+            source: content.kind,
+            ...bounded(content.text, renderFormat, "extracted")
+          };
+        case "epub":
+          return {
+            ...meta,
+            source: "epub",
+            sections: content.sections,
+            ...bounded(content.text, renderFormat, "extracted")
+          };
+        case "ipynb":
+          return {
+            ...meta,
+            source: "ipynb",
+            cells: content.cells,
             ...bounded(content.text, renderFormat, "extracted")
           };
         case "sheet":
@@ -3315,7 +4212,7 @@ function createWebFetchTool(opts) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-DVtvvP/repo/src/tools/write.ts
+// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/tools/write.ts
 import { defineTool as defineTool9 } from "eve/tools";
 import { z as z9 } from "zod";
 function createWriteTool(opts) {
@@ -3347,7 +4244,7 @@ function createWriteTool(opts) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-DVtvvP/repo/src/sandbox-io.ts
+// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/sandbox-io.ts
 import ignore2 from "ignore";
 function shellSingleQuote(value) {
   return `'${value.replaceAll("'", `'\\''`)}'`;
@@ -3562,21 +4459,21 @@ function parseSearchOutput(stdout, maxMatches, flooded = false) {
   }
   return { matches, stopped, skippedLargeFiles: null };
 }
-// ../../../../../tmp/agent-sdk-mirror-DVtvvP/repo/src/hooks.ts
+// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/hooks.ts
 import { Client } from "eve/client";
 import { defineHook } from "eve/hooks";
 
-// ../../../../../tmp/agent-sdk-mirror-DVtvvP/repo/src/redeliver.ts
-function isRecord5(value) {
+// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/redeliver.ts
+function isRecord6(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 function redeliveryFromEvent(event) {
-  if (!isRecord5(event) || event.type !== "action.result")
+  if (!isRecord6(event) || event.type !== "action.result")
     return null;
-  if (!isRecord5(event.data))
+  if (!isRecord6(event.data))
     return null;
   const result = event.data.result;
-  if (!isRecord5(result) || result.kind !== "tool-result")
+  if (!isRecord6(result) || result.kind !== "tool-result")
     return null;
   if (typeof result.callId !== "string" || result.callId.length === 0)
     return null;
@@ -3636,7 +4533,7 @@ function createRedeliveryState() {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-DVtvvP/repo/src/hooks.ts
+// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/hooks.ts
 var RETRY_DELAYS_MS = [500, 2000, 5000];
 function buildDeliveryMessage(request) {
   const media = request.items.flatMap((item) => item.payload.kind === "media" ? [{ toolCallId: item.key, attachment: item.payload.attachment }] : []);
@@ -3648,11 +4545,11 @@ function buildDeliveryMessage(request) {
     ...notes.map((text) => ({ type: "text", text }))
   ];
 }
-function isRecord6(value) {
+function isRecord7(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 function isSessionWaiting(event) {
-  return isRecord6(event) && event.type === "session.waiting";
+  return isRecord7(event) && event.type === "session.waiting";
 }
 function createParkDeliveryHook(options = {}) {
   const serverUrl = options.serverUrl ?? `http://127.0.0.1:${process.env.PORT ?? "2000"}`;
@@ -3735,7 +4632,7 @@ function createParkDeliveryHook(options = {}) {
     }
   });
 }
-// ../../../../../tmp/agent-sdk-mirror-DVtvvP/repo/src/build-externals.ts
+// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/build-externals.ts
 var STDLIB_EXTERNAL_DEPENDENCIES = [
   "clawpdf",
   "defuddle",
@@ -3748,11 +4645,11 @@ var STDLIB_EXTERNAL_DEPENDENCIES = [
   "xlsx",
   "zod"
 ];
-// ../../../../../tmp/agent-sdk-mirror-DVtvvP/repo/src/task.ts
+// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/task.ts
 import { defineAgent } from "eve";
 import { defineDynamic as defineDynamic3, defineInstructions as defineInstructions2 } from "eve/instructions";
 
-// ../../../../../tmp/agent-sdk-mirror-DVtvvP/repo/src/visible-reasoning.ts
+// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/visible-reasoning.ts
 var ANTHROPIC_ADAPTIVE_THINKING_MODELS = [
   /^anthropic\/claude-fable-/,
   /^anthropic\/claude-mythos-/,
@@ -3778,7 +4675,7 @@ function visibleReasoningModelOptions(modelId) {
   return;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-DVtvvP/repo/src/task.ts
+// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/task.ts
 var TASK_DISABLED_BUILTINS = ["ask_question"];
 function expectedTaskToolNames(options) {
   const parent = new Set(options.parentToolNames);
@@ -3867,15 +4764,15 @@ function createTaskAgent(options) {
   });
 }
 var GATEWAY_MODELS_URL = "https://ai-gateway.vercel.sh/v1/models";
-function isRecord7(value) {
+function isRecord8(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 function parseGatewayModelCatalog(value) {
-  if (!isRecord7(value) || !Array.isArray(value.data))
+  if (!isRecord8(value) || !Array.isArray(value.data))
     return null;
   const models = [];
   for (const entry of value.data) {
-    if (!isRecord7(entry) || typeof entry.id !== "string")
+    if (!isRecord8(entry) || typeof entry.id !== "string")
       return null;
     models.push({
       id: entry.id,
@@ -3898,7 +4795,7 @@ async function fetchGatewayModelCatalog(options) {
   }
   return parsed;
 }
-// ../../../../../tmp/agent-sdk-mirror-DVtvvP/repo/src/mock-model.ts
+// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/mock-model.ts
 var STORY_SENTENCES = [
   "The lighthouse keeper counted the waves as they broke against the rocks.",
   "Every seventh wave carried a whisper from the old town beneath the sea.",
@@ -4360,7 +5257,7 @@ That changes the plan.`
     }
   };
 }
-// ../../../../../tmp/agent-sdk-mirror-DVtvvP/repo/src/orphaned-turns.ts
+// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/orphaned-turns.ts
 function isOrphanedTurn(input) {
   if (!input.reconciled || !input.inFlightAfter)
     return false;
@@ -4375,7 +5272,7 @@ function workerEpochMs(now = Date.now) {
   return holder[WORKER_EPOCH_KEY];
 }
 
-// ../../../../../tmp/agent-sdk-mirror-DVtvvP/repo/src/index.ts
+// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/index.ts
 function createStdlib(options) {
   const noun = options.workspaceNoun ?? "workspace";
   const workspace2 = createWorkspace(options.workspaceRoot);
@@ -4497,6 +5394,7 @@ function createSandboxFileTools(options) {
   };
 }
 export {
+  xhtmlToText,
   workerEpochMs,
   withSteerDelivery,
   walkFiles,
@@ -4505,6 +5403,7 @@ export {
   toolInputFragments,
   stripSteerFromOutput,
   splitBom,
+  slideParagraphs,
   shellSingleQuote,
   setParkNotificationHandler,
   serializeSteerLine,
@@ -4525,6 +5424,7 @@ export {
   parseSteerLine,
   parseSearchOutput,
   parseGatewayModelCatalog,
+  openZip,
   mockScenarioFrom,
   mergeSteerIntoModelOutput,
   markdownChunks,
@@ -4547,7 +5447,13 @@ export {
   extractTextFromHtml,
   extractSheets,
   extractSearchExit,
+  extractRtf,
+  extractPptx,
   extractPdf,
+  extractOdt,
+  extractOdp,
+  extractNotebook,
+  extractEpub,
   extractDocx,
   expectedTaskToolNames,
   dirChain,
@@ -4629,8 +5535,11 @@ export {
   READ_FILE_MAX_CONTENT_CHARS,
   READ_FILE_MAX_BYTES,
   READ_FILE_DEFAULT_LINE_LIMIT,
+  PPTX_SLIDE_CAP,
+  PPTX_EMPTY_SLIDE_NOTE,
   PDF_PAGE_CAP,
   PDF_EMPTY_PAGE_NOTE,
+  ODP_EMPTY_SLIDE_NOTE,
   MultiOccurrenceReplacer,
   MOCK_SCENARIOS,
   MAX_SEARCH_FILE_BYTES,
@@ -4644,6 +5553,7 @@ export {
   EditNotUniqueError,
   EditNotFoundError,
   EditDisproportionateError,
+  EPUB_SECTION_CAP,
   DEFAULT_WATCH_DEBOUNCE_MS,
   DEFAULT_MAX_WATCH_NOTIFICATIONS,
   DEFAULT_MAX_INLINE_MEDIA_BYTES,

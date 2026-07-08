@@ -145,22 +145,32 @@ describe("detectFileKind", () => {
     expect(detectFileKind(zip, "Data.XLSX")).toEqual({ kind: "sheet", format: "xlsx" });
     expect(detectFileKind(zip, "macros.xlsm")).toEqual({ kind: "sheet", format: "xlsm" });
     expect(detectFileKind(zip, "table.ods")).toEqual({ kind: "sheet", format: "ods" });
+    expect(detectFileKind(zip, "deck.pptx")).toEqual({ kind: "pptx" });
+    expect(detectFileKind(zip, "letter.odt")).toEqual({ kind: "odt" });
+    expect(detectFileKind(zip, "slides.odp")).toEqual({ kind: "odp" });
+    expect(detectFileKind(zip, "book.epub")).toEqual({ kind: "epub" });
     expect(detectFileKind(zip, "bundle.zip")).toEqual({
       kind: "binary",
       description: "a zip archive",
     });
   });
 
-  test("zip formats with no extractor are rejected by name", () => {
-    const pptx = detectFileKind(zip, "deck.pptx");
-    if (pptx.kind !== "binary") throw new Error(`expected binary, got ${pptx.kind}`);
-    expect(pptx.description).toContain(".pptx");
-    const odt = detectFileKind(zip, "letter.odt");
-    if (odt.kind !== "binary") throw new Error(`expected binary, got ${odt.kind}`);
-    expect(odt.description).toContain(".odt");
-    const epub = detectFileKind(zip, "book.epub");
-    if (epub.kind !== "binary") throw new Error(`expected binary, got ${epub.kind}`);
-    expect(epub.description).toContain("EPUB");
+  test("RTF by magic, regardless of extension", () => {
+    const rtf = Buffer.from("{\\rtf1\\ansi Hello}");
+    expect(detectFileKind(rtf, "memo.rtf")).toEqual({ kind: "rtf" });
+    expect(detectFileKind(rtf, "renamed.txt")).toEqual({ kind: "rtf" });
+    // An .rtf without the header is just text.
+    expect(detectFileKind(Buffer.from("plain words"), "memo.rtf")).toEqual(utf8Text);
+  });
+
+  test("notebooks route by extension over text bytes", () => {
+    expect(detectFileKind(Buffer.from('{"cells": []}'), "analysis.ipynb")).toEqual({
+      kind: "ipynb",
+    });
+    // The same JSON without the extension stays plain text…
+    expect(detectFileKind(Buffer.from('{"cells": []}'), "analysis.json")).toEqual(utf8Text);
+    // …and a binary .ipynb is binary, not a notebook.
+    expect(detectFileKind(Buffer.from([0x61, 0x00, 0x62]), "fake.ipynb").kind).toBe("binary");
   });
 
   test("CFB magic disambiguates legacy Office by extension", () => {

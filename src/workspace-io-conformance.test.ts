@@ -44,6 +44,8 @@ function seedFixtures(root: string): void {
   writeFileSync(join(root, "hello.txt"), "alpha\nbeta\ngamma\n");
   writeFileSync(join(root, "src/app.ts"), "export const answer = 42; // the answer\n");
   copyFileSync(fixture("two-page.pdf"), join(root, "doc.pdf"));
+  copyFileSync(fixture("two-slide.pptx"), join(root, "deck.pptx"));
+  copyFileSync(fixture("three-cell.ipynb"), join(root, "analysis.ipynb"));
   copyFileSync(fixture("tiny.png"), join(root, "pic.png"));
   // A minimal ISO BMFF header is all `read` inspects — no real footage needed.
   writeFileSync(
@@ -169,6 +171,20 @@ for (const backend of backends) {
     test("read converts a PDF and reports the page count", async () => {
       const result = await read.execute({ path: "doc.pdf" }, ctx);
       expect(result).toMatchObject({ path: "doc.pdf", source: "pdf", pages: 2 });
+    });
+
+    test("read converts a PPTX and reports the slide count", async () => {
+      const result = await read.execute({ path: "deck.pptx" }, ctx);
+      expect(result).toMatchObject({ path: "deck.pptx", source: "pptx", slides: 2 });
+      if (!("content" in result)) throw new Error("expected a text view");
+      expect(result.content).toContain("Quarterly Review");
+    });
+
+    test("read converts a notebook and reports the cell count", async () => {
+      const result = await read.execute({ path: "analysis.ipynb" }, ctx);
+      expect(result).toMatchObject({ path: "analysis.ipynb", source: "ipynb", cells: 3 });
+      if (!("content" in result)) throw new Error("expected a text view");
+      expect(result.content).not.toContain("iVBORw0KGgo");
     });
 
     test("read attaches a small image and video stays metadata-only", async () => {

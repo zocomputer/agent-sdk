@@ -16,7 +16,8 @@ just the pieces it wants.
 - **File tools models already know.** Lowercase `read`/`edit`/`write`/`glob`/
   `grep`/`bash`, snake_case params — the names and shapes from Claude Code
   and opencode, so models use them correctly from the first turn.
-- **Rich reads.** `read` handles PDFs, DOCX, and spreadsheets as text;
+- **Rich reads.** `read` handles PDFs, Office documents (DOCX/PPTX/ODT/ODP),
+  spreadsheets, EPUB e-books, Jupyter notebooks, and RTF as text;
   reading an image puts the actual pixels in front of the model.
 - **A bash that behaves.** Long commands auto-background instead of hanging
   the turn; oversized output spills to disk instead of flooding the context

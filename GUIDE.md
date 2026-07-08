@@ -80,8 +80,11 @@ agent that skips the hook simply gets metadata-only media notes.
 The names are deliberately boring; the behavior behind them is the point:
 
 - **`read`** is multi-format — line-numbered text windows plus content-sniffed
-  PDF (PDFium via `clawpdf`), DOCX (`mammoth`), and spreadsheet (`.xlsx`/
-  `.xlsm`/`.xls`/`.ods` via SheetJS, TSV per sheet) → text, and UTF-16 BOM
+  document → text conversion: PDF (PDFium via `clawpdf`, per-page markers),
+  DOCX (`mammoth`), PPTX (per-slide markers + speaker notes), ODT/ODP,
+  spreadsheets (`.xlsx`/`.xlsm`/`.xls`/`.ods` via SheetJS, TSV per sheet),
+  EPUB (spine order, per-section markers), Jupyter notebooks (per-cell
+  markers, output stubs instead of base64 blobs), RTF, and UTF-16 BOM
   decode. Reading an **image** returns metadata and queues the pixels to appear
   as a viewable attachment on the next turn; **video/audio** reads return
   metadata (format, MIME type, bytes) and can queue the same way where the
@@ -121,10 +124,11 @@ The names are deliberately boring; the behavior behind them is the point:
   extraction over-prunes), and the result is honest about failure: a page that
   yields almost no text gets a note saying so (with a hint for known
   client-rendered/login-walled domains like X or Reddit), and a conversion
-  that leaves raw HTML flags itself. Fetched PDFs/DOCX/spreadsheets route
-  through the same extractors as `read` (`.pdf` URLs get a longer default
-  timeout); images return metadata and attach to the chat like `read`;
-  oversized bodies spill to `stateDir`.
+  that leaves raw HTML flags itself. Fetched documents (PDF, DOCX/ODT/RTF,
+  PPTX/ODP, spreadsheets, EPUB, notebooks) route through the same extractors
+  as `read` (`.pdf` URLs get a longer default timeout); images return
+  metadata and attach to the chat like `read`; oversized bodies spill to
+  `stateDir`.
 - **`run_async` / `check_tasks` / `await_task`** persist the task registry
   across restarts (tasks running across a restart report as `lost`); any
   `defineOp` op becomes `run_async`-able via `extraBackgroundables`.

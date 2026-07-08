@@ -75,6 +75,10 @@ const CONTENT_TYPE_EXTENSIONS: Record<string, string> = {
   "application/vnd.oasis.opendocument.spreadsheet": ".ods",
   "application/vnd.oasis.opendocument.presentation": ".odp",
   "application/pdf": ".pdf",
+  "application/epub+zip": ".epub",
+  "application/rtf": ".rtf",
+  "text/rtf": ".rtf",
+  "application/x-ipynb+json": ".ipynb",
   // Media types matter only for formats whose magic bytes are ambiguous
   // without a path hint (EBML webm/mkv, bare-frame-sync mp3); listed broadly
   // so extensionless media URLs still label sensibly.
@@ -186,7 +190,7 @@ export function createWebFetchTool(opts: {
 
   return defineTool({
     description:
-      `Fetch a URL and return its content. HTML pages are reduced to their main content (boilerplate stripped, title/author/date header) and converted to readable markdown by default (set format to "text" for plain text or "html" for the raw page). Fetched PDF, DOCX, and spreadsheet files are converted to plain text; ${mediaHint}. Content over the in-context budget is truncated head+tail and the complete output is spilled to a file named in the truncation marker — read or grep that file instead of re-fetching. Default timeout ${WEB_FETCH_DEFAULT_TIMEOUT_SECONDS}s (${WEB_FETCH_PDF_DEFAULT_TIMEOUT_SECONDS}s for PDFs), max ${WEB_FETCH_MAX_TIMEOUT_SECONDS}s; responses over 5 MB error. Read-only: one HTTP GET, no side effects.`,
+      `Fetch a URL and return its content. HTML pages are reduced to their main content (boilerplate stripped, title/author/date header) and converted to readable markdown by default (set format to "text" for plain text or "html" for the raw page). Fetched documents (PDF, DOCX/ODT/RTF, PPTX/ODP, spreadsheets, EPUB, Jupyter notebooks) are converted to plain text; ${mediaHint}. Content over the in-context budget is truncated head+tail and the complete output is spilled to a file named in the truncation marker — read or grep that file instead of re-fetching. Default timeout ${WEB_FETCH_DEFAULT_TIMEOUT_SECONDS}s (${WEB_FETCH_PDF_DEFAULT_TIMEOUT_SECONDS}s for PDFs), max ${WEB_FETCH_MAX_TIMEOUT_SECONDS}s; responses over 5 MB error. Read-only: one HTTP GET, no side effects.`,
     inputSchema: z.object({
       url: z
         .string()
@@ -267,6 +271,35 @@ export function createWebFetchTool(opts: {
           return {
             ...meta,
             source: "docx" as const,
+            ...bounded(content.text, renderFormat, "extracted"),
+          };
+        case "pptx":
+        case "odp":
+          return {
+            ...meta,
+            source: content.kind,
+            slides: content.slides,
+            ...bounded(content.text, renderFormat, "extracted"),
+          };
+        case "odt":
+        case "rtf":
+          return {
+            ...meta,
+            source: content.kind,
+            ...bounded(content.text, renderFormat, "extracted"),
+          };
+        case "epub":
+          return {
+            ...meta,
+            source: "epub" as const,
+            sections: content.sections,
+            ...bounded(content.text, renderFormat, "extracted"),
+          };
+        case "ipynb":
+          return {
+            ...meta,
+            source: "ipynb" as const,
+            cells: content.cells,
             ...bounded(content.text, renderFormat, "extracted"),
           };
         case "sheet":

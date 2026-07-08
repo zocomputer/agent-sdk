@@ -8,7 +8,7 @@
 
 > **extractSheets**(`buffer`, `rowCap?`): [`SheetExtraction`](../type-aliases/SheetExtraction.md)
 
-Defined in: [packages/agent-sdk/src/extract/sheet.ts:38](https://github.com/zocomputer/zov2-code/blob/1e3454bf19fec73047afd6e825710b7db25d004a/packages/agent-sdk/src/extract/sheet.ts#L38)
+Defined in: [packages/agent-sdk/src/extract/sheet.ts:38](https://github.com/zocomputer/zov2-code/blob/5cd4dc50234e29b61bac1ae63f95c9b3f3a18361/packages/agent-sdk/src/extract/sheet.ts#L38)
 
 Extract spreadsheet bytes (xlsx/xlsm/xls/ods) into TSV text under explicit
 sheet markers. Cells read as computed values; each sheet is capped at

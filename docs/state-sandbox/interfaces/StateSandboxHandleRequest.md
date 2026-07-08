@@ -6,7 +6,7 @@
 
 # Interface: StateSandboxHandleRequest
 
-Defined in: [packages/agent-sdk/src/state-sandbox.ts:70](https://github.com/zocomputer/zov2-code/blob/1e3454bf19fec73047afd6e825710b7db25d004a/packages/agent-sdk/src/state-sandbox.ts#L70)
+Defined in: [packages/agent-sdk/src/state-sandbox.ts:70](https://github.com/zocomputer/zov2-code/blob/5cd4dc50234e29b61bac1ae63f95c9b3f3a18361/packages/agent-sdk/src/state-sandbox.ts#L70)
 
 The request body sent to the runtime broker when requesting a state sandbox handle.
 Names the state declaration and specifies required interface, access, and suggested defaults.
@@ -17,7 +17,7 @@ Names the state declaration and specifies required interface, access, and sugges
 
 > `readonly` **access**: [`StateSandboxAccess`](../type-aliases/StateSandboxAccess.md)
 
-Defined in: [packages/agent-sdk/src/state-sandbox.ts:73](https://github.com/zocomputer/zov2-code/blob/1e3454bf19fec73047afd6e825710b7db25d004a/packages/agent-sdk/src/state-sandbox.ts#L73)
+Defined in: [packages/agent-sdk/src/state-sandbox.ts:73](https://github.com/zocomputer/zov2-code/blob/5cd4dc50234e29b61bac1ae63f95c9b3f3a18361/packages/agent-sdk/src/state-sandbox.ts#L73)
 
 ***
 
@@ -25,7 +25,7 @@ Defined in: [packages/agent-sdk/src/state-sandbox.ts:73](https://github.com/zoco
 
 > `readonly` **declarationName**: `string`
 
-Defined in: [packages/agent-sdk/src/state-sandbox.ts:71](https://github.com/zocomputer/zov2-code/blob/1e3454bf19fec73047afd6e825710b7db25d004a/packages/agent-sdk/src/state-sandbox.ts#L71)
+Defined in: [packages/agent-sdk/src/state-sandbox.ts:71](https://github.com/zocomputer/zov2-code/blob/5cd4dc50234e29b61bac1ae63f95c9b3f3a18361/packages/agent-sdk/src/state-sandbox.ts#L71)
 
 ***
 
@@ -33,7 +33,7 @@ Defined in: [packages/agent-sdk/src/state-sandbox.ts:71](https://github.com/zoco
 
 > `readonly` **interface**: [`StateSandboxInterface`](../type-aliases/StateSandboxInterface.md)
 
-Defined in: [packages/agent-sdk/src/state-sandbox.ts:72](https://github.com/zocomputer/zov2-code/blob/1e3454bf19fec73047afd6e825710b7db25d004a/packages/agent-sdk/src/state-sandbox.ts#L72)
+Defined in: [packages/agent-sdk/src/state-sandbox.ts:72](https://github.com/zocomputer/zov2-code/blob/5cd4dc50234e29b61bac1ae63f95c9b3f3a18361/packages/agent-sdk/src/state-sandbox.ts#L72)
 
 ***
 
@@ -41,4 +41,4 @@ Defined in: [packages/agent-sdk/src/state-sandbox.ts:72](https://github.com/zoco
 
 > `readonly` **suggestedDefaults**: [`StateSandboxSuggestedDefaults`](StateSandboxSuggestedDefaults.md)
 
-Defined in: [packages/agent-sdk/src/state-sandbox.ts:74](https://github.com/zocomputer/zov2-code/blob/1e3454bf19fec73047afd6e825710b7db25d004a/packages/agent-sdk/src/state-sandbox.ts#L74)
+Defined in: [packages/agent-sdk/src/state-sandbox.ts:74](https://github.com/zocomputer/zov2-code/blob/5cd4dc50234e29b61bac1ae63f95c9b3f3a18361/packages/agent-sdk/src/state-sandbox.ts#L74)

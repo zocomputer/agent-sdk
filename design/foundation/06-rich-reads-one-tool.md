@@ -2,16 +2,26 @@
 
 ## The decision
 
-PDFs, DOCX, and spreadsheets are handled by **text extraction routed through
-the existing `read` window** — same tool, same offset/limit pagination, same
-output budget. `read` sniffs the file kind after its stat guard (extension
-confirmed by magic bytes) and routes: PDF → per-page text via PDFium WASM with
-`=== page N of M ===` markers, DOCX → raw text, spreadsheets → per-sheet TSV
-with dimension headers. Images — and, behind opt-in flags, video/audio —
-return structured metadata (the bytes reach the model separately — see
+Documents are handled by **text extraction routed through the existing
+`read` window** — same tool, same offset/limit pagination, same output
+budget. `read` sniffs the file kind after its stat guard (extension confirmed
+by magic bytes) and routes: PDF → per-page text via PDFium WASM with
+`=== page N of M ===` markers, DOCX/ODT/RTF → raw text, PPTX/ODP → per-slide
+text (+ speaker notes) under `=== slide N of M ===` markers, spreadsheets →
+per-sheet TSV with dimension headers, EPUB → spine-ordered sections, Jupyter
+notebooks → per-cell text with `[mime output]` stubs in place of base64
+blobs. Images — and, behind opt-in flags, video/audio — return structured
+metadata (the bytes reach the model separately — see
 [08](./08-park-delivery.md)). Unknown binary gets a structured rejection
 naming the detected type. `webfetch` routes fetched documents through the
 same extractors, so a URL and a local file read identically.
+
+The container formats (pptx/odt/odp/epub) ride a deliberately dependency-free
+~130-line ZIP central-directory reader (`extract/zip.ts`, node:zlib) plus
+`htmlparser2` (already a webfetch dep) — surveyed against 2026 practice
+(Anthropic's document skills read via pandoc/markitdown; opencode's parser
+plugin uses the same slide-XML walk), the marginal formats are each a small
+XML/JSON pass, not a new library.
 
 ## Why: reuse the reading interface the model already knows
 

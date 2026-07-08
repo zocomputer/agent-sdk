@@ -8,6 +8,6 @@
 
 > `const` **INITIATOR\_HEADER**: `"x-zo-initiator"` = `"x-zo-initiator"`
 
-Defined in: [packages/agent-sdk/src/initiator-auth.ts:23](https://github.com/zocomputer/zov2-code/blob/1e3454bf19fec73047afd6e825710b7db25d004a/packages/agent-sdk/src/initiator-auth.ts#L23)
+Defined in: [packages/agent-sdk/src/initiator-auth.ts:23](https://github.com/zocomputer/zov2-code/blob/5cd4dc50234e29b61bac1ae63f95c9b3f3a18361/packages/agent-sdk/src/initiator-auth.ts#L23)
 
 The proxy → agent initiator header (`@zocomputer/runtime-auth`'s INITIATOR_HEADER).

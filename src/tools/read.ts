@@ -134,7 +134,7 @@ export function createReadTool(opts: {
       : "";
   return defineTool({
     description:
-      `Read a file from the ${noun}, returning line-numbered text. PDF, DOCX, and spreadsheet files (.xlsx, .xlsm, .xls, .ods) are converted to plain text (PDFs get per-page markers, spreadsheets render as TSV per sheet); ${mediaHint}.${editHint} Returns up to 2000 lines per call by default; page bigger files with offset/limit.` +
+      `Read a file from the ${noun}, returning line-numbered text. Documents are converted to plain text: PDF (per-page markers), DOCX/ODT/RTF, PPTX/ODP decks (per-slide markers, speaker notes), spreadsheets (.xlsx, .xlsm, .xls, .ods; TSV per sheet), EPUB (per-section markers), and Jupyter notebooks (per-cell markers); ${mediaHint}.${editHint} Returns up to 2000 lines per call by default; page bigger files with offset/limit.` +
       conventionsHint,
     inputSchema: z.object({
       path: z.string().min(1).describe(`File path, relative to the ${noun} root.`),
@@ -214,6 +214,39 @@ export function createReadTool(opts: {
           return {
             path: rel,
             source: "docx" as const,
+            ...buildFileView(content.text, { offset, limit }),
+            ...conventions,
+          };
+        case "pptx":
+        case "odp":
+          return {
+            path: rel,
+            source: content.kind,
+            slides: content.slides,
+            ...buildFileView(content.text, { offset, limit }),
+            ...conventions,
+          };
+        case "odt":
+        case "rtf":
+          return {
+            path: rel,
+            source: content.kind,
+            ...buildFileView(content.text, { offset, limit }),
+            ...conventions,
+          };
+        case "epub":
+          return {
+            path: rel,
+            source: "epub" as const,
+            sections: content.sections,
+            ...buildFileView(content.text, { offset, limit }),
+            ...conventions,
+          };
+        case "ipynb":
+          return {
+            path: rel,
+            source: "ipynb" as const,
+            cells: content.cells,
             ...buildFileView(content.text, { offset, limit }),
             ...conventions,
           };

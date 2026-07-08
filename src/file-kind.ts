@@ -65,6 +65,12 @@ export type FileKind =
   | { readonly kind: "text"; readonly encoding: TextEncoding }
   | { readonly kind: "pdf" }
   | { readonly kind: "docx" }
+  | { readonly kind: "pptx" }
+  | { readonly kind: "odt" }
+  | { readonly kind: "odp" }
+  | { readonly kind: "epub" }
+  | { readonly kind: "ipynb" }
+  | { readonly kind: "rtf" }
   | { readonly kind: "sheet"; readonly format: SheetFormat }
   | { readonly kind: "image"; readonly format: ImageFormat }
   | { readonly kind: "video"; readonly format: VideoFormat }
@@ -96,6 +102,7 @@ const OGG_MAGIC = [0x4f, 0x67, 0x67, 0x53]; // OggS
 const FLAC_MAGIC = [0x66, 0x4c, 0x61, 0x43]; // fLaC
 const ZIP_MAGIC = [0x50, 0x4b, 0x03, 0x04]; // PK\x03\x04
 const CFB_MAGIC = [0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1, 0x1a, 0xe1]; // legacy Office container
+const RTF_MAGIC = [0x7b, 0x5c, 0x72, 0x74, 0x66]; // {\rtf
 const UTF16LE_BOM = [0xff, 0xfe];
 const UTF16BE_BOM = [0xfe, 0xff];
 
@@ -189,14 +196,13 @@ function zipKind(path: string): FileKind {
     case ".ods":
       return { kind: "sheet", format: "ods" };
     case ".pptx":
-      return { kind: "binary", description: "a PowerPoint deck (.pptx) with no text extractor" };
+      return { kind: "pptx" };
     case ".odt":
-      return {
-        kind: "binary",
-        description: "an OpenDocument text file (.odt) with no text extractor",
-      };
+      return { kind: "odt" };
+    case ".odp":
+      return { kind: "odp" };
     case ".epub":
-      return { kind: "binary", description: "an EPUB e-book with no text extractor" };
+      return { kind: "epub" };
     default:
       return { kind: "binary", description: "a zip archive" };
   }
@@ -251,11 +257,16 @@ export function detectFileKind(buf: Buffer, path: string): FileKind {
   }
   if (startsWith(buf, ZIP_MAGIC)) return zipKind(path);
   if (startsWith(buf, CFB_MAGIC)) return cfbKind(path);
+  if (startsWith(buf, RTF_MAGIC)) return { kind: "rtf" };
   // BOM checks must precede the NUL sniff: UTF-16 text is full of NULs.
   if (startsWith(buf, UTF16LE_BOM)) return { kind: "text", encoding: "utf16le" };
   if (startsWith(buf, UTF16BE_BOM)) return { kind: "text", encoding: "utf16be" };
   if (buf.subarray(0, BINARY_SNIFF_BYTES).includes(0)) {
     return { kind: "binary", description: "binary data (unrecognized format)" };
   }
+  // A notebook has no magic of its own — it's UTF-8 JSON — so the extension
+  // routes it (the one text format worth structuring: raw notebook JSON
+  // wastes the view budget, and one base64 output cell can blow it).
+  if (extname(path).toLowerCase() === ".ipynb") return { kind: "ipynb" };
   return { kind: "text", encoding: "utf8" };
 }

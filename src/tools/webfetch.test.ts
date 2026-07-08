@@ -132,6 +132,67 @@ describe("webfetch tool", () => {
     expect(result.content).toContain("=== page 1 of 2 ===");
   });
 
+  test("extracts a fetched PPTX to text with a slide count", async () => {
+    const pptx = readFileSync(fixture("two-slide.pptx"));
+    const tool = toolWith(
+      new Response(pptx, { status: 200, headers: { "content-type": "application/octet-stream" } }),
+    );
+    const result = await tool.execute({ url: "https://example.com/deck.pptx" }, ctx);
+    expect(result).toMatchObject({ source: "pptx", slides: 2 });
+    if (!("content" in result)) throw new Error("expected extracted text");
+    expect(result.content).toContain("Quarterly Review");
+    expect(result.content).toContain("[speaker notes]");
+  });
+
+  test("extracts a fetched EPUB from an extensionless URL using Content-Type", async () => {
+    const epub = readFileSync(fixture("one-chapter.epub"));
+    const tool = toolWith(
+      new Response(epub, { status: 200, headers: { "content-type": "application/epub+zip" } }),
+    );
+    const result = await tool.execute({ url: "https://example.com/book?id=9" }, ctx);
+    expect(result).toMatchObject({ source: "epub", sections: 2 });
+    if (!("content" in result)) throw new Error("expected extracted text");
+    expect(result.content).toContain("Once upon a time.");
+  });
+
+  test("extracts a fetched notebook to per-cell text", async () => {
+    const nb = readFileSync(fixture("three-cell.ipynb"));
+    const tool = toolWith(
+      new Response(nb, { status: 200, headers: { "content-type": "application/x-ipynb+json" } }),
+    );
+    const result = await tool.execute({ url: "https://example.com/analysis.ipynb" }, ctx);
+    expect(result).toMatchObject({ source: "ipynb", cells: 3 });
+    if (!("content" in result)) throw new Error("expected extracted text");
+    expect(result.content).toContain("=== cell 2 of 3 (code) ===");
+    expect(result.content).not.toContain("iVBORw0KGgo");
+  });
+
+  test("extracts fetched RTF to plain text", async () => {
+    const rtf = readFileSync(fixture("sample.rtf"));
+    const tool = toolWith(
+      new Response(rtf, { status: 200, headers: { "content-type": "application/rtf" } }),
+    );
+    const result = await tool.execute({ url: "https://example.com/memo" }, ctx);
+    expect(result).toMatchObject({ source: "rtf" });
+    if (!("content" in result)) throw new Error("expected extracted text");
+    expect(result.content).toContain("Hello bold world.");
+    expect(result.content).not.toContain("fonttbl");
+  });
+
+  test("extracts a fetched ODT document", async () => {
+    const odt = readFileSync(fixture("sample.odt"));
+    const tool = toolWith(
+      new Response(odt, {
+        status: 200,
+        headers: { "content-type": "application/vnd.oasis.opendocument.text" },
+      }),
+    );
+    const result = await tool.execute({ url: "https://example.com/letter" }, ctx);
+    expect(result).toMatchObject({ source: "odt" });
+    if (!("content" in result)) throw new Error("expected extracted text");
+    expect(result.content).toContain("Trip Notes");
+  });
+
   test("attaches a fetched image for the chat and strips it from model output", async () => {
     const png = readFileSync(fixture("tiny.png"));
     const tool = toolWith(

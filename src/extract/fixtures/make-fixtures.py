@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 """Regenerate the extractor test fixtures, stdlib-only.
 
-Every fixture is built by hand (zipfile/zlib/struct) rather than by the
+Every fixture is built by hand (zipfile/zlib/struct/json) rather than by the
 libraries the tests exercise, so a test round-trips through an independent
 implementation. Run from this directory: `python3 make-fixtures.py`.
 """
 
+import json
 import struct
 import zipfile
 import zlib
@@ -182,11 +183,261 @@ def make_zip() -> None:
         z.writestr("hello.txt", "zip contents\n")
 
 
+# --- two-slide.pptx: minimal OOXML presentation, notes on slide 2 only -------
+PPTX_CONTENT_TYPES = """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
+<Default Extension="xml" ContentType="application/xml"/>
+<Override PartName="/ppt/presentation.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.presentation.main+xml"/>
+<Override PartName="/ppt/slides/slide1.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slide+xml"/>
+<Override PartName="/ppt/slides/slide2.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slide+xml"/>
+<Override PartName="/ppt/notesSlides/notesSlide2.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.notesSlide+xml"/>
+</Types>"""
+
+PPTX_RELS = """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="ppt/presentation.xml"/>
+</Relationships>"""
+
+def pptx_presentation(rids: list[str]) -> str:
+    """presentation.xml whose sldIdLst orders slides by the given r:ids."""
+    sld_ids = "".join(
+        f'<p:sldId id="{256 + i}" r:id="{rid}"/>' for i, rid in enumerate(rids)
+    )
+    return (
+        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+        '<p:presentation xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main" '
+        'xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">'
+        f"<p:sldIdLst>{sld_ids}</p:sldIdLst>"
+        "</p:presentation>"
+    )
+
+
+PPTX_PRESENTATION_RELS = """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide" Target="slides/slide1.xml"/>
+<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide" Target="slides/slide2.xml"/>
+</Relationships>"""
+
+
+def pptx_slide(paragraphs: list[list[str]], breaks: bool = False) -> str:
+    """A slide whose text body carries `paragraphs`, each a list of runs."""
+    ps = []
+    for runs in paragraphs:
+        body = "<a:br/>".join(f"<a:r><a:t>{run}</a:t></a:r>" for run in runs) if breaks \
+            else "".join(f"<a:r><a:t>{run}</a:t></a:r>" for run in runs)
+        ps.append(f"<a:p>{body}</a:p>")
+    return (
+        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+        '<p:sld xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" '
+        'xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main">'
+        f'<p:cSld><p:spTree><p:sp><p:txBody>{"".join(ps)}</p:txBody></p:sp></p:spTree></p:cSld>'
+        "</p:sld>"
+    )
+
+
+def make_pptx() -> None:
+    slide1 = pptx_slide([["Quarterly Review"], ["Revenue ", "up 12%"]])
+    # Slide 2 exercises <a:br/> between runs of one paragraph.
+    slide2 = pptx_slide([["Next steps", "Hire more raccoons"]], breaks=True)
+    notes2 = pptx_slide([["Remember to mention the hiring plan."]])
+
+    def write(name: str, presentation: str) -> None:
+        with zipfile.ZipFile(HERE / name, "w", zipfile.ZIP_DEFLATED) as z:
+            z.writestr("[Content_Types].xml", PPTX_CONTENT_TYPES)
+            z.writestr("_rels/.rels", PPTX_RELS)
+            z.writestr("ppt/presentation.xml", presentation)
+            z.writestr("ppt/_rels/presentation.xml.rels", PPTX_PRESENTATION_RELS)
+            z.writestr("ppt/slides/slide1.xml", slide1)
+            z.writestr("ppt/slides/slide2.xml", slide2)
+            z.writestr("ppt/notesSlides/notesSlide2.xml", notes2)
+
+    write("two-slide.pptx", pptx_presentation(["rId1", "rId2"]))
+    # The same slide parts with the presentation order REVERSED — slide2.xml
+    # first. Pins that extraction follows sldIdLst, not filename numbers.
+    write("reordered.pptx", pptx_presentation(["rId2", "rId1"]))
+
+
+# --- sample.odt / two-page.odp: minimal OpenDocument packages -----------------
+ODF_NS = (
+    'xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0" '
+    'xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text:1.0" '
+    'xmlns:draw="urn:oasis:names:tc:opendocument:xmlns:drawing:1.0"'
+)
+
+ODT_CONTENT = f"""<?xml version="1.0" encoding="UTF-8"?>
+<office:document-content {ODF_NS}>
+<office:body><office:text>
+<text:h text:outline-level="1">Trip Notes</text:h>
+<text:p>First<text:tab/>tabbed</text:p>
+<text:p>Line one<text:line-break/>line two</text:p>
+<text:p>Wide<text:s text:c="3"/>gap</text:p>
+</office:text></office:body>
+</office:document-content>"""
+
+ODP_CONTENT = f"""<?xml version="1.0" encoding="UTF-8"?>
+<office:document-content {ODF_NS}>
+<office:body><office:presentation>
+<draw:page draw:name="Intro"><draw:frame><draw:text-box>
+<text:p>Welcome to the demo</text:p>
+</draw:text-box></draw:frame></draw:page>
+<draw:page draw:name="Close"><draw:frame><draw:text-box>
+<text:p>Questions?</text:p>
+</draw:text-box></draw:frame></draw:page>
+</office:presentation></office:body>
+</office:document-content>"""
+
+
+def make_odf(name: str, mimetype: str, content: str) -> None:
+    with zipfile.ZipFile(HERE / name, "w", zipfile.ZIP_DEFLATED) as z:
+        # Per the ODF spec the mimetype entry comes first, STORED — which also
+        # exercises the zip reader's stored-method path.
+        z.writestr(
+            zipfile.ZipInfo("mimetype"), mimetype, compress_type=zipfile.ZIP_STORED
+        )
+        z.writestr("content.xml", content)
+
+
+# --- one-chapter.epub: two-section EPUB whose spine order differs from
+# --- alphabetical entry order (b-intro before a-end) --------------------------
+EPUB_CONTAINER = """<?xml version="1.0" encoding="UTF-8"?>
+<container version="1.0" xmlns="urn:oasis:names:tc:opendocument:xmlns:container">
+<rootfiles><rootfile full-path="OEBPS/content.opf" media-type="application/oebps-package+xml"/></rootfiles>
+</container>"""
+
+EPUB_OPF = """<?xml version="1.0" encoding="UTF-8"?>
+<package xmlns="http://www.idpf.org/2007/opf" version="3.0" unique-identifier="uid">
+<metadata xmlns:dc="http://purl.org/dc/elements/1.1/"><dc:title>Fixture Book</dc:title><dc:identifier id="uid">fixture</dc:identifier></metadata>
+<manifest>
+<item id="intro" href="b-intro.xhtml" media-type="application/xhtml+xml"/>
+<item id="end" href="a-end.xhtml" media-type="application/xhtml+xml"/>
+<item id="style" href="style.css" media-type="text/css"/>
+</manifest>
+<spine><itemref idref="intro"/><itemref idref="end"/></spine>
+</package>"""
+
+EPUB_INTRO = """<?xml version="1.0" encoding="UTF-8"?>
+<html xmlns="http://www.w3.org/1999/xhtml"><head><title>Intro</title>
+<style>p { color: red; }</style></head>
+<body><h1>Intro</h1><p>Once upon a time.</p></body></html>"""
+
+EPUB_END = """<?xml version="1.0" encoding="UTF-8"?>
+<html xmlns="http://www.w3.org/1999/xhtml"><head><title>End</title></head>
+<body><p>The end.</p></body></html>"""
+
+
+def make_epub() -> None:
+    with zipfile.ZipFile(HERE / "one-chapter.epub", "w", zipfile.ZIP_DEFLATED) as z:
+        z.writestr(
+            zipfile.ZipInfo("mimetype"),
+            "application/epub+zip",
+            compress_type=zipfile.ZIP_STORED,
+        )
+        z.writestr("META-INF/container.xml", EPUB_CONTAINER)
+        z.writestr("OEBPS/content.opf", EPUB_OPF)
+        z.writestr("OEBPS/b-intro.xhtml", EPUB_INTRO)
+        z.writestr("OEBPS/a-end.xhtml", EPUB_END)
+        z.writestr("OEBPS/style.css", "p { color: red; }")
+
+
+# --- three-cell.ipynb: markdown + code with outputs + code with an error -----
+def make_ipynb() -> None:
+    nb = {
+        "nbformat": 4,
+        "nbformat_minor": 5,
+        "metadata": {"language_info": {"name": "python"}},
+        "cells": [
+            {
+                "cell_type": "markdown",
+                "metadata": {},
+                "source": ["# Analysis\n", "Some prose."],
+            },
+            {
+                "cell_type": "code",
+                "execution_count": 1,
+                "metadata": {},
+                "source": ["print('hi')\n", "1 + 1"],
+                "outputs": [
+                    {"output_type": "stream", "name": "stdout", "text": ["hi\n"]},
+                    {
+                        "output_type": "execute_result",
+                        "execution_count": 1,
+                        "metadata": {},
+                        "data": {"text/plain": ["2"]},
+                    },
+                    {
+                        "output_type": "display_data",
+                        "metadata": {},
+                        "data": {
+                            "image/png": "iVBORw0KGgoAAAANSUhEUg==",
+                            "text/plain": ["<Figure size 640x480>"],
+                        },
+                    },
+                ],
+            },
+            {
+                "cell_type": "code",
+                "execution_count": 2,
+                "metadata": {},
+                "source": "boom()",
+                "outputs": [
+                    {
+                        "output_type": "error",
+                        "ename": "NameError",
+                        "evalue": "name 'boom' is not defined",
+                        "traceback": [
+                            "\u001b[0;31mNameError\u001b[0m: name 'boom' is not defined"
+                        ],
+                    }
+                ],
+            },
+        ],
+    }
+    (HERE / "three-cell.ipynb").write_text(json.dumps(nb, indent=1))
+
+
+# --- sample.rtf: control words, skipped tables, hex + unicode escapes --------
+RTF = (
+    r"{\rtf1\ansi\deff0{\fonttbl{\f0 Helvetica;}}{\colortbl;\red0\green0\blue0;}"
+    "\n"
+    r"{\*\generator Fixture 1.0;}"
+    r"\f0\fs24 Hello \b bold\b0  world.\par"
+    "\n"
+    r"Second\tab tabbed caf\'e9 and \u8212? dash.\par"
+    "\n"
+    r"Curly \'93quotes\'94 close.\par"
+    "\n}"
+)
+
+
+def make_rtf() -> None:
+    (HERE / "sample.rtf").write_text(RTF)
+
+
 if __name__ == "__main__":
     make_pdf()
     make_docx()
     make_xlsx()
     make_png()
     make_zip()
-    for name in ("two-page.pdf", "sample.docx", "two-sheet.xlsx", "tiny.png", "sample.zip"):
+    make_pptx()
+    make_odf("sample.odt", "application/vnd.oasis.opendocument.text", ODT_CONTENT)
+    make_odf("two-page.odp", "application/vnd.oasis.opendocument.presentation", ODP_CONTENT)
+    make_epub()
+    make_ipynb()
+    make_rtf()
+    for name in (
+        "two-page.pdf",
+        "sample.docx",
+        "two-sheet.xlsx",
+        "tiny.png",
+        "sample.zip",
+        "two-slide.pptx",
+        "reordered.pptx",
+        "sample.odt",
+        "two-page.odp",
+        "one-chapter.epub",
+        "three-cell.ipynb",
+        "sample.rtf",
+    ):
         print(f"{name}: {(HERE / name).stat().st_size} bytes")

@@ -9,20 +9,31 @@ import {
 } from "./file-kind";
 import { createStatCache, type StatIdentity } from "./extract/cache";
 import { extractDocx } from "./extract/docx";
+import { extractEpub } from "./extract/epub";
+import { extractNotebook } from "./extract/ipynb";
+import { extractOdp, extractOdt } from "./extract/odf";
 import { extractPdf } from "./extract/pdf";
+import { extractPptx } from "./extract/pptx";
+import { extractRtf } from "./extract/rtf";
 import { extractSheets, type SheetMeta } from "./extract/sheet";
 
 // Content routing for the `read` tool: sniff the bytes, then hand back either
-// the text to window (native or extracted from PDF/DOCX/spreadsheets),
-// image/video/audio metadata, or a thrown error for binaries with no text
-// rendering. Kept free of the workspace module so tests can feed fixture
-// paths directly.
+// the text to window (native or extracted from PDF/office documents/decks/
+// spreadsheets/e-books/notebooks), image/video/audio metadata, or a thrown
+// error for binaries with no text rendering. Kept free of the workspace
+// module so tests can feed fixture paths directly.
 
 /** Content routed by detected file kind: text (native or extracted), image/video/audio metadata, or a thrown error for unsupported binaries. */
 export type FileContent =
   | { readonly kind: "text"; readonly text: string }
   | { readonly kind: "pdf"; readonly text: string; readonly pages: number }
   | { readonly kind: "docx"; readonly text: string }
+  | { readonly kind: "pptx"; readonly text: string; readonly slides: number }
+  | { readonly kind: "odt"; readonly text: string }
+  | { readonly kind: "odp"; readonly text: string; readonly slides: number }
+  | { readonly kind: "epub"; readonly text: string; readonly sections: number }
+  | { readonly kind: "ipynb"; readonly text: string; readonly cells: number }
+  | { readonly kind: "rtf"; readonly text: string }
   | {
       readonly kind: "sheet";
       readonly format: SheetFormat;
@@ -38,10 +49,17 @@ export type FileContent =
   | { readonly kind: "video"; readonly format: VideoFormat }
   | { readonly kind: "audio"; readonly format: AudioFormat };
 
-type ExtractedDoc = Exclude<FileContent, { kind: "text" } | { kind: "image" }>;
+// The cache holds extracted documents; the ipynb slot can resolve to plain
+// text (the fall-back below), which is harmless to cache.
+type ExtractedDoc = Exclude<FileContent, { kind: "image" } | { kind: "video" } | { kind: "audio" }>;
 type ExtractableKind =
   | { readonly kind: "pdf" }
   | { readonly kind: "docx" }
+  | { readonly kind: "pptx" }
+  | { readonly kind: "odt" }
+  | { readonly kind: "odp" }
+  | { readonly kind: "epub" }
+  | { readonly kind: "rtf" }
   | { readonly kind: "sheet"; readonly format: SheetFormat };
 
 // Extraction is pure parsing, so cache by path + stat identity: re-reading a
@@ -83,6 +101,41 @@ async function extractDocument(
       }
       return { kind: "docx", text: result.text };
     }
+    case "pptx": {
+      const result = extractPptx(buffer);
+      if (!result.ok) {
+        throw new Error(`Could not extract text from PPTX ${path}: ${result.reason}`);
+      }
+      return { kind: "pptx", text: result.text, slides: result.slides };
+    }
+    case "odt": {
+      const result = extractOdt(buffer);
+      if (!result.ok) {
+        throw new Error(`Could not extract text from ODT ${path}: ${result.reason}`);
+      }
+      return { kind: "odt", text: result.text };
+    }
+    case "odp": {
+      const result = extractOdp(buffer);
+      if (!result.ok) {
+        throw new Error(`Could not extract text from ODP ${path}: ${result.reason}`);
+      }
+      return { kind: "odp", text: result.text, slides: result.slides };
+    }
+    case "epub": {
+      const result = extractEpub(buffer);
+      if (!result.ok) {
+        throw new Error(`Could not extract text from EPUB ${path}: ${result.reason}`);
+      }
+      return { kind: "epub", text: result.text, sections: result.sections };
+    }
+    case "rtf": {
+      const result = extractRtf(buffer);
+      if (!result.ok) {
+        throw new Error(`Could not extract text from RTF ${path}: ${result.reason}`);
+      }
+      return { kind: "rtf", text: result.text };
+    }
     case "sheet": {
       const result = extractSheets(buffer);
       if (!result.ok) {
@@ -109,8 +162,24 @@ export async function loadFileContent(
       return { kind: "text", text: decodeText(buffer, detected.encoding) };
     case "pdf":
     case "docx":
+    case "pptx":
+    case "odt":
+    case "odp":
+    case "epub":
+    case "rtf":
     case "sheet":
       return extractionCache.get(path, id, () => extractDocument(detected, buffer, path));
+    case "ipynb":
+      // The extension routed us here, but extensions lie: a .ipynb that
+      // isn't a v4 notebook is still readable text, so fall back to the
+      // raw view instead of refusing the read.
+      return extractionCache.get(path, id, () => {
+        const result = extractNotebook(buffer);
+        if (!result.ok) {
+          return Promise.resolve({ kind: "text", text: decodeText(buffer, "utf8") });
+        }
+        return Promise.resolve({ kind: "ipynb", text: result.text, cells: result.cells });
+      });
     case "image": {
       // Magic bytes matched but the body may still be truncated/corrupt —
       // dimensions are best-effort, the metadata result is useful either way.

@@ -8,7 +8,7 @@
 
 > **setParkNotificationHandler**(`handler`): `void`
 
-Defined in: [packages/agent-sdk/src/park-delivery.ts:262](https://github.com/zocomputer/zov2-code/blob/1e3454bf19fec73047afd6e825710b7db25d004a/packages/agent-sdk/src/park-delivery.ts#L262)
+Defined in: [packages/agent-sdk/src/park-delivery.ts:262](https://github.com/zocomputer/zov2-code/blob/5cd4dc50234e29b61bac1ae63f95c9b3f3a18361/packages/agent-sdk/src/park-delivery.ts#L262)
 
 Register the hook-side consumer (latest registration wins — a rebuilt hook
 replaces its stale copy). Flushes any posts queued before registration.

@@ -60,6 +60,59 @@ describe("loadFileContent", () => {
     expect(content.text).toContain("apple\t3");
   });
 
+  test("routes PPTX to extraction with a slide count", async () => {
+    const content = await loadFixture("two-slide.pptx");
+    if (content.kind !== "pptx") throw new Error(`expected pptx, got ${content.kind}`);
+    expect(content.slides).toBe(2);
+    expect(content.text).toContain("=== slide 1 of 2 ===");
+    expect(content.text).toContain("[speaker notes]");
+  });
+
+  test("routes ODT to extraction", async () => {
+    const content = await loadFixture("sample.odt");
+    if (content.kind !== "odt") throw new Error(`expected odt, got ${content.kind}`);
+    expect(content.text).toContain("Trip Notes");
+  });
+
+  test("routes ODP to extraction with a slide count", async () => {
+    const content = await loadFixture("two-page.odp");
+    if (content.kind !== "odp") throw new Error(`expected odp, got ${content.kind}`);
+    expect(content.slides).toBe(2);
+    expect(content.text).toContain("=== slide 2 of 2 ===");
+  });
+
+  test("routes EPUB to extraction with a section count", async () => {
+    const content = await loadFixture("one-chapter.epub");
+    if (content.kind !== "epub") throw new Error(`expected epub, got ${content.kind}`);
+    expect(content.sections).toBe(2);
+    expect(content.text).toContain("Once upon a time.");
+  });
+
+  test("routes notebooks to extraction with a cell count", async () => {
+    const content = await loadFixture("three-cell.ipynb");
+    if (content.kind !== "ipynb") throw new Error(`expected ipynb, got ${content.kind}`);
+    expect(content.cells).toBe(3);
+    expect(content.text).toContain("=== cell 2 of 3 (code) ===");
+    // The base64 image output never reaches the transcript.
+    expect(content.text).not.toContain("iVBORw0KGgo");
+  });
+
+  test("a .ipynb that is not a notebook falls back to the raw text view", async () => {
+    const raw = "definitely not JSON\n";
+    const content = await loadFileContent(Buffer.from(raw), "scratch.ipynb", {
+      mtimeMs: 1,
+      size: raw.length,
+    });
+    expect(content).toEqual({ kind: "text", text: raw });
+  });
+
+  test("routes RTF to extraction", async () => {
+    const content = await loadFixture("sample.rtf");
+    if (content.kind !== "rtf") throw new Error(`expected rtf, got ${content.kind}`);
+    expect(content.text).toContain("Hello bold world.");
+    expect(content.text).not.toContain("fonttbl");
+  });
+
   test("images return metadata, not text", async () => {
     const content = await loadFixture("tiny.png");
     if (content.kind !== "image") throw new Error(`expected image, got ${content.kind}`);
@@ -73,7 +126,6 @@ describe("loadFileContent", () => {
   });
 
   test("named no-extractor formats throw an actionable error", async () => {
-    expect(corrupt("PK\x03\x04", "deck.pptx")).rejects.toThrow(/PowerPoint deck/);
     expect(
       corrupt("\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1", "memo.doc"),
     ).rejects.toThrow(/convert it to \.docx/);
@@ -86,6 +138,18 @@ describe("loadFileContent", () => {
     );
     expect(corrupt("PK\x03\x04", "broken.xlsx")).rejects.toThrow(
       /Could not extract data from spreadsheet/,
+    );
+    expect(corrupt("PK\x03\x04", "broken.pptx")).rejects.toThrow(
+      /Could not extract text from PPTX/,
+    );
+    expect(corrupt("PK\x03\x04", "broken.odt")).rejects.toThrow(
+      /Could not extract text from ODT/,
+    );
+    expect(corrupt("PK\x03\x04", "broken.odp")).rejects.toThrow(
+      /Could not extract text from ODP/,
+    );
+    expect(corrupt("PK\x03\x04", "broken.epub")).rejects.toThrow(
+      /Could not extract text from EPUB/,
     );
   });
 
