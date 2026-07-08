@@ -1,13 +1,13 @@
-// ../../../../../tmp/agent-sdk-mirror-ChphsM/repo/platform/cloud-tools/image.ts
+// ../../../../../tmp/agent-sdk-mirror-tqW8rn/repo/platform/cloud-tools/image.ts
 import { randomUUID } from "node:crypto";
 import { generateImage } from "ai";
 import { defineTool } from "eve/tools";
-import { z as z2 } from "zod";
+import { z as z3 } from "zod";
 
-// ../../../../../tmp/agent-sdk-mirror-ChphsM/repo/platform/runtime-ai/gateway.ts
+// ../../../../../tmp/agent-sdk-mirror-tqW8rn/repo/platform/runtime-ai/gateway.ts
 import { createGateway } from "ai";
 
-// ../../../../../tmp/agent-sdk-mirror-ChphsM/repo/platform/runtime-ai/session-fetch.ts
+// ../../../../../tmp/agent-sdk-mirror-tqW8rn/repo/platform/runtime-ai/session-fetch.ts
 var EVE_SESSION_HEADER = "x-zo-eve-session";
 var EVE_TURN_HEADER = "x-zo-eve-turn";
 var EVE_CONTEXT_STORAGE_KEY = Symbol.for("eve.context-storage");
@@ -55,7 +55,7 @@ function eveSessionFetch(getSessionId = ambientEveSessionId, baseFetch = globalT
   }, baseFetch);
 }
 
-// ../../../../../tmp/agent-sdk-mirror-ChphsM/repo/platform/runtime-ai/gateway.ts
+// ../../../../../tmp/agent-sdk-mirror-tqW8rn/repo/platform/runtime-ai/gateway.ts
 var ZO_TOOL_HEADER = "x-zo-tool";
 var DEFAULT_ZO_AI_BASE_URL = "http://localhost:4000/runtime/ai/v4/ai";
 var DEFAULT_ZO_AI_KEY = "dev-proxy";
@@ -82,49 +82,57 @@ function zoGateway(options = {}) {
     fetch: eveSessionFetch(undefined, options.fetch)
   });
 }
-// ../../../../../tmp/agent-sdk-mirror-ChphsM/repo/platform/cloud-tools/image-path.ts
-var DEFAULT_IMAGE_OUTPUT_DIR = "generated";
+// ../../../../../tmp/agent-sdk-mirror-tqW8rn/repo/platform/cloud-tools/asset-path.ts
+import { z } from "zod";
+var DEFAULT_ASSET_OUTPUT_DIR = "generated";
+var OutputDirSchema = z.string().trim().min(1).max(200).regex(/^(?!\/)(?!.*\/$)(?!.*\/\/)(?!.*(?:^|\/)(?:\.|\.\.)(?:\/|$))[A-Za-z0-9._/-]+$/u, "Use a relative state file path without empty, . or .. segments.");
 var MEDIA_TYPE_EXTENSIONS = {
   "image/jpeg": "jpg",
   "image/png": "png",
-  "image/webp": "webp"
+  "image/webp": "webp",
+  "video/mp4": "mp4",
+  "video/webm": "webm",
+  "video/quicktime": "mov"
 };
 function extensionForMediaType(mediaType) {
   return MEDIA_TYPE_EXTENSIONS[mediaType] ?? "bin";
 }
-function slugForPrompt(prompt) {
+function slugForPrompt(prompt, fallback = "asset") {
   const slug = prompt.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 48);
-  return slug.length > 0 ? slug : "image";
+  return slug.length > 0 ? slug : fallback;
 }
 function normalizedOutputDir(outputDir) {
   const trimmed = outputDir?.trim();
-  const dir = trimmed && trimmed.length > 0 ? trimmed : DEFAULT_IMAGE_OUTPUT_DIR;
+  const dir = trimmed && trimmed.length > 0 ? trimmed : DEFAULT_ASSET_OUTPUT_DIR;
   const withoutTrailingSlash = dir.replace(/\/+$/g, "");
-  return withoutTrailingSlash.length > 0 ? withoutTrailingSlash : DEFAULT_IMAGE_OUTPUT_DIR;
+  return withoutTrailingSlash.length > 0 ? withoutTrailingSlash : DEFAULT_ASSET_OUTPUT_DIR;
 }
-function imageOutputPath(input) {
-  return `${normalizedOutputDir(input.outputDir)}/${slugForPrompt(input.prompt)}-${input.id}.${extensionForMediaType(input.mediaType)}`;
+function assetOutputPath(input) {
+  return `${normalizedOutputDir(input.outputDir)}/${slugForPrompt(input.prompt, input.fallbackSlug)}-${input.id}.${extensionForMediaType(input.mediaType)}`;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-ChphsM/repo/platform/cloud-tools/tool-meta.ts
+// ../../../../../tmp/agent-sdk-mirror-tqW8rn/repo/platform/cloud-tools/tool-meta.ts
 var CLOUD_TOOL_META = {
   image: {
     description: "Generate an image from a text prompt and save it as an external state asset."
+  },
+  video: {
+    description: "Generate a short video from a text prompt and save it as an external state asset."
   }
 };
 
-// ../../../../../tmp/agent-sdk-mirror-ChphsM/repo/platform/cloud-tools/state-consent.ts
-import { z } from "zod";
+// ../../../../../tmp/agent-sdk-mirror-tqW8rn/repo/platform/cloud-tools/state-consent.ts
+import { z as z2 } from "zod";
 var REQUEST_STATE_CONSENT_TOOL_NAME = "request_state_consent";
-var consentPartySchema = z.object({
-  handle: z.string().min(1),
-  external: z.boolean(),
-  intentDivergenceNote: z.string().min(1).optional()
+var consentPartySchema = z2.object({
+  handle: z2.string().min(1),
+  external: z2.boolean(),
+  intentDivergenceNote: z2.string().min(1).optional()
 });
-var consentEnvelopeSchema = z.object({
-  bindingId: z.string().min(1),
-  declarationName: z.string().min(1),
-  resourceName: z.string().min(1),
+var consentEnvelopeSchema = z2.object({
+  bindingId: z2.string().min(1),
+  declarationName: z2.string().min(1),
+  resourceName: z2.string().min(1),
   party: consentPartySchema
 });
 function parseConsentEnvelope(value) {
@@ -141,7 +149,7 @@ function buildConsentSteer(envelope) {
 `);
 }
 
-// ../../../../../tmp/agent-sdk-mirror-ChphsM/repo/platform/cloud-tools/state-files.ts
+// ../../../../../tmp/agent-sdk-mirror-tqW8rn/repo/platform/cloud-tools/state-files.ts
 var DEFAULT_STATE_ASSET_DECLARATION_NAME = "files";
 var STATE_FILES_HANDLE_PATH = "/state/handles";
 var ZO_AGENT_TOKEN_HEADER = "x-zo-agent-token";
@@ -411,7 +419,7 @@ function readString(record, key) {
   return typeof value === "string" && value.length > 0 ? value : null;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-ChphsM/repo/platform/cloud-tools/image.ts
+// ../../../../../tmp/agent-sdk-mirror-tqW8rn/repo/platform/cloud-tools/image.ts
 var DEFAULT_IMAGE_MODEL = "bfl/flux-2-pro";
 function isImageSize(value) {
   return typeof value === "string" && /^[1-9]\d{1,4}x[1-9]\d{1,4}$/u.test(value);
@@ -419,39 +427,38 @@ function isImageSize(value) {
 function isImageAspectRatio(value) {
   return typeof value === "string" && /^[1-9]\d{0,2}:[1-9]\d{0,2}$/u.test(value);
 }
-var SizeSchema = z2.templateLiteral([z2.number().int().positive(), "x", z2.number().int().positive()]).refine(isImageSize, { message: "Use WIDTHxHEIGHT, for example 1024x1024." });
-var AspectRatioSchema = z2.templateLiteral([z2.number().int().positive(), ":", z2.number().int().positive()]).refine(isImageAspectRatio, { message: "Use WIDTH:HEIGHT, for example 1:1 or 16:9." });
-var ImageDimensionsSchema = z2.discriminatedUnion("kind", [
-  z2.object({ kind: z2.literal("auto") }).strict(),
-  z2.object({ kind: z2.literal("size"), size: SizeSchema }).strict(),
-  z2.object({
+var SizeSchema = z3.templateLiteral([z3.number().int().positive(), "x", z3.number().int().positive()]).refine(isImageSize, { message: "Use WIDTHxHEIGHT, for example 1024x1024." });
+var AspectRatioSchema = z3.templateLiteral([z3.number().int().positive(), ":", z3.number().int().positive()]).refine(isImageAspectRatio, { message: "Use WIDTH:HEIGHT, for example 1:1 or 16:9." });
+var ImageDimensionsSchema = z3.discriminatedUnion("kind", [
+  z3.object({ kind: z3.literal("auto") }).strict(),
+  z3.object({ kind: z3.literal("size"), size: SizeSchema }).strict(),
+  z3.object({
     aspectRatio: AspectRatioSchema,
-    kind: z2.literal("aspectRatio")
+    kind: z3.literal("aspectRatio")
   }).strict()
 ]);
-var OutputDirSchema = z2.string().trim().min(1).max(200).regex(/^(?!\/)(?!.*\/$)(?!.*\/\/)(?!.*(?:^|\/)(?:\.|\.\.)(?:\/|$))[A-Za-z0-9._/-]+$/u, "Use a relative state file path without empty, . or .. segments.");
-var GenerateImageInputSchema = z2.object({
+var GenerateImageInputSchema = z3.object({
   dimensions: ImageDimensionsSchema.optional(),
-  model: z2.string().trim().min(1).optional(),
+  model: z3.string().trim().min(1).optional(),
   outputDir: OutputDirSchema.optional(),
-  prompt: z2.string().trim().min(1).max(4000),
-  seed: z2.number().int().nonnegative().optional()
+  prompt: z3.string().trim().min(1).max(4000),
+  seed: z3.number().int().nonnegative().optional()
 }).strict();
-var StateAssetReferenceSchema = z2.object({
-  bytes: z2.number().int().nonnegative().optional(),
-  contentType: z2.string().optional(),
-  declarationName: z2.string(),
-  path: z2.string(),
-  type: z2.literal("state_asset")
+var StateAssetReferenceSchema = z3.object({
+  bytes: z3.number().int().nonnegative().optional(),
+  contentType: z3.string().optional(),
+  declarationName: z3.string(),
+  path: z3.string(),
+  type: z3.literal("state_asset")
 }).strict();
-var GenerateImageOutputSchema = z2.object({
+var GenerateImageOutputSchema = z3.object({
   asset: StateAssetReferenceSchema,
-  bytes: z2.number().int().nonnegative(),
-  mediaType: z2.string(),
-  model: z2.string(),
-  path: z2.string(),
-  prompt: z2.string(),
-  warnings: z2.array(z2.string())
+  bytes: z3.number().int().nonnegative(),
+  mediaType: z3.string(),
+  model: z3.string(),
+  path: z3.string(),
+  prompt: z3.string(),
+  warnings: z3.array(z3.string())
 }).strict();
 function assertNever(value) {
   throw new Error(`Unhandled generate_image dimensions: ${JSON.stringify(value)}`);
@@ -501,11 +508,12 @@ function generateImageTool(options = {}) {
         ...input.seed === undefined ? {} : { seed: input.seed }
       });
       const image = result.image;
-      const path = imageOutputPath({
+      const path = assetOutputPath({
         id: randomId(),
         mediaType: image.mediaType,
         outputDir: input.outputDir,
-        prompt: input.prompt
+        prompt: input.prompt,
+        fallbackSlug: "image"
       });
       await assetWriter.write(path, image.uint8Array, { contentType: image.mediaType });
       const asset = stateAssetReference({
@@ -534,7 +542,105 @@ function generateImageTool(options = {}) {
   });
 }
 var image_default = generateImageTool();
-// ../../../../../tmp/agent-sdk-mirror-ChphsM/repo/platform/cloud-tools/web-search.ts
+// ../../../../../tmp/agent-sdk-mirror-tqW8rn/repo/platform/cloud-tools/video.ts
+import { randomUUID as randomUUID2 } from "node:crypto";
+import { experimental_generateVideo as generateVideo } from "ai";
+import { defineTool as defineTool2 } from "eve/tools";
+import { z as z4 } from "zod";
+var DEFAULT_VIDEO_MODEL = "bytedance/seedance-2.0-fast";
+var AspectRatioSchema2 = z4.enum(["16:9", "9:16", "1:1"]);
+var GenerateVideoInputSchema = z4.object({
+  aspectRatio: AspectRatioSchema2.optional(),
+  durationSeconds: z4.number().int().positive().max(30).optional(),
+  model: z4.string().trim().min(1).optional(),
+  outputDir: OutputDirSchema.optional(),
+  prompt: z4.string().trim().min(1).max(4000),
+  seed: z4.number().int().nonnegative().optional()
+}).strict();
+var StateAssetReferenceSchema2 = z4.object({
+  bytes: z4.number().int().nonnegative().optional(),
+  contentType: z4.string().optional(),
+  declarationName: z4.string(),
+  path: z4.string(),
+  type: z4.literal("state_asset")
+}).strict();
+var GenerateVideoOutputSchema = z4.object({
+  asset: StateAssetReferenceSchema2,
+  bytes: z4.number().int().nonnegative(),
+  mediaType: z4.string(),
+  model: z4.string(),
+  path: z4.string(),
+  prompt: z4.string(),
+  warnings: z4.array(z4.string())
+}).strict();
+function warningText2(warning) {
+  if (warning instanceof Error) {
+    return warning.message;
+  }
+  if (typeof warning === "string") {
+    return warning;
+  }
+  const json = JSON.stringify(warning);
+  return json ?? String(warning);
+}
+function randomVideoId() {
+  return randomUUID2().slice(0, 8);
+}
+function generateVideoTool(options = {}) {
+  const declarationName = options.declarationName ?? DEFAULT_STATE_ASSET_DECLARATION_NAME;
+  const assetWriter = options.assetWriter ?? createRuntimeStateFilesClient({ declarationName });
+  const generate = options.generate ?? generateVideo;
+  const randomId = options.randomId ?? randomVideoId;
+  return defineTool2({
+    description: CLOUD_TOOL_META.video.description,
+    inputSchema: GenerateVideoInputSchema,
+    outputSchema: GenerateVideoOutputSchema,
+    async execute(input) {
+      const model = input.model ?? DEFAULT_VIDEO_MODEL;
+      const result = await generate({
+        headers: { [ZO_TOOL_HEADER]: "generate_video" },
+        model: zoGateway().video(model),
+        prompt: input.prompt,
+        ...input.aspectRatio === undefined ? {} : { aspectRatio: input.aspectRatio },
+        ...input.durationSeconds === undefined ? {} : { duration: input.durationSeconds },
+        ...input.seed === undefined ? {} : { seed: input.seed }
+      });
+      const video = result.video;
+      const path = assetOutputPath({
+        id: randomId(),
+        mediaType: video.mediaType,
+        outputDir: input.outputDir,
+        prompt: input.prompt,
+        fallbackSlug: "video"
+      });
+      await assetWriter.write(path, video.uint8Array, { contentType: video.mediaType });
+      const asset = stateAssetReference({
+        type: "state_asset",
+        declarationName,
+        path,
+        contentType: video.mediaType,
+        bytes: video.uint8Array.byteLength
+      });
+      return {
+        asset,
+        bytes: video.uint8Array.byteLength,
+        mediaType: video.mediaType,
+        model,
+        path,
+        prompt: input.prompt,
+        warnings: result.warnings.map(warningText2)
+      };
+    },
+    toModelOutput(output) {
+      return {
+        type: "text",
+        value: `Generated video saved as state asset ${output.asset.declarationName}:${output.asset.path}. ` + `The asset is available to the chat UI through the state_asset reference; ` + `do not invent or expose a temporary URL.`
+      };
+    }
+  });
+}
+var video_default = generateVideoTool();
+// ../../../../../tmp/agent-sdk-mirror-tqW8rn/repo/platform/cloud-tools/web-search.ts
 function webSearch(config) {
   const gateway = zoGateway();
   return config === undefined ? gateway.tools.exaSearch() : gateway.tools.exaSearch(config);
@@ -542,11 +648,16 @@ function webSearch(config) {
 export {
   webSearch,
   stateAssetReference,
+  generateVideoTool,
+  video_default as generateVideo,
   generateImageTool,
   image_default as generateImage,
   createRuntimeStateFilesClient,
+  GenerateVideoOutputSchema,
+  GenerateVideoInputSchema,
   GenerateImageOutputSchema,
   GenerateImageInputSchema,
+  DEFAULT_VIDEO_MODEL,
   DEFAULT_STATE_ASSET_DECLARATION_NAME,
   DEFAULT_IMAGE_MODEL
 };

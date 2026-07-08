@@ -8,7 +8,7 @@
 
 > **VideoFormat** = `"mp4"` \| `"mov"` \| `"webm"` \| `"mkv"` \| `"avi"`
 
-Defined in: [packages/agent-sdk/src/file-kind.ts:19](https://github.com/zocomputer/zov2-code/blob/346fe3cc1f4b2813234e8cc0980e7a87e8c918ea/packages/agent-sdk/src/file-kind.ts#L19)
+Defined in: [packages/agent-sdk/src/file-kind.ts:19](https://github.com/zocomputer/zov2-code/blob/a8636edc2f6184e686ebe291b26c3e5e9b3ae7ef/packages/agent-sdk/src/file-kind.ts#L19)
 
 Video containers `read` detects. Delivery to the model is provider-gated
 (see the attach options on the read/webfetch factories).

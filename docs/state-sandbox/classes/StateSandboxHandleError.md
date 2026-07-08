@@ -6,7 +6,7 @@
 
 # Class: StateSandboxHandleError
 
-Defined in: [packages/agent-sdk/src/state-sandbox.ts:122](https://github.com/zocomputer/zov2-code/blob/346fe3cc1f4b2813234e8cc0980e7a87e8c918ea/packages/agent-sdk/src/state-sandbox.ts#L122)
+Defined in: [packages/agent-sdk/src/state-sandbox.ts:122](https://github.com/zocomputer/zov2-code/blob/a8636edc2f6184e686ebe291b26c3e5e9b3ae7ef/packages/agent-sdk/src/state-sandbox.ts#L122)
 
 Error thrown when a state sandbox handle request fails.
 Carries the HTTP status and an optional error code from the broker.
@@ -21,7 +21,7 @@ Carries the HTTP status and an optional error code from the broker.
 
 > **new StateSandboxHandleError**(`message`, `options`): `StateSandboxHandleError`
 
-Defined in: [packages/agent-sdk/src/state-sandbox.ts:132](https://github.com/zocomputer/zov2-code/blob/346fe3cc1f4b2813234e8cc0980e7a87e8c918ea/packages/agent-sdk/src/state-sandbox.ts#L132)
+Defined in: [packages/agent-sdk/src/state-sandbox.ts:132](https://github.com/zocomputer/zov2-code/blob/a8636edc2f6184e686ebe291b26c3e5e9b3ae7ef/packages/agent-sdk/src/state-sandbox.ts#L132)
 
 #### Parameters
 
@@ -71,7 +71,7 @@ The cause of the error.
 
 > `readonly` **code**: `string` \| `null`
 
-Defined in: [packages/agent-sdk/src/state-sandbox.ts:124](https://github.com/zocomputer/zov2-code/blob/346fe3cc1f4b2813234e8cc0980e7a87e8c918ea/packages/agent-sdk/src/state-sandbox.ts#L124)
+Defined in: [packages/agent-sdk/src/state-sandbox.ts:124](https://github.com/zocomputer/zov2-code/blob/a8636edc2f6184e686ebe291b26c3e5e9b3ae7ef/packages/agent-sdk/src/state-sandbox.ts#L124)
 
 ***
 
@@ -79,7 +79,7 @@ Defined in: [packages/agent-sdk/src/state-sandbox.ts:124](https://github.com/zoc
 
 > `readonly` **consent**: \{ `bindingId`: `string`; `declarationName`: `string`; `party`: \{ `external`: `boolean`; `handle`: `string`; `intentDivergenceNote?`: `string`; \}; `resourceName`: `string`; \} \| `null`
 
-Defined in: [packages/agent-sdk/src/state-sandbox.ts:130](https://github.com/zocomputer/zov2-code/blob/346fe3cc1f4b2813234e8cc0980e7a87e8c918ea/packages/agent-sdk/src/state-sandbox.ts#L130)
+Defined in: [packages/agent-sdk/src/state-sandbox.ts:130](https://github.com/zocomputer/zov2-code/blob/a8636edc2f6184e686ebe291b26c3e5e9b3ae7ef/packages/agent-sdk/src/state-sandbox.ts#L130)
 
 The consent envelope, present ONLY on a `consent_required` 409 carrying the
 full contract (bindingId, declarationName, resourceName, party); `null`
@@ -127,7 +127,7 @@ Defined in: node\_modules/.bun/typescript@6.0.3/node\_modules/typescript/lib/lib
 
 > `readonly` **status**: `number`
 
-Defined in: [packages/agent-sdk/src/state-sandbox.ts:123](https://github.com/zocomputer/zov2-code/blob/346fe3cc1f4b2813234e8cc0980e7a87e8c918ea/packages/agent-sdk/src/state-sandbox.ts#L123)
+Defined in: [packages/agent-sdk/src/state-sandbox.ts:123](https://github.com/zocomputer/zov2-code/blob/a8636edc2f6184e686ebe291b26c3e5e9b3ae7ef/packages/agent-sdk/src/state-sandbox.ts#L123)
 
 ***
 

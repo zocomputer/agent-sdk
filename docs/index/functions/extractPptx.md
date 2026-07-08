@@ -8,7 +8,7 @@
 
 > **extractPptx**(`bytes`, `options?`): [`PptxExtraction`](../type-aliases/PptxExtraction.md)
 
-Defined in: [packages/agent-sdk/src/extract/pptx.ts:169](https://github.com/zocomputer/zov2-code/blob/346fe3cc1f4b2813234e8cc0980e7a87e8c918ea/packages/agent-sdk/src/extract/pptx.ts#L169)
+Defined in: [packages/agent-sdk/src/extract/pptx.ts:169](https://github.com/zocomputer/zov2-code/blob/a8636edc2f6184e686ebe291b26c3e5e9b3ae7ef/packages/agent-sdk/src/extract/pptx.ts#L169)
 
 Extract PPTX bytes into text: slides in deck order under
 `=== slide N of M ===` markers, speaker notes appended per slide.

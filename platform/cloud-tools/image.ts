@@ -5,7 +5,7 @@ import { defineTool } from "eve/tools";
 import { z } from "zod";
 
 import { ZO_TOOL_HEADER, zoGateway } from "../runtime-ai/index.ts";
-import { imageOutputPath } from "./image-path";
+import { assetOutputPath, OutputDirSchema } from "./asset-path";
 import { CLOUD_TOOL_META } from "./tool-meta";
 import {
   createRuntimeStateFilesClient,
@@ -57,16 +57,6 @@ const ImageDimensionsSchema = z.discriminatedUnion("kind", [
     })
     .strict(),
 ]);
-
-const OutputDirSchema = z
-  .string()
-  .trim()
-  .min(1)
-  .max(200)
-  .regex(
-    /^(?!\/)(?!.*\/$)(?!.*\/\/)(?!.*(?:^|\/)(?:\.|\.\.)(?:\/|$))[A-Za-z0-9._/-]+$/u,
-    "Use a relative state file path without empty, . or .. segments.",
-  );
 
 export const GenerateImageInputSchema = z
   .object({
@@ -184,11 +174,12 @@ export function generateImageTool(options: GenerateImageToolOptions = {}) {
         ...(input.seed === undefined ? {} : { seed: input.seed }),
       });
       const image = result.image;
-      const path = imageOutputPath({
+      const path = assetOutputPath({
         id: randomId(),
         mediaType: image.mediaType,
         outputDir: input.outputDir,
         prompt: input.prompt,
+        fallbackSlug: "image",
       });
 
       await assetWriter.write(path, image.uint8Array, { contentType: image.mediaType });

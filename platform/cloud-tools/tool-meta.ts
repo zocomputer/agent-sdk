@@ -16,6 +16,9 @@ export const CLOUD_TOOL_META = {
   image: {
     description: "Generate an image from a text prompt and save it as an external state asset.",
   },
+  video: {
+    description: "Generate a short video from a text prompt and save it as an external state asset.",
+  },
 } as const;
 
 export type CloudToolName = keyof typeof CLOUD_TOOL_META;

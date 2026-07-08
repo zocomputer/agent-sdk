@@ -8,7 +8,7 @@
 
 > **sandboxIoProvider**(`options`): [`WorkspaceIoProvider`](../type-aliases/WorkspaceIoProvider.md)
 
-Defined in: [packages/agent-sdk/src/sandbox-io.ts:75](https://github.com/zocomputer/zov2-code/blob/346fe3cc1f4b2813234e8cc0980e7a87e8c918ea/packages/agent-sdk/src/sandbox-io.ts#L75)
+Defined in: [packages/agent-sdk/src/sandbox-io.ts:75](https://github.com/zocomputer/zov2-code/blob/a8636edc2f6184e686ebe291b26c3e5e9b3ae7ef/packages/agent-sdk/src/sandbox-io.ts#L75)
 
 A `WorkspaceIoProvider` over the session sandbox — pass as the `io` option
 of the file-tool factories (or use `createSandboxFileTools`, which wires

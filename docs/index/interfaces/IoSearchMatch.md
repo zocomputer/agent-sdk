@@ -6,7 +6,7 @@
 
 # Interface: IoSearchMatch
 
-Defined in: [packages/agent-sdk/src/workspace-io.ts:31](https://github.com/zocomputer/zov2-code/blob/346fe3cc1f4b2813234e8cc0980e7a87e8c918ea/packages/agent-sdk/src/workspace-io.ts#L31)
+Defined in: [packages/agent-sdk/src/workspace-io.ts:31](https://github.com/zocomputer/zov2-code/blob/a8636edc2f6184e686ebe291b26c3e5e9b3ae7ef/packages/agent-sdk/src/workspace-io.ts#L31)
 
 One matching line from a content search. `file` is workspace-root-relative.
 
@@ -16,7 +16,7 @@ One matching line from a content search. `file` is workspace-root-relative.
 
 > `readonly` **file**: `string`
 
-Defined in: [packages/agent-sdk/src/workspace-io.ts:32](https://github.com/zocomputer/zov2-code/blob/346fe3cc1f4b2813234e8cc0980e7a87e8c918ea/packages/agent-sdk/src/workspace-io.ts#L32)
+Defined in: [packages/agent-sdk/src/workspace-io.ts:32](https://github.com/zocomputer/zov2-code/blob/a8636edc2f6184e686ebe291b26c3e5e9b3ae7ef/packages/agent-sdk/src/workspace-io.ts#L32)
 
 ***
 
@@ -24,7 +24,7 @@ Defined in: [packages/agent-sdk/src/workspace-io.ts:32](https://github.com/zocom
 
 > `readonly` **line**: `number`
 
-Defined in: [packages/agent-sdk/src/workspace-io.ts:33](https://github.com/zocomputer/zov2-code/blob/346fe3cc1f4b2813234e8cc0980e7a87e8c918ea/packages/agent-sdk/src/workspace-io.ts#L33)
+Defined in: [packages/agent-sdk/src/workspace-io.ts:33](https://github.com/zocomputer/zov2-code/blob/a8636edc2f6184e686ebe291b26c3e5e9b3ae7ef/packages/agent-sdk/src/workspace-io.ts#L33)
 
 ***
 
@@ -32,4 +32,4 @@ Defined in: [packages/agent-sdk/src/workspace-io.ts:33](https://github.com/zocom
 
 > `readonly` **text**: `string`
 
-Defined in: [packages/agent-sdk/src/workspace-io.ts:34](https://github.com/zocomputer/zov2-code/blob/346fe3cc1f4b2813234e8cc0980e7a87e8c918ea/packages/agent-sdk/src/workspace-io.ts#L34)
+Defined in: [packages/agent-sdk/src/workspace-io.ts:34](https://github.com/zocomputer/zov2-code/blob/a8636edc2f6184e686ebe291b26c3e5e9b3ae7ef/packages/agent-sdk/src/workspace-io.ts#L34)

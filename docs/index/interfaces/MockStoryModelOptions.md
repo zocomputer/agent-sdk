@@ -6,7 +6,7 @@
 
 # Interface: MockStoryModelOptions
 
-Defined in: [packages/agent-sdk/src/mock-model.ts:29](https://github.com/zocomputer/zov2-code/blob/346fe3cc1f4b2813234e8cc0980e7a87e8c918ea/packages/agent-sdk/src/mock-model.ts#L29)
+Defined in: [packages/agent-sdk/src/mock-model.ts:29](https://github.com/zocomputer/zov2-code/blob/a8636edc2f6184e686ebe291b26c3e5e9b3ae7ef/packages/agent-sdk/src/mock-model.ts#L29)
 
 Configuration for the slow-streaming mock model's behavior: how long each
 story turn runs, how many deltas a burst emits, which subagent tool
@@ -18,7 +18,7 @@ story turn runs, how many deltas a burst emits, which subagent tool
 
 > `optional` **burstChunks?**: `number`
 
-Defined in: [packages/agent-sdk/src/mock-model.ts:35](https://github.com/zocomputer/zov2-code/blob/346fe3cc1f4b2813234e8cc0980e7a87e8c918ea/packages/agent-sdk/src/mock-model.ts#L35)
+Defined in: [packages/agent-sdk/src/mock-model.ts:35](https://github.com/zocomputer/zov2-code/blob/a8636edc2f6184e686ebe291b26c3e5e9b3ae7ef/packages/agent-sdk/src/mock-model.ts#L35)
 
 Deltas for a `[mock:burst]` turn (no pacing). Default 600.
 
@@ -28,7 +28,7 @@ Deltas for a `[mock:burst]` turn (no pacing). Default 600.
 
 > `optional` **chunkCount?**: `number`
 
-Defined in: [packages/agent-sdk/src/mock-model.ts:31](https://github.com/zocomputer/zov2-code/blob/346fe3cc1f4b2813234e8cc0980e7a87e8c918ea/packages/agent-sdk/src/mock-model.ts#L31)
+Defined in: [packages/agent-sdk/src/mock-model.ts:31](https://github.com/zocomputer/zov2-code/blob/a8636edc2f6184e686ebe291b26c3e5e9b3ae7ef/packages/agent-sdk/src/mock-model.ts#L31)
 
 Text deltas per story turn. Default 240 (~60s at the default delay).
 
@@ -38,7 +38,7 @@ Text deltas per story turn. Default 240 (~60s at the default delay).
 
 > `optional` **chunkDelayMs?**: `number`
 
-Defined in: [packages/agent-sdk/src/mock-model.ts:33](https://github.com/zocomputer/zov2-code/blob/346fe3cc1f4b2813234e8cc0980e7a87e8c918ea/packages/agent-sdk/src/mock-model.ts#L33)
+Defined in: [packages/agent-sdk/src/mock-model.ts:33](https://github.com/zocomputer/zov2-code/blob/a8636edc2f6184e686ebe291b26c3e5e9b3ae7ef/packages/agent-sdk/src/mock-model.ts#L33)
 
 Delay between deltas in ms. Default 250.
 
@@ -48,7 +48,7 @@ Delay between deltas in ms. Default 250.
 
 > `optional` **delegateToolName?**: `string`
 
-Defined in: [packages/agent-sdk/src/mock-model.ts:37](https://github.com/zocomputer/zov2-code/blob/346fe3cc1f4b2813234e8cc0980e7a87e8c918ea/packages/agent-sdk/src/mock-model.ts#L37)
+Defined in: [packages/agent-sdk/src/mock-model.ts:37](https://github.com/zocomputer/zov2-code/blob/a8636edc2f6184e686ebe291b26c3e5e9b3ae7ef/packages/agent-sdk/src/mock-model.ts#L37)
 
 The declared subagent tool `[mock:delegate]` delegates to. Default "task_fast".
 
@@ -58,7 +58,7 @@ The declared subagent tool `[mock:delegate]` delegates to. Default "task_fast".
 
 > `optional` **now?**: () => `number`
 
-Defined in: [packages/agent-sdk/src/mock-model.ts:42](https://github.com/zocomputer/zov2-code/blob/346fe3cc1f4b2813234e8cc0980e7a87e8c918ea/packages/agent-sdk/src/mock-model.ts#L42)
+Defined in: [packages/agent-sdk/src/mock-model.ts:42](https://github.com/zocomputer/zov2-code/blob/a8636edc2f6184e686ebe291b26c3e5e9b3ae7ef/packages/agent-sdk/src/mock-model.ts#L42)
 
 Clock for response-metadata ids/timestamps. Default `Date.now`. Inject a
 fixed clock to make the full stream byte-deterministic across runs.

@@ -6,7 +6,7 @@
 
 # Interface: ZipArchive
 
-Defined in: [packages/agent-sdk/src/extract/zip.ts:33](https://github.com/zocomputer/zov2-code/blob/346fe3cc1f4b2813234e8cc0980e7a87e8c918ea/packages/agent-sdk/src/extract/zip.ts#L33)
+Defined in: [packages/agent-sdk/src/extract/zip.ts:33](https://github.com/zocomputer/zov2-code/blob/a8636edc2f6184e686ebe291b26c3e5e9b3ae7ef/packages/agent-sdk/src/extract/zip.ts#L33)
 
 A parsed ZIP archive: entry names in central-directory order, plus lazy
 per-entry decompression. Produced by [openZip](../functions/openZip.md).
@@ -17,7 +17,7 @@ per-entry decompression. Produced by [openZip](../functions/openZip.md).
 
 > `readonly` **names**: readonly `string`[]
 
-Defined in: [packages/agent-sdk/src/extract/zip.ts:35](https://github.com/zocomputer/zov2-code/blob/346fe3cc1f4b2813234e8cc0980e7a87e8c918ea/packages/agent-sdk/src/extract/zip.ts#L35)
+Defined in: [packages/agent-sdk/src/extract/zip.ts:35](https://github.com/zocomputer/zov2-code/blob/a8636edc2f6184e686ebe291b26c3e5e9b3ae7ef/packages/agent-sdk/src/extract/zip.ts#L35)
 
 Entry names (directory entries excluded), in central-directory order.
 
@@ -27,7 +27,7 @@ Entry names (directory entries excluded), in central-directory order.
 
 > **has**(`name`): `boolean`
 
-Defined in: [packages/agent-sdk/src/extract/zip.ts:37](https://github.com/zocomputer/zov2-code/blob/346fe3cc1f4b2813234e8cc0980e7a87e8c918ea/packages/agent-sdk/src/extract/zip.ts#L37)
+Defined in: [packages/agent-sdk/src/extract/zip.ts:37](https://github.com/zocomputer/zov2-code/blob/a8636edc2f6184e686ebe291b26c3e5e9b3ae7ef/packages/agent-sdk/src/extract/zip.ts#L37)
 
 Whether the archive contains the named entry.
 
@@ -47,7 +47,7 @@ Whether the archive contains the named entry.
 
 > **read**(`name`): `Buffer`
 
-Defined in: [packages/agent-sdk/src/extract/zip.ts:44](https://github.com/zocomputer/zov2-code/blob/346fe3cc1f4b2813234e8cc0980e7a87e8c918ea/packages/agent-sdk/src/extract/zip.ts#L44)
+Defined in: [packages/agent-sdk/src/extract/zip.ts:44](https://github.com/zocomputer/zov2-code/blob/a8636edc2f6184e686ebe291b26c3e5e9b3ae7ef/packages/agent-sdk/src/extract/zip.ts#L44)
 
 Decompress one entry. Returns `null` for a name the archive doesn't
 carry; throws for entries this reader can't decode (encryption, an

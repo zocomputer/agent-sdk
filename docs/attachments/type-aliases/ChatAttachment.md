@@ -8,7 +8,7 @@
 
 > **ChatAttachment** = \{ `dataUrl`: `string`; `filename`: `string`; `height`: `number` \| `null`; `kind`: `"image"`; `mediaType`: `string`; `width`: `number` \| `null`; \} \| \{ `dataUrl`: `string`; `filename`: `string`; `kind`: `"video"`; `mediaType`: `string`; \} \| \{ `dataUrl`: `string`; `filename`: `string`; `kind`: `"audio"`; `mediaType`: `string`; \}
 
-Defined in: [packages/agent-sdk/src/attachments.ts:40](https://github.com/zocomputer/zov2-code/blob/346fe3cc1f4b2813234e8cc0980e7a87e8c918ea/packages/agent-sdk/src/attachments.ts#L40)
+Defined in: [packages/agent-sdk/src/attachments.ts:40](https://github.com/zocomputer/zov2-code/blob/a8636edc2f6184e686ebe291b26c3e5e9b3ae7ef/packages/agent-sdk/src/attachments.ts#L40)
 
 A model-hidden media payload smuggled on a read/webfetch result, carrying bytes as a data URL for client redelivery.
 

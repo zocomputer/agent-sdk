@@ -8,7 +8,7 @@
 
 > **fetchWebResource**(`opts`): `Promise`\<[`FetchedWebResource`](../interfaces/FetchedWebResource.md)\>
 
-Defined in: [packages/agent-sdk/src/web-fetch.ts:238](https://github.com/zocomputer/zov2-code/blob/346fe3cc1f4b2813234e8cc0980e7a87e8c918ea/packages/agent-sdk/src/web-fetch.ts#L238)
+Defined in: [packages/agent-sdk/src/web-fetch.ts:238](https://github.com/zocomputer/zov2-code/blob/a8636edc2f6184e686ebe291b26c3e5e9b3ae7ef/packages/agent-sdk/src/web-fetch.ts#L238)
 
 GET a URL with the standard headers, the Cloudflare-challenge retry, and the
 response-size cap. Throws on non-2xx, oversized, or timed-out responses.

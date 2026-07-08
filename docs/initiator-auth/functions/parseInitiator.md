@@ -8,7 +8,7 @@
 
 > **parseInitiator**(`value`): [`InitiatorIdentity`](../interfaces/InitiatorIdentity.md) \| `null`
 
-Defined in: [packages/agent-sdk/src/initiator-auth.ts:32](https://github.com/zocomputer/zov2-code/blob/346fe3cc1f4b2813234e8cc0980e7a87e8c918ea/packages/agent-sdk/src/initiator-auth.ts#L32)
+Defined in: [packages/agent-sdk/src/initiator-auth.ts:32](https://github.com/zocomputer/zov2-code/blob/a8636edc2f6184e686ebe291b26c3e5e9b3ae7ef/packages/agent-sdk/src/initiator-auth.ts#L32)
 
 Parse-then-narrow the `INITIATOR_HEADER` value; `null` on absent/malformed.
 

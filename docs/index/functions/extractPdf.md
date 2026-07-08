@@ -8,7 +8,7 @@
 
 > **extractPdf**(`bytes`, `options?`): `Promise`\<[`PdfExtraction`](../type-aliases/PdfExtraction.md)\>
 
-Defined in: [packages/agent-sdk/src/extract/pdf.ts:36](https://github.com/zocomputer/zov2-code/blob/346fe3cc1f4b2813234e8cc0980e7a87e8c918ea/packages/agent-sdk/src/extract/pdf.ts#L36)
+Defined in: [packages/agent-sdk/src/extract/pdf.ts:36](https://github.com/zocomputer/zov2-code/blob/a8636edc2f6184e686ebe291b26c3e5e9b3ae7ef/packages/agent-sdk/src/extract/pdf.ts#L36)
 
 Extract PDF bytes into text via clawpdf (PDFium compiled to WASM). Pages are
 joined under explicit markers so the model can cite page numbers. Extraction

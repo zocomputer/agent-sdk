@@ -12,6 +12,14 @@ export type {
   GenerateImageToolOptions,
 } from "./image";
 export {
+  DEFAULT_VIDEO_MODEL,
+  GenerateVideoInputSchema,
+  GenerateVideoOutputSchema,
+  default as generateVideo,
+  generateVideoTool,
+} from "./video";
+export type { GenerateVideoInput, GenerateVideoOutput, GenerateVideoToolOptions } from "./video";
+export {
   createRuntimeStateFilesClient,
   DEFAULT_STATE_ASSET_DECLARATION_NAME,
   stateAssetReference,

@@ -6,7 +6,7 @@
 
 # Interface: ParkDeliveryRequest\<T\>
 
-Defined in: [packages/agent-sdk/src/park-delivery.ts:60](https://github.com/zocomputer/zov2-code/blob/346fe3cc1f4b2813234e8cc0980e7a87e8c918ea/packages/agent-sdk/src/park-delivery.ts#L60)
+Defined in: [packages/agent-sdk/src/park-delivery.ts:60](https://github.com/zocomputer/zov2-code/blob/a8636edc2f6184e686ebe291b26c3e5e9b3ae7ef/packages/agent-sdk/src/park-delivery.ts#L60)
 
 A park-delivery flush: the session id, its client-facing continuation token,
 and the batch of items ready to deliver. The caller performs the send and
@@ -24,7 +24,7 @@ reports back with `settle`.
 
 > `readonly` **continuationToken**: `string`
 
-Defined in: [packages/agent-sdk/src/park-delivery.ts:62](https://github.com/zocomputer/zov2-code/blob/346fe3cc1f4b2813234e8cc0980e7a87e8c918ea/packages/agent-sdk/src/park-delivery.ts#L62)
+Defined in: [packages/agent-sdk/src/park-delivery.ts:62](https://github.com/zocomputer/zov2-code/blob/a8636edc2f6184e686ebe291b26c3e5e9b3ae7ef/packages/agent-sdk/src/park-delivery.ts#L62)
 
 ***
 
@@ -32,7 +32,7 @@ Defined in: [packages/agent-sdk/src/park-delivery.ts:62](https://github.com/zoco
 
 > `readonly` **items**: readonly [`ParkDeliveryItem`](ParkDeliveryItem.md)\<`T`\>[]
 
-Defined in: [packages/agent-sdk/src/park-delivery.ts:63](https://github.com/zocomputer/zov2-code/blob/346fe3cc1f4b2813234e8cc0980e7a87e8c918ea/packages/agent-sdk/src/park-delivery.ts#L63)
+Defined in: [packages/agent-sdk/src/park-delivery.ts:63](https://github.com/zocomputer/zov2-code/blob/a8636edc2f6184e686ebe291b26c3e5e9b3ae7ef/packages/agent-sdk/src/park-delivery.ts#L63)
 
 ***
 
@@ -40,4 +40,4 @@ Defined in: [packages/agent-sdk/src/park-delivery.ts:63](https://github.com/zoco
 
 > `readonly` **sessionId**: `string`
 
-Defined in: [packages/agent-sdk/src/park-delivery.ts:61](https://github.com/zocomputer/zov2-code/blob/346fe3cc1f4b2813234e8cc0980e7a87e8c918ea/packages/agent-sdk/src/park-delivery.ts#L61)
+Defined in: [packages/agent-sdk/src/park-delivery.ts:61](https://github.com/zocomputer/zov2-code/blob/a8636edc2f6184e686ebe291b26c3e5e9b3ae7ef/packages/agent-sdk/src/park-delivery.ts#L61)
