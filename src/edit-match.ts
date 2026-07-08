@@ -540,6 +540,111 @@ export function replaceForgiving(
   throw new EditNotUniqueError();
 }
 
+// --- Not-found "did you mean" hint -----------------------------------------
+
+// Ported from goose's `find_similar_context` (crates/goose/src/agents/
+// platform_extensions/developer/edit.rs, commit e6be2e9): anchor on the
+// search's first non-empty trimmed line, find the closest content line, and
+// return a small numbered window around it. Deviations: a Levenshtein
+// fallback (≥ EDIT_HINT_SIMILARITY) when no line contains the anchor —
+// our cascade already absorbed whitespace variants, so a miss here means the
+// text genuinely differs (usually a stale or typo'd anchor line) — and
+// line-numbered output matching `read`'s view so the model can orient.
+
+// Minimum trimmed-line similarity for the fuzzy anchor fallback.
+const EDIT_HINT_SIMILARITY = 0.6;
+// Context lines shown on each side of the anchor line (goose uses 2).
+const EDIT_HINT_CONTEXT_LINES = 2;
+// Hard cap on the hint's total lines, guarding pathological inputs.
+const EDIT_HINT_MAX_LINES = 20;
+// Reverse containment (anchor contains the content line) only counts for
+// lines this long — a trivial `}` or `);` is contained in almost any anchor
+// and would hint at the first brace in the file (goose inherits this flaw;
+// we deviate). Forward containment (line contains the anchor) has no floor:
+// the anchor is the model's own first line, already specific.
+const EDIT_HINT_MIN_REVERSE_LINE = 5;
+// Lines longer than this are skipped by BOTH anchor passes (containment and
+// the Levenshtein fallback, which is O(anchor·line) per line) — minified
+// bundles/long data lines would stall the failure path, and a hintable
+// anchor line in real source is never that long. A skipped hint is just
+// `null`; the not-found error still steers the model to re-read.
+const EDIT_HINT_MAX_LINE = 500;
+
+/** The closest-match hint appended to a not-found edit error. */
+export interface EditNotFoundHint {
+  /** 1-based line number of the closest matching line. */
+  line: number;
+  /** Line-numbered window around the closest match (`read`-style `N|text`). */
+  preview: string;
+}
+
+/**
+ * Locate the region of `content` the model probably meant when `oldString`
+ * failed every replacer, so the not-found error can point instead of just
+ * refusing — a targeted preview turns the most expensive tool failure
+ * (re-read the whole file, reconstruct, retry) into a one-shot correction.
+ * Anchor: `oldString`'s first non-empty trimmed line, matched by substring
+ * containment either way (goose's rule), then by best trimmed-line
+ * Levenshtein similarity at ≥ 0.6. `null` when nothing plausibly matches
+ * (the honest answer — a wrong hint is worse than none).
+ */
+export function editNotFoundHint(content: string, oldString: string): EditNotFoundHint | null {
+  const anchor = oldString
+    .split("\n")
+    .map((line) => line.trim())
+    .find((line) => line.length > 0);
+  if (anchor === undefined) return null;
+
+  const lines = content.split("\n");
+  let matchIndex = -1;
+
+  for (const [i, line] of lines.entries()) {
+    if (line.length > EDIT_HINT_MAX_LINE) continue;
+    const trimmed = line.trim();
+    if (trimmed.length === 0) continue;
+    if (
+      line.includes(anchor) ||
+      (trimmed.length >= EDIT_HINT_MIN_REVERSE_LINE && anchor.includes(trimmed))
+    ) {
+      matchIndex = i;
+      break;
+    }
+  }
+
+  if (matchIndex === -1) {
+    let bestSimilarity = 0;
+    for (const [i, line] of lines.entries()) {
+      if (line.length > EDIT_HINT_MAX_LINE) continue;
+      const trimmed = line.trim();
+      if (trimmed.length === 0) continue;
+      // Cheap pre-filter: a length gap alone already caps similarity below
+      // the threshold, so skip the O(anchor·line) distance outright.
+      const maxLen = Math.max(trimmed.length, anchor.length);
+      if (Math.min(trimmed.length, anchor.length) / maxLen < EDIT_HINT_SIMILARITY) continue;
+      const similarity = 1 - levenshtein(trimmed, anchor) / maxLen;
+      if (similarity > bestSimilarity) {
+        bestSimilarity = similarity;
+        matchIndex = i;
+      }
+    }
+    if (matchIndex === -1 || bestSimilarity < EDIT_HINT_SIMILARITY) return null;
+  }
+
+  // Window: the anchor line, context on both sides, and room for the rest of
+  // the old_string below (that's where the model's stale lines diverge).
+  const oldLineCount = oldString.split("\n").length;
+  const start = Math.max(0, matchIndex - EDIT_HINT_CONTEXT_LINES);
+  const end = Math.min(
+    lines.length,
+    Math.min(matchIndex + oldLineCount + EDIT_HINT_CONTEXT_LINES, start + EDIT_HINT_MAX_LINES),
+  );
+  const preview = lines
+    .slice(start, end)
+    .map((line, offset) => `${String(start + offset + 1).padStart(6)}|${line}`)
+    .join("\n");
+  return { line: matchIndex + 1, preview };
+}
+
 const BOM = "\uFEFF";
 
 /** Strip a leading UTF-8 BOM so the cascade never has to match around it. */

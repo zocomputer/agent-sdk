@@ -8,6 +8,6 @@
 
 > `const` **WEB\_FETCH\_PDF\_DEFAULT\_TIMEOUT\_SECONDS**: `60` = `60`
 
-Defined in: [packages/agent-sdk/src/web-fetch.ts:27](https://github.com/zocomputer/zov2-code/blob/0bb195a93a5e8bd5814dac23311408353312bc4f/packages/agent-sdk/src/web-fetch.ts#L27)
+Defined in: [packages/agent-sdk/src/web-fetch.ts:27](https://github.com/zocomputer/zov2-code/blob/3f2b99c534a9f8d96ad85214e02d7c759a75762c/packages/agent-sdk/src/web-fetch.ts#L27)
 
 PDFs are routinely tens of MB behind slow servers; give them a longer default.

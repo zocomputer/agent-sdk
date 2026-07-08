@@ -6,7 +6,7 @@
 
 # Interface: ParkDeliveryOptions
 
-Defined in: [packages/agent-sdk/src/hooks.ts:89](https://github.com/zocomputer/zov2-code/blob/0bb195a93a5e8bd5814dac23311408353312bc4f/packages/agent-sdk/src/hooks.ts#L89)
+Defined in: [packages/agent-sdk/src/hooks.ts:89](https://github.com/zocomputer/zov2-code/blob/3f2b99c534a9f8d96ad85214e02d7c759a75762c/packages/agent-sdk/src/hooks.ts#L89)
 
 Options for the park-delivery hook that sends queued media/notes/steers on session parks.
 
@@ -16,7 +16,7 @@ Options for the park-delivery hook that sends queued media/notes/steers on sessi
 
 > `optional` **log?**: `boolean`
 
-Defined in: [packages/agent-sdk/src/hooks.ts:96](https://github.com/zocomputer/zov2-code/blob/0bb195a93a5e8bd5814dac23311408353312bc4f/packages/agent-sdk/src/hooks.ts#L96)
+Defined in: [packages/agent-sdk/src/hooks.ts:96](https://github.com/zocomputer/zov2-code/blob/3f2b99c534a9f8d96ad85214e02d7c759a75762c/packages/agent-sdk/src/hooks.ts#L96)
 
 Log a line per delivery/failure (default true — it explains agent turns).
 
@@ -26,7 +26,7 @@ Log a line per delivery/failure (default true — it explains agent turns).
 
 > `optional` **serverUrl?**: `string`
 
-Defined in: [packages/agent-sdk/src/hooks.ts:94](https://github.com/zocomputer/zov2-code/blob/0bb195a93a5e8bd5814dac23311408353312bc4f/packages/agent-sdk/src/hooks.ts#L94)
+Defined in: [packages/agent-sdk/src/hooks.ts:94](https://github.com/zocomputer/zov2-code/blob/3f2b99c534a9f8d96ad85214e02d7c759a75762c/packages/agent-sdk/src/hooks.ts#L94)
 
 Base URL of this agent's own eve server. Defaults to loopback on the
 server's port (`$PORT`, eve dev's default 2000 otherwise).
@@ -37,7 +37,7 @@ server's port (`$PORT`, eve dev's default 2000 otherwise).
 
 > `optional` **steer?**: `object`
 
-Defined in: [packages/agent-sdk/src/hooks.ts:102](https://github.com/zocomputer/zov2-code/blob/0bb195a93a5e8bd5814dac23311408353312bc4f/packages/agent-sdk/src/hooks.ts#L102)
+Defined in: [packages/agent-sdk/src/hooks.ts:102](https://github.com/zocomputer/zov2-code/blob/3f2b99c534a9f8d96ad85214e02d7c759a75762c/packages/agent-sdk/src/hooks.ts#L102)
 
 The steer inbox dir (the same one passed to `createStdlib`). When set,
 steered messages a turn ends before delivering (no tool completed after

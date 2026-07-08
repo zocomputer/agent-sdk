@@ -8,6 +8,6 @@
 
 > **SheetFormat** = `"xlsx"` \| `"xlsm"` \| `"xls"` \| `"ods"`
 
-Defined in: [packages/agent-sdk/src/file-kind.ts:57](https://github.com/zocomputer/zov2-code/blob/0bb195a93a5e8bd5814dac23311408353312bc4f/packages/agent-sdk/src/file-kind.ts#L57)
+Defined in: [packages/agent-sdk/src/file-kind.ts:57](https://github.com/zocomputer/zov2-code/blob/3f2b99c534a9f8d96ad85214e02d7c759a75762c/packages/agent-sdk/src/file-kind.ts#L57)
 
 Spreadsheet formats SheetJS parses; all route to the sheet extractor.

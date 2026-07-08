@@ -268,6 +268,15 @@ describe("parseGatewayModelCatalog", () => {
     id: "anthropic/claude-sonnet-5",
     name: "Claude Sonnet 5",
     description: "An upgrade to Sonnet 4.6.",
+    context_window: 1_000_000,
+    max_tokens: 64_000,
+  };
+  const emptyOptionals = {
+    name: undefined,
+    description: undefined,
+    tags: undefined,
+    contextWindow: undefined,
+    maxOutputTokens: undefined,
   };
 
   test("parses a valid catalog body", () => {
@@ -277,19 +286,21 @@ describe("parseGatewayModelCatalog", () => {
         name: "Claude Sonnet 5",
         description: "An upgrade to Sonnet 4.6.",
         tags: undefined,
+        contextWindow: 1_000_000,
+        maxOutputTokens: 64_000,
       },
     ]);
   });
 
   test("missing optional fields become undefined", () => {
     expect(parseGatewayModelCatalog({ data: [{ id: "x" }] })).toEqual([
-      { id: "x", name: undefined, description: undefined, tags: undefined },
+      { id: "x", ...emptyOptionals },
     ]);
   });
 
   test("wrong-typed fields degrade to undefined; a missing id rejects", () => {
     expect(parseGatewayModelCatalog({ data: [{ id: "x", name: 3 }] })).toEqual([
-      { id: "x", name: undefined, description: undefined, tags: undefined },
+      { id: "x", ...emptyOptionals },
     ]);
     expect(parseGatewayModelCatalog({ data: [{ name: "no id" }] })).toBeNull();
   });
@@ -300,13 +311,25 @@ describe("parseGatewayModelCatalog", () => {
     ).toEqual([
       {
         id: "x",
-        name: undefined,
-        description: undefined,
+        ...emptyOptionals,
         tags: ["vision", "file-input"],
       },
     ]);
     const mixed = parseGatewayModelCatalog({ data: [{ id: "x", tags: ["vision", 3] }] });
     expect(mixed?.[0]?.tags).toBeUndefined();
+  });
+
+  test("non-positive, fractional, or wrong-typed window fields degrade to undefined", () => {
+    const parsed = parseGatewayModelCatalog({
+      data: [
+        { id: "a", context_window: 0, max_tokens: -1 },
+        { id: "b", context_window: 12.5, max_tokens: "64000" },
+      ],
+    });
+    expect(parsed?.map((m) => [m.contextWindow, m.maxOutputTokens])).toEqual([
+      [undefined, undefined],
+      [undefined, undefined],
+    ]);
   });
 
   test("non-object bodies and non-array data reject", () => {
@@ -324,7 +347,14 @@ describe("fetchGatewayModelCatalog", () => {
       });
     const models = await fetchGatewayModelCatalog({ url: "https://example.test", fetchImpl });
     expect(models).toEqual([
-      { id: "x", name: "X", description: undefined, tags: undefined },
+      {
+        id: "x",
+        name: "X",
+        description: undefined,
+        tags: undefined,
+        contextWindow: undefined,
+        maxOutputTokens: undefined,
+      },
     ]);
   });
 

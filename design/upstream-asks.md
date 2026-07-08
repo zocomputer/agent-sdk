@@ -166,7 +166,39 @@ built, verified patches) graduate to [`proposals/`](./proposals).
   harness (Claude Code, Cursor, Codex) reads `AGENTS.md` natively. Our
   `repoConventions` instruction covers the root file, but first-class support
   belongs in the framework.
-- **In-history tool-output pruning.** Old tool results stay in the model
-  prompt verbatim for a session's lifetime. We bound tool output at the source
-  (spill files, result caps); a framework-level pruning/compaction hook would
-  do better.
+- **In-history tool-output pruning — tool-pair summarization.** Old tool
+  results stay in the model prompt verbatim for a session's lifetime. We
+  bound tool output at the source (spill files, result caps), but the
+  best-worked field version of the missing layer is goose's **incremental
+  tool-pair summarization** (`crates/goose/src/context_mgmt/mod.rs`, commit
+  `e6be2e9`): a background fast-model pass replaces tool request/response
+  pairs older than a cutoff with one compact agent-only summary message
+  each — batch of 10 pairs per pass, cutoff scaled to the context limit
+  (`(3 · limit / 20_000).clamp(10, 500)`) and always excluding the current
+  turn's trailing calls, spawned off the hot path at turn start. The
+  transcript decays gradually instead of being rewritten at the compaction
+  cliff, and it composes with prompt caching (each pair is rewritten exactly
+  once, behind the cache prefix). The eve shape: a harness pass over
+  `history` before the model call, gated by a config knob, using the
+  compaction model. Independent of (and complementary to) full compaction.
+- **Compaction refinements** (three, all field-tested in goose):
+  - **Ratio-triggered threshold.** eve's `shouldCompact` compares an
+    estimate against an absolute `threshold` compiled from
+    `modelContextWindowTokens`; goose triggers at a **fraction of the
+    resolved model's context limit** (0.8 default, configurable). eve
+    already resolves the window for bare catalog slugs — deriving the
+    default threshold as a ratio would remove the per-agent hand-wiring
+    for wrapped models too (see the `modelContextWindowTokens` escape
+    hatch both rib and the Zo Builder need today).
+  - **Recovery compact.** On a `ContextLengthExceeded` model error, goose
+    compacts and retries the step (max 2 attempts; if summarization itself
+    overflows, it strips tool-response messages middle-outward at
+    10/20/50/100%). eve surfaces the error and the turn dies — the one
+    failure mode compaction exists to prevent.
+  - **Structured compaction prompt.** eve's compaction system prompt is a
+    single sentence list; goose's `compaction.md` demands named sections
+    (User Intent, Technical Concepts, Files + Code, Errors + Fixes,
+    Pending Tasks, Current Work, optional Next Step) and states "this
+    summary will only be read by you". Task state survives compaction far
+    better under the sectioned prompt; eve's `onCompaction` todo
+    re-injection helps but the summary itself is the weak link.

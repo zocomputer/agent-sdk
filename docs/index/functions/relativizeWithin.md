@@ -8,7 +8,7 @@
 
 > **relativizeWithin**(`root`, `abs`): `string`
 
-Defined in: [packages/agent-sdk/src/workspace.ts:22](https://github.com/zocomputer/zov2-code/blob/0bb195a93a5e8bd5814dac23311408353312bc4f/packages/agent-sdk/src/workspace.ts#L22)
+Defined in: [packages/agent-sdk/src/workspace.ts:22](https://github.com/zocomputer/zov2-code/blob/3f2b99c534a9f8d96ad85214e02d7c759a75762c/packages/agent-sdk/src/workspace.ts#L22)
 
 A root-relative, forward-slash path for display. Pure counterpart to resolveWithin.
 

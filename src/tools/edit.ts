@@ -4,6 +4,7 @@ import {
   EditDisproportionateError,
   EditNotFoundError,
   EditNotUniqueError,
+  editNotFoundHint,
   joinBom,
   replaceForgiving,
   splitBom,
@@ -62,8 +63,16 @@ export function createEditTool(opts: {
           // Re-throw the typed matcher errors with the file's path in the
           // message — the model sees these verbatim.
           if (error instanceof EditNotFoundError) {
+            // "Did you mean": point at the closest region (goose's
+            // find_similar_context) so the model corrects in one shot
+            // instead of re-reading the whole file.
+            const hint = editNotFoundHint(before, old_string);
+            const didYouMean =
+              hint === null
+                ? ""
+                : `\n\nClosest match, around line ${hint.line}:\n${hint.preview}`;
             throw new Error(
-              `old_string not found in ${rel}. It must match the file contents — re-read the file and copy the exact text, including whitespace and indentation.`,
+              `old_string not found in ${rel}. It must match the file contents — re-read the file and copy the exact text, including whitespace and indentation.${didYouMean}`,
             );
           }
           if (error instanceof EditNotUniqueError) {

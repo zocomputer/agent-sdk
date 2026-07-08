@@ -8,7 +8,7 @@
 
 > **createParallelToolsInstruction**(): `DynamicSentinel`
 
-Defined in: [packages/agent-sdk/src/instructions.ts:56](https://github.com/zocomputer/zov2-code/blob/0bb195a93a5e8bd5814dac23311408353312bc4f/packages/agent-sdk/src/instructions.ts#L56)
+Defined in: [packages/agent-sdk/src/instructions.ts:56](https://github.com/zocomputer/zov2-code/blob/3f2b99c534a9f8d96ad85214e02d7c759a75762c/packages/agent-sdk/src/instructions.ts#L56)
 
 The workflow guidance for the stdlib's async tools (bash auto-backgrounding,
 run_async/check_tasks/await_task). Static by design: dynamic instructions

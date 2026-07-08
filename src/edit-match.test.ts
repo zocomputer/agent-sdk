@@ -10,6 +10,7 @@ import {
   ContextAwareReplacer,
   EditDisproportionateError,
   EditNotFoundError,
+  editNotFoundHint,
   EditNotUniqueError,
   EscapeNormalizedReplacer,
   IndentationFlexibleReplacer,
@@ -257,6 +258,70 @@ describe("disproportionate-match guard", () => {
     // spans 4 real lines — much larger than what the model asked to replace.
     const content = "a\nb\nc\nd\n";
     expect(() => replaceForgiving(content, "a\\nb\\nc\\nd", "X")).toThrow(EditDisproportionateError);
+  });
+});
+
+describe("editNotFoundHint", () => {
+  const content = [
+    "import { a } from './a';",
+    "",
+    "export function greet(name: string) {",
+    "  const message = `hi ${name}`;",
+    "  return message;",
+    "}",
+    "",
+    "export function farewell(name: string) {",
+    "  return `bye ${name}`;",
+    "}",
+  ].join("\n");
+
+  test("anchors on the first line by containment and returns a numbered window", () => {
+    // Stale middle line (the model remembered an old body) — the anchor line
+    // still exists verbatim, so the hint points at the greet block.
+    const hint = editNotFoundHint(content, "export function greet(name: string) {\n  const msg = name;\n}");
+    expect(hint).not.toBeNull();
+    expect(hint?.line).toBe(3);
+    expect(hint?.preview).toContain("     3|export function greet(name: string) {");
+    expect(hint?.preview).toContain("     4|  const message = `hi ${name}`;");
+  });
+
+  test("skips a blank first line and anchors on the first non-empty one", () => {
+    const hint = editNotFoundHint(content, "\n  return message;\nnope");
+    expect(hint?.line).toBe(5);
+  });
+
+  test("falls back to fuzzy line similarity when containment misses", () => {
+    // One typo in the anchor line ("greeet") — no containment either way,
+    // but Levenshtein similarity clears the 0.6 bar.
+    const hint = editNotFoundHint(content, "export function greeet(name: string) {\nnope");
+    expect(hint?.line).toBe(3);
+  });
+
+  test("returns null when nothing plausibly matches", () => {
+    expect(editNotFoundHint(content, "completely unrelated text 12345")).toBeNull();
+    expect(editNotFoundHint(content, "   \n  \n")).toBeNull();
+    expect(editNotFoundHint("", "anything")).toBeNull();
+  });
+
+  test("a trivial short line does not reverse-contain into a bogus anchor", () => {
+    // goose's raw rule would anchor "export function totallyNew() {" on the
+    // first "}" line (the anchor contains it); the reverse-containment floor
+    // refuses, and no other line clears the fuzzy bar → honest null.
+    expect(editNotFoundHint("}\n}\n}", "export function totallyNew() {\n  body\n}")).toBeNull();
+  });
+
+  test("length-disparate lines skip the fuzzy fallback (no false anchor)", () => {
+    // A long minified-style line shares characters with the anchor but the
+    // length-ratio pre-filter (and the 500-char cap) keeps it from matching.
+    const minified = `const x = ${"a".repeat(600)};`;
+    expect(editNotFoundHint(minified, "const y = 1;\nnope")).toBeNull();
+  });
+
+  test("caps the window at 20 lines for a huge old_string", () => {
+    const big = Array.from({ length: 60 }, (_, i) => `line ${i}`).join("\n");
+    const hint = editNotFoundHint(big, `line 5\n${"x\n".repeat(50)}`);
+    expect(hint).not.toBeNull();
+    expect(hint?.preview.split("\n").length).toBeLessThanOrEqual(20);
   });
 });
 

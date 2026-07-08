@@ -8,7 +8,7 @@
 
 > **MockScriptAction** = \{ `calls`: readonly [`MockToolCall`](../interfaces/MockToolCall.md)[]; `kind`: `"tool-calls"`; \} \| \{ `kind`: `"text"`; `text`: `string`; \}
 
-Defined in: [packages/agent-sdk/src/mock-model.ts:118](https://github.com/zocomputer/zov2-code/blob/0bb195a93a5e8bd5814dac23311408353312bc4f/packages/agent-sdk/src/mock-model.ts#L118)
+Defined in: [packages/agent-sdk/src/mock-model.ts:118](https://github.com/zocomputer/zov2-code/blob/3f2b99c534a9f8d96ad85214e02d7c759a75762c/packages/agent-sdk/src/mock-model.ts#L118)
 
 The scripted action for a scenario at a step: one or more tool calls emitted
 in a single response (plural = parallel tool calls), or a wrap-up text that

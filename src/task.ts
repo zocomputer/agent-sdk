@@ -364,6 +364,20 @@ export interface GatewayModelInfo {
    * (./model-capabilities.ts) reads. `undefined` when the entry carries none.
    */
   tags: readonly string[] | undefined;
+  /**
+   * The model's context window in tokens (the catalog's `context_window`).
+   * The number eve's `modelContextWindowTokens` needs for wrapped models
+   * (which defeat its catalog auto-resolve), and the limit a context-usage
+   * meter divides by. Refresh-script material like the rest of the entry —
+   * check the resolved value in, never fetch at agent build time.
+   * `undefined` when the entry carries none.
+   */
+  contextWindow: number | undefined;
+  /**
+   * The model's maximum output tokens per response (the catalog's
+   * `max_tokens`). `undefined` when the entry carries none.
+   */
+  maxOutputTokens: number | undefined;
 }
 
 /** The AI Gateway's public model-catalog endpoint (no API key required). */
@@ -382,6 +396,8 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 export function parseGatewayModelCatalog(value: unknown): GatewayModelInfo[] | null {
   if (!isRecord(value) || !Array.isArray(value.data)) return null;
   const models: GatewayModelInfo[] = [];
+  const positiveInt = (raw: unknown): number | undefined =>
+    typeof raw === "number" && Number.isInteger(raw) && raw > 0 ? raw : undefined;
   for (const entry of value.data) {
     if (!isRecord(entry) || typeof entry.id !== "string") return null;
     models.push({
@@ -392,6 +408,8 @@ export function parseGatewayModelCatalog(value: unknown): GatewayModelInfo[] | n
         Array.isArray(entry.tags) && entry.tags.every((tag) => typeof tag === "string")
           ? entry.tags
           : undefined,
+      contextWindow: positiveInt(entry.context_window),
+      maxOutputTokens: positiveInt(entry.max_tokens),
     });
   }
   return models;

@@ -113,8 +113,13 @@ The names are deliberately boring; the behavior behind them is the point:
   and the result reports which strategy `matched` (`"simple"` = exact) so
   drift is observable. A leading UTF-8 BOM is split off before matching and
   restored on write. Failures return model-actionable messages (not found /
-  not unique / disproportionate). The matcher is exported standalone as
-  `replaceForgiving` (`edit-match.ts`).
+  not unique / disproportionate) — and a not-found error appends a
+  **"did you mean" hint** (ported from goose's `find_similar_context`): the
+  closest region by the `old_string`'s first-line anchor (containment, then
+  fuzzy similarity), as a line-numbered ~20-line preview, so the model
+  corrects in one shot instead of re-reading the whole file. The matcher is
+  exported standalone as `replaceForgiving` + `editNotFoundHint`
+  (`edit-match.ts`).
 - **`write`** creates parent directories, and preserves an existing file's
   leading BOM when the new content omits it — a model rewriting a BOM'd file
   never strips the marker by accident.
@@ -324,6 +329,14 @@ the AI SDK's `gateway.getAvailableModels()` reads — via
 `fetchGatewayModelCatalog()` in a **one-shot refresh script**, and are checked
 in. Never fetch them at agent build time: tool descriptions are part of the
 cached prompt prefix and must be static and offline-safe.
+
+Each catalog entry also carries the model's **`contextWindow`** (and
+`maxOutputTokens`). Generate those into a checked-in map with the same
+refresh-script motion: it's the number eve's `modelContextWindowTokens`
+config needs when a wrapped model (a custom `createGateway` instance) defeats
+eve's catalog auto-resolve, and the limit a chat client's context-usage meter
+divides by — one generated source instead of hand-maintained constants that
+go stale silently.
 
 With [the media oracle](#the-media-oracle-look) wired, children keep their
 sight: `look` needs no park-delivery hook, so the child re-exports the

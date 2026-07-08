@@ -94,6 +94,27 @@ describe("createEditTool concurrency", () => {
     expect(readFileSync(join(root, "two.txt"), "utf8")).toBe("BETA\n");
   });
 
+  test("a not-found edit points at the closest region ('did you mean')", async () => {
+    // Stale body line: the anchor line exists but the second line doesn't,
+    // so every replacer misses — the error should carry a numbered preview
+    // of the region instead of just "re-read the file".
+    writeFileSync(
+      join(root, "hint.ts"),
+      "export function greet(name: string) {\n  const message = `hi ${name}`;\n  return message;\n}\n",
+    );
+    const edit = createEditTool({ workspace, noun: "workspace" });
+    expect(
+      edit.execute(
+        {
+          path: "hint.ts",
+          old_string: "export function greet(name: string) {\n  const msg = name;\n}",
+          new_string: "x",
+        },
+        ctx,
+      ),
+    ).rejects.toThrow(/Closest match, around line 1:[\s\S]*1\|export function greet/);
+  });
+
   test("an edit racing a write to the same file does not interleave", async () => {
     // The write must not land between the edit's read and its write — either
     // order is coherent (edit-then-write leaves the written content; write-
