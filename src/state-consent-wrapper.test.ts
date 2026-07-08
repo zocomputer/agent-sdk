@@ -1,16 +1,12 @@
 import { describe, expect, test } from "bun:test";
+import consentEnvelopeFixture from "../../fixtures/consent-envelope.fixture.json" with { type: "json" };
 import type { RequestStateFilesHandleOptions } from "./state-files";
 import {
   buildConsentSteer,
   requestStateFilesHandleWithConsent,
 } from "./state-consent-wrapper";
 
-const ENVELOPE = {
-  bindingId: "stb_abc123",
-  declarationName: "team-notes",
-  resourceName: "Team notes",
-  party: { handle: "acme", external: false },
-};
+const ENVELOPE = consentEnvelopeFixture.valid;
 
 // A valid handle body the broker returns on 200 (mirrors state-files.test.ts).
 const HANDLE_BODY = {
@@ -51,8 +47,9 @@ function jsonResponse(status: number, body: unknown): Response {
 describe("buildConsentSteer", () => {
   test("names the tool and embeds the exact envelope", () => {
     const steer = buildConsentSteer(ENVELOPE);
+    expect(steer).toBe(consentEnvelopeFixture.expectedConsentSteer);
     expect(steer).toContain("request_state_consent");
-    expect(steer).toContain("Team notes");
+    expect(steer).toContain(ENVELOPE.resourceName);
     // The envelope round-trips verbatim so the model passes it unchanged.
     expect(steer).toContain(JSON.stringify(ENVELOPE));
   });

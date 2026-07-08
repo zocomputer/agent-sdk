@@ -1,9 +1,11 @@
 import { describe, expect, test } from "bun:test";
+import consentEnvelopeFixture from "../../fixtures/consent-envelope.fixture.json" with { type: "json" };
 import {
   AGENT_TOKEN_HEADER,
   EVE_SESSION_HEADER,
   type FetchLike,
   parseSandboxAccess,
+  parseSandboxConsentEnvelope,
   parseSandboxHandleAccess,
   requestScratchSandboxAccess,
   SandboxBrokerError,
@@ -53,6 +55,24 @@ function jsonResponse(body: unknown, status = 200): Response {
     headers: { "content-type": "application/json" },
   });
 }
+
+describe("parseSandboxConsentEnvelope", () => {
+  test("parses the shared golden envelope with and without intentDivergenceNote", () => {
+    expect(parseSandboxConsentEnvelope(consentEnvelopeFixture.valid)).toEqual(consentEnvelopeFixture.valid);
+    expect(parseSandboxConsentEnvelope(consentEnvelopeFixture.validWithoutNote)).toEqual(consentEnvelopeFixture.validWithoutNote);
+  });
+
+  test("parses the envelope off a broker body with extra fields", () => {
+    expect(parseSandboxConsentEnvelope(consentEnvelopeFixture.validWithExtraBrokerFields)).toEqual(consentEnvelopeFixture.valid);
+  });
+
+  test.each(consentEnvelopeFixture.invalid.map(({ name, input }) => [name, input] as const))(
+    "rejects the shared invalid fixture: %s",
+    (_name, input) => {
+      expect(parseSandboxConsentEnvelope(input)).toBeNull();
+    },
+  );
+});
 
 describe("requestScratchSandboxAccess", () => {
   test("POSTs the scratch declaration to the broker and returns the scoped SSH access", async () => {

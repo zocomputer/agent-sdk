@@ -1,16 +1,9 @@
 import { describe, expect, test } from "bun:test";
+import consentEnvelopeFixture from "../../fixtures/consent-envelope.fixture.json" with { type: "json" };
 import { REQUEST_STATE_CONSENT_TOOL_NAME } from "./state-consent-envelope";
 import { createRequestStateConsentTool } from "./state-consent-tool";
 
-// A well-formed consent envelope, matching chat-core's `parseConsentToolInput`
-// contract (bindingId, declarationName, resourceName, party{handle, external,
-// intentDivergenceNote?}).
-const ENVELOPE = {
-  bindingId: "stb_abc123",
-  declarationName: "team-notes",
-  resourceName: "Team notes",
-  party: { handle: "acme", external: false },
-};
+const ENVELOPE = consentEnvelopeFixture.valid;
 
 describe("createRequestStateConsentTool", () => {
   test("parks on the approval rail — approval always requires user approval", () => {
@@ -35,7 +28,7 @@ describe("createRequestStateConsentTool", () => {
     // BEFORE resolving the approval, so by the time execute runs the binding is
     // active — the tool tells the model the consent flow completed and to retry.
     expect(typeof out).toBe("string");
-    expect(out).toContain("team-notes");
+    expect(out).toContain(ENVELOPE.declarationName);
     expect(String(out).toLowerCase()).toContain("retry");
   });
 });

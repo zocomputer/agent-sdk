@@ -122,6 +122,8 @@ export function parseSandboxConsentEnvelope(value: unknown): SandboxConsentEnvel
   }
   const p = party as Record<string, unknown>;
   if (typeof p.handle !== "string" || p.handle.length === 0 || typeof p.external !== "boolean") return null;
+  const note = p.intentDivergenceNote;
+  if (note !== undefined && (typeof note !== "string" || note.length === 0)) return null;
   return {
     bindingId,
     declarationName,
@@ -129,9 +131,7 @@ export function parseSandboxConsentEnvelope(value: unknown): SandboxConsentEnvel
     party: {
       handle: p.handle,
       external: p.external,
-      ...(typeof p.intentDivergenceNote === "string" && p.intentDivergenceNote.length > 0
-        ? { intentDivergenceNote: p.intentDivergenceNote }
-        : {}),
+      ...(note === undefined ? {} : { intentDivergenceNote: note }),
     },
   };
 }
