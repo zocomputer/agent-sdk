@@ -16,6 +16,8 @@ export { zoBackend, type ZoBackendOptions } from "./zo-backend";
 export {
   requestScratchSandboxAccess,
   SandboxBrokerError,
+  SandboxConsentRequiredError,
+  type SandboxConsentEnvelope,
   type FetchLike,
   type RequestSandboxInput,
   type SandboxSessionResponse,

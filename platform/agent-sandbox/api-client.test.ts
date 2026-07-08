@@ -7,6 +7,7 @@ import {
   parseSandboxHandleAccess,
   requestScratchSandboxAccess,
   SandboxBrokerError,
+  SandboxConsentRequiredError,
 } from "./api-client";
 
 /** Read a header off a fetch init in a way that works whether init.headers is a
@@ -223,6 +224,58 @@ describe("requestScratchSandboxAccess", () => {
     expect((error as SandboxBrokerError).status).toBe(400);
     expect((error as SandboxBrokerError).code).toBe("eve_session_required");
     expect((error as SandboxBrokerError).message).toMatch(/x-zo-eve-session/);
+  });
+
+  test("maps a consent_required 409 with an envelope to a SandboxConsentRequiredError (defense-in-depth)", async () => {
+    // Currently unreachable — scratch is private/session so it never reaches
+    // pending_consent — but if scratch is ever rebound to a shared partition, the
+    // caller gets a typed consent error (still a SandboxBrokerError) carrying the
+    // envelope, not a swallowed generic failure. Bead zo-oxg.27.10.
+    const fakeFetch = (async () =>
+      jsonResponse(
+        {
+          error: "consent_required",
+          declarationName: "scratch",
+          storeId: "sts_xyz",
+          bindingId: "stb_abc123",
+          resourceName: "Workspace",
+          party: { handle: "org_acme", external: false },
+        },
+        409,
+      )) satisfies FetchLike;
+
+    const error = await requestScratchSandboxAccess({
+      apiBaseUrl: "http://api.test",
+      eveSessionKey: "ses-abc",
+      fetch: fakeFetch,
+    }).catch((e: unknown) => e);
+
+    expect(error).toBeInstanceOf(SandboxConsentRequiredError);
+    // Still a SandboxBrokerError so existing catchers keep working.
+    expect(error).toBeInstanceOf(SandboxBrokerError);
+    expect((error as SandboxBrokerError).status).toBe(409);
+    expect((error as SandboxBrokerError).code).toBe("consent_required");
+    expect((error as SandboxConsentRequiredError).consent).toEqual({
+      bindingId: "stb_abc123",
+      declarationName: "scratch",
+      resourceName: "Workspace",
+      party: { handle: "org_acme", external: false },
+    });
+  });
+
+  test("a consent_required 409 WITHOUT a parseable envelope falls back to a plain SandboxBrokerError", async () => {
+    const fakeFetch = (async () =>
+      jsonResponse({ error: "consent_required", declarationName: "scratch", storeId: "sts_xyz" }, 409)) satisfies FetchLike;
+
+    const error = await requestScratchSandboxAccess({
+      apiBaseUrl: "http://api.test",
+      eveSessionKey: "ses-abc",
+      fetch: fakeFetch,
+    }).catch((e: unknown) => e);
+
+    expect(error).toBeInstanceOf(SandboxBrokerError);
+    expect(error).not.toBeInstanceOf(SandboxConsentRequiredError);
+    expect((error as SandboxBrokerError).code).toBe("consent_required");
   });
 
   test("surfaces a generic broker failure code + status", async () => {

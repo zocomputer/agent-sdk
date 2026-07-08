@@ -66,6 +66,77 @@ export class SandboxBrokerError extends Error {
 }
 
 /**
+ * The trust-consent attribution the broker returns on a `consent_required` 409 —
+ * a structural mirror of the canonical envelope
+ * (`packages/agent-sdk/src/state-consent-envelope.ts`). Parsed structurally (no
+ * `zod` — agent-sandbox has none), matching this file's other boundary parsers.
+ */
+export interface SandboxConsentEnvelope {
+  readonly bindingId: string;
+  readonly declarationName: string;
+  readonly resourceName: string;
+  readonly party: { readonly handle: string; readonly external: boolean; readonly intentDivergenceNote?: string };
+}
+
+/**
+ * A `consent_required` gate on the scratch sandbox handle (bead zo-oxg.27.10),
+ * carrying the trust envelope. Subclasses `SandboxBrokerError` so every existing
+ * catcher still handles it; a consent-aware caller can branch on the subclass.
+ *
+ * DEFENSE-IN-DEPTH — currently UNREACHABLE. The `scratch` declaration is
+ * `intent: "private", partition: "session"`, so it zero-configs to an *active*
+ * binding and never reaches `pending_consent`; the broker never returns
+ * `consent_required` for it today. This branch is insurance for when `scratch`
+ * becomes rebindable to a *shared* partition: a caller resolving the handle
+ * inside a model turn can then turn this typed error into a `request_state_consent`
+ * steer, exactly as `@zocomputer/cloud-tools` does for the files path. Because the
+ * sandbox is resolved by `zoBackend` at session boot (not inside a model tool
+ * call), there is no model turn to steer here yet — so we carry the envelope, not
+ * a steer string.
+ */
+export class SandboxConsentRequiredError extends SandboxBrokerError {
+  readonly consent: SandboxConsentEnvelope;
+
+  constructor(consent: SandboxConsentEnvelope, options: { status: number }) {
+    super(
+      `sandbox access needs the user's consent for "${consent.resourceName}" (consent_required); the binding is awaiting approval.`,
+      { status: options.status, code: "consent_required" },
+    );
+    this.name = "SandboxConsentRequiredError";
+    this.consent = consent;
+  }
+}
+
+/** Structurally parse the consent envelope off a `consent_required` 409 body, or `null` if malformed. */
+export function parseSandboxConsentEnvelope(value: unknown): SandboxConsentEnvelope | null {
+  if (typeof value !== "object" || value === null) return null;
+  const v = value as Record<string, unknown>;
+  const { bindingId, declarationName, resourceName, party } = v;
+  if (
+    typeof bindingId !== "string" || bindingId.length === 0 ||
+    typeof declarationName !== "string" || declarationName.length === 0 ||
+    typeof resourceName !== "string" || resourceName.length === 0 ||
+    typeof party !== "object" || party === null
+  ) {
+    return null;
+  }
+  const p = party as Record<string, unknown>;
+  if (typeof p.handle !== "string" || p.handle.length === 0 || typeof p.external !== "boolean") return null;
+  return {
+    bindingId,
+    declarationName,
+    resourceName,
+    party: {
+      handle: p.handle,
+      external: p.external,
+      ...(typeof p.intentDivergenceNote === "string" && p.intentDivergenceNote.length > 0
+        ? { intentDivergenceNote: p.intentDivergenceNote }
+        : {}),
+    },
+  };
+}
+
+/**
  * Parse-then-narrow the scoped SSH access, rather than asserting it inward: the
  * parsed value is fed straight into the SSH connect path (host/user), so a
  * shape-divergent value (a renamed field, a null) must fail here at the boundary,
@@ -158,6 +229,13 @@ export async function requestScratchSandboxAccess(
   const json: unknown = await res.json().catch(() => null);
   if (!res.ok) {
     const { code, message } = parseBrokerError(json);
+    // Defense-in-depth (currently unreachable — see SandboxConsentRequiredError):
+    // a consent_required 409 with a parseable envelope surfaces as the typed
+    // consent error so a future consent-aware caller can steer, not a swallow.
+    if (code === "consent_required") {
+      const consent = parseSandboxConsentEnvelope(json);
+      if (consent !== null) throw new SandboxConsentRequiredError(consent, { status: res.status });
+    }
     throw new SandboxBrokerError(describeBrokerError(res.status, code, message), {
       status: res.status,
       code,

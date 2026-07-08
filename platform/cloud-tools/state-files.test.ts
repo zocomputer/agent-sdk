@@ -1,5 +1,12 @@
 import { describe, expect, test } from "bun:test";
-import { createRuntimeStateFilesClient, normalizeStateFilePath, stateAssetReference } from "./state-files";
+import { buildConsentSteer } from "./state-consent";
+import {
+  createRuntimeStateFilesClient,
+  normalizeStateFilePath,
+  StateFilesConsentError,
+  StateFilesRuntimeError,
+  stateAssetReference,
+} from "./state-files";
 
 // `headers` is a plain record (not the full `HeadersInit`) so the object
 // spread below can't hit the array/`Headers` forms, which would spread into
@@ -99,6 +106,76 @@ describe("createRuntimeStateFilesClient", () => {
       "state file path",
     );
     expect(calls).toEqual([]);
+  });
+});
+
+describe("consent_required steer", () => {
+  const CONSENT_BODY = {
+    error: "consent_required",
+    declarationName: "files",
+    storeId: "sts_xyz",
+    bindingId: "stb_abc123",
+    resourceName: "Files",
+    party: { handle: "org_acme", external: false },
+  };
+
+  function consentClient(body: unknown, status = 409) {
+    return createRuntimeStateFilesClient({
+      apiBaseUrl: "https://api.example.test",
+      agentToken: "agent-token",
+      declarationName: "files",
+      getSessionId: () => "eve-session",
+      fetch: Object.assign(
+        async () =>
+          new Response(JSON.stringify(body), {
+            status,
+            headers: { "content-type": "application/json" },
+          }),
+        globalThis.fetch,
+      ),
+    });
+  }
+
+  test("a consent_required 409 with an envelope throws a StateFilesConsentError carrying the envelope + steer", async () => {
+    const client = consentClient(CONSENT_BODY);
+    const error = await client.write("generated/cat.png", new Uint8Array([1])).then(
+      () => null,
+      (caught: unknown) => caught,
+    );
+    expect(error).toBeInstanceOf(StateFilesConsentError);
+    if (error instanceof StateFilesConsentError) {
+      expect(error.envelope).toEqual({
+        bindingId: "stb_abc123",
+        declarationName: "files",
+        resourceName: "Files",
+        party: { handle: "org_acme", external: false },
+      });
+      // The thrown message IS the model-facing steer — eve surfaces it verbatim
+      // as the tool-error `error-text` the model reacts to.
+      expect(error.message).toBe(buildConsentSteer(error.envelope));
+    }
+  });
+
+  test("a consent_required 409 WITHOUT a parseable envelope falls back to StateFilesRuntimeError", async () => {
+    // Missing bindingId/party — nothing valid to steer the model with, so a raw
+    // failure beats a steer the model can't act on.
+    const client = consentClient({ error: "consent_required", declarationName: "files", storeId: "sts_xyz" });
+    const error = await client.write("generated/cat.png", new Uint8Array([1])).then(
+      () => null,
+      (caught: unknown) => caught,
+    );
+    expect(error).toBeInstanceOf(StateFilesRuntimeError);
+    expect(error).not.toBeInstanceOf(StateFilesConsentError);
+  });
+
+  test("a non-consent broker error still throws StateFilesRuntimeError", async () => {
+    const client = consentClient({ error: "provider_unconfigured", message: "no creds" }, 503);
+    const error = await client.write("generated/cat.png", new Uint8Array([1])).then(
+      () => null,
+      (caught: unknown) => caught,
+    );
+    expect(error).toBeInstanceOf(StateFilesRuntimeError);
+    expect(error).not.toBeInstanceOf(StateFilesConsentError);
   });
 });
 

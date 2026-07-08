@@ -8,6 +8,6 @@
 
 > **StateFilesBody** = `string` \| `Uint8Array` \| `ArrayBuffer` \| `Blob`
 
-Defined in: [packages/agent-sdk/src/state-files.ts:203](https://github.com/zocomputer/zov2-code/blob/aba140d6dd71d0ea05075bf6e9ebcc5739f7a7b3/packages/agent-sdk/src/state-files.ts#L203)
+Defined in: [packages/agent-sdk/src/state-files.ts:203](https://github.com/zocomputer/zov2-code/blob/346fe3cc1f4b2813234e8cc0980e7a87e8c918ea/packages/agent-sdk/src/state-files.ts#L203)
 
 Accepted body types for writing to the state-files store.

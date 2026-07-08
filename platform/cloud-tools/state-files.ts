@@ -1,5 +1,7 @@
 import { ambientEveSessionId } from "../runtime-ai/session-fetch.ts";
 
+import { buildConsentSteer, type ConsentEnvelope, parseConsentEnvelope } from "./state-consent";
+
 export const DEFAULT_STATE_ASSET_DECLARATION_NAME = "files";
 export const STATE_FILES_HANDLE_PATH = "/state/handles";
 export const ZO_AGENT_TOKEN_HEADER = "x-zo-agent-token";
@@ -59,10 +61,30 @@ export interface RuntimeStateFilesSuggestedDefaults {
   readonly partition?: "none" | "team" | "user" | "session";
 }
 
-class StateFilesRuntimeError extends Error {
+export class StateFilesRuntimeError extends Error {
   constructor(message: string) {
     super(message);
     this.name = "StateFilesRuntimeError";
+  }
+}
+
+/**
+ * A `consent_required` gate on a state-files handle request (bead zo-oxg.27.10).
+ * The trust binding is `pending_consent`, so the broker won't mint a handle until
+ * the consumer grants it. The `message` IS the model-facing steer — eve surfaces
+ * a thrown tool-execute error as the `error-text` tool result the model sees
+ * (`createToolResultMessagePartFromToolError`), so the model reads it and calls
+ * `request_state_consent` with `envelope`; the consumer's Allow grants the binding
+ * and the retried write succeeds. Distinct from `StateFilesRuntimeError` (a real
+ * failure) so a tool can tell "needs consent" from "broke".
+ */
+export class StateFilesConsentError extends Error {
+  readonly envelope: ConsentEnvelope;
+
+  constructor(envelope: ConsentEnvelope) {
+    super(buildConsentSteer(envelope));
+    this.name = "StateFilesConsentError";
+    this.envelope = envelope;
   }
 }
 
@@ -153,6 +175,14 @@ async function requestRuntimeStateFilesHandle(
   });
   const json: unknown = await response.json().catch(() => null);
   if (!response.ok) {
+    // A `consent_required` 409 with a parseable envelope becomes a consent steer,
+    // not a failure — the trust binding is `pending_consent` and needs the
+    // consumer's Allow. An envelope-less consent_required re-throws as a plain
+    // runtime error: without the envelope the model has nothing valid to pass.
+    if (isConsentRequired(json)) {
+      const envelope = parseConsentEnvelope(json);
+      if (envelope !== null) throw new StateFilesConsentError(envelope);
+    }
     throw new StateFilesRuntimeError(readBrokerErrorMessage(json));
   }
   const handle = parseStateFilesHandle(json);
@@ -224,6 +254,11 @@ function parseStateFilesCredentials(value: unknown): StateFilesCredentials | nul
     return null;
   }
   return { accessKeyId, secretAccessKey, sessionToken, expiresAt };
+}
+
+/** True when a broker error body is the `consent_required` trust gate. */
+function isConsentRequired(value: unknown): boolean {
+  return isRecord(value) && value.error === "consent_required";
 }
 
 function readBrokerErrorMessage(value: unknown): string {

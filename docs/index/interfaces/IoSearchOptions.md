@@ -6,7 +6,7 @@
 
 # Interface: IoSearchOptions
 
-Defined in: [packages/agent-sdk/src/workspace-io.ts:41](https://github.com/zocomputer/zov2-code/blob/aba140d6dd71d0ea05075bf6e9ebcc5739f7a7b3/packages/agent-sdk/src/workspace-io.ts#L41)
+Defined in: [packages/agent-sdk/src/workspace-io.ts:41](https://github.com/zocomputer/zov2-code/blob/346fe3cc1f4b2813234e8cc0980e7a87e8c918ea/packages/agent-sdk/src/workspace-io.ts#L41)
 
 Content-search parameters: regex pattern, case-sensitivity, scope, glob
 filter, and max-match bound.
@@ -17,7 +17,7 @@ filter, and max-match bound.
 
 > `readonly` `optional` **glob?**: `string`
 
-Defined in: [packages/agent-sdk/src/workspace-io.ts:51](https://github.com/zocomputer/zov2-code/blob/aba140d6dd71d0ea05075bf6e9ebcc5739f7a7b3/packages/agent-sdk/src/workspace-io.ts#L51)
+Defined in: [packages/agent-sdk/src/workspace-io.ts:51](https://github.com/zocomputer/zov2-code/blob/346fe3cc1f4b2813234e8cc0980e7a87e8c918ea/packages/agent-sdk/src/workspace-io.ts#L51)
 
 Filename glob filter over root-relative paths (e.g. `**​/*.ts`).
 
@@ -27,7 +27,7 @@ Filename glob filter over root-relative paths (e.g. `**​/*.ts`).
 
 > `readonly` **ignoreCase**: `boolean`
 
-Defined in: [packages/agent-sdk/src/workspace-io.ts:44](https://github.com/zocomputer/zov2-code/blob/aba140d6dd71d0ea05075bf6e9ebcc5739f7a7b3/packages/agent-sdk/src/workspace-io.ts#L44)
+Defined in: [packages/agent-sdk/src/workspace-io.ts:44](https://github.com/zocomputer/zov2-code/blob/346fe3cc1f4b2813234e8cc0980e7a87e8c918ea/packages/agent-sdk/src/workspace-io.ts#L44)
 
 ***
 
@@ -35,7 +35,7 @@ Defined in: [packages/agent-sdk/src/workspace-io.ts:44](https://github.com/zocom
 
 > `readonly` **maxMatches**: `number`
 
-Defined in: [packages/agent-sdk/src/workspace-io.ts:53](https://github.com/zocomputer/zov2-code/blob/aba140d6dd71d0ea05075bf6e9ebcc5739f7a7b3/packages/agent-sdk/src/workspace-io.ts#L53)
+Defined in: [packages/agent-sdk/src/workspace-io.ts:53](https://github.com/zocomputer/zov2-code/blob/346fe3cc1f4b2813234e8cc0980e7a87e8c918ea/packages/agent-sdk/src/workspace-io.ts#L53)
 
 Stop scanning once this many matching lines have been collected.
 
@@ -45,7 +45,7 @@ Stop scanning once this many matching lines have been collected.
 
 > `readonly` **pattern**: `string`
 
-Defined in: [packages/agent-sdk/src/workspace-io.ts:43](https://github.com/zocomputer/zov2-code/blob/aba140d6dd71d0ea05075bf6e9ebcc5739f7a7b3/packages/agent-sdk/src/workspace-io.ts#L43)
+Defined in: [packages/agent-sdk/src/workspace-io.ts:43](https://github.com/zocomputer/zov2-code/blob/346fe3cc1f4b2813234e8cc0980e7a87e8c918ea/packages/agent-sdk/src/workspace-io.ts#L43)
 
 JavaScript regex source. The tool validates it before calling.
 
@@ -55,7 +55,7 @@ JavaScript regex source. The tool validates it before calling.
 
 > `readonly` `optional` **scope?**: `string`
 
-Defined in: [packages/agent-sdk/src/workspace-io.ts:49](https://github.com/zocomputer/zov2-code/blob/aba140d6dd71d0ea05075bf6e9ebcc5739f7a7b3/packages/agent-sdk/src/workspace-io.ts#L49)
+Defined in: [packages/agent-sdk/src/workspace-io.ts:49](https://github.com/zocomputer/zov2-code/blob/346fe3cc1f4b2813234e8cc0980e7a87e8c918ea/packages/agent-sdk/src/workspace-io.ts#L49)
 
 Absolute file or directory to search. The whole workspace when omitted.
 Callers stat the scope first, so it exists.

@@ -1,13 +1,13 @@
-// ../../../../../tmp/agent-sdk-mirror-fVZkPN/repo/platform/cloud-tools/image.ts
+// ../../../../../tmp/agent-sdk-mirror-ChphsM/repo/platform/cloud-tools/image.ts
 import { randomUUID } from "node:crypto";
 import { generateImage } from "ai";
 import { defineTool } from "eve/tools";
-import { z } from "zod";
+import { z as z2 } from "zod";
 
-// ../../../../../tmp/agent-sdk-mirror-fVZkPN/repo/platform/runtime-ai/gateway.ts
+// ../../../../../tmp/agent-sdk-mirror-ChphsM/repo/platform/runtime-ai/gateway.ts
 import { createGateway } from "ai";
 
-// ../../../../../tmp/agent-sdk-mirror-fVZkPN/repo/platform/runtime-ai/session-fetch.ts
+// ../../../../../tmp/agent-sdk-mirror-ChphsM/repo/platform/runtime-ai/session-fetch.ts
 var EVE_SESSION_HEADER = "x-zo-eve-session";
 var EVE_TURN_HEADER = "x-zo-eve-turn";
 var EVE_CONTEXT_STORAGE_KEY = Symbol.for("eve.context-storage");
@@ -55,7 +55,7 @@ function eveSessionFetch(getSessionId = ambientEveSessionId, baseFetch = globalT
   }, baseFetch);
 }
 
-// ../../../../../tmp/agent-sdk-mirror-fVZkPN/repo/platform/runtime-ai/gateway.ts
+// ../../../../../tmp/agent-sdk-mirror-ChphsM/repo/platform/runtime-ai/gateway.ts
 var ZO_TOOL_HEADER = "x-zo-tool";
 var DEFAULT_ZO_AI_BASE_URL = "http://localhost:4000/runtime/ai/v4/ai";
 var DEFAULT_ZO_AI_KEY = "dev-proxy";
@@ -82,7 +82,7 @@ function zoGateway(options = {}) {
     fetch: eveSessionFetch(undefined, options.fetch)
   });
 }
-// ../../../../../tmp/agent-sdk-mirror-fVZkPN/repo/platform/cloud-tools/image-path.ts
+// ../../../../../tmp/agent-sdk-mirror-ChphsM/repo/platform/cloud-tools/image-path.ts
 var DEFAULT_IMAGE_OUTPUT_DIR = "generated";
 var MEDIA_TYPE_EXTENSIONS = {
   "image/jpeg": "jpg",
@@ -106,14 +106,42 @@ function imageOutputPath(input) {
   return `${normalizedOutputDir(input.outputDir)}/${slugForPrompt(input.prompt)}-${input.id}.${extensionForMediaType(input.mediaType)}`;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-fVZkPN/repo/platform/cloud-tools/tool-meta.ts
+// ../../../../../tmp/agent-sdk-mirror-ChphsM/repo/platform/cloud-tools/tool-meta.ts
 var CLOUD_TOOL_META = {
   image: {
     description: "Generate an image from a text prompt and save it as an external state asset."
   }
 };
 
-// ../../../../../tmp/agent-sdk-mirror-fVZkPN/repo/platform/cloud-tools/state-files.ts
+// ../../../../../tmp/agent-sdk-mirror-ChphsM/repo/platform/cloud-tools/state-consent.ts
+import { z } from "zod";
+var REQUEST_STATE_CONSENT_TOOL_NAME = "request_state_consent";
+var consentPartySchema = z.object({
+  handle: z.string().min(1),
+  external: z.boolean(),
+  intentDivergenceNote: z.string().min(1).optional()
+});
+var consentEnvelopeSchema = z.object({
+  bindingId: z.string().min(1),
+  declarationName: z.string().min(1),
+  resourceName: z.string().min(1),
+  party: consentPartySchema
+});
+function parseConsentEnvelope(value) {
+  const result = consentEnvelopeSchema.safeParse(value);
+  return result.success ? result.data : null;
+}
+function buildConsentSteer(envelope) {
+  return [
+    `Using "${envelope.resourceName}" needs the user's consent first.`,
+    `Call the \`${REQUEST_STATE_CONSENT_TOOL_NAME}\` tool with exactly these values (do not change or invent them):`,
+    JSON.stringify(envelope),
+    `The user will be asked to Allow or Deny. On Allow, the capability is granted — retry your original operation. On Deny, do not retry; tell the user you can't proceed without access.`
+  ].join(`
+`);
+}
+
+// ../../../../../tmp/agent-sdk-mirror-ChphsM/repo/platform/cloud-tools/state-files.ts
 var DEFAULT_STATE_ASSET_DECLARATION_NAME = "files";
 var STATE_FILES_HANDLE_PATH = "/state/handles";
 var ZO_AGENT_TOKEN_HEADER = "x-zo-agent-token";
@@ -127,6 +155,15 @@ class StateFilesRuntimeError extends Error {
   constructor(message) {
     super(message);
     this.name = "StateFilesRuntimeError";
+  }
+}
+
+class StateFilesConsentError extends Error {
+  envelope;
+  constructor(envelope) {
+    super(buildConsentSteer(envelope));
+    this.name = "StateFilesConsentError";
+    this.envelope = envelope;
   }
 }
 function createRuntimeStateFilesClient(options = {}) {
@@ -200,6 +237,11 @@ async function requestRuntimeStateFilesHandle(options) {
   });
   const json = await response.json().catch(() => null);
   if (!response.ok) {
+    if (isConsentRequired(json)) {
+      const envelope = parseConsentEnvelope(json);
+      if (envelope !== null)
+        throw new StateFilesConsentError(envelope);
+    }
     throw new StateFilesRuntimeError(readBrokerErrorMessage(json));
   }
   const handle = parseStateFilesHandle(json);
@@ -256,6 +298,9 @@ function parseStateFilesCredentials(value) {
     return null;
   }
   return { accessKeyId, secretAccessKey, sessionToken, expiresAt };
+}
+function isConsentRequired(value) {
+  return isRecord(value) && value.error === "consent_required";
 }
 function readBrokerErrorMessage(value) {
   if (!isRecord(value))
@@ -366,7 +411,7 @@ function readString(record, key) {
   return typeof value === "string" && value.length > 0 ? value : null;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-fVZkPN/repo/platform/cloud-tools/image.ts
+// ../../../../../tmp/agent-sdk-mirror-ChphsM/repo/platform/cloud-tools/image.ts
 var DEFAULT_IMAGE_MODEL = "bfl/flux-2-pro";
 function isImageSize(value) {
   return typeof value === "string" && /^[1-9]\d{1,4}x[1-9]\d{1,4}$/u.test(value);
@@ -374,39 +419,39 @@ function isImageSize(value) {
 function isImageAspectRatio(value) {
   return typeof value === "string" && /^[1-9]\d{0,2}:[1-9]\d{0,2}$/u.test(value);
 }
-var SizeSchema = z.templateLiteral([z.number().int().positive(), "x", z.number().int().positive()]).refine(isImageSize, { message: "Use WIDTHxHEIGHT, for example 1024x1024." });
-var AspectRatioSchema = z.templateLiteral([z.number().int().positive(), ":", z.number().int().positive()]).refine(isImageAspectRatio, { message: "Use WIDTH:HEIGHT, for example 1:1 or 16:9." });
-var ImageDimensionsSchema = z.discriminatedUnion("kind", [
-  z.object({ kind: z.literal("auto") }).strict(),
-  z.object({ kind: z.literal("size"), size: SizeSchema }).strict(),
-  z.object({
+var SizeSchema = z2.templateLiteral([z2.number().int().positive(), "x", z2.number().int().positive()]).refine(isImageSize, { message: "Use WIDTHxHEIGHT, for example 1024x1024." });
+var AspectRatioSchema = z2.templateLiteral([z2.number().int().positive(), ":", z2.number().int().positive()]).refine(isImageAspectRatio, { message: "Use WIDTH:HEIGHT, for example 1:1 or 16:9." });
+var ImageDimensionsSchema = z2.discriminatedUnion("kind", [
+  z2.object({ kind: z2.literal("auto") }).strict(),
+  z2.object({ kind: z2.literal("size"), size: SizeSchema }).strict(),
+  z2.object({
     aspectRatio: AspectRatioSchema,
-    kind: z.literal("aspectRatio")
+    kind: z2.literal("aspectRatio")
   }).strict()
 ]);
-var OutputDirSchema = z.string().trim().min(1).max(200).regex(/^(?!\/)(?!.*\/$)(?!.*\/\/)(?!.*(?:^|\/)(?:\.|\.\.)(?:\/|$))[A-Za-z0-9._/-]+$/u, "Use a relative state file path without empty, . or .. segments.");
-var GenerateImageInputSchema = z.object({
+var OutputDirSchema = z2.string().trim().min(1).max(200).regex(/^(?!\/)(?!.*\/$)(?!.*\/\/)(?!.*(?:^|\/)(?:\.|\.\.)(?:\/|$))[A-Za-z0-9._/-]+$/u, "Use a relative state file path without empty, . or .. segments.");
+var GenerateImageInputSchema = z2.object({
   dimensions: ImageDimensionsSchema.optional(),
-  model: z.string().trim().min(1).optional(),
+  model: z2.string().trim().min(1).optional(),
   outputDir: OutputDirSchema.optional(),
-  prompt: z.string().trim().min(1).max(4000),
-  seed: z.number().int().nonnegative().optional()
+  prompt: z2.string().trim().min(1).max(4000),
+  seed: z2.number().int().nonnegative().optional()
 }).strict();
-var StateAssetReferenceSchema = z.object({
-  bytes: z.number().int().nonnegative().optional(),
-  contentType: z.string().optional(),
-  declarationName: z.string(),
-  path: z.string(),
-  type: z.literal("state_asset")
+var StateAssetReferenceSchema = z2.object({
+  bytes: z2.number().int().nonnegative().optional(),
+  contentType: z2.string().optional(),
+  declarationName: z2.string(),
+  path: z2.string(),
+  type: z2.literal("state_asset")
 }).strict();
-var GenerateImageOutputSchema = z.object({
+var GenerateImageOutputSchema = z2.object({
   asset: StateAssetReferenceSchema,
-  bytes: z.number().int().nonnegative(),
-  mediaType: z.string(),
-  model: z.string(),
-  path: z.string(),
-  prompt: z.string(),
-  warnings: z.array(z.string())
+  bytes: z2.number().int().nonnegative(),
+  mediaType: z2.string(),
+  model: z2.string(),
+  path: z2.string(),
+  prompt: z2.string(),
+  warnings: z2.array(z2.string())
 }).strict();
 function assertNever(value) {
   throw new Error(`Unhandled generate_image dimensions: ${JSON.stringify(value)}`);
@@ -489,7 +534,7 @@ function generateImageTool(options = {}) {
   });
 }
 var image_default = generateImageTool();
-// ../../../../../tmp/agent-sdk-mirror-fVZkPN/repo/platform/cloud-tools/web-search.ts
+// ../../../../../tmp/agent-sdk-mirror-ChphsM/repo/platform/cloud-tools/web-search.ts
 function webSearch(config) {
   const gateway = zoGateway();
   return config === undefined ? gateway.tools.exaSearch() : gateway.tools.exaSearch(config);

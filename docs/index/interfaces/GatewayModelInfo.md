@@ -6,7 +6,7 @@
 
 # Interface: GatewayModelInfo
 
-Defined in: [packages/agent-sdk/src/task.ts:357](https://github.com/zocomputer/zov2-code/blob/aba140d6dd71d0ea05075bf6e9ebcc5739f7a7b3/packages/agent-sdk/src/task.ts#L357)
+Defined in: [packages/agent-sdk/src/task.ts:357](https://github.com/zocomputer/zov2-code/blob/346fe3cc1f4b2813234e8cc0980e7a87e8c918ea/packages/agent-sdk/src/task.ts#L357)
 
 One model entry from the AI Gateway's public model catalog.
 
@@ -16,7 +16,7 @@ One model entry from the AI Gateway's public model catalog.
 
 > **description**: `string` \| `undefined`
 
-Defined in: [packages/agent-sdk/src/task.ts:360](https://github.com/zocomputer/zov2-code/blob/aba140d6dd71d0ea05075bf6e9ebcc5739f7a7b3/packages/agent-sdk/src/task.ts#L360)
+Defined in: [packages/agent-sdk/src/task.ts:360](https://github.com/zocomputer/zov2-code/blob/346fe3cc1f4b2813234e8cc0980e7a87e8c918ea/packages/agent-sdk/src/task.ts#L360)
 
 ***
 
@@ -24,7 +24,7 @@ Defined in: [packages/agent-sdk/src/task.ts:360](https://github.com/zocomputer/z
 
 > **id**: `string`
 
-Defined in: [packages/agent-sdk/src/task.ts:358](https://github.com/zocomputer/zov2-code/blob/aba140d6dd71d0ea05075bf6e9ebcc5739f7a7b3/packages/agent-sdk/src/task.ts#L358)
+Defined in: [packages/agent-sdk/src/task.ts:358](https://github.com/zocomputer/zov2-code/blob/346fe3cc1f4b2813234e8cc0980e7a87e8c918ea/packages/agent-sdk/src/task.ts#L358)
 
 ***
 
@@ -32,7 +32,7 @@ Defined in: [packages/agent-sdk/src/task.ts:358](https://github.com/zocomputer/z
 
 > **name**: `string` \| `undefined`
 
-Defined in: [packages/agent-sdk/src/task.ts:359](https://github.com/zocomputer/zov2-code/blob/aba140d6dd71d0ea05075bf6e9ebcc5739f7a7b3/packages/agent-sdk/src/task.ts#L359)
+Defined in: [packages/agent-sdk/src/task.ts:359](https://github.com/zocomputer/zov2-code/blob/346fe3cc1f4b2813234e8cc0980e7a87e8c918ea/packages/agent-sdk/src/task.ts#L359)
 
 ***
 
@@ -40,7 +40,7 @@ Defined in: [packages/agent-sdk/src/task.ts:359](https://github.com/zocomputer/z
 
 > **tags**: readonly `string`[] \| `undefined`
 
-Defined in: [packages/agent-sdk/src/task.ts:366](https://github.com/zocomputer/zov2-code/blob/aba140d6dd71d0ea05075bf6e9ebcc5739f7a7b3/packages/agent-sdk/src/task.ts#L366)
+Defined in: [packages/agent-sdk/src/task.ts:366](https://github.com/zocomputer/zov2-code/blob/346fe3cc1f4b2813234e8cc0980e7a87e8c918ea/packages/agent-sdk/src/task.ts#L366)
 
 Capability tags (e.g. `vision`, `file-input`, `reasoning`, `tool-use`) —
 the input-modality signal `capabilitiesFromCatalogEntry`

@@ -1,7 +1,7 @@
-// ../../../../../tmp/agent-sdk-mirror-fVZkPN/repo/platform/agent-sandbox/zo-sandbox.ts
+// ../../../../../tmp/agent-sdk-mirror-ChphsM/repo/platform/agent-sandbox/zo-sandbox.ts
 import { defineSandbox } from "eve/sandbox";
 
-// ../../../../../tmp/agent-sdk-mirror-fVZkPN/repo/platform/runtime-auth/index.ts
+// ../../../../../tmp/agent-sdk-mirror-ChphsM/repo/platform/runtime-auth/index.ts
 import { SignJWT, jwtVerify } from "jose";
 var AGENT_TOKEN_HEADER = "x-zo-agent-token";
 var EVE_SESSION_HEADER = "x-zo-eve-session";
@@ -24,7 +24,7 @@ var RESERVED_AGENT_PROJECT_IDS = [
   LOCAL_AGENT_IDENTITY.agentProjectId
 ];
 
-// ../../../../../tmp/agent-sdk-mirror-fVZkPN/repo/platform/agent-sandbox/api-client.ts
+// ../../../../../tmp/agent-sdk-mirror-ChphsM/repo/platform/agent-sandbox/api-client.ts
 var SCRATCH_DECLARATION = "scratch";
 var STATE_HANDLE_PATH = "/state/handles";
 
@@ -37,6 +37,37 @@ class SandboxBrokerError extends Error {
     this.status = options.status;
     this.code = options.code ?? null;
   }
+}
+
+class SandboxConsentRequiredError extends SandboxBrokerError {
+  consent;
+  constructor(consent, options) {
+    super(`sandbox access needs the user's consent for "${consent.resourceName}" (consent_required); the binding is awaiting approval.`, { status: options.status, code: "consent_required" });
+    this.name = "SandboxConsentRequiredError";
+    this.consent = consent;
+  }
+}
+function parseSandboxConsentEnvelope(value) {
+  if (typeof value !== "object" || value === null)
+    return null;
+  const v = value;
+  const { bindingId, declarationName, resourceName, party } = v;
+  if (typeof bindingId !== "string" || bindingId.length === 0 || typeof declarationName !== "string" || declarationName.length === 0 || typeof resourceName !== "string" || resourceName.length === 0 || typeof party !== "object" || party === null) {
+    return null;
+  }
+  const p = party;
+  if (typeof p.handle !== "string" || p.handle.length === 0 || typeof p.external !== "boolean")
+    return null;
+  return {
+    bindingId,
+    declarationName,
+    resourceName,
+    party: {
+      handle: p.handle,
+      external: p.external,
+      ...typeof p.intentDivergenceNote === "string" && p.intentDivergenceNote.length > 0 ? { intentDivergenceNote: p.intentDivergenceNote } : {}
+    }
+  };
 }
 function parseSandboxAccess(value) {
   if (typeof value !== "object" || value === null)
@@ -78,6 +109,11 @@ async function requestScratchSandboxAccess(input) {
   const json = await res.json().catch(() => null);
   if (!res.ok) {
     const { code, message } = parseBrokerError(json);
+    if (code === "consent_required") {
+      const consent = parseSandboxConsentEnvelope(json);
+      if (consent !== null)
+        throw new SandboxConsentRequiredError(consent, { status: res.status });
+    }
     throw new SandboxBrokerError(describeBrokerError(res.status, code, message), {
       status: res.status,
       code
@@ -109,11 +145,11 @@ function describeBrokerError(status, code, message) {
   return `sandbox provisioning failed: ${status}${detail ? ` ${detail}` : ""}`.trim();
 }
 
-// ../../../../../tmp/agent-sdk-mirror-fVZkPN/repo/platform/agent-sandbox/ssh-session.ts
+// ../../../../../tmp/agent-sdk-mirror-ChphsM/repo/platform/agent-sandbox/ssh-session.ts
 import { Client } from "ssh2";
 import { extractLines } from "@ai-sdk/provider-utils";
 
-// ../../../../../tmp/agent-sdk-mirror-fVZkPN/repo/platform/agent-sandbox/pure.ts
+// ../../../../../tmp/agent-sdk-mirror-ChphsM/repo/platform/agent-sandbox/pure.ts
 import { Buffer as Buffer2 } from "node:buffer";
 import path from "node:path";
 function resolveSandboxPath(workDir, p) {
@@ -153,7 +189,7 @@ function encodeText(text, encoding) {
   return new Uint8Array(Buffer2.from(text, enc));
 }
 
-// ../../../../../tmp/agent-sdk-mirror-fVZkPN/repo/platform/agent-sandbox/ssh-connection.ts
+// ../../../../../tmp/agent-sdk-mirror-ChphsM/repo/platform/agent-sandbox/ssh-connection.ts
 function isExpired(access, skewMs, now) {
   const expiry = Date.parse(access.expiresAt);
   if (Number.isNaN(expiry))
@@ -244,7 +280,7 @@ class SshConnectionManager {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-fVZkPN/repo/platform/agent-sandbox/ssh-exec.ts
+// ../../../../../tmp/agent-sdk-mirror-ChphsM/repo/platform/agent-sandbox/ssh-exec.ts
 var SIGNAL_EXIT_CODE = 137;
 function abortError(signal) {
   return signal.reason instanceof Error ? signal.reason : new Error(typeof signal.reason === "string" ? signal.reason : "aborted");
@@ -297,7 +333,7 @@ function awaitCommand(stream, abortSignal) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-fVZkPN/repo/platform/agent-sandbox/sftp.ts
+// ../../../../../tmp/agent-sdk-mirror-ChphsM/repo/platform/agent-sandbox/sftp.ts
 import path2 from "node:path";
 var SFTP_NO_SUCH_FILE = 2;
 function isNoSuchFile(error) {
@@ -382,7 +418,7 @@ async function removePath(client, remotePath, opts = {}) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-fVZkPN/repo/platform/agent-sandbox/ssh-session.ts
+// ../../../../../tmp/agent-sdk-mirror-ChphsM/repo/platform/agent-sandbox/ssh-session.ts
 var WORK_DIR = "/home/daytona";
 var EXPIRY_SKEW_MS = 30000;
 var SSH_PORT = 22;
@@ -638,7 +674,7 @@ function sshSandboxSession(id, acquireAccess) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-fVZkPN/repo/platform/agent-sandbox/zo-backend.ts
+// ../../../../../tmp/agent-sdk-mirror-ChphsM/repo/platform/agent-sandbox/zo-backend.ts
 var BACKEND_NAME = "zo";
 function zoBackend(options) {
   return {
@@ -677,7 +713,7 @@ function zoBackend(options) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-fVZkPN/repo/platform/agent-sandbox/zo-sandbox.ts
+// ../../../../../tmp/agent-sdk-mirror-ChphsM/repo/platform/agent-sandbox/zo-sandbox.ts
 var DEFAULT_API_URL = "http://api.zo.localhost:4000";
 function zoSandbox(options = {}) {
   return defineSandbox({
@@ -691,5 +727,6 @@ export {
   zoBackend,
   sshSandboxSession,
   requestScratchSandboxAccess,
+  SandboxConsentRequiredError,
   SandboxBrokerError
 };

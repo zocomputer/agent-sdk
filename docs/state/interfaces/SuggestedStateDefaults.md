@@ -6,7 +6,7 @@
 
 # Interface: SuggestedStateDefaults
 
-Defined in: [packages/agent-sdk/src/state.ts:31](https://github.com/zocomputer/zov2-code/blob/aba140d6dd71d0ea05075bf6e9ebcc5739f7a7b3/packages/agent-sdk/src/state.ts#L31)
+Defined in: [packages/agent-sdk/src/state.ts:31](https://github.com/zocomputer/zov2-code/blob/346fe3cc1f4b2813234e8cc0980e7a87e8c918ea/packages/agent-sdk/src/state.ts#L31)
 
 The author's preferred engine/partition/lifecycle, consumed at rung two of
 the binding resolution ladder. Hints, not constraints.
@@ -17,7 +17,7 @@ the binding resolution ladder. Hints, not constraints.
 
 > `readonly` `optional` **engine?**: `string`
 
-Defined in: [packages/agent-sdk/src/state.ts:33](https://github.com/zocomputer/zov2-code/blob/aba140d6dd71d0ea05075bf6e9ebcc5739f7a7b3/packages/agent-sdk/src/state.ts#L33)
+Defined in: [packages/agent-sdk/src/state.ts:33](https://github.com/zocomputer/zov2-code/blob/346fe3cc1f4b2813234e8cc0980e7a87e8c918ea/packages/agent-sdk/src/state.ts#L33)
 
 Engine catalog key, e.g. "zo-blob-r2". Free-form: the catalog is control-plane code.
 
@@ -27,7 +27,7 @@ Engine catalog key, e.g. "zo-blob-r2". Free-form: the catalog is control-plane c
 
 > `readonly` `optional` **lifecycle?**: `Readonly`\<`Record`\<`string`, `string` \| `number` \| `boolean`\>\>
 
-Defined in: [packages/agent-sdk/src/state.ts:36](https://github.com/zocomputer/zov2-code/blob/aba140d6dd71d0ea05075bf6e9ebcc5739f7a7b3/packages/agent-sdk/src/state.ts#L36)
+Defined in: [packages/agent-sdk/src/state.ts:36](https://github.com/zocomputer/zov2-code/blob/346fe3cc1f4b2813234e8cc0980e7a87e8c918ea/packages/agent-sdk/src/state.ts#L36)
 
 Per-transition lifecycle overrides on the (engine, partition) defaults.
 
@@ -37,4 +37,4 @@ Per-transition lifecycle overrides on the (engine, partition) defaults.
 
 > `readonly` `optional` **partition?**: [`StatePartition`](../type-aliases/StatePartition.md)
 
-Defined in: [packages/agent-sdk/src/state.ts:34](https://github.com/zocomputer/zov2-code/blob/aba140d6dd71d0ea05075bf6e9ebcc5739f7a7b3/packages/agent-sdk/src/state.ts#L34)
+Defined in: [packages/agent-sdk/src/state.ts:34](https://github.com/zocomputer/zov2-code/blob/346fe3cc1f4b2813234e8cc0980e7a87e8c918ea/packages/agent-sdk/src/state.ts#L34)

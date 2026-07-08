@@ -6,7 +6,7 @@
 
 # Interface: RequestStateSandboxHandleOptions
 
-Defined in: [packages/agent-sdk/src/state-sandbox.ts:98](https://github.com/zocomputer/zov2-code/blob/aba140d6dd71d0ea05075bf6e9ebcc5739f7a7b3/packages/agent-sdk/src/state-sandbox.ts#L98)
+Defined in: [packages/agent-sdk/src/state-sandbox.ts:98](https://github.com/zocomputer/zov2-code/blob/346fe3cc1f4b2813234e8cc0980e7a87e8c918ea/packages/agent-sdk/src/state-sandbox.ts#L98)
 
 Options for requesting a state sandbox handle from the runtime broker.
 Specifies the HTTP client, API base URL, state declaration details, and optional auth credentials.
@@ -17,7 +17,7 @@ Specifies the HTTP client, API base URL, state declaration details, and optional
 
 > `readonly` **access**: [`StateSandboxAccess`](../type-aliases/StateSandboxAccess.md)
 
-Defined in: [packages/agent-sdk/src/state-sandbox.ts:103](https://github.com/zocomputer/zov2-code/blob/aba140d6dd71d0ea05075bf6e9ebcc5739f7a7b3/packages/agent-sdk/src/state-sandbox.ts#L103)
+Defined in: [packages/agent-sdk/src/state-sandbox.ts:103](https://github.com/zocomputer/zov2-code/blob/346fe3cc1f4b2813234e8cc0980e7a87e8c918ea/packages/agent-sdk/src/state-sandbox.ts#L103)
 
 ***
 
@@ -25,7 +25,7 @@ Defined in: [packages/agent-sdk/src/state-sandbox.ts:103](https://github.com/zoc
 
 > `readonly` `optional` **agentToken?**: `string`
 
-Defined in: [packages/agent-sdk/src/state-sandbox.ts:105](https://github.com/zocomputer/zov2-code/blob/aba140d6dd71d0ea05075bf6e9ebcc5739f7a7b3/packages/agent-sdk/src/state-sandbox.ts#L105)
+Defined in: [packages/agent-sdk/src/state-sandbox.ts:105](https://github.com/zocomputer/zov2-code/blob/346fe3cc1f4b2813234e8cc0980e7a87e8c918ea/packages/agent-sdk/src/state-sandbox.ts#L105)
 
 Agent bearer token sent to the runtime broker as `x-zo-agent-token`.
 
@@ -35,7 +35,7 @@ Agent bearer token sent to the runtime broker as `x-zo-agent-token`.
 
 > `readonly` **apiBaseUrl**: `string` \| `URL`
 
-Defined in: [packages/agent-sdk/src/state-sandbox.ts:100](https://github.com/zocomputer/zov2-code/blob/aba140d6dd71d0ea05075bf6e9ebcc5739f7a7b3/packages/agent-sdk/src/state-sandbox.ts#L100)
+Defined in: [packages/agent-sdk/src/state-sandbox.ts:100](https://github.com/zocomputer/zov2-code/blob/346fe3cc1f4b2813234e8cc0980e7a87e8c918ea/packages/agent-sdk/src/state-sandbox.ts#L100)
 
 ***
 
@@ -43,7 +43,7 @@ Defined in: [packages/agent-sdk/src/state-sandbox.ts:100](https://github.com/zoc
 
 > `readonly` **declarationName**: `string`
 
-Defined in: [packages/agent-sdk/src/state-sandbox.ts:101](https://github.com/zocomputer/zov2-code/blob/aba140d6dd71d0ea05075bf6e9ebcc5739f7a7b3/packages/agent-sdk/src/state-sandbox.ts#L101)
+Defined in: [packages/agent-sdk/src/state-sandbox.ts:101](https://github.com/zocomputer/zov2-code/blob/346fe3cc1f4b2813234e8cc0980e7a87e8c918ea/packages/agent-sdk/src/state-sandbox.ts#L101)
 
 ***
 
@@ -51,7 +51,7 @@ Defined in: [packages/agent-sdk/src/state-sandbox.ts:101](https://github.com/zoc
 
 > `readonly` `optional` **eveSessionKey?**: `string`
 
-Defined in: [packages/agent-sdk/src/state-sandbox.ts:107](https://github.com/zocomputer/zov2-code/blob/aba140d6dd71d0ea05075bf6e9ebcc5739f7a7b3/packages/agent-sdk/src/state-sandbox.ts#L107)
+Defined in: [packages/agent-sdk/src/state-sandbox.ts:107](https://github.com/zocomputer/zov2-code/blob/346fe3cc1f4b2813234e8cc0980e7a87e8c918ea/packages/agent-sdk/src/state-sandbox.ts#L107)
 
 eve session key sent as `x-zo-eve-session`; the route derives resolver session identity from auth context.
 
@@ -61,7 +61,7 @@ eve session key sent as `x-zo-eve-session`; the route derives resolver session i
 
 > `readonly` **fetch**: [`StateSandboxHandleFetch`](StateSandboxHandleFetch.md)
 
-Defined in: [packages/agent-sdk/src/state-sandbox.ts:99](https://github.com/zocomputer/zov2-code/blob/aba140d6dd71d0ea05075bf6e9ebcc5739f7a7b3/packages/agent-sdk/src/state-sandbox.ts#L99)
+Defined in: [packages/agent-sdk/src/state-sandbox.ts:99](https://github.com/zocomputer/zov2-code/blob/346fe3cc1f4b2813234e8cc0980e7a87e8c918ea/packages/agent-sdk/src/state-sandbox.ts#L99)
 
 ***
 
@@ -69,7 +69,7 @@ Defined in: [packages/agent-sdk/src/state-sandbox.ts:99](https://github.com/zoco
 
 > `readonly` `optional` **headers?**: [`StateSandboxHeadersInit`](../type-aliases/StateSandboxHeadersInit.md)
 
-Defined in: [packages/agent-sdk/src/state-sandbox.ts:115](https://github.com/zocomputer/zov2-code/blob/aba140d6dd71d0ea05075bf6e9ebcc5739f7a7b3/packages/agent-sdk/src/state-sandbox.ts#L115)
+Defined in: [packages/agent-sdk/src/state-sandbox.ts:115](https://github.com/zocomputer/zov2-code/blob/346fe3cc1f4b2813234e8cc0980e7a87e8c918ea/packages/agent-sdk/src/state-sandbox.ts#L115)
 
 Extra headers; cannot override the SDK-managed content type or Zo auth headers.
 
@@ -79,7 +79,7 @@ Extra headers; cannot override the SDK-managed content type or Zo auth headers.
 
 > `readonly` **interface**: [`StateSandboxInterface`](../type-aliases/StateSandboxInterface.md)
 
-Defined in: [packages/agent-sdk/src/state-sandbox.ts:102](https://github.com/zocomputer/zov2-code/blob/aba140d6dd71d0ea05075bf6e9ebcc5739f7a7b3/packages/agent-sdk/src/state-sandbox.ts#L102)
+Defined in: [packages/agent-sdk/src/state-sandbox.ts:102](https://github.com/zocomputer/zov2-code/blob/346fe3cc1f4b2813234e8cc0980e7a87e8c918ea/packages/agent-sdk/src/state-sandbox.ts#L102)
 
 ***
 
@@ -87,7 +87,7 @@ Defined in: [packages/agent-sdk/src/state-sandbox.ts:102](https://github.com/zoc
 
 > `readonly` `optional` **suggestedDefaults?**: [`StateSandboxSuggestedDefaults`](StateSandboxSuggestedDefaults.md)
 
-Defined in: [packages/agent-sdk/src/state-sandbox.ts:113](https://github.com/zocomputer/zov2-code/blob/aba140d6dd71d0ea05075bf6e9ebcc5739f7a7b3/packages/agent-sdk/src/state-sandbox.ts#L113)
+Defined in: [packages/agent-sdk/src/state-sandbox.ts:113](https://github.com/zocomputer/zov2-code/blob/346fe3cc1f4b2813234e8cc0980e7a87e8c918ea/packages/agent-sdk/src/state-sandbox.ts#L113)
 
 Declaration defaults from `defineExternalState`. The sandbox client sends
 `engine: "sandbox-daytona"` by default so unbound exec declarations do

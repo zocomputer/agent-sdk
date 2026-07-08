@@ -6,7 +6,7 @@
 
 # Interface: SteerMessage
 
-Defined in: [packages/agent-sdk/src/steer.ts:26](https://github.com/zocomputer/zov2-code/blob/aba140d6dd71d0ea05075bf6e9ebcc5739f7a7b3/packages/agent-sdk/src/steer.ts#L26)
+Defined in: [packages/agent-sdk/src/steer.ts:26](https://github.com/zocomputer/zov2-code/blob/346fe3cc1f4b2813234e8cc0980e7a87e8c918ea/packages/agent-sdk/src/steer.ts#L26)
 
 One steered message, as queued by a UI and delivered to the model.
 
@@ -16,7 +16,7 @@ One steered message, as queued by a UI and delivered to the model.
 
 > **at**: `number`
 
-Defined in: [packages/agent-sdk/src/steer.ts:32](https://github.com/zocomputer/zov2-code/blob/aba140d6dd71d0ea05075bf6e9ebcc5739f7a7b3/packages/agent-sdk/src/steer.ts#L32)
+Defined in: [packages/agent-sdk/src/steer.ts:32](https://github.com/zocomputer/zov2-code/blob/346fe3cc1f4b2813234e8cc0980e7a87e8c918ea/packages/agent-sdk/src/steer.ts#L32)
 
 Queue time (epoch ms).
 
@@ -26,7 +26,7 @@ Queue time (epoch ms).
 
 > **id**: `string`
 
-Defined in: [packages/agent-sdk/src/steer.ts:28](https://github.com/zocomputer/zov2-code/blob/aba140d6dd71d0ea05075bf6e9ebcc5739f7a7b3/packages/agent-sdk/src/steer.ts#L28)
+Defined in: [packages/agent-sdk/src/steer.ts:28](https://github.com/zocomputer/zov2-code/blob/346fe3cc1f4b2813234e8cc0980e7a87e8c918ea/packages/agent-sdk/src/steer.ts#L28)
 
 Unique id — the park-delivery dedupe key (`steer:<id>`).
 
@@ -36,6 +36,6 @@ Unique id — the park-delivery dedupe key (`steer:<id>`).
 
 > **text**: `string`
 
-Defined in: [packages/agent-sdk/src/steer.ts:30](https://github.com/zocomputer/zov2-code/blob/aba140d6dd71d0ea05075bf6e9ebcc5739f7a7b3/packages/agent-sdk/src/steer.ts#L30)
+Defined in: [packages/agent-sdk/src/steer.ts:30](https://github.com/zocomputer/zov2-code/blob/346fe3cc1f4b2813234e8cc0980e7a87e8c918ea/packages/agent-sdk/src/steer.ts#L30)
 
 The user's message, verbatim.

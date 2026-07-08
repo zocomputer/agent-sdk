@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { generateImageTool } from "./image";
-import type { StateFilesAssetWriter } from "./state-files";
+import { StateFilesConsentError, type StateFilesAssetWriter } from "./state-files";
 
 type Tool = ReturnType<typeof generateImageTool>;
 type ExecuteInput = Parameters<Tool["execute"]>[0];
@@ -99,5 +99,43 @@ describe("generateImageTool", () => {
     expect(JSON.stringify(modelOutput)).toContain("state_asset");
     expect(JSON.stringify(modelOutput)).not.toContain("http");
     expect(JSON.stringify(modelOutput)).not.toContain("workspace images yet");
+  });
+
+  test("surfaces a state-files consent steer instead of swallowing it (bead zo-oxg.27.10)", async () => {
+    // The writer's `consent_required` gate must propagate through execute so eve
+    // renders the steer as the tool-error the model reacts to — the tool never
+    // catches or transforms it into a fake success.
+    const envelope = {
+      bindingId: "stb_abc123",
+      declarationName: "files",
+      resourceName: "Files",
+      party: { handle: "org_acme", external: false } as const,
+    };
+    const consentWriter: StateFilesAssetWriter = {
+      async write() {
+        throw new StateFilesConsentError(envelope);
+      },
+    };
+    const tool = generateImageTool({
+      assetWriter: consentWriter,
+      declarationName: "files",
+      randomId: () => "abc12345",
+      generate: async () => imageResult(),
+    });
+
+    let error: unknown = null;
+    try {
+      await tool.execute(
+        { prompt: "Blue robot", outputDir: "generated" } satisfies ExecuteInput,
+        new Proxy({}, {}) as Parameters<Tool["execute"]>[1],
+      );
+    } catch (caught) {
+      error = caught;
+    }
+    expect(error).toBeInstanceOf(StateFilesConsentError);
+    if (error instanceof StateFilesConsentError) {
+      expect(error.envelope).toEqual(envelope);
+      expect(error.message).toContain("request_state_consent");
+    }
   });
 });
