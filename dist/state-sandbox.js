@@ -1,4 +1,22 @@
-// ../../../../../tmp/agent-sdk-mirror-jFMs3h/repo/src/state-files.ts
+// ../../../../../tmp/agent-sdk-mirror-wH9mjN/repo/src/state-consent-envelope.ts
+import { z } from "zod";
+var consentPartySchema = z.object({
+  handle: z.string().min(1),
+  external: z.boolean(),
+  intentDivergenceNote: z.string().min(1).optional()
+});
+var requestStateConsentInputSchema = z.object({
+  bindingId: z.string().min(1),
+  declarationName: z.string().min(1),
+  resourceName: z.string().min(1),
+  party: consentPartySchema
+});
+function parseConsentEnvelope(value) {
+  const result = requestStateConsentInputSchema.safeParse(value);
+  return result.success ? result.data : null;
+}
+
+// ../../../../../tmp/agent-sdk-mirror-wH9mjN/repo/src/state-files.ts
 function normalizeStateFilePath(path) {
   if (path.length === 0) {
     throw new Error("state file path must not be empty");
@@ -13,7 +31,7 @@ function normalizeStateFilePath(path) {
   return path;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-jFMs3h/repo/src/state-sandbox.ts
+// ../../../../../tmp/agent-sdk-mirror-wH9mjN/repo/src/state-sandbox.ts
 var STATE_SANDBOX_HANDLE_PATH = "/state/handles";
 var ZO_AGENT_TOKEN_HEADER = "x-zo-agent-token";
 var ZO_EVE_SESSION_HEADER = "x-zo-eve-session";
@@ -21,11 +39,13 @@ var ZO_EVE_SESSION_HEADER = "x-zo-eve-session";
 class StateSandboxHandleError extends Error {
   status;
   code;
+  consent;
   constructor(message, options) {
     super(message);
     this.name = "StateSandboxHandleError";
     this.status = options.status;
     this.code = options.code ?? null;
+    this.consent = options.consent ?? null;
   }
 }
 async function requestStateSandboxHandle(options) {
@@ -39,7 +59,8 @@ async function requestStateSandboxHandle(options) {
     const error = parseStateSandboxBrokerError(json);
     throw new StateSandboxHandleError(error.message, {
       status: response.status,
-      code: error.code
+      code: error.code,
+      consent: error.code === "consent_required" ? parseConsentEnvelope(json) : null
     });
   }
   const handle = parseStateSandboxHandle(json);

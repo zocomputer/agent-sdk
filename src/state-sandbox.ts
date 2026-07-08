@@ -1,6 +1,7 @@
 /** Runtime client contract for external-state sandbox `exec` + `files` access. */
 
 import { normalizeStateFilePath } from "./state-files";
+import { parseConsentEnvelope, type StateConsentEnvelope } from "./state-consent-envelope";
 
 /** Read-only or read-write access to a sandbox state instance. */
 export type StateSandboxAccess = "r" | "rw";
@@ -121,15 +122,22 @@ export interface RequestStateSandboxHandleOptions {
 export class StateSandboxHandleError extends Error {
   readonly status: number;
   readonly code: string | null;
+  /**
+   * The consent envelope, present ONLY on a `consent_required` 409 carrying the
+   * full contract (bindingId, declarationName, resourceName, party); `null`
+   * otherwise. The `@zo/state` consent wrapper reads it to steer the model.
+   */
+  readonly consent: StateConsentEnvelope | null;
 
   constructor(
     message: string,
-    options: { status: number; code?: string | null },
+    options: { status: number; code?: string | null; consent?: StateConsentEnvelope | null },
   ) {
     super(message);
     this.name = "StateSandboxHandleError";
     this.status = options.status;
     this.code = options.code ?? null;
+    this.consent = options.consent ?? null;
   }
 }
 
@@ -154,6 +162,7 @@ export async function requestStateSandboxHandle(
     throw new StateSandboxHandleError(error.message, {
       status: response.status,
       code: error.code,
+      consent: error.code === "consent_required" ? parseConsentEnvelope(json) : null,
     });
   }
   const handle = parseStateSandboxHandle(json);

@@ -6,7 +6,7 @@
 
 # Class: StateFilesHandleError
 
-Defined in: [packages/agent-sdk/src/state-files.ts:85](https://github.com/zocomputer/zov2-code/blob/56f3348e42f7f39e91ab5519d5b5feb8988805e9/packages/agent-sdk/src/state-files.ts#L85)
+Defined in: [packages/agent-sdk/src/state-files.ts:88](https://github.com/zocomputer/zov2-code/blob/3d6083b79028d6a09427aa09f4ad328376cc8493/packages/agent-sdk/src/state-files.ts#L88)
 
 Error thrown when requesting a state-files handle fails. Carries the HTTP status and broker error code.
 
@@ -20,7 +20,7 @@ Error thrown when requesting a state-files handle fails. Carries the HTTP status
 
 > **new StateFilesHandleError**(`message`, `options`): `StateFilesHandleError`
 
-Defined in: [packages/agent-sdk/src/state-files.ts:89](https://github.com/zocomputer/zov2-code/blob/56f3348e42f7f39e91ab5519d5b5feb8988805e9/packages/agent-sdk/src/state-files.ts#L89)
+Defined in: [packages/agent-sdk/src/state-files.ts:100](https://github.com/zocomputer/zov2-code/blob/3d6083b79028d6a09427aa09f4ad328376cc8493/packages/agent-sdk/src/state-files.ts#L100)
 
 #### Parameters
 
@@ -33,6 +33,10 @@ Defined in: [packages/agent-sdk/src/state-files.ts:89](https://github.com/zocomp
 ###### code?
 
 `string` \| `null`
+
+###### consent?
+
+\{ `bindingId`: `string`; `declarationName`: `string`; `party`: \{ `external`: `boolean`; `handle`: `string`; `intentDivergenceNote?`: `string`; \}; `resourceName`: `string`; \} \| `null`
 
 ###### status
 
@@ -66,7 +70,21 @@ The cause of the error.
 
 > `readonly` **code**: `string` \| `null`
 
-Defined in: [packages/agent-sdk/src/state-files.ts:87](https://github.com/zocomputer/zov2-code/blob/56f3348e42f7f39e91ab5519d5b5feb8988805e9/packages/agent-sdk/src/state-files.ts#L87)
+Defined in: [packages/agent-sdk/src/state-files.ts:90](https://github.com/zocomputer/zov2-code/blob/3d6083b79028d6a09427aa09f4ad328376cc8493/packages/agent-sdk/src/state-files.ts#L90)
+
+***
+
+### consent
+
+> `readonly` **consent**: \{ `bindingId`: `string`; `declarationName`: `string`; `party`: \{ `external`: `boolean`; `handle`: `string`; `intentDivergenceNote?`: `string`; \}; `resourceName`: `string`; \} \| `null`
+
+Defined in: [packages/agent-sdk/src/state-files.ts:98](https://github.com/zocomputer/zov2-code/blob/3d6083b79028d6a09427aa09f4ad328376cc8493/packages/agent-sdk/src/state-files.ts#L98)
+
+The consent envelope, present ONLY on a `consent_required` 409 whose body
+carried the full contract (bindingId, declarationName, resourceName, party).
+The `@zo/state` consent wrapper reads this to steer the model into a
+`request_state_consent` call; `null` for every other failure (and for a
+malformed consent body).
 
 ***
 
@@ -110,7 +128,7 @@ Defined in: node\_modules/.bun/typescript@6.0.3/node\_modules/typescript/lib/lib
 
 > `readonly` **status**: `number`
 
-Defined in: [packages/agent-sdk/src/state-files.ts:86](https://github.com/zocomputer/zov2-code/blob/56f3348e42f7f39e91ab5519d5b5feb8988805e9/packages/agent-sdk/src/state-files.ts#L86)
+Defined in: [packages/agent-sdk/src/state-files.ts:89](https://github.com/zocomputer/zov2-code/blob/3d6083b79028d6a09427aa09f4ad328376cc8493/packages/agent-sdk/src/state-files.ts#L89)
 
 ***
 

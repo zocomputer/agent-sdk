@@ -6,7 +6,7 @@
 
 # Interface: RenderedWebText
 
-Defined in: [packages/agent-sdk/src/web-fetch.ts:158](https://github.com/zocomputer/zov2-code/blob/56f3348e42f7f39e91ab5519d5b5feb8988805e9/packages/agent-sdk/src/web-fetch.ts#L158)
+Defined in: [packages/agent-sdk/src/web-fetch.ts:158](https://github.com/zocomputer/zov2-code/blob/3d6083b79028d6a09427aa09f4ad328376cc8493/packages/agent-sdk/src/web-fetch.ts#L158)
 
 Rendered web page text: the converted/extracted content plus an optional
 note when the render looks suspect (content collapse, raw HTML in markdown).
@@ -17,7 +17,7 @@ note when the render looks suspect (content collapse, raw HTML in markdown).
 
 > `readonly` `optional` **note?**: `string`
 
-Defined in: [packages/agent-sdk/src/web-fetch.ts:161](https://github.com/zocomputer/zov2-code/blob/56f3348e42f7f39e91ab5519d5b5feb8988805e9/packages/agent-sdk/src/web-fetch.ts#L161)
+Defined in: [packages/agent-sdk/src/web-fetch.ts:161](https://github.com/zocomputer/zov2-code/blob/3d6083b79028d6a09427aa09f4ad328376cc8493/packages/agent-sdk/src/web-fetch.ts#L161)
 
 Honest-failure signal (content collapse, leftover raw HTML); absent when the render looks healthy.
 
@@ -27,4 +27,4 @@ Honest-failure signal (content collapse, leftover raw HTML); absent when the ren
 
 > `readonly` **text**: `string`
 
-Defined in: [packages/agent-sdk/src/web-fetch.ts:159](https://github.com/zocomputer/zov2-code/blob/56f3348e42f7f39e91ab5519d5b5feb8988805e9/packages/agent-sdk/src/web-fetch.ts#L159)
+Defined in: [packages/agent-sdk/src/web-fetch.ts:159](https://github.com/zocomputer/zov2-code/blob/3d6083b79028d6a09427aa09f4ad328376cc8493/packages/agent-sdk/src/web-fetch.ts#L159)

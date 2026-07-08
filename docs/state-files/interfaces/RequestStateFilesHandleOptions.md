@@ -6,7 +6,7 @@
 
 # Interface: RequestStateFilesHandleOptions
 
-Defined in: [packages/agent-sdk/src/state-files.ts:71](https://github.com/zocomputer/zov2-code/blob/56f3348e42f7f39e91ab5519d5b5feb8988805e9/packages/agent-sdk/src/state-files.ts#L71)
+Defined in: [packages/agent-sdk/src/state-files.ts:74](https://github.com/zocomputer/zov2-code/blob/3d6083b79028d6a09427aa09f4ad328376cc8493/packages/agent-sdk/src/state-files.ts#L74)
 
 Options for requesting a state-files handle from the runtime broker.
 
@@ -16,7 +16,7 @@ Options for requesting a state-files handle from the runtime broker.
 
 > `readonly` **access**: [`StateFilesAccess`](../type-aliases/StateFilesAccess.md)
 
-Defined in: [packages/agent-sdk/src/state-files.ts:75](https://github.com/zocomputer/zov2-code/blob/56f3348e42f7f39e91ab5519d5b5feb8988805e9/packages/agent-sdk/src/state-files.ts#L75)
+Defined in: [packages/agent-sdk/src/state-files.ts:78](https://github.com/zocomputer/zov2-code/blob/3d6083b79028d6a09427aa09f4ad328376cc8493/packages/agent-sdk/src/state-files.ts#L78)
 
 ***
 
@@ -24,7 +24,7 @@ Defined in: [packages/agent-sdk/src/state-files.ts:75](https://github.com/zocomp
 
 > `readonly` `optional` **agentToken?**: `string`
 
-Defined in: [packages/agent-sdk/src/state-files.ts:77](https://github.com/zocomputer/zov2-code/blob/56f3348e42f7f39e91ab5519d5b5feb8988805e9/packages/agent-sdk/src/state-files.ts#L77)
+Defined in: [packages/agent-sdk/src/state-files.ts:80](https://github.com/zocomputer/zov2-code/blob/3d6083b79028d6a09427aa09f4ad328376cc8493/packages/agent-sdk/src/state-files.ts#L80)
 
 Agent bearer token sent to the runtime broker as `x-zo-agent-token`.
 
@@ -34,7 +34,7 @@ Agent bearer token sent to the runtime broker as `x-zo-agent-token`.
 
 > `readonly` **apiBaseUrl**: `string` \| `URL`
 
-Defined in: [packages/agent-sdk/src/state-files.ts:73](https://github.com/zocomputer/zov2-code/blob/56f3348e42f7f39e91ab5519d5b5feb8988805e9/packages/agent-sdk/src/state-files.ts#L73)
+Defined in: [packages/agent-sdk/src/state-files.ts:76](https://github.com/zocomputer/zov2-code/blob/3d6083b79028d6a09427aa09f4ad328376cc8493/packages/agent-sdk/src/state-files.ts#L76)
 
 ***
 
@@ -42,7 +42,7 @@ Defined in: [packages/agent-sdk/src/state-files.ts:73](https://github.com/zocomp
 
 > `readonly` **declarationName**: `string`
 
-Defined in: [packages/agent-sdk/src/state-files.ts:74](https://github.com/zocomputer/zov2-code/blob/56f3348e42f7f39e91ab5519d5b5feb8988805e9/packages/agent-sdk/src/state-files.ts#L74)
+Defined in: [packages/agent-sdk/src/state-files.ts:77](https://github.com/zocomputer/zov2-code/blob/3d6083b79028d6a09427aa09f4ad328376cc8493/packages/agent-sdk/src/state-files.ts#L77)
 
 ***
 
@@ -50,7 +50,7 @@ Defined in: [packages/agent-sdk/src/state-files.ts:74](https://github.com/zocomp
 
 > `readonly` `optional` **eveSessionKey?**: `string`
 
-Defined in: [packages/agent-sdk/src/state-files.ts:79](https://github.com/zocomputer/zov2-code/blob/56f3348e42f7f39e91ab5519d5b5feb8988805e9/packages/agent-sdk/src/state-files.ts#L79)
+Defined in: [packages/agent-sdk/src/state-files.ts:82](https://github.com/zocomputer/zov2-code/blob/3d6083b79028d6a09427aa09f4ad328376cc8493/packages/agent-sdk/src/state-files.ts#L82)
 
 eve session key sent as `x-zo-eve-session`; the route derives resolver session identity from auth context.
 
@@ -60,7 +60,7 @@ eve session key sent as `x-zo-eve-session`; the route derives resolver session i
 
 > `readonly` **fetch**: [`StateFilesHandleFetch`](StateFilesHandleFetch.md)
 
-Defined in: [packages/agent-sdk/src/state-files.ts:72](https://github.com/zocomputer/zov2-code/blob/56f3348e42f7f39e91ab5519d5b5feb8988805e9/packages/agent-sdk/src/state-files.ts#L72)
+Defined in: [packages/agent-sdk/src/state-files.ts:75](https://github.com/zocomputer/zov2-code/blob/3d6083b79028d6a09427aa09f4ad328376cc8493/packages/agent-sdk/src/state-files.ts#L75)
 
 ***
 
@@ -68,6 +68,6 @@ Defined in: [packages/agent-sdk/src/state-files.ts:72](https://github.com/zocomp
 
 > `readonly` `optional` **headers?**: [`StateFilesHeadersInit`](../type-aliases/StateFilesHeadersInit.md)
 
-Defined in: [packages/agent-sdk/src/state-files.ts:81](https://github.com/zocomputer/zov2-code/blob/56f3348e42f7f39e91ab5519d5b5feb8988805e9/packages/agent-sdk/src/state-files.ts#L81)
+Defined in: [packages/agent-sdk/src/state-files.ts:84](https://github.com/zocomputer/zov2-code/blob/3d6083b79028d6a09427aa09f4ad328376cc8493/packages/agent-sdk/src/state-files.ts#L84)
 
 Extra headers; cannot override the SDK-managed content type or Zo auth headers.

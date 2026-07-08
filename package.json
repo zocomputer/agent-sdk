@@ -37,6 +37,10 @@
       "types": "./src/state.ts",
       "import": "./dist/state.js"
     },
+    "./state-consent": {
+      "types": "./src/state-consent.ts",
+      "import": "./dist/state-consent.js"
+    },
     "./state-files": {
       "types": "./src/state-files.ts",
       "import": "./dist/state-files.js"

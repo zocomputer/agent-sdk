@@ -1,5 +1,8 @@
 /** Runtime client contract for the external-state `files` interface. */
 
+import { parseConsentEnvelope, type StateConsentEnvelope } from "./state-consent-envelope";
+
+/** Access mode requested for a state-files binding: read-only or read-write. */
 export type StateFilesAccess = "r" | "rw";
 
 /** The external-state interface type for object-store file access. */
@@ -85,12 +88,24 @@ export interface RequestStateFilesHandleOptions {
 export class StateFilesHandleError extends Error {
   readonly status: number;
   readonly code: string | null;
+  /**
+   * The consent envelope, present ONLY on a `consent_required` 409 whose body
+   * carried the full contract (bindingId, declarationName, resourceName, party).
+   * The `@zo/state` consent wrapper reads this to steer the model into a
+   * `request_state_consent` call; `null` for every other failure (and for a
+   * malformed consent body).
+   */
+  readonly consent: StateConsentEnvelope | null;
 
-  constructor(message: string, options: { status: number; code?: string | null }) {
+  constructor(
+    message: string,
+    options: { status: number; code?: string | null; consent?: StateConsentEnvelope | null },
+  ) {
     super(message);
     this.name = "StateFilesHandleError";
     this.status = options.status;
     this.code = options.code ?? null;
+    this.consent = options.consent ?? null;
   }
 }
 
@@ -112,6 +127,9 @@ export async function requestStateFilesHandle(
     throw new StateFilesHandleError(error.message, {
       status: response.status,
       code: error.code,
+      // A `consent_required` 409 carries the consent envelope inline; anything
+      // else (or a malformed body) leaves it null.
+      consent: error.code === "consent_required" ? parseConsentEnvelope(json) : null,
     });
   }
   const handle = parseStateFilesHandle(json);
