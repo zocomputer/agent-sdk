@@ -8,7 +8,7 @@
 
 > **createRepoConventionsInstruction**(`opts`): `DynamicSentinel`
 
-Defined in: [packages/agent-sdk/src/instructions.ts:35](https://github.com/zocomputer/zov2-code/blob/ad31c397882c72b933077cb2108bebb0430d6e9d/packages/agent-sdk/src/instructions.ts#L35)
+Defined in: [packages/agent-sdk/src/instructions.ts:35](https://github.com/zocomputer/zov2-code/blob/56f3348e42f7f39e91ab5519d5b5feb8988805e9/packages/agent-sdk/src/instructions.ts#L35)
 
 Inject the workspace's root AGENTS.md as a system-prompt section. Nested
 per-directory AGENTS.md files stay the model's job to read — this covers

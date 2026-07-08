@@ -8,7 +8,7 @@
 
 > **StateSandboxHeadersInit** = `Headers` \| `ReadonlyArray`\<readonly \[`string`, `string`\]\> \| `Readonly`\<`Record`\<`string`, `string`\>\>
 
-Defined in: [packages/agent-sdk/src/state-sandbox.ts:88](https://github.com/zocomputer/zov2-code/blob/ad31c397882c72b933077cb2108bebb0430d6e9d/packages/agent-sdk/src/state-sandbox.ts#L88)
+Defined in: [packages/agent-sdk/src/state-sandbox.ts:88](https://github.com/zocomputer/zov2-code/blob/56f3348e42f7f39e91ab5519d5b5feb8988805e9/packages/agent-sdk/src/state-sandbox.ts#L88)
 
 Headers as a `Headers` object, tuple array, or string-keyed record.
 Compatible with the `fetch` API's `HeadersInit`.

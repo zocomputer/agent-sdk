@@ -6,7 +6,7 @@
 
 # Interface: RunResult
 
-Defined in: [packages/agent-sdk/src/run.ts:16](https://github.com/zocomputer/zov2-code/blob/ad31c397882c72b933077cb2108bebb0430d6e9d/packages/agent-sdk/src/run.ts#L16)
+Defined in: [packages/agent-sdk/src/run.ts:16](https://github.com/zocomputer/zov2-code/blob/56f3348e42f7f39e91ab5519d5b5feb8988805e9/packages/agent-sdk/src/run.ts#L16)
 
 A completed command run: stdout/stderr (bounded head + tail when overflowing),
 exit code (null if the spawn failed), and whether it timed out.
@@ -17,7 +17,7 @@ exit code (null if the spawn failed), and whether it timed out.
 
 > **exitCode**: `number` \| `null`
 
-Defined in: [packages/agent-sdk/src/run.ts:19](https://github.com/zocomputer/zov2-code/blob/ad31c397882c72b933077cb2108bebb0430d6e9d/packages/agent-sdk/src/run.ts#L19)
+Defined in: [packages/agent-sdk/src/run.ts:19](https://github.com/zocomputer/zov2-code/blob/56f3348e42f7f39e91ab5519d5b5feb8988805e9/packages/agent-sdk/src/run.ts#L19)
 
 ***
 
@@ -25,7 +25,7 @@ Defined in: [packages/agent-sdk/src/run.ts:19](https://github.com/zocomputer/zov
 
 > **stderr**: `string`
 
-Defined in: [packages/agent-sdk/src/run.ts:18](https://github.com/zocomputer/zov2-code/blob/ad31c397882c72b933077cb2108bebb0430d6e9d/packages/agent-sdk/src/run.ts#L18)
+Defined in: [packages/agent-sdk/src/run.ts:18](https://github.com/zocomputer/zov2-code/blob/56f3348e42f7f39e91ab5519d5b5feb8988805e9/packages/agent-sdk/src/run.ts#L18)
 
 ***
 
@@ -33,7 +33,7 @@ Defined in: [packages/agent-sdk/src/run.ts:18](https://github.com/zocomputer/zov
 
 > **stdout**: `string`
 
-Defined in: [packages/agent-sdk/src/run.ts:17](https://github.com/zocomputer/zov2-code/blob/ad31c397882c72b933077cb2108bebb0430d6e9d/packages/agent-sdk/src/run.ts#L17)
+Defined in: [packages/agent-sdk/src/run.ts:17](https://github.com/zocomputer/zov2-code/blob/56f3348e42f7f39e91ab5519d5b5feb8988805e9/packages/agent-sdk/src/run.ts#L17)
 
 ***
 
@@ -41,4 +41,4 @@ Defined in: [packages/agent-sdk/src/run.ts:17](https://github.com/zocomputer/zov
 
 > **timedOut**: `boolean`
 
-Defined in: [packages/agent-sdk/src/run.ts:20](https://github.com/zocomputer/zov2-code/blob/ad31c397882c72b933077cb2108bebb0430d6e9d/packages/agent-sdk/src/run.ts#L20)
+Defined in: [packages/agent-sdk/src/run.ts:20](https://github.com/zocomputer/zov2-code/blob/56f3348e42f7f39e91ab5519d5b5feb8988805e9/packages/agent-sdk/src/run.ts#L20)

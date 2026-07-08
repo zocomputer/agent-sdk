@@ -8,7 +8,7 @@
 
 > **scriptActionFor**(`scenario`, `step`, `delegateToolName?`): [`MockScriptAction`](../type-aliases/MockScriptAction.md)
 
-Defined in: [packages/agent-sdk/src/mock-model.ts:214](https://github.com/zocomputer/zov2-code/blob/ad31c397882c72b933077cb2108bebb0430d6e9d/packages/agent-sdk/src/mock-model.ts#L214)
+Defined in: [packages/agent-sdk/src/mock-model.ts:214](https://github.com/zocomputer/zov2-code/blob/56f3348e42f7f39e91ab5519d5b5feb8988805e9/packages/agent-sdk/src/mock-model.ts#L214)
 
 The scripted action for a scenario at a step; `text` actions end the turn.
 

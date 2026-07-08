@@ -8,7 +8,7 @@
 
 > **buildSteerPayload**(`messages`): [`SteerPayload`](../interfaces/SteerPayload.md)
 
-Defined in: [packages/agent-sdk/src/steer.ts:42](https://github.com/zocomputer/zov2-code/blob/ad31c397882c72b933077cb2108bebb0430d6e9d/packages/agent-sdk/src/steer.ts#L42)
+Defined in: [packages/agent-sdk/src/steer.ts:42](https://github.com/zocomputer/zov2-code/blob/56f3348e42f7f39e91ab5519d5b5feb8988805e9/packages/agent-sdk/src/steer.ts#L42)
 
 Build the payload that rides a tool result carrying steered messages.
 

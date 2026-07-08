@@ -6,7 +6,7 @@
 
 # Interface: OpStartExtras
 
-Defined in: [packages/agent-sdk/src/backgroundable.ts:12](https://github.com/zocomputer/zov2-code/blob/ad31c397882c72b933077cb2108bebb0430d6e9d/packages/agent-sdk/src/backgroundable.ts#L12)
+Defined in: [packages/agent-sdk/src/backgroundable.ts:12](https://github.com/zocomputer/zov2-code/blob/56f3348e42f7f39e91ab5519d5b5feb8988805e9/packages/agent-sdk/src/backgroundable.ts#L12)
 
 Optional live handles run_async threads into an op (e.g. a watcher tap).
 
@@ -16,7 +16,7 @@ Optional live handles run_async threads into an op (e.g. a watcher tap).
 
 > `optional` **onOutput?**: (`chunk`) => `void`
 
-Defined in: [packages/agent-sdk/src/backgroundable.ts:14](https://github.com/zocomputer/zov2-code/blob/ad31c397882c72b933077cb2108bebb0430d6e9d/packages/agent-sdk/src/backgroundable.ts#L14)
+Defined in: [packages/agent-sdk/src/backgroundable.ts:14](https://github.com/zocomputer/zov2-code/blob/56f3348e42f7f39e91ab5519d5b5feb8988805e9/packages/agent-sdk/src/backgroundable.ts#L14)
 
 Raw output tap; an op that produces no stream just ignores it.
 

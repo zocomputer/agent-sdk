@@ -8,6 +8,6 @@
 
 > `const` **STEER\_FIELD**: `"user_steer"` = `"user_steer"`
 
-Defined in: [packages/agent-sdk/src/steer.ts:13](https://github.com/zocomputer/zov2-code/blob/ad31c397882c72b933077cb2108bebb0430d6e9d/packages/agent-sdk/src/steer.ts#L13)
+Defined in: [packages/agent-sdk/src/steer.ts:13](https://github.com/zocomputer/zov2-code/blob/56f3348e42f7f39e91ab5519d5b5feb8988805e9/packages/agent-sdk/src/steer.ts#L13)
 
 Result key carrying steered messages on a tool output.

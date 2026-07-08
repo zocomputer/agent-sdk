@@ -8,7 +8,7 @@
 
 > **ParkDeliveryState**\<`T`\> = `ReturnType`\<*typeof* [`createParkDeliveryState`](../functions/createParkDeliveryState.md)\>
 
-Defined in: [packages/agent-sdk/src/park-delivery.ts:198](https://github.com/zocomputer/zov2-code/blob/ad31c397882c72b933077cb2108bebb0430d6e9d/packages/agent-sdk/src/park-delivery.ts#L198)
+Defined in: [packages/agent-sdk/src/park-delivery.ts:198](https://github.com/zocomputer/zov2-code/blob/56f3348e42f7f39e91ab5519d5b5feb8988805e9/packages/agent-sdk/src/park-delivery.ts#L198)
 
 The park-delivery state object: `observe` consumes stream events, `enqueue` /
 `enqueueAll` queue items, `settle` reports send outcomes. Each method

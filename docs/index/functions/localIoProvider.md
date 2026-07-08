@@ -8,7 +8,7 @@
 
 > **localIoProvider**(`root`): [`WorkspaceIoProvider`](../type-aliases/WorkspaceIoProvider.md)
 
-Defined in: [packages/agent-sdk/src/workspace-io.ts:177](https://github.com/zocomputer/zov2-code/blob/ad31c397882c72b933077cb2108bebb0430d6e9d/packages/agent-sdk/src/workspace-io.ts#L177)
+Defined in: [packages/agent-sdk/src/workspace-io.ts:177](https://github.com/zocomputer/zov2-code/blob/56f3348e42f7f39e91ab5519d5b5feb8988805e9/packages/agent-sdk/src/workspace-io.ts#L177)
 
 A provider over one shared local IO — every call gets the same instance.
 

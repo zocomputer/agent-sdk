@@ -8,7 +8,7 @@
 
 > `const` **MOCK\_SCENARIOS**: readonly \[`"hitl"`, `"parallel"`, `"todo"`, `"delegate"`, `"fail"`, `"burst"`, `"markdown"`, `"interleave"`, `"empty"`\]
 
-Defined in: [packages/agent-sdk/src/mock-model.ts:83](https://github.com/zocomputer/zov2-code/blob/ad31c397882c72b933077cb2108bebb0430d6e9d/packages/agent-sdk/src/mock-model.ts#L83)
+Defined in: [packages/agent-sdk/src/mock-model.ts:83](https://github.com/zocomputer/zov2-code/blob/56f3348e42f7f39e91ab5519d5b5feb8988805e9/packages/agent-sdk/src/mock-model.ts#L83)
 
 Every recognized `[mock:<scenario>]` directive: multi-step tool scripts
 (`hitl`, `parallel`, `todo`, `delegate`) plus special stream shapes
