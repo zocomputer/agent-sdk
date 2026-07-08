@@ -6,6 +6,7 @@
     "src/gateway-fetch.ts",
     "src/initiator-auth.ts",
     "src/state.ts",
+    "src/state-consent.ts",
     "src/state-files.ts",
     "src/state-sandbox.ts",
     "src/steer.ts",

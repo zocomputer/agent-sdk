@@ -8,7 +8,7 @@
 
 > **normalizeStateFilePath**(`path`): `string`
 
-Defined in: [packages/agent-sdk/src/state-files.ts:380](https://github.com/zocomputer/zov2-code/blob/e246fc7c6576db819f4636c288ce8b7c7818f506/packages/agent-sdk/src/state-files.ts#L380)
+Defined in: [packages/agent-sdk/src/state-files.ts:380](https://github.com/zocomputer/zov2-code/blob/1e3454bf19fec73047afd6e825710b7db25d004a/packages/agent-sdk/src/state-files.ts#L380)
 
 Validates and normalizes a state-file path for S3 operations.
 Throws if the path is empty, absolute, or contains invalid segments (`.`, `..`, or empty).

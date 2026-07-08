@@ -45,7 +45,7 @@ Or pin a release tag on this repo directly (each release is a `v<version>`
 tag, matching the npm version):
 
 ```sh
-bun add @zocomputer/agent-sdk@github:zocomputer/agent-sdk#v0.5.0
+bun add @zocomputer/agent-sdk@github:zocomputer/agent-sdk#v0.6.0
 ```
 
 `eve`, `zod`, and `ai` are peer dependencies.

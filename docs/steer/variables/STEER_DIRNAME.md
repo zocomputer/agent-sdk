@@ -8,6 +8,6 @@
 
 > `const` **STEER\_DIRNAME**: `"steer"` = `"steer"`
 
-Defined in: [packages/agent-sdk/src/steer.ts:19](https://github.com/zocomputer/zov2-code/blob/e246fc7c6576db819f4636c288ce8b7c7818f506/packages/agent-sdk/src/steer.ts#L19)
+Defined in: [packages/agent-sdk/src/steer.ts:19](https://github.com/zocomputer/zov2-code/blob/1e3454bf19fec73047afd6e825710b7db25d004a/packages/agent-sdk/src/steer.ts#L19)
 
 Conventional inbox dirname under an agent's state dir.

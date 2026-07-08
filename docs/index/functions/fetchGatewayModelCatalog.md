@@ -8,7 +8,7 @@
 
 > **fetchGatewayModelCatalog**(`options?`): `Promise`\<[`GatewayModelInfo`](../interfaces/GatewayModelInfo.md)[]\>
 
-Defined in: [packages/agent-sdk/src/task.ts:347](https://github.com/zocomputer/zov2-code/blob/e246fc7c6576db819f4636c288ce8b7c7818f506/packages/agent-sdk/src/task.ts#L347)
+Defined in: [packages/agent-sdk/src/task.ts:347](https://github.com/zocomputer/zov2-code/blob/1e3454bf19fec73047afd6e825710b7db25d004a/packages/agent-sdk/src/task.ts#L347)
 
 Fetch the AI Gateway model catalog — names + descriptions for every model
 the gateway serves. For ONE-SHOT refresh scripts that regenerate a

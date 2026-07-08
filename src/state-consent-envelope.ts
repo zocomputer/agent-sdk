@@ -37,6 +37,8 @@ export const requestStateConsentInputSchema = z.object({
   party: consentPartySchema,
 });
 
+/** The validated `request_state_consent` tool input — the envelope the model
+ * passes through, inferred from {@link requestStateConsentInputSchema}. */
 export type RequestStateConsentInput = z.infer<typeof requestStateConsentInputSchema>;
 
 /** The consent envelope carried on a `consent_required` state error and passed
