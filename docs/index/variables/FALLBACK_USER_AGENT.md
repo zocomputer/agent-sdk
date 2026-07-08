@@ -8,6 +8,6 @@
 
 > `const` **FALLBACK\_USER\_AGENT**: `"agent-sdk"` = `"agent-sdk"`
 
-Defined in: [packages/agent-sdk/src/web-fetch.ts:41](https://github.com/zocomputer/zov2-code/blob/3d6083b79028d6a09427aa09f4ad328376cc8493/packages/agent-sdk/src/web-fetch.ts#L41)
+Defined in: [packages/agent-sdk/src/web-fetch.ts:41](https://github.com/zocomputer/zov2-code/blob/e246fc7c6576db819f4636c288ce8b7c7818f506/packages/agent-sdk/src/web-fetch.ts#L41)
 
 Honest user-agent for the Cloudflare-challenge retry.

@@ -216,7 +216,7 @@ for (const backend of backends) {
         { path: "edit-me.txt", old_string: "one", new_string: "1" },
         ctx,
       );
-      expect(edited).toEqual({ ok: true, path: "edit-me.txt", replacements: 1 });
+      expect(edited).toEqual({ ok: true, path: "edit-me.txt", replacements: 1, matched: "simple" });
       expect(readFileSync(join(backend.root, "edit-me.txt"), "utf8")).toBe("1 two two\n");
 
       expect(
@@ -229,6 +229,28 @@ for (const backend of backends) {
       expect(all).toMatchObject({ replacements: 2 });
       expect(edit.execute({ path: "ghost.txt", old_string: "x", new_string: "y" }, ctx))
         .rejects.toThrow(/does not exist/);
+    });
+
+    test("edit forgives near-miss indentation; edit and write preserve a BOM", async () => {
+      await write.execute(
+        { path: "forgive-me.ts", content: "\uFEFFif (ok) {\n    doThing();\n}\n" },
+        ctx,
+      );
+      // The model remembered a tab indent; the file uses spaces — the
+      // forgiving cascade resolves it via line_trimmed, and the leading BOM
+      // survives the rewrite.
+      const forgiven = await edit.execute(
+        { path: "forgive-me.ts", old_string: "\tdoThing();", new_string: "\tdoOther();" },
+        ctx,
+      );
+      expect(forgiven).toMatchObject({ ok: true, matched: "line_trimmed" });
+      expect(readFileSync(join(backend.root, "forgive-me.ts"), "utf8")).toBe(
+        "\uFEFFif (ok) {\n\tdoOther();\n}\n",
+      );
+
+      // write without a BOM onto a BOM'd file keeps the BOM.
+      await write.execute({ path: "forgive-me.ts", content: "done\n" }, ctx);
+      expect(readFileSync(join(backend.root, "forgive-me.ts"), "utf8")).toBe("\uFEFFdone\n");
     });
 
     test("glob matches at any depth without a leading **/", async () => {

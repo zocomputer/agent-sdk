@@ -94,6 +94,22 @@ The names are deliberately boring; the behavior behind them is the point:
   file is excluded (`instructions.repoConventions` already injects it); riders
   are result content, so the prompt prefix stays byte-stable. Opt out with
   `injectDirConventions: false`; rename the file with `conventionsFileName`.
+- **`edit`** replaces a string through a **forgiving matcher** (ported from
+  opencode's replacer cascade): an exact `old_string` always wins and replaces
+  byte-for-byte, but a near miss — re-indented lines, collapsed whitespace,
+  over-escaped `\n`/`\"` from a JSON-mangled tool call, stray boundary
+  whitespace, or a fuzzy block match anchored on its first/last lines — still
+  lands instead of bouncing the model into a re-read-and-retry loop. Guardrails
+  keep forgiveness safe: the match must be **unique** (or `replace_all`), a
+  candidate disproportionately larger than `old_string` is refused outright,
+  and the result reports which strategy `matched` (`"simple"` = exact) so
+  drift is observable. A leading UTF-8 BOM is split off before matching and
+  restored on write. Failures return model-actionable messages (not found /
+  not unique / disproportionate). The matcher is exported standalone as
+  `replaceForgiving` (`edit-match.ts`).
+- **`write`** creates parent directories, and preserves an existing file's
+  leading BOM when the new content omits it — a model rewriting a BOM'd file
+  never strips the marker by accident.
 - **`glob` / `grep`** prefer git-tracked candidates (`git ls-files`), falling
   back to a filesystem walk outside a repo, with bounded result counts.
 - **`bash`** waits briefly, then auto-backgrounds a still-running command

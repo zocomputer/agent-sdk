@@ -1,5 +1,6 @@
 import { defineTool } from "eve/tools";
 import { z } from "zod";
+import { splitBom } from "../edit-match";
 import { withPathLock } from "../path-locks";
 import type { Workspace } from "../workspace";
 import { localIoProvider, type WorkspaceIoProvider } from "../workspace-io";
@@ -29,13 +30,20 @@ export function createWriteTool(opts: {
       // same file in one concurrent step must not interleave with its
       // read-modify-write (see ../path-locks.ts).
       return withPathLock(abs, async () => {
-        const created = (await fio.stat(abs)) === null;
-        await fio.writeFile(abs, content);
+        const prior = await fio.readFile(abs);
+        const created = prior === null;
+        // Preserve an existing file's BOM: models reproduce file contents
+        // from `read` output, which never shows the (invisible) BOM, so a
+        // rewrite would silently strip it.
+        const priorHadBom =
+          prior !== null && prior.length >= 3 && prior[0] === 0xef && prior[1] === 0xbb && prior[2] === 0xbf;
+        const out = priorHadBom && !splitBom(content).bom ? `\uFEFF${content}` : content;
+        await fio.writeFile(abs, out);
         return {
           ok: true,
           path: workspace.relativize(abs),
           created,
-          bytes: Buffer.byteLength(content),
+          bytes: Buffer.byteLength(out),
         };
       });
     },

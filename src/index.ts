@@ -401,6 +401,7 @@ export * from "./backgroundable";
 export * from "./bounded-output";
 export * from "./build-externals";
 export * from "./dir-conventions";
+export * from "./edit-match";
 export * from "./task";
 export * from "./extract/cache";
 export * from "./extract/docx";

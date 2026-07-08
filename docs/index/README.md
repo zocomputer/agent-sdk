@@ -6,6 +6,12 @@
 
 # index
 
+## Classes
+
+- [EditDisproportionateError](classes/EditDisproportionateError.md)
+- [EditNotFoundError](classes/EditNotFoundError.md)
+- [EditNotUniqueError](classes/EditNotUniqueError.md)
+
 ## Interfaces
 
 - [BackgroundableOp](interfaces/BackgroundableOp.md)
@@ -17,6 +23,7 @@
 - [DirConventionsTracker](interfaces/DirConventionsTracker.md)
 - [FetchedWebResource](interfaces/FetchedWebResource.md)
 - [FileView](interfaces/FileView.md)
+- [ForgivingReplaceResult](interfaces/ForgivingReplaceResult.md)
 - [GatewayModelInfo](interfaces/GatewayModelInfo.md)
 - [GrepResult](interfaces/GrepResult.md)
 - [IoSearchMatch](interfaces/IoSearchMatch.md)
@@ -67,6 +74,7 @@
 - [FileContent](type-aliases/FileContent.md)
 - [FileKind](type-aliases/FileKind.md)
 - [ImageFormat](type-aliases/ImageFormat.md)
+- [MatchStrategy](type-aliases/MatchStrategy.md)
 - [MockScenario](type-aliases/MockScenario.md)
 - [MockScriptAction](type-aliases/MockScriptAction.md)
 - [MockScriptedScenario](type-aliases/MockScriptedScenario.md)
@@ -74,6 +82,7 @@
 - [PdfExtraction](type-aliases/PdfExtraction.md)
 - [RedeliveryMessagePart](type-aliases/RedeliveryMessagePart.md)
 - [RedeliveryState](type-aliases/RedeliveryState.md)
+- [Replacer](type-aliases/Replacer.md)
 - [SandboxFileTools](type-aliases/SandboxFileTools.md)
 - [SearchRead](type-aliases/SearchRead.md)
 - [SheetExtraction](type-aliases/SheetExtraction.md)
@@ -90,15 +99,21 @@
 ## Variables
 
 - [ALWAYS\_IGNORED](variables/ALWAYS_IGNORED.md)
+- [BlockAnchorReplacer](variables/BlockAnchorReplacer.md)
 - [BROWSER\_USER\_AGENT](variables/BROWSER_USER_AGENT.md)
+- [ContextAwareReplacer](variables/ContextAwareReplacer.md)
 - [DEFAULT\_MAX\_WATCH\_NOTIFICATIONS](variables/DEFAULT_MAX_WATCH_NOTIFICATIONS.md)
 - [DEFAULT\_WATCH\_DEBOUNCE\_MS](variables/DEFAULT_WATCH_DEBOUNCE_MS.md)
+- [EscapeNormalizedReplacer](variables/EscapeNormalizedReplacer.md)
 - [FALLBACK\_USER\_AGENT](variables/FALLBACK_USER_AGENT.md)
 - [GATEWAY\_MODELS\_URL](variables/GATEWAY_MODELS_URL.md)
 - [HEAD\_CHARS](variables/HEAD_CHARS.md)
+- [IndentationFlexibleReplacer](variables/IndentationFlexibleReplacer.md)
+- [LineTrimmedReplacer](variables/LineTrimmedReplacer.md)
 - [MAX\_PREVIEW](variables/MAX_PREVIEW.md)
 - [MAX\_SEARCH\_FILE\_BYTES](variables/MAX_SEARCH_FILE_BYTES.md)
 - [MOCK\_SCENARIOS](variables/MOCK_SCENARIOS.md)
+- [MultiOccurrenceReplacer](variables/MultiOccurrenceReplacer.md)
 - [PDF\_EMPTY\_PAGE\_NOTE](variables/PDF_EMPTY_PAGE_NOTE.md)
 - [PDF\_PAGE\_CAP](variables/PDF_PAGE_CAP.md)
 - [READ\_FILE\_DEFAULT\_LINE\_LIMIT](variables/READ_FILE_DEFAULT_LINE_LIMIT.md)
@@ -107,15 +122,18 @@
 - [READ\_FILE\_MAX\_LINE\_CHARS](variables/READ_FILE_MAX_LINE_CHARS.md)
 - [SEARCH\_OUTPUT\_CAP\_BYTES](variables/SEARCH_OUTPUT_CAP_BYTES.md)
 - [SHEET\_ROW\_CAP](variables/SHEET_ROW_CAP.md)
+- [SimpleReplacer](variables/SimpleReplacer.md)
 - [STDLIB\_EXTERNAL\_DEPENDENCIES](variables/STDLIB_EXTERNAL_DEPENDENCIES.md)
 - [TAIL\_CHARS](variables/TAIL_CHARS.md)
 - [TASK\_CHILD\_TOOL\_OVERRIDES](variables/TASK_CHILD_TOOL_OVERRIDES.md)
 - [TASK\_DISABLED\_BUILTINS](variables/TASK_DISABLED_BUILTINS.md)
 - [TOOL\_OUTPUT\_DIRNAME](variables/TOOL_OUTPUT_DIRNAME.md)
+- [TrimmedBoundaryReplacer](variables/TrimmedBoundaryReplacer.md)
 - [WEB\_FETCH\_DEFAULT\_TIMEOUT\_SECONDS](variables/WEB_FETCH_DEFAULT_TIMEOUT_SECONDS.md)
 - [WEB\_FETCH\_MAX\_RESPONSE\_BYTES](variables/WEB_FETCH_MAX_RESPONSE_BYTES.md)
 - [WEB\_FETCH\_MAX\_TIMEOUT\_SECONDS](variables/WEB_FETCH_MAX_TIMEOUT_SECONDS.md)
 - [WEB\_FETCH\_PDF\_DEFAULT\_TIMEOUT\_SECONDS](variables/WEB_FETCH_PDF_DEFAULT_TIMEOUT_SECONDS.md)
+- [WhitespaceNormalizedReplacer](variables/WhitespaceNormalizedReplacer.md)
 
 ## Functions
 
@@ -185,8 +203,10 @@
 - [formatWatchNotification](functions/formatWatchNotification.md)
 - [globToRegExp](functions/globToRegExp.md)
 - [imageMediaType](functions/imageMediaType.md)
+- [isDisproportionateMatch](functions/isDisproportionateMatch.md)
 - [isHtmlContentType](functions/isHtmlContentType.md)
 - [isOrphanedTurn](functions/isOrphanedTurn.md)
+- [joinBom](functions/joinBom.md)
 - [lastUserTextFrom](functions/lastUserTextFrom.md)
 - [listGitFiles](functions/listGitFiles.md)
 - [loadFileContent](functions/loadFileContent.md)
@@ -201,6 +221,7 @@
 - [redeliveryFromEvent](functions/redeliveryFromEvent.md)
 - [relativizeWithin](functions/relativizeWithin.md)
 - [renderWebText](functions/renderWebText.md)
+- [replaceForgiving](functions/replaceForgiving.md)
 - [resolveWebFetchTimeoutMs](functions/resolveWebFetchTimeoutMs.md)
 - [resolveWithin](functions/resolveWithin.md)
 - [sandboxIoProvider](functions/sandboxIoProvider.md)
@@ -209,6 +230,7 @@
 - [searchLocal](functions/searchLocal.md)
 - [setParkNotificationHandler](functions/setParkNotificationHandler.md)
 - [shellSingleQuote](functions/shellSingleQuote.md)
+- [splitBom](functions/splitBom.md)
 - [toolInputFragments](functions/toolInputFragments.md)
 - [videoMediaType](functions/videoMediaType.md)
 - [visibleReasoningModelOptions](functions/visibleReasoningModelOptions.md)

@@ -1,7 +1,7 @@
-// ../../../../../tmp/agent-sdk-mirror-wH9mjN/repo/src/index.ts
+// ../../../../../tmp/agent-sdk-mirror-6zVCDj/repo/src/index.ts
 import { join as join8 } from "node:path";
 
-// ../../../../../tmp/agent-sdk-mirror-wH9mjN/repo/src/attachments.ts
+// ../../../../../tmp/agent-sdk-mirror-6zVCDj/repo/src/attachments.ts
 var CHAT_ATTACHMENT_FIELD = "chatAttachment";
 var DEFAULT_MAX_INLINE_IMAGE_BYTES = 3 * 1024 * 1024;
 var DEFAULT_MAX_INLINE_MEDIA_BYTES = 10 * 1024 * 1024;
@@ -48,7 +48,7 @@ function readChatAttachment(toolOutput) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-wH9mjN/repo/src/async-tasks.ts
+// ../../../../../tmp/agent-sdk-mirror-6zVCDj/repo/src/async-tasks.ts
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname } from "node:path";
 function isRecord2(value) {
@@ -226,7 +226,7 @@ function buildTaskRegistry(opts) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-wH9mjN/repo/src/backgroundable.ts
+// ../../../../../tmp/agent-sdk-mirror-6zVCDj/repo/src/backgroundable.ts
 import { z } from "zod";
 function defineOp(cfg) {
   return {
@@ -270,7 +270,7 @@ function createBashOp(runner) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-wH9mjN/repo/src/bounded-output.ts
+// ../../../../../tmp/agent-sdk-mirror-6zVCDj/repo/src/bounded-output.ts
 import { appendFileSync, mkdirSync as mkdirSync2, writeFileSync as writeFileSync2 } from "node:fs";
 import { dirname as dirname2 } from "node:path";
 var HEAD_CHARS = 25000;
@@ -371,7 +371,7 @@ function createBoundedCapture(opts = {}) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-wH9mjN/repo/src/dir-conventions.ts
+// ../../../../../tmp/agent-sdk-mirror-6zVCDj/repo/src/dir-conventions.ts
 import { readFileSync as readFileSync2 } from "node:fs";
 import { join } from "node:path";
 var DEFAULT_MAX_BYTES_PER_FILE = 16 * 1024;
@@ -483,7 +483,7 @@ function createDirConventionsTracker(options) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-wH9mjN/repo/src/instructions.ts
+// ../../../../../tmp/agent-sdk-mirror-6zVCDj/repo/src/instructions.ts
 import { readFileSync as readFileSync3 } from "node:fs";
 import { resolve } from "node:path";
 import { defineDynamic, defineInstructions } from "eve/instructions";
@@ -623,7 +623,7 @@ function createSubagentInstruction(opts) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-wH9mjN/repo/src/run.ts
+// ../../../../../tmp/agent-sdk-mirror-6zVCDj/repo/src/run.ts
 import { spawn } from "node:child_process";
 import { join as join2 } from "node:path";
 var MAX_PREVIEW = 20000;
@@ -724,7 +724,7 @@ function createCommandRunner(opts) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-wH9mjN/repo/src/steer-inbox.ts
+// ../../../../../tmp/agent-sdk-mirror-6zVCDj/repo/src/steer-inbox.ts
 import {
   appendFileSync as appendFileSync2,
   linkSync,
@@ -735,7 +735,7 @@ import {
 } from "node:fs";
 import { join as join3 } from "node:path";
 
-// ../../../../../tmp/agent-sdk-mirror-wH9mjN/repo/src/steer.ts
+// ../../../../../tmp/agent-sdk-mirror-6zVCDj/repo/src/steer.ts
 var STEER_FIELD = "user_steer";
 var STEER_WRAPPED_OUTPUT_FIELD = "steer_wrapped_output";
 var STEER_DIRNAME = "steer";
@@ -805,7 +805,7 @@ function parseSteerLine(line) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-wH9mjN/repo/src/steer-inbox.ts
+// ../../../../../tmp/agent-sdk-mirror-6zVCDj/repo/src/steer-inbox.ts
 var drainSequence = 0;
 function createSteerInbox(options) {
   const now = options.now ?? Date.now;
@@ -854,7 +854,7 @@ function createSteerInbox(options) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-wH9mjN/repo/src/steer-tool.ts
+// ../../../../../tmp/agent-sdk-mirror-6zVCDj/repo/src/steer-tool.ts
 import { defineTool } from "eve/tools";
 function withSteerDelivery(tool, inbox) {
   const originalToModelOutput = tool.toModelOutput?.bind(tool);
@@ -886,11 +886,11 @@ function createSteerWrapper(inbox) {
   return (tool) => withSteerDelivery(tool, inbox);
 }
 
-// ../../../../../tmp/agent-sdk-mirror-wH9mjN/repo/src/tools/bash.ts
+// ../../../../../tmp/agent-sdk-mirror-6zVCDj/repo/src/tools/bash.ts
 import { defineTool as defineTool2 } from "eve/tools";
 import { z as z2 } from "zod";
 
-// ../../../../../tmp/agent-sdk-mirror-wH9mjN/repo/src/park-delivery.ts
+// ../../../../../tmp/agent-sdk-mirror-6zVCDj/repo/src/park-delivery.ts
 function isRecord4(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
@@ -1006,7 +1006,7 @@ function setParkNotificationHandler(handler) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-wH9mjN/repo/src/watch-output.ts
+// ../../../../../tmp/agent-sdk-mirror-6zVCDj/repo/src/watch-output.ts
 var DEFAULT_WATCH_DEBOUNCE_MS = 5000;
 var DEFAULT_MAX_WATCH_NOTIFICATIONS = 5;
 function createOutputWatcher(options) {
@@ -1064,7 +1064,7 @@ function formatCompletionNotification(opts) {
   return `Background task ${opts.taskId} (${opts.label}) ${outcome}. Call await_task to collect its result.`;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-wH9mjN/repo/src/tools/bash.ts
+// ../../../../../tmp/agent-sdk-mirror-6zVCDj/repo/src/tools/bash.ts
 var DEFAULT_INTERACTIVE_HINT = "This is a piped shell with NO tty: avoid interactive or full-screen CLIs (a REPL, vim, an interactive installer/prompt) — those programs hang or degrade without a real terminal.";
 function createBashTool(opts) {
   const { workspace, runner, registry, noun } = opts;
@@ -1152,11 +1152,406 @@ function createBashTool(opts) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-wH9mjN/repo/src/tools/edit.ts
+// ../../../../../tmp/agent-sdk-mirror-6zVCDj/repo/src/tools/edit.ts
 import { defineTool as defineTool3 } from "eve/tools";
 import { z as z3 } from "zod";
 
-// ../../../../../tmp/agent-sdk-mirror-wH9mjN/repo/src/path-locks.ts
+// ../../../../../tmp/agent-sdk-mirror-6zVCDj/repo/src/edit-match.ts
+class EditNotFoundError extends Error {
+  constructor() {
+    super("old_string not found. It must match the file contents exactly, including whitespace and indentation.");
+    this.name = "EditNotFoundError";
+  }
+}
+
+class EditNotUniqueError extends Error {
+  constructor() {
+    super("old_string is not unique. Add surrounding context to make the match unique, or set replace_all.");
+    this.name = "EditNotUniqueError";
+  }
+}
+
+class EditDisproportionateError extends Error {
+  constructor() {
+    super("Refusing replacement because the matched span is much larger than old_string. Re-read the file and provide the full exact old_string for the intended replacement.");
+    this.name = "EditDisproportionateError";
+  }
+}
+var BLOCK_ANCHOR_SIMILARITY_THRESHOLD = 0.65;
+function levenshtein(a, b) {
+  if (a === "" || b === "")
+    return Math.max(a.length, b.length);
+  let prev = Array.from({ length: b.length + 1 }, (_, j) => j);
+  for (let i = 1;i <= a.length; i++) {
+    const curr = [i];
+    for (let j = 1;j <= b.length; j++) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      curr.push(Math.min((prev[j] ?? 0) + 1, (curr[j - 1] ?? 0) + 1, (prev[j - 1] ?? 0) + cost));
+    }
+    prev = curr;
+  }
+  return prev[b.length] ?? 0;
+}
+var SimpleReplacer = function* (_content, find) {
+  yield find;
+};
+var LineTrimmedReplacer = function* (content, find) {
+  const originalLines = content.split(`
+`);
+  const searchLines = find.split(`
+`);
+  if (searchLines[searchLines.length - 1] === "") {
+    searchLines.pop();
+  }
+  for (let i = 0;i <= originalLines.length - searchLines.length; i++) {
+    let matches = true;
+    for (const [j, searchLine] of searchLines.entries()) {
+      const originalLine = originalLines[i + j];
+      if (originalLine === undefined || originalLine.trim() !== searchLine.trim()) {
+        matches = false;
+        break;
+      }
+    }
+    if (matches) {
+      let matchStartIndex = 0;
+      for (let k = 0;k < i; k++) {
+        matchStartIndex += (originalLines[k] ?? "").length + 1;
+      }
+      let matchEndIndex = matchStartIndex;
+      for (let k = 0;k < searchLines.length; k++) {
+        matchEndIndex += (originalLines[i + k] ?? "").length;
+        if (k < searchLines.length - 1) {
+          matchEndIndex += 1;
+        }
+      }
+      yield content.substring(matchStartIndex, matchEndIndex);
+    }
+  }
+};
+function blockSimilarity(originalLines, searchLines, startLine, endLine) {
+  const searchBlockSize = searchLines.length;
+  const actualBlockSize = endLine - startLine + 1;
+  const linesToCheck = Math.min(searchBlockSize - 2, actualBlockSize - 2);
+  if (linesToCheck <= 0)
+    return 1;
+  let similarity = 0;
+  for (let j = 1;j < searchBlockSize - 1 && j < actualBlockSize - 1; j++) {
+    const originalLine = (originalLines[startLine + j] ?? "").trim();
+    const searchLine = (searchLines[j] ?? "").trim();
+    const maxLen = Math.max(originalLine.length, searchLine.length);
+    if (maxLen === 0)
+      continue;
+    const distance = levenshtein(originalLine, searchLine);
+    similarity += 1 - distance / maxLen;
+  }
+  return similarity / linesToCheck;
+}
+function lineSpan(content, originalLines, startLine, endLine) {
+  let matchStartIndex = 0;
+  for (let k = 0;k < startLine; k++) {
+    matchStartIndex += (originalLines[k] ?? "").length + 1;
+  }
+  let matchEndIndex = matchStartIndex;
+  for (let k = startLine;k <= endLine; k++) {
+    matchEndIndex += (originalLines[k] ?? "").length;
+    if (k < endLine) {
+      matchEndIndex += 1;
+    }
+  }
+  return content.substring(matchStartIndex, matchEndIndex);
+}
+var BlockAnchorReplacer = function* (content, find) {
+  const originalLines = content.split(`
+`);
+  const searchLines = find.split(`
+`);
+  if (searchLines.length < 3) {
+    return;
+  }
+  if (searchLines[searchLines.length - 1] === "") {
+    searchLines.pop();
+  }
+  const firstLineSearch = (searchLines[0] ?? "").trim();
+  const lastLineSearch = (searchLines[searchLines.length - 1] ?? "").trim();
+  const searchBlockSize = searchLines.length;
+  const maxLineDelta = Math.max(1, Math.floor(searchBlockSize * 0.25));
+  const candidates = [];
+  for (const [i, line] of originalLines.entries()) {
+    if (line.trim() !== firstLineSearch) {
+      continue;
+    }
+    for (let j = i + 2;j < originalLines.length; j++) {
+      if ((originalLines[j] ?? "").trim() === lastLineSearch) {
+        const actualBlockSize = j - i + 1;
+        if (Math.abs(actualBlockSize - searchBlockSize) <= maxLineDelta) {
+          candidates.push({ startLine: i, endLine: j });
+        }
+        break;
+      }
+    }
+  }
+  if (candidates.length === 0) {
+    return;
+  }
+  let best = null;
+  let maxSimilarity = -1;
+  for (const candidate of candidates) {
+    const similarity = blockSimilarity(originalLines, searchLines, candidate.startLine, candidate.endLine);
+    if (similarity > maxSimilarity) {
+      maxSimilarity = similarity;
+      best = candidate;
+    }
+  }
+  if (best && maxSimilarity >= BLOCK_ANCHOR_SIMILARITY_THRESHOLD) {
+    yield lineSpan(content, originalLines, best.startLine, best.endLine);
+  }
+};
+var WhitespaceNormalizedReplacer = function* (content, find) {
+  const normalizeWhitespace = (text) => text.replace(/\s+/g, " ").trim();
+  const normalizedFind = normalizeWhitespace(find);
+  const lines = content.split(`
+`);
+  for (const line of lines) {
+    const normalizedLine = normalizeWhitespace(line);
+    if (normalizedLine === normalizedFind) {
+      yield line;
+    } else if (normalizedLine.includes(normalizedFind)) {
+      const words = find.trim().split(/\s+/);
+      if (words.length > 0) {
+        const pattern = words.map((word) => word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("\\s+");
+        try {
+          const match = line.match(new RegExp(pattern));
+          if (match) {
+            yield match[0];
+          }
+        } catch {}
+      }
+    }
+  }
+  const findLines = find.split(`
+`);
+  if (findLines.length > 1) {
+    for (let i = 0;i <= lines.length - findLines.length; i++) {
+      const block = lines.slice(i, i + findLines.length);
+      if (normalizeWhitespace(block.join(`
+`)) === normalizedFind) {
+        yield block.join(`
+`);
+      }
+    }
+  }
+};
+var IndentationFlexibleReplacer = function* (content, find) {
+  const removeIndentation = (text) => {
+    const textLines = text.split(`
+`);
+    const nonEmptyLines = textLines.filter((line) => line.trim().length > 0);
+    if (nonEmptyLines.length === 0)
+      return text;
+    const minIndent = Math.min(...nonEmptyLines.map((line) => /^(\s*)/.exec(line)?.[1]?.length ?? 0));
+    return textLines.map((line) => line.trim().length === 0 ? line : line.slice(minIndent)).join(`
+`);
+  };
+  const normalizedFind = removeIndentation(find);
+  const contentLines = content.split(`
+`);
+  const findLines = find.split(`
+`);
+  for (let i = 0;i <= contentLines.length - findLines.length; i++) {
+    const block = contentLines.slice(i, i + findLines.length).join(`
+`);
+    if (removeIndentation(block) === normalizedFind) {
+      yield block;
+    }
+  }
+};
+var EscapeNormalizedReplacer = function* (content, find) {
+  const unescapeString = (str) => str.replace(/\\(n|t|r|'|"|`|\\|\n|\$)/g, (match, capturedChar) => {
+    switch (capturedChar) {
+      case "n":
+        return `
+`;
+      case "t":
+        return "\t";
+      case "r":
+        return "\r";
+      case "'":
+        return "'";
+      case '"':
+        return '"';
+      case "`":
+        return "`";
+      case "\\":
+        return "\\";
+      case `
+`:
+        return `
+`;
+      case "$":
+        return "$";
+      default:
+        return match;
+    }
+  });
+  const unescapedFind = unescapeString(find);
+  if (content.includes(unescapedFind)) {
+    yield unescapedFind;
+  }
+  const lines = content.split(`
+`);
+  const findLines = unescapedFind.split(`
+`);
+  for (let i = 0;i <= lines.length - findLines.length; i++) {
+    const block = lines.slice(i, i + findLines.length).join(`
+`);
+    if (unescapeString(block) === unescapedFind) {
+      yield block;
+    }
+  }
+};
+var TrimmedBoundaryReplacer = function* (content, find) {
+  const trimmedFind = find.trim();
+  if (trimmedFind === find) {
+    return;
+  }
+  if (content.includes(trimmedFind)) {
+    yield trimmedFind;
+  }
+  const lines = content.split(`
+`);
+  const findLines = find.split(`
+`);
+  for (let i = 0;i <= lines.length - findLines.length; i++) {
+    const block = lines.slice(i, i + findLines.length).join(`
+`);
+    if (block.trim() === trimmedFind) {
+      yield block;
+    }
+  }
+};
+var ContextAwareReplacer = function* (content, find) {
+  const findLines = find.split(`
+`);
+  if (findLines.length < 3) {
+    return;
+  }
+  if (findLines[findLines.length - 1] === "") {
+    findLines.pop();
+  }
+  const contentLines = content.split(`
+`);
+  const firstLine = (findLines[0] ?? "").trim();
+  const lastLine = (findLines[findLines.length - 1] ?? "").trim();
+  for (const [i, line] of contentLines.entries()) {
+    if (line.trim() !== firstLine)
+      continue;
+    for (let j = i + 2;j < contentLines.length; j++) {
+      if ((contentLines[j] ?? "").trim() === lastLine) {
+        const blockLines = contentLines.slice(i, j + 1);
+        if (blockLines.length === findLines.length) {
+          let matchingLines = 0;
+          let totalNonEmptyLines = 0;
+          for (let k = 1;k < blockLines.length - 1; k++) {
+            const blockLine = (blockLines[k] ?? "").trim();
+            const findLine = (findLines[k] ?? "").trim();
+            if (blockLine.length > 0 || findLine.length > 0) {
+              totalNonEmptyLines++;
+              if (blockLine === findLine) {
+                matchingLines++;
+              }
+            }
+          }
+          if (totalNonEmptyLines === 0 || matchingLines / totalNonEmptyLines >= 0.5) {
+            yield blockLines.join(`
+`);
+            break;
+          }
+        }
+        break;
+      }
+    }
+  }
+};
+var MultiOccurrenceReplacer = function* (content, find) {
+  let startIndex = 0;
+  while (true) {
+    const index = content.indexOf(find, startIndex);
+    if (index === -1)
+      break;
+    yield find;
+    startIndex = index + find.length;
+  }
+};
+var REPLACERS = [
+  ["simple", SimpleReplacer],
+  ["line_trimmed", LineTrimmedReplacer],
+  ["block_anchor", BlockAnchorReplacer],
+  ["whitespace_normalized", WhitespaceNormalizedReplacer],
+  ["indentation_flexible", IndentationFlexibleReplacer],
+  ["escape_normalized", EscapeNormalizedReplacer],
+  ["trimmed_boundary", TrimmedBoundaryReplacer],
+  ["context_aware", ContextAwareReplacer],
+  ["multi_occurrence", MultiOccurrenceReplacer]
+];
+function isDisproportionateMatch(search, oldString) {
+  const oldLines = oldString.split(`
+`).length;
+  const searchLines = search.split(`
+`).length;
+  if (searchLines >= Math.max(oldLines + 3, oldLines * 2))
+    return true;
+  if (oldLines === 1)
+    return false;
+  return search.trim().length > Math.max(oldString.trim().length + 500, oldString.trim().length * 4);
+}
+function replaceForgiving(content, oldString, newString, replaceAll = false) {
+  if (oldString === newString) {
+    throw new Error("No changes to apply: old_string and new_string are identical.");
+  }
+  if (oldString === "") {
+    throw new Error("old_string cannot be empty. Provide the exact text to replace, or use write to replace a whole file.");
+  }
+  let notFound = true;
+  for (const [strategy, replacer] of REPLACERS) {
+    for (const search of replacer(content, oldString)) {
+      if (search === "")
+        continue;
+      const index = content.indexOf(search);
+      if (index === -1)
+        continue;
+      notFound = false;
+      if (isDisproportionateMatch(search, oldString)) {
+        throw new EditDisproportionateError;
+      }
+      if (replaceAll) {
+        const parts = content.split(search);
+        return { content: parts.join(newString), matched: strategy, replacements: parts.length - 1 };
+      }
+      const lastIndex = content.lastIndexOf(search);
+      if (index !== lastIndex)
+        continue;
+      return {
+        content: content.substring(0, index) + newString + content.substring(index + search.length),
+        matched: strategy,
+        replacements: 1
+      };
+    }
+  }
+  if (notFound) {
+    throw new EditNotFoundError;
+  }
+  throw new EditNotUniqueError;
+}
+var BOM = "\uFEFF";
+function splitBom(text) {
+  return text.startsWith(BOM) ? { bom: true, text: text.slice(1) } : { bom: false, text };
+}
+function joinBom(text, bom) {
+  const stripped = splitBom(text).text;
+  return bom ? BOM + stripped : stripped;
+}
+
+// ../../../../../tmp/agent-sdk-mirror-6zVCDj/repo/src/path-locks.ts
 var LOCKS_KEY = Symbol.for("zocomputer.agent-sdk.path-locks");
 function lockChains() {
   const holder = globalThis;
@@ -1182,18 +1577,18 @@ async function withPathLock(path, fn) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-wH9mjN/repo/src/workspace-io.ts
+// ../../../../../tmp/agent-sdk-mirror-6zVCDj/repo/src/workspace-io.ts
 import { mkdirSync as mkdirSync4, readFileSync as readFileSync7, statSync as statSync2, writeFileSync as writeFileSync3 } from "node:fs";
 import { dirname as dirname3, join as join5 } from "node:path";
 
-// ../../../../../tmp/agent-sdk-mirror-wH9mjN/repo/src/glob-match.ts
+// ../../../../../tmp/agent-sdk-mirror-6zVCDj/repo/src/glob-match.ts
 function globToRegExp(glob) {
   const escaped = glob.replace(/[.+^${}()|[\]\\]/g, "\\$&");
   const body = escaped.replace(/\*\*\/?/g, "\x00").replace(/\*/g, "[^/]*").replace(/\?/g, "[^/]").replace(/\u0000/g, "(?:.*/)?");
   return new RegExp(`^${body}$`);
 }
 
-// ../../../../../tmp/agent-sdk-mirror-wH9mjN/repo/src/list-files.ts
+// ../../../../../tmp/agent-sdk-mirror-6zVCDj/repo/src/list-files.ts
 import { spawnSync } from "node:child_process";
 var MAX_BUFFER = 64 * 1024 * 1024;
 function gitPaths(root, args) {
@@ -1221,7 +1616,7 @@ function listGitFiles(root, scope) {
   return files.filter((path) => !gone.has(path));
 }
 
-// ../../../../../tmp/agent-sdk-mirror-wH9mjN/repo/src/read-text.ts
+// ../../../../../tmp/agent-sdk-mirror-6zVCDj/repo/src/read-text.ts
 import { readFileSync as readFileSync5, statSync } from "node:fs";
 var MAX_SEARCH_FILE_BYTES = 1500000;
 var BINARY_SNIFF_BYTES = 8192;
@@ -1248,7 +1643,7 @@ function readTextForSearch(abs, maxBytes = MAX_SEARCH_FILE_BYTES) {
   return { kind: "text", content: buf.toString("utf8") };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-wH9mjN/repo/src/walk.ts
+// ../../../../../tmp/agent-sdk-mirror-6zVCDj/repo/src/walk.ts
 import { readFileSync as readFileSync6, readdirSync } from "node:fs";
 import { join as join4, relative, sep } from "node:path";
 import ignore from "ignore";
@@ -1330,7 +1725,7 @@ function* walkFiles(root, base = root) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-wH9mjN/repo/src/workspace.ts
+// ../../../../../tmp/agent-sdk-mirror-6zVCDj/repo/src/workspace.ts
 import { isAbsolute, relative as relative2, resolve as resolve2, sep as sep2 } from "node:path";
 function resolveWithin(root, path) {
   const abs = isAbsolute(path) ? resolve2(path) : resolve2(root, path);
@@ -1352,7 +1747,7 @@ function createWorkspace(root) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-wH9mjN/repo/src/workspace-io.ts
+// ../../../../../tmp/agent-sdk-mirror-6zVCDj/repo/src/workspace-io.ts
 function createLocalIo(root) {
   return {
     async stat(abs) {
@@ -1440,12 +1835,12 @@ async function searchLocal(root, options) {
   return { matches, stopped, skippedLargeFiles };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-wH9mjN/repo/src/tools/edit.ts
+// ../../../../../tmp/agent-sdk-mirror-6zVCDj/repo/src/tools/edit.ts
 function createEditTool(opts) {
   const { workspace, noun } = opts;
   const io = opts.io ?? localIoProvider(workspace.root);
   return defineTool3({
-    description: "Replace an exact string in an existing file. By default old_string must occur exactly once — include enough surrounding context to make it unique. Set replace_all to replace every occurrence (e.g. renaming a symbol).",
+    description: "Replace a string in an existing file. Prefer the exact text from a read; near-miss whitespace, indentation, and over-escaping are tolerated, but a match much larger than old_string is refused. By default old_string must resolve to exactly one place — include enough surrounding context to make it unique. Set replace_all to replace every occurrence (e.g. renaming a symbol).",
     inputSchema: z3.object({
       path: z3.string().min(1).describe(`File path, relative to the ${noun} root.`),
       old_string: z3.string().min(1).describe("Exact text to replace; must currently exist in the file."),
@@ -1460,22 +1855,30 @@ function createEditTool(opts) {
         const bytes = await fio.readFile(abs);
         if (bytes === null)
           throw new Error(`${rel} does not exist.`);
-        const before = bytes.toString("utf8");
-        const count = before.split(old_string).length - 1;
-        if (count === 0)
-          throw new Error(`old_string not found in ${rel}.`);
-        if (count > 1 && !replace_all) {
-          throw new Error(`old_string is not unique in ${rel} (${count} matches). Add surrounding context or set replace_all.`);
+        const { bom, text: before } = splitBom(bytes.toString("utf8"));
+        let result;
+        try {
+          result = replaceForgiving(before, old_string, new_string, replace_all ?? false);
+        } catch (error) {
+          if (error instanceof EditNotFoundError) {
+            throw new Error(`old_string not found in ${rel}. It must match the file contents — re-read the file and copy the exact text, including whitespace and indentation.`);
+          }
+          if (error instanceof EditNotUniqueError) {
+            throw new Error(`old_string is not unique in ${rel}. Add surrounding context to make the match unique, or set replace_all.`);
+          }
+          if (error instanceof EditDisproportionateError) {
+            throw new Error(`Refusing the edit in ${rel}: the closest match is much larger than old_string. Re-read the file and provide the full exact old_string.`);
+          }
+          throw error;
         }
-        const after = before.split(old_string).join(new_string);
-        await fio.writeFile(abs, after);
-        return { ok: true, path: rel, replacements: count };
+        await fio.writeFile(abs, joinBom(result.content, bom));
+        return { ok: true, path: rel, replacements: result.replacements, matched: result.matched };
       });
     }
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-wH9mjN/repo/src/tools/glob.ts
+// ../../../../../tmp/agent-sdk-mirror-6zVCDj/repo/src/tools/glob.ts
 import { defineTool as defineTool4 } from "eve/tools";
 import { z as z4 } from "zod";
 function createGlobTool(opts) {
@@ -1514,7 +1917,7 @@ function createGlobTool(opts) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-wH9mjN/repo/src/tools/grep.ts
+// ../../../../../tmp/agent-sdk-mirror-6zVCDj/repo/src/tools/grep.ts
 import { defineTool as defineTool5 } from "eve/tools";
 import { z as z5 } from "zod";
 import { join as join6 } from "node:path";
@@ -1607,12 +2010,12 @@ function createGrepTool(opts) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-wH9mjN/repo/src/tools/read.ts
+// ../../../../../tmp/agent-sdk-mirror-6zVCDj/repo/src/tools/read.ts
 import { defineTool as defineTool6 } from "eve/tools";
 import { z as z6 } from "zod";
 import { basename } from "node:path";
 
-// ../../../../../tmp/agent-sdk-mirror-wH9mjN/repo/src/file-kind.ts
+// ../../../../../tmp/agent-sdk-mirror-6zVCDj/repo/src/file-kind.ts
 import { extname } from "node:path";
 function imageMediaType(format) {
   return `image/${format}`;
@@ -1806,7 +2209,7 @@ function detectFileKind(buf, path) {
   return { kind: "text", encoding: "utf8" };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-wH9mjN/repo/src/file-view.ts
+// ../../../../../tmp/agent-sdk-mirror-6zVCDj/repo/src/file-view.ts
 var READ_FILE_DEFAULT_LINE_LIMIT = 2000;
 var READ_FILE_MAX_LINE_CHARS = 2000;
 var READ_FILE_MAX_CONTENT_CHARS = 50000;
@@ -1850,10 +2253,10 @@ function buildFileView(text, opts = {}) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-wH9mjN/repo/src/read-file-content.ts
+// ../../../../../tmp/agent-sdk-mirror-6zVCDj/repo/src/read-file-content.ts
 import { imageSize } from "image-size";
 
-// ../../../../../tmp/agent-sdk-mirror-wH9mjN/repo/src/extract/cache.ts
+// ../../../../../tmp/agent-sdk-mirror-6zVCDj/repo/src/extract/cache.ts
 function createStatCache(limit) {
   const entries = new Map;
   return {
@@ -1878,7 +2281,7 @@ function createStatCache(limit) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-wH9mjN/repo/src/extract/docx.ts
+// ../../../../../tmp/agent-sdk-mirror-6zVCDj/repo/src/extract/docx.ts
 import mammoth from "mammoth";
 async function extractDocx(buffer) {
   try {
@@ -1890,7 +2293,7 @@ async function extractDocx(buffer) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-wH9mjN/repo/src/extract/pdf.ts
+// ../../../../../tmp/agent-sdk-mirror-6zVCDj/repo/src/extract/pdf.ts
 import { openPdf } from "clawpdf";
 var PDF_EMPTY_PAGE_NOTE = "[no text on this page — likely scanned or image-only; rendered pages cannot be attached]";
 var PDF_PAGE_CAP = 200;
@@ -1925,7 +2328,7 @@ async function extractPdf(bytes, options = {}) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-wH9mjN/repo/src/extract/sheet.ts
+// ../../../../../tmp/agent-sdk-mirror-6zVCDj/repo/src/extract/sheet.ts
 import { read, utils } from "xlsx";
 var SHEET_ROW_CAP = 5000;
 function extractSheets(buffer, rowCap = SHEET_ROW_CAP) {
@@ -1966,7 +2369,7 @@ function extractSheets(buffer, rowCap = SHEET_ROW_CAP) {
 `), sheets };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-wH9mjN/repo/src/read-file-content.ts
+// ../../../../../tmp/agent-sdk-mirror-6zVCDj/repo/src/read-file-content.ts
 var EXTRACTION_CACHE_LIMIT = 20;
 var extractionCache = createStatCache(EXTRACTION_CACHE_LIMIT);
 function decodeText(buffer, encoding) {
@@ -2037,7 +2440,7 @@ async function loadFileContent(buffer, path, id) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-wH9mjN/repo/src/tools/read.ts
+// ../../../../../tmp/agent-sdk-mirror-6zVCDj/repo/src/tools/read.ts
 function buildMediaHint(attach, verb) {
   const kinds = ["image", "video", "audio"];
   const on = kinds.filter((kind) => attach[kind]);
@@ -2208,7 +2611,7 @@ function createReadTool(opts) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-wH9mjN/repo/src/tools/tasks.ts
+// ../../../../../tmp/agent-sdk-mirror-6zVCDj/repo/src/tools/tasks.ts
 import { defineDynamic as defineDynamic2, defineTool as defineTool7 } from "eve/tools";
 import { z as z7 } from "zod";
 var DEFAULT_WAIT_MS = 120000;
@@ -2365,17 +2768,17 @@ function createTasksTools(opts) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-wH9mjN/repo/src/tools/webfetch.ts
+// ../../../../../tmp/agent-sdk-mirror-6zVCDj/repo/src/tools/webfetch.ts
 import { defineTool as defineTool8 } from "eve/tools";
 import { z as z8 } from "zod";
 import { basename as basename2, join as join7 } from "node:path";
 
-// ../../../../../tmp/agent-sdk-mirror-wH9mjN/repo/src/web-fetch.ts
+// ../../../../../tmp/agent-sdk-mirror-6zVCDj/repo/src/web-fetch.ts
 import { Parser } from "htmlparser2";
 import { parseHTML as parseHTML2 } from "linkedom";
 import TurndownService from "turndown";
 
-// ../../../../../tmp/agent-sdk-mirror-wH9mjN/repo/src/web-page.ts
+// ../../../../../tmp/agent-sdk-mirror-6zVCDj/repo/src/web-page.ts
 import Defuddle from "defuddle";
 import { parseHTML } from "linkedom";
 var asField = (value) => {
@@ -2486,7 +2889,7 @@ function looksLikeRawHtmlOutput(rendered) {
   return tagChars / rendered.length > 0.1;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-wH9mjN/repo/src/web-fetch.ts
+// ../../../../../tmp/agent-sdk-mirror-6zVCDj/repo/src/web-fetch.ts
 var WEB_FETCH_MAX_RESPONSE_BYTES = 5 * 1024 * 1024;
 var WEB_FETCH_DEFAULT_TIMEOUT_SECONDS = 30;
 var WEB_FETCH_PDF_DEFAULT_TIMEOUT_SECONDS = 60;
@@ -2676,7 +3079,7 @@ function urlLooksLikePdf(url) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-wH9mjN/repo/src/tools/webfetch.ts
+// ../../../../../tmp/agent-sdk-mirror-6zVCDj/repo/src/tools/webfetch.ts
 var SPILL_EXTENSION = {
   markdown: "md",
   text: "txt",
@@ -2912,7 +3315,7 @@ function createWebFetchTool(opts) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-wH9mjN/repo/src/tools/write.ts
+// ../../../../../tmp/agent-sdk-mirror-6zVCDj/repo/src/tools/write.ts
 import { defineTool as defineTool9 } from "eve/tools";
 import { z as z9 } from "zod";
 function createWriteTool(opts) {
@@ -2928,20 +3331,23 @@ function createWriteTool(opts) {
       const abs = workspace.resolve(path);
       const fio = io(ctx);
       return withPathLock(abs, async () => {
-        const created = await fio.stat(abs) === null;
-        await fio.writeFile(abs, content);
+        const prior = await fio.readFile(abs);
+        const created = prior === null;
+        const priorHadBom = prior !== null && prior.length >= 3 && prior[0] === 239 && prior[1] === 187 && prior[2] === 191;
+        const out = priorHadBom && !splitBom(content).bom ? `\uFEFF${content}` : content;
+        await fio.writeFile(abs, out);
         return {
           ok: true,
           path: workspace.relativize(abs),
           created,
-          bytes: Buffer.byteLength(content)
+          bytes: Buffer.byteLength(out)
         };
       });
     }
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-wH9mjN/repo/src/sandbox-io.ts
+// ../../../../../tmp/agent-sdk-mirror-6zVCDj/repo/src/sandbox-io.ts
 import ignore2 from "ignore";
 function shellSingleQuote(value) {
   return `'${value.replaceAll("'", `'\\''`)}'`;
@@ -3156,11 +3562,11 @@ function parseSearchOutput(stdout, maxMatches, flooded = false) {
   }
   return { matches, stopped, skippedLargeFiles: null };
 }
-// ../../../../../tmp/agent-sdk-mirror-wH9mjN/repo/src/hooks.ts
+// ../../../../../tmp/agent-sdk-mirror-6zVCDj/repo/src/hooks.ts
 import { Client } from "eve/client";
 import { defineHook } from "eve/hooks";
 
-// ../../../../../tmp/agent-sdk-mirror-wH9mjN/repo/src/redeliver.ts
+// ../../../../../tmp/agent-sdk-mirror-6zVCDj/repo/src/redeliver.ts
 function isRecord5(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
@@ -3230,7 +3636,7 @@ function createRedeliveryState() {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-wH9mjN/repo/src/hooks.ts
+// ../../../../../tmp/agent-sdk-mirror-6zVCDj/repo/src/hooks.ts
 var RETRY_DELAYS_MS = [500, 2000, 5000];
 function buildDeliveryMessage(request) {
   const media = request.items.flatMap((item) => item.payload.kind === "media" ? [{ toolCallId: item.key, attachment: item.payload.attachment }] : []);
@@ -3329,7 +3735,7 @@ function createParkDeliveryHook(options = {}) {
     }
   });
 }
-// ../../../../../tmp/agent-sdk-mirror-wH9mjN/repo/src/build-externals.ts
+// ../../../../../tmp/agent-sdk-mirror-6zVCDj/repo/src/build-externals.ts
 var STDLIB_EXTERNAL_DEPENDENCIES = [
   "clawpdf",
   "defuddle",
@@ -3342,11 +3748,11 @@ var STDLIB_EXTERNAL_DEPENDENCIES = [
   "xlsx",
   "zod"
 ];
-// ../../../../../tmp/agent-sdk-mirror-wH9mjN/repo/src/task.ts
+// ../../../../../tmp/agent-sdk-mirror-6zVCDj/repo/src/task.ts
 import { defineAgent } from "eve";
 import { defineDynamic as defineDynamic3, defineInstructions as defineInstructions2 } from "eve/instructions";
 
-// ../../../../../tmp/agent-sdk-mirror-wH9mjN/repo/src/visible-reasoning.ts
+// ../../../../../tmp/agent-sdk-mirror-6zVCDj/repo/src/visible-reasoning.ts
 var ANTHROPIC_ADAPTIVE_THINKING_MODELS = [
   /^anthropic\/claude-fable-/,
   /^anthropic\/claude-mythos-/,
@@ -3372,7 +3778,7 @@ function visibleReasoningModelOptions(modelId) {
   return;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-wH9mjN/repo/src/task.ts
+// ../../../../../tmp/agent-sdk-mirror-6zVCDj/repo/src/task.ts
 var TASK_DISABLED_BUILTINS = ["ask_question"];
 function expectedTaskToolNames(options) {
   const parent = new Set(options.parentToolNames);
@@ -3492,7 +3898,7 @@ async function fetchGatewayModelCatalog(options) {
   }
   return parsed;
 }
-// ../../../../../tmp/agent-sdk-mirror-wH9mjN/repo/src/mock-model.ts
+// ../../../../../tmp/agent-sdk-mirror-6zVCDj/repo/src/mock-model.ts
 var STORY_SENTENCES = [
   "The lighthouse keeper counted the waves as they broke against the rocks.",
   "Every seventh wave carried a whisper from the old town beneath the sea.",
@@ -3954,7 +4360,7 @@ That changes the plan.`
     }
   };
 }
-// ../../../../../tmp/agent-sdk-mirror-wH9mjN/repo/src/orphaned-turns.ts
+// ../../../../../tmp/agent-sdk-mirror-6zVCDj/repo/src/orphaned-turns.ts
 function isOrphanedTurn(input) {
   if (!input.reconciled || !input.inFlightAfter)
     return false;
@@ -3969,7 +4375,7 @@ function workerEpochMs(now = Date.now) {
   return holder[WORKER_EPOCH_KEY];
 }
 
-// ../../../../../tmp/agent-sdk-mirror-wH9mjN/repo/src/index.ts
+// ../../../../../tmp/agent-sdk-mirror-6zVCDj/repo/src/index.ts
 function createStdlib(options) {
   const noun = options.workspaceNoun ?? "workspace";
   const workspace2 = createWorkspace(options.workspaceRoot);
@@ -4098,6 +4504,7 @@ export {
   videoMediaType,
   toolInputFragments,
   stripSteerFromOutput,
+  splitBom,
   shellSingleQuote,
   setParkNotificationHandler,
   serializeSteerLine,
@@ -4107,6 +4514,7 @@ export {
   sandboxIoProvider,
   resolveWithin,
   resolveWebFetchTimeoutMs,
+  replaceForgiving,
   renderWebText,
   relativizeWithin,
   redeliveryFromEvent,
@@ -4125,8 +4533,10 @@ export {
   loadFileContent,
   listGitFiles,
   lastUserTextFrom,
+  joinBom,
   isOrphanedTurn,
   isHtmlContentType,
+  isDisproportionateMatch,
   imageMediaType,
   globToRegExp,
   formatWatchNotification,
@@ -4197,14 +4607,17 @@ export {
   assertHttpUrl,
   __resetTaskRegistryCacheForTests,
   __resetDirConventionsCacheForTests,
+  WhitespaceNormalizedReplacer,
   WEB_FETCH_PDF_DEFAULT_TIMEOUT_SECONDS,
   WEB_FETCH_MAX_TIMEOUT_SECONDS,
   WEB_FETCH_MAX_RESPONSE_BYTES,
   WEB_FETCH_DEFAULT_TIMEOUT_SECONDS,
+  TrimmedBoundaryReplacer,
   TOOL_OUTPUT_DIRNAME,
   TASK_DISABLED_BUILTINS,
   TASK_CHILD_TOOL_OVERRIDES,
   TAIL_CHARS,
+  SimpleReplacer,
   STEER_WRAPPED_OUTPUT_FIELD,
   STEER_NOTE,
   STEER_FIELD,
@@ -4218,17 +4631,26 @@ export {
   READ_FILE_DEFAULT_LINE_LIMIT,
   PDF_PAGE_CAP,
   PDF_EMPTY_PAGE_NOTE,
+  MultiOccurrenceReplacer,
   MOCK_SCENARIOS,
   MAX_SEARCH_FILE_BYTES,
   MAX_PREVIEW,
+  LineTrimmedReplacer,
+  IndentationFlexibleReplacer,
   HEAD_CHARS,
   GATEWAY_MODELS_URL,
   FALLBACK_USER_AGENT,
+  EscapeNormalizedReplacer,
+  EditNotUniqueError,
+  EditNotFoundError,
+  EditDisproportionateError,
   DEFAULT_WATCH_DEBOUNCE_MS,
   DEFAULT_MAX_WATCH_NOTIFICATIONS,
   DEFAULT_MAX_INLINE_MEDIA_BYTES,
   DEFAULT_MAX_INLINE_IMAGE_BYTES,
+  ContextAwareReplacer,
   CHAT_ATTACHMENT_FIELD,
+  BlockAnchorReplacer,
   BROWSER_USER_AGENT,
   ALWAYS_IGNORED
 };

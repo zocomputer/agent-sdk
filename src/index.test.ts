@@ -295,7 +295,7 @@ describe("edit and write tools", () => {
       { path: "edit-me.txt", old_string: "one", new_string: "1" },
       ctx,
     );
-    expect(result).toEqual({ ok: true, path: "edit-me.txt", replacements: 1 });
+    expect(result).toEqual({ ok: true, path: "edit-me.txt", replacements: 1, matched: "simple" });
     expect(readFileSync(join(root, "edit-me.txt"), "utf8")).toBe("1 two two\n");
   });
 
@@ -305,7 +305,7 @@ describe("edit and write tools", () => {
         { path: "edit-me.txt", old_string: "two", new_string: "2" },
         ctx,
       ),
-    ).rejects.toThrow(/not unique .*2 matches/);
+    ).rejects.toThrow(/not unique/);
     const all = await stdlib.tools.edit.execute(
       { path: "edit-me.txt", old_string: "two", new_string: "2", replace_all: true },
       ctx,
