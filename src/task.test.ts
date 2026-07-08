@@ -120,6 +120,18 @@ describe("buildTaskDescription", () => {
     expect(description).not.toContain("About Claude Opus 4.8");
     expect(description).toContain("same workspace");
   });
+
+  test("never claims tier-model media viewing — a child gets no inline media regardless", () => {
+    // A delegated child's read/webfetch are attach-disabled, so a "this
+    // tier's model can view images" sentence would invite routing
+    // image-heavy work to a child that only gets metadata plus `look`.
+    const description = buildTaskDescription({
+      modelName: "Claude Sonnet 5",
+      use: "Use it for quick subtasks.",
+    });
+    expect(description).not.toContain("itself can view");
+    expect(description).not.toContain("can view images");
+  });
 });
 
 describe("createTaskChildTools", () => {
@@ -173,6 +185,23 @@ describe("createTaskChildTools", () => {
   test("the read description doesn't promise the attachment path it lacks", () => {
     expect(tools.read.description).toContain("metadata only");
     expect(tools.read.description).not.toContain("viewable attachment");
+  });
+
+  test("with a media oracle, the child's unavailable-media notes route to look", async () => {
+    const withOracle = createTaskChildTools({
+      workspaceRoot: root,
+      workspaceNoun: "repo",
+      spillDir: join(root, ".state/tool-outputs"),
+      mediaOracle: true,
+    });
+    const result = await withOracle.read.execute({ path: "pic.png" }, ctx);
+    if (!("note" in result) || typeof result.note !== "string") {
+      throw new Error("expected a note");
+    }
+    expect(result.note).toContain("look tool");
+    expect(result.note).toContain("Gemini 3 Flash");
+    // Attachments still never inline in a child.
+    expect(readChatAttachment(result)).toBeNull();
   });
 });
 
@@ -247,21 +276,37 @@ describe("parseGatewayModelCatalog", () => {
         id: "anthropic/claude-sonnet-5",
         name: "Claude Sonnet 5",
         description: "An upgrade to Sonnet 4.6.",
+        tags: undefined,
       },
     ]);
   });
 
   test("missing optional fields become undefined", () => {
     expect(parseGatewayModelCatalog({ data: [{ id: "x" }] })).toEqual([
-      { id: "x", name: undefined, description: undefined },
+      { id: "x", name: undefined, description: undefined, tags: undefined },
     ]);
   });
 
   test("wrong-typed fields degrade to undefined; a missing id rejects", () => {
     expect(parseGatewayModelCatalog({ data: [{ id: "x", name: 3 }] })).toEqual([
-      { id: "x", name: undefined, description: undefined },
+      { id: "x", name: undefined, description: undefined, tags: undefined },
     ]);
     expect(parseGatewayModelCatalog({ data: [{ name: "no id" }] })).toBeNull();
+  });
+
+  test("string-array tags parse; non-string entries degrade the whole list", () => {
+    expect(
+      parseGatewayModelCatalog({ data: [{ id: "x", tags: ["vision", "file-input"] }] }),
+    ).toEqual([
+      {
+        id: "x",
+        name: undefined,
+        description: undefined,
+        tags: ["vision", "file-input"],
+      },
+    ]);
+    const mixed = parseGatewayModelCatalog({ data: [{ id: "x", tags: ["vision", 3] }] });
+    expect(mixed?.[0]?.tags).toBeUndefined();
   });
 
   test("non-object bodies and non-array data reject", () => {
@@ -278,7 +323,9 @@ describe("fetchGatewayModelCatalog", () => {
         status: 200,
       });
     const models = await fetchGatewayModelCatalog({ url: "https://example.test", fetchImpl });
-    expect(models).toEqual([{ id: "x", name: "X", description: undefined }]);
+    expect(models).toEqual([
+      { id: "x", name: "X", description: undefined, tags: undefined },
+    ]);
   });
 
   test("a non-2xx status throws", async () => {

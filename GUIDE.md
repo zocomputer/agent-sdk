@@ -25,9 +25,13 @@ calls.
 | `bash.ts`     | `stdlib.tools.bash`     | `bash`     |
 | `webfetch.ts` | `stdlib.tools.webfetch` | `webfetch` |
 | `tasks.ts`\*  | `stdlib.tools.tasks`    | `run_async`, `check_tasks`, `await_task` |
+| `look.ts`\*\* | `stdlib.tools.look`     | `look`     |
 
 \* The task tools are a bundle — one file exports all three, so its own
 filename is free.
+
+\*\* Only with `mediaOracle` set — see
+[The media oracle](#the-media-oracle-look).
 
 eve injects every built-in tool whose name you don't override or disable:
 
@@ -53,6 +57,7 @@ the file operations. One re-export file per instruction under
 | `parallel-tools.ts`   | `stdlib.instructions.parallelTools`   | background tasks, `notify` watchers, await-before-ending |
 | `repo-conventions.ts` | `stdlib.instructions.repoConventions` | injects the workspace's root `AGENTS.md` |
 | `subagents.ts`        | `stdlib.instructions.subagents`       | delegation with eve's built-in `agent` tool |
+| `media.ts`            | `stdlib.instructions.media`           | (only with `mediaOracle` set) view natively what the model supports, `look` at the rest |
 
 Persona stays yours: the stdlib ships operational contracts, not voice —
 write your agent's identity as your own instruction file (see the example's
@@ -179,7 +184,51 @@ delivers background-task notifications — see
   "Attached file …" text stub — see
   [`design/upstream-asks.md`](./design/upstream-asks.md)). Until
   both hold, video/audio reads return honest metadata + a note steering to
-  bash extraction (e.g. ffmpeg frames read back as images).
+  bash extraction (e.g. ffmpeg frames read back as images) — or to `look`,
+  when [the media oracle](#the-media-oracle-look) is wired.
+- **`parentCapabilities`** (an optional `ModelInputCapabilities` — resolve it
+  with `capabilitiesForModel` over the gateway catalog and check it in)
+  derives the image default from the session model itself:
+  `attachImagesToChat` defaults to `parentCapabilities.image`, because an
+  image attached for a text-only model is inlined by eve's hydration
+  regardless and **fails the redelivery turn** at the provider. An explicit
+  flag always wins; video/audio stay manual opt-in until eve's hydration is
+  model-aware.
+
+## The media oracle (`look`)
+
+Not every model sees every filetype — GLM takes text only, most models take
+images and PDFs, essentially only the Gemini family takes video and audio.
+`look` is the delegation move for what the session model can't view: one
+question about a media file, answered by a pinned capable model.
+Conceptually a one-shot media subagent; mechanically a plain tool call — it
+reads the bytes through the workspace IO and calls the AI SDK's
+`generateText` directly with a file part, so it sidesteps eve's media gates
+entirely (text-only subagent input, text/json tool results, the hydration
+whitelist) and works in task children too.
+
+- **Wire it with `createStdlib({ mediaOracle: true })`** (or on
+  `createSandboxFileTools`) and one `agent/tools/look.ts` re-export. `true`
+  selects `DEFAULT_MEDIA_ORACLE` — `google/gemini-3-flash`, the recommended
+  default because the oracle's capability set must cover every kind the copy
+  routes to it, and the google family alone takes video+audio. Pass a
+  `LookOracleConfig` to pin a different model, cap sizes, or add headers
+  (a metered deployment labels the tool's own model traffic there, e.g. Zo's
+  `x-zo-tool`).
+- **Model resolution rides the AI SDK's rails**: a slug string resolves
+  through the global default gateway provider (`AI_GATEWAY_API_KEY`, or a
+  registered default provider on a hosted platform); a `LanguageModel`
+  instance passes through untouched. No credentials enter the SDK.
+- **The copy follows the oracle**: `tools.look` and `instructions.media`
+  appear, and read/webfetch's unavailable-media hints route to `look`
+  instead of dead-ending at "ask the user" / "report the path".
+- **Capability data lives in `model-capabilities.ts`**:
+  `capabilitiesForModel(modelId, catalog)` resolves a model's
+  `ModelInputCapabilities` from the gateway catalog's tags (`vision`,
+  `file-input`) plus a curated family overlay for what the catalog
+  under-reports (google → video+audio). Resolve in a one-shot refresh script
+  and check the result in — capability text lands in tool descriptions, part
+  of the cached prompt prefix, so it must be static and offline-safe.
 
 ## Steering (mid-turn messages)
 
@@ -269,6 +318,18 @@ the AI SDK's `gateway.getAvailableModels()` reads — via
 `fetchGatewayModelCatalog()` in a **one-shot refresh script**, and are checked
 in. Never fetch them at agent build time: tool descriptions are part of the
 cached prompt prefix and must be static and offline-safe.
+
+With [the media oracle](#the-media-oracle-look) wired, children keep their
+sight: `look` needs no park-delivery hook, so the child re-exports the
+parent's instance like any other tool, and passing the parent's **resolved**
+oracle — `stdlib.mediaOracle` — to `createTaskChildTools` routes the child's
+read/webfetch unavailable-media hints to `look` instead of "report the path"
+(never resolve a fresh option there: the hints must describe the exact model
+the re-exported `look` runs). Note the tier description
+deliberately says nothing about the pinned model's own media viewing — a
+delegated child never receives media inline regardless of its model
+(attach-disabled read/webfetch), so its media story is `look`, and a "this
+tier can view images" line would misroute image-heavy work.
 
 Finally, tell the parent when to route to each tier — pass a roster to the
 stdlib and the `subagents` instruction grows a "Choosing a subagent" section:

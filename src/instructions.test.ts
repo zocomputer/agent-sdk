@@ -5,6 +5,7 @@ import { join } from "node:path";
 import {
   buildCommunicationMarkdown,
   buildHitlMarkdown,
+  buildLookMarkdown,
   buildRepoConventionsMarkdown,
   buildSubagentMarkdown,
   buildWorkflowMarkdown,
@@ -67,6 +68,32 @@ test("hitl playbook teaches the structured ask_question surface", () => {
   // Verified by rib/evals/hitl/parallel-questions.eval.ts: parallel calls
   // collect into one park, so the playbook teaches batching.
   expect(markdown).toContain("independent questions together");
+});
+
+test("look playbook carries the oracle identity, the routing rule, and the deliverable rule", () => {
+  const markdown = buildLookMarkdown({
+    modelName: "Gemini 3 Flash",
+    capabilities: { image: true, pdf: true, video: true, audio: true },
+    parentCapabilities: { image: false, pdf: false, video: false, audio: false },
+  });
+  expect(markdown).toContain("## Media you can't view (look)");
+  expect(markdown).toContain("Gemini 3 Flash");
+  expect(markdown).toContain("can view images, PDFs, video, and audio");
+  // The parent half of the routing rule names the session model's own set.
+  expect(markdown).toContain("Your own model can view text only");
+  expect(markdown).toContain("Ask for the deliverable");
+  // Delivery claims stay with read's per-instance result notes: documents
+  // convert to text (never attach), and attachments can be disabled per
+  // instance — the playbook must not promise "read attaches" outright.
+  expect(markdown).toContain("Documents come back as text");
+  expect(markdown).toContain("its note names the right move");
+  expect(markdown).not.toContain("attaches the file to your next message");
+  // Without parent capabilities the sentence naming the model's set is absent.
+  const generic = buildLookMarkdown({
+    modelName: "Gemini 3 Flash",
+    capabilities: { image: true, pdf: true, video: true, audio: true },
+  });
+  expect(generic).not.toContain("Your own model");
 });
 
 test("subagent playbook interpolates the workspace noun and covers the load-bearing rules", () => {

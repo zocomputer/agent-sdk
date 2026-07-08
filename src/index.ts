@@ -10,12 +10,14 @@ import { createDirConventionsTracker } from "./dir-conventions";
 import {
   createCommunicationInstruction,
   createHitlInstruction,
+  createLookInstruction,
   createParallelToolsInstruction,
   createRepoConventionsInstruction,
   createSubagentInstruction,
   createWorkflowInstruction,
   type SubagentRosterEntry,
 } from "./instructions";
+import type { ModelInputCapabilities } from "./model-capabilities";
 import { createCommandRunner, type CommandRunner } from "./run";
 import { createSteerInbox, type SteerInbox } from "./steer-inbox";
 import { createSteerWrapper } from "./steer-tool";
@@ -23,6 +25,17 @@ import { createBashTool } from "./tools/bash";
 import { createEditTool } from "./tools/edit";
 import { createGlobTool } from "./tools/glob";
 import { createGrepTool } from "./tools/grep";
+import {
+  createLookTool,
+  lookFetchedImageHint,
+  lookFetchedMediaHint,
+  lookOversizeHint,
+  lookReadImageHint,
+  lookReadMediaHint,
+  resolveMediaOracle,
+  type LookOracleConfig,
+  type MediaOracleOption,
+} from "./tools/look";
 import { createReadTool } from "./tools/read";
 import { createTasksTools } from "./tools/tasks";
 import { createWebFetchTool } from "./tools/webfetch";
@@ -74,9 +87,34 @@ export interface StdlibOptions {
    * result so a client can re-inject it as a viewable attachment on the next
    * turn (see ./attachments and GUIDE.md). Requires a client that consumes
    * the attachment (rib, Zo); generic eve consumers can leave this off and get
-   * the metadata-only "ask the user" note. Defaults to `true`.
+   * the metadata-only "ask the user" note. Defaults to `true` — or, when
+   * {@link StdlibOptions.parentCapabilities} is provided, to whether the
+   * session model can view images (an image attached for a text-only model
+   * fails the redelivery turn at the provider). An explicit value always wins.
    */
   attachImagesToChat?: boolean;
+  /**
+   * The session model's own input capabilities, resolved by the consumer
+   * (`capabilitiesForModel` over the gateway catalog, checked in — see
+   * ./model-capabilities.ts). When provided, `attachImagesToChat` defaults to
+   * `parentCapabilities.image`, and the look instruction (when the oracle is
+   * wired) states which kinds to view natively vs delegate. Video/audio
+   * attach stays manual opt-in regardless: eve's attachment hydration stubs
+   * both for every model today (see design/upstream-asks.md), so a
+   * capability-derived default would promise media the runtime won't deliver.
+   */
+  parentCapabilities?: ModelInputCapabilities;
+  /**
+   * Wire the `look` media-oracle tool: delegate one question about a media
+   * file the session model can't view to a pinned capable model. `true`
+   * selects the recommended default oracle (`DEFAULT_MEDIA_ORACLE` —
+   * Gemini 3 Flash, the one family covering images, PDFs, video, AND audio);
+   * pass a {@link LookOracleConfig} to pin a different model or add metered
+   * headers. When set, `tools.look` exists, `instructions.media` carries the
+   * routing playbook, and read/webfetch's unavailable-media hints route to
+   * `look` instead of dead-ending.
+   */
+  mediaOracle?: MediaOracleOption;
   /**
    * Max image size (bytes) to inline on the tool result; larger images fall
    * back to the metadata-only note. Defaults to 3 MiB — eve's attachment
@@ -166,6 +204,21 @@ export function createStdlib(options: StdlibOptions) {
     ? createSteerInbox({ dir: options.steer.dir })
     : null;
   const steer = createSteerWrapper(steerInbox);
+  const oracle: LookOracleConfig | null =
+    options.mediaOracle !== undefined ? resolveMediaOracle(options.mediaOracle) : null;
+  // Parent-capability defaulting: an image attached for a model that can't
+  // view images is inlined by eve's hydration regardless (≤3 MiB, model-blind)
+  // and fails the redelivery turn at the provider — so when the consumer told
+  // us the session model's capabilities, they decide the default. An explicit
+  // flag always wins. Video/audio stay manual opt-in (hydration stubs both
+  // for every model today; see the option's doc comment).
+  const attachImagesToChat =
+    options.attachImagesToChat ?? options.parentCapabilities?.image ?? true;
+  const readImageHint = oracle ? lookReadImageHint(oracle) : undefined;
+  const readMediaHint = oracle ? lookReadMediaHint(oracle) : undefined;
+  const readOversizeHint = oracle ? lookOversizeHint(oracle) : undefined;
+  const fetchedImageHint = oracle ? lookFetchedImageHint(oracle) : undefined;
+  const fetchedMediaHint = oracle ? lookFetchedMediaHint(oracle) : undefined;
   return {
     workspace,
     runner,
@@ -173,12 +226,22 @@ export function createStdlib(options: StdlibOptions) {
     spillDir,
     backgroundables,
     steerInbox,
+    /**
+     * The RESOLVED look oracle (`null` when `mediaOracle` wasn't set). Task
+     * children must derive their hints from this exact config — pass it to
+     * `createTaskChildTools({ mediaOracle: stdlib.mediaOracle ?? undefined })`
+     * — because the child's `look` is a re-export of the parent's instance:
+     * a child resolving its own option (e.g. `true` against a custom parent
+     * oracle) would advertise a model and capability set its `look` doesn't
+     * run.
+     */
+    mediaOracle: oracle,
     tools: {
       read: steer(
         createReadTool({
           workspace,
           noun,
-          attachImagesToChat: options.attachImagesToChat ?? true,
+          attachImagesToChat,
           maxInlineImageBytes:
             options.maxInlineImageBytes ?? DEFAULT_MAX_INLINE_IMAGE_BYTES,
           attachVideoToChat: options.attachVideoToChat ?? false,
@@ -186,6 +249,13 @@ export function createStdlib(options: StdlibOptions) {
           maxInlineMediaBytes:
             options.maxInlineMediaBytes ?? DEFAULT_MAX_INLINE_MEDIA_BYTES,
           dirConventions,
+          ...(readImageHint !== undefined
+            ? { imageUnavailableHint: readImageHint }
+            : {}),
+          ...(readMediaHint !== undefined
+            ? { mediaUnavailableHint: readMediaHint }
+            : {}),
+          ...(readOversizeHint !== undefined ? { oversizeHint: readOversizeHint } : {}),
         }),
       ),
       edit: steer(createEditTool({ workspace, noun })),
@@ -206,15 +276,24 @@ export function createStdlib(options: StdlibOptions) {
         createWebFetchTool({
           workspace,
           spillDir,
-          attachImagesToChat: options.attachImagesToChat ?? true,
+          attachImagesToChat,
           maxInlineImageBytes:
             options.maxInlineImageBytes ?? DEFAULT_MAX_INLINE_IMAGE_BYTES,
           attachVideoToChat: options.attachVideoToChat ?? false,
           attachAudioToChat: options.attachAudioToChat ?? false,
           maxInlineMediaBytes:
             options.maxInlineMediaBytes ?? DEFAULT_MAX_INLINE_MEDIA_BYTES,
+          ...(fetchedImageHint !== undefined
+            ? { imageUnavailableHint: fetchedImageHint }
+            : {}),
+          ...(fetchedMediaHint !== undefined
+            ? { mediaUnavailableHint: fetchedMediaHint }
+            : {}),
         }),
       ),
+      ...(oracle !== null
+        ? { look: steer(createLookTool({ workspace, noun, oracle })) }
+        : {}),
     },
     instructions: {
       parallelTools: createParallelToolsInstruction(),
@@ -223,6 +302,15 @@ export function createStdlib(options: StdlibOptions) {
         workspaceNoun: noun,
         roster: options.subagentRoster,
       }),
+      ...(oracle !== null
+        ? {
+            media: createLookInstruction({
+              modelName: oracle.modelName,
+              capabilities: oracle.capabilities,
+              parentCapabilities: options.parentCapabilities,
+            }),
+          }
+        : {}),
       workflow: createWorkflowInstruction({
         workspaceNoun: noun,
         verifyCommandHint: options.verifyCommandHint,
@@ -298,6 +386,13 @@ export interface SandboxFileToolsOptions {
   injectDirConventions?: boolean;
   /** See {@link StdlibOptions.conventionsFileName}. Defaults to "AGENTS.md". */
   conventionsFileName?: string;
+  /**
+   * See {@link StdlibOptions.mediaOracle}. The sandbox `look` reads bytes
+   * through the sandbox session, so the oracle sees the session workspace's
+   * files. Hosted Zo deployments pass `headers: { "x-zo-tool": "look" }` on
+   * the config so the runtime proxy labels the tool's own model traffic.
+   */
+  mediaOracle?: MediaOracleOption;
 }
 
 /**
@@ -325,9 +420,16 @@ export function createSandboxFileTools(options: SandboxFileToolsOptions) {
           fileName: conventionsFileName,
         }
       : undefined;
+  const oracle: LookOracleConfig | null =
+    options.mediaOracle !== undefined ? resolveMediaOracle(options.mediaOracle) : null;
+  const readImageHint = oracle ? lookReadImageHint(oracle) : undefined;
+  const readMediaHint = oracle ? lookReadMediaHint(oracle) : undefined;
+  const readOversizeHint = oracle ? lookOversizeHint(oracle) : undefined;
   return {
     workspace,
     io,
+    /** The resolved look oracle (`null` when `mediaOracle` wasn't set) — same contract as `Stdlib.mediaOracle`. */
+    mediaOracle: oracle,
     tools: {
       read: createReadTool({
         workspace,
@@ -341,6 +443,13 @@ export function createSandboxFileTools(options: SandboxFileToolsOptions) {
         maxInlineMediaBytes:
           options.maxInlineMediaBytes ?? DEFAULT_MAX_INLINE_MEDIA_BYTES,
         dirConventions,
+        ...(readImageHint !== undefined
+          ? { imageUnavailableHint: readImageHint }
+          : {}),
+        ...(readMediaHint !== undefined
+          ? { mediaUnavailableHint: readMediaHint }
+          : {}),
+        ...(readOversizeHint !== undefined ? { oversizeHint: readOversizeHint } : {}),
       }),
       edit: createEditTool({ workspace, noun, io }),
       write: createWriteTool({ workspace, noun, io }),
@@ -351,6 +460,7 @@ export function createSandboxFileTools(options: SandboxFileToolsOptions) {
         io,
         ...(options.spillDir !== undefined ? { spillDir: options.spillDir } : {}),
       }),
+      ...(oracle !== null ? { look: createLookTool({ workspace, noun, oracle, io }) } : {}),
     },
   };
 }
@@ -367,6 +477,23 @@ export { createBashTool } from "./tools/bash";
 export { createEditTool } from "./tools/edit";
 export { createGlobTool } from "./tools/glob";
 export { createGrepTool, type GrepResult } from "./tools/grep";
+export {
+  createLookTool,
+  DEFAULT_LOOK_MAX_INPUT_BYTES,
+  DEFAULT_LOOK_TIMEOUT_MS,
+  DEFAULT_MEDIA_ORACLE,
+  LOOK_MAX_ANSWER_CHARS,
+  lookAvKindClause,
+  lookFetchedImageHint,
+  lookFetchedMediaHint,
+  lookReadImageHint,
+  lookReadMediaHint,
+  resolveMediaOracle,
+  type LookGenerateFn,
+  type LookOracleConfig,
+  type LookToolOptions,
+  type MediaOracleOption,
+} from "./tools/look";
 export { createReadTool } from "./tools/read";
 export { buildTasksToolset, createTasksTools } from "./tools/tasks";
 export { createWebFetchTool } from "./tools/webfetch";
@@ -419,6 +546,7 @@ export * from "./glob-match";
 export * from "./web-fetch";
 export * from "./instructions";
 export * from "./list-files";
+export * from "./model-capabilities";
 export * from "./read-file-content";
 export * from "./read-text";
 export * from "./run";

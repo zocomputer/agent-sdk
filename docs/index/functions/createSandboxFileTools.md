@@ -8,7 +8,7 @@
 
 > **createSandboxFileTools**(`options`): `object`
 
-Defined in: [packages/agent-sdk/src/index.ts:308](https://github.com/zocomputer/zov2-code/blob/5cd4dc50234e29b61bac1ae63f95c9b3f3a18361/packages/agent-sdk/src/index.ts#L308)
+Defined in: [packages/agent-sdk/src/index.ts:403](https://github.com/zocomputer/zov2-code/blob/aba140d6dd71d0ea05075bf6e9ebcc5739f7a7b3/packages/agent-sdk/src/index.ts#L403)
 
 Create sandbox-backed file tools for hosted agents: read/edit/write/glob/grep
 route through the sandbox session instead of the harness's local disk. Returns
@@ -22,11 +22,15 @@ the workspace, IO provider, and the five tools.
 
 ## Returns
 
-`object`
-
 ### io
 
 > **io**: [`WorkspaceIoProvider`](../type-aliases/WorkspaceIoProvider.md)
+
+### mediaOracle
+
+> **mediaOracle**: [`LookOracleConfig`](../interfaces/LookOracleConfig.md) \| `null` = `oracle`
+
+The resolved look oracle (`null` when `mediaOracle` wasn't set) — same contract as `Stdlib.mediaOracle`.
 
 ### tools
 
@@ -43,6 +47,10 @@ the workspace, IO provider, and the five tools.
 #### tools.grep
 
 > **grep**: `ToolDefinition`\<\{ `glob?`: `string`; `ignore_case?`: `boolean`; `max_results?`: `number`; `path?`: `string`; `pattern`: `string`; \}, [`GrepResult`](../interfaces/GrepResult.md)\>
+
+#### tools.look?
+
+> `optional` **look?**: `ToolDefinition`\<\{ `path`: `string`; `prompt`: `string`; \}, \{ `answer`: `string`; `media_type`: `string`; `model`: `string`; `path`: `string`; \}\>
 
 #### tools.read
 

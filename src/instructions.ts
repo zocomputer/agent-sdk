@@ -1,6 +1,10 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { defineDynamic, defineInstructions } from "eve/instructions";
+import {
+  describeCapabilities,
+  type ModelInputCapabilities,
+} from "./model-capabilities";
 
 // eve ingests no AGENTS.md at runtime, so an eve agent working in a real repo
 // needs the root conventions injected (every other harness — Cursor, Claude
@@ -157,6 +161,55 @@ Call \`ask_question\` only when you're genuinely blocked on a choice that is the
  */
 export function createHitlInstruction() {
   const instruction = defineInstructions({ markdown: buildHitlMarkdown() });
+  return defineDynamic({
+    events: {
+      "session.started": () => instruction,
+    },
+  });
+}
+
+/** Pure markdown for the media-delegation playbook; see createLookInstruction. */
+export function buildLookMarkdown(opts: {
+  /** The oracle model's display name (e.g. "Gemini 3 Flash"). */
+  modelName: string;
+  /** The oracle model's input capabilities. */
+  capabilities: ModelInputCapabilities;
+  /**
+   * The session model's own input capabilities, when the consumer resolved
+   * them — adds the "view what you can natively" half of the routing rule.
+   */
+  parentCapabilities?: ModelInputCapabilities | undefined;
+}): string {
+  const oraclePhrase = describeCapabilities(opts.capabilities);
+  // `read`'s delivery varies per instance (attachments can be disabled — task
+  // children, capability-derived defaults) and per kind (documents convert to
+  // text; video/audio attach only behind opt-in flags), so the playbook
+  // defers to read's own result notes instead of promising delivery here.
+  const parentSentence = opts.parentCapabilities
+    ? ` Your own model ${describeCapabilities(opts.parentCapabilities)}.`
+    : "";
+  return `## Media you can't view (look)
+
+Some files carry content your model can't take as input.${parentSentence} The \`look\` tool delegates one question about a media file to ${opts.modelName} — a model that ${oraclePhrase} — sending the file's bytes and your prompt in a single call and returning the answer as text.
+
+- **Documents come back as text.** PDFs, DOCX, and spreadsheets convert through \`read\` — no delegation needed for their text.
+- **Prefer \`read\` for media it can deliver.** When \`read\` can put a media file in front of you it says so in its result; when it returns metadata only, its note names the right move.
+- **\`look\` at what you can't view.** For kinds outside your own input support (or when a read note points there), pass the path and a self-contained question to \`look\` instead of reporting a dead end.
+- **Ask for the deliverable, not a viewing.** The model sees only the file and your prompt — request the specific extraction you need (transcribe the visible text, describe the layout, summarize the recording) so one answer suffices.`;
+}
+
+/**
+ * The media-delegation playbook for agents with a `look` oracle wired: view
+ * natively what the session model supports, delegate the rest to the oracle.
+ * Static markdown, session-stable (prompt-cache safe), parameterized once at
+ * build time.
+ */
+export function createLookInstruction(opts: {
+  modelName: string;
+  capabilities: ModelInputCapabilities;
+  parentCapabilities?: ModelInputCapabilities | undefined;
+}) {
+  const instruction = defineInstructions({ markdown: buildLookMarkdown(opts) });
   return defineDynamic({
     events: {
       "session.started": () => instruction,

@@ -18,6 +18,7 @@ import { sandboxIoProvider } from "./sandbox-io";
 import { createEditTool } from "./tools/edit";
 import { createGlobTool } from "./tools/glob";
 import { createGrepTool } from "./tools/grep";
+import { createLookTool, DEFAULT_MEDIA_ORACLE, type LookGenerateFn } from "./tools/look";
 import { createReadTool } from "./tools/read";
 import { createWriteTool } from "./tools/write";
 import { createWorkspace } from "./workspace";
@@ -200,6 +201,34 @@ for (const backend of backends) {
     test("read fails clearly for a missing file and refuses escapes", async () => {
       expect(read.execute({ path: "nope.txt" }, ctx)).rejects.toThrow(/does not exist/);
       expect(read.execute({ path: "../outside.txt" }, ctx)).rejects.toThrow(/escapes/);
+    });
+
+    test("look reads the file's exact bytes through its IO", async () => {
+      const sent: { data: unknown; mediaType: string | undefined }[] = [];
+      const generateFn: LookGenerateFn = async (options) => {
+        for (const message of options.messages) {
+          if (!Array.isArray(message.content)) continue;
+          for (const part of message.content) {
+            if (typeof part === "object" && part !== null && part.type === "file") {
+              sent.push({ data: part.data, mediaType: part.mediaType });
+            }
+          }
+        }
+        return { text: "seen" };
+      };
+      const look = createLookTool({
+        workspace,
+        noun,
+        io,
+        oracle: DEFAULT_MEDIA_ORACLE,
+        generateFn,
+      });
+      const result = await look.execute({ path: "pic.png", prompt: "Describe." }, ctx);
+      expect(result).toMatchObject({ media_type: "image/png", answer: "seen" });
+      const part = sent[0];
+      if (part === undefined) throw new Error("expected a file part");
+      expect(part.mediaType).toBe("image/png");
+      expect(part.data).toEqual(readFileSync(join(backend.root, "pic.png")));
     });
 
     test("read delivers dir conventions once per session through its IO", async () => {

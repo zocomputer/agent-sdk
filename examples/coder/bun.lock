@@ -5,6 +5,7 @@
     "": {
       "name": "coder",
       "dependencies": {
+        "ai": "^7.0.15",
         "clawpdf": "0.3.0",
         "defuddle": "^0.19.1",
         "eve": "^0.16.0",

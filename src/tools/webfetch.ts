@@ -157,6 +157,13 @@ export function createWebFetchTool(opts: {
    * (e.g. task subagents) substitute advice that's actually actionable.
    */
   imageUnavailableHint?: string;
+  /**
+   * The "what to do instead" sentence in the video/audio result note when
+   * the bytes can't be delivered (attach disabled — the default — or over
+   * the cap). Defaults to the bash download suggestion; agents with a look
+   * oracle route to download-then-look instead.
+   */
+  mediaUnavailableHint?: string;
   /** Injectable for tests; defaults to global fetch. */
   fetchImpl?: FetchLike | undefined;
 }) {
@@ -164,6 +171,9 @@ export function createWebFetchTool(opts: {
   const imageUnavailableHint =
     opts.imageUnavailableHint ??
     "If you need to see this image, ask the user to attach it to the chat.";
+  const mediaUnavailableHint =
+    opts.mediaUnavailableHint ??
+    "Use bash (curl -o) to download it if you need to process it.";
   const attachVideoToChat = opts.attachVideoToChat ?? false;
   const attachAudioToChat = opts.attachAudioToChat ?? false;
   const maxInlineMediaBytes = opts.maxInlineMediaBytes ?? DEFAULT_MAX_INLINE_MEDIA_BYTES;
@@ -368,7 +378,7 @@ export function createWebFetchTool(opts: {
                 : `cannot be returned as a tool result (text/json only), and ${kind} attachments are not enabled for this agent`;
             return {
               ...mediaMeta,
-              note: `${label} content ${why}. Use bash (curl -o) to download it if you need to process it.`,
+              note: `${label} content ${why}. ${mediaUnavailableHint}`,
             };
           }
           const attachment: ChatAttachment = {

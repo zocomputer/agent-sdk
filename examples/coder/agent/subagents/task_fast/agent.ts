@@ -25,7 +25,7 @@ export default createTaskAgent({
     "Sonnet 5 is an upgrade to Sonnet 4.6, with gains across agentic coding and professional work. It builds on the strengths of previous Sonnet models, bringing top-tier intelligence at Sonnet pricing for coding, agents, and everyday professional work at scale.",
   use: "Prefer it for quick, well-scoped subtasks — exploration and how/where/what questions, mechanical edits, focused verification — where a fast, cheap model is enough.",
   capabilityNote:
-    "Images it reads degrade to metadata — it reports paths instead of viewing pixels.",
+    "Media it reads never attaches inline — it examines media through the look tool instead.",
   workspaceNoun: "project",
   // A declared subagent compiles with its own manifest config — the parent's
   // externalDependencies list doesn't reach it (see agent/agent.ts).

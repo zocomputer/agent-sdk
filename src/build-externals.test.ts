@@ -3,10 +3,10 @@ import packageJson from "../package.json";
 import { STDLIB_EXTERNAL_DEPENDENCIES } from "./build-externals";
 
 describe("STDLIB_EXTERNAL_DEPENDENCIES", () => {
-  test("is exactly the package's runtime dependencies plus the zod peer", () => {
+  test("is exactly the package's runtime dependencies plus the ai and zod peers", () => {
     const runtimeDeps = Object.keys(packageJson.dependencies);
     expect([...STDLIB_EXTERNAL_DEPENDENCIES].sort()).toEqual(
-      [...runtimeDeps, "zod"].sort(),
+      [...runtimeDeps, "ai", "zod"].sort(),
     );
   });
 

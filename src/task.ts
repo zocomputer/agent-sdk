@@ -1,6 +1,13 @@
 import { defineAgent, type AgentDefinition } from "eve";
 import { defineDynamic, defineInstructions } from "eve/instructions";
 import { createDirConventionsTracker } from "./dir-conventions";
+import {
+  lookAvKindClause,
+  lookOversizeHint,
+  resolveMediaOracle,
+  type LookOracleConfig,
+  type MediaOracleOption,
+} from "./tools/look";
 import { createReadTool } from "./tools/read";
 import { createWebFetchTool } from "./tools/webfetch";
 import { visibleReasoningModelOptions } from "./visible-reasoning";
@@ -111,6 +118,20 @@ export interface TaskChildToolsOptions {
   injectDirConventions?: boolean;
   /** Conventions filename the read riders look for. Defaults to "AGENTS.md". */
   conventionsFileName?: string;
+  /**
+   * The parent's look oracle, when it wires one. A task child re-exports the
+   * parent's `look` like any other tool (it needs no park delivery, so it
+   * works in children), and with this set the child's read/webfetch
+   * unavailable-media hints route to `look` instead of "report the path".
+   *
+   * Pass the parent stdlib's RESOLVED oracle — `stdlib.mediaOracle` — not an
+   * independent option: the hints derive from this config while the `look`
+   * tool itself is the parent's instance, so a mismatched value (e.g. `true`
+   * here against a custom oracle on the parent) would advertise a model and
+   * capability set the child's `look` doesn't run. `true` (the SDK default
+   * oracle) is only correct when the parent also used `true`.
+   */
+  mediaOracle?: MediaOracleOption;
 }
 
 /**
@@ -138,6 +159,34 @@ export function createTaskChildTools(options: TaskChildToolsOptions) {
           fileName: conventionsFileName,
         }
       : undefined;
+  const oracle: LookOracleConfig | null =
+    options.mediaOracle !== undefined ? resolveMediaOracle(options.mediaOracle) : null;
+  // With an oracle wired the child isn't blind — it has the parent's `look`
+  // re-export — so the hints route media there. Without one, reporting is
+  // the honest move: no client re-injects bytes in a child session, and
+  // asking the user is off the table (ask_question is shimmed).
+  const imageUnavailableHint =
+    oracle !== null && oracle.capabilities.image
+      ? `Its pixels are not available as an attachment in a delegated child session — pass the path and a question to the look tool to have ${oracle.modelName} examine it, or report the image's path and metadata in your final message.`
+      : "Its pixels are not available in a delegated child session — report the image's path and metadata in your final message so the caller can view it.";
+  // The AV hints share one string across video and audio results, so the
+  // look clause is scoped to the kinds the oracle actually takes (see
+  // lookAvKindClause) — an unconditional "pass it to look" under a one-kind
+  // oracle would steer the other kind into look's refusal.
+  const avClause = oracle !== null ? lookAvKindClause(oracle.capabilities) : undefined;
+  const mediaUnavailableHint =
+    oracle !== null && avClause !== undefined
+      ? `Its bytes are not available as an attachment in a delegated child session — if it is ${avClause}, pass the path and a question to the look tool to have ${oracle.modelName} view it; otherwise extract what you can with bash (e.g. ffmpeg frames from a video, read as images), or report the file's path and metadata.`
+      : "Its bytes are not available in a delegated child session — use bash extraction if text will do, or report the file's path and metadata so the caller can handle it.";
+  const fetchedImageUnavailableHint =
+    oracle !== null && oracle.capabilities.image
+      ? `Its pixels are not available as an attachment in a delegated child session — download it (e.g. bash curl -o) and pass the saved path with a question to the look tool, or report the image's URL in your final message.`
+      : "Its pixels are not available in a delegated child session — report the image's URL in your final message so the caller can fetch it.";
+  const fetchedMediaUnavailableHint =
+    oracle !== null && avClause !== undefined
+      ? `Its bytes are not available as an attachment in a delegated child session — if it is ${avClause}, download it (e.g. bash curl -o) and pass the saved path with a question to the look tool; otherwise extract what you can with bash (e.g. ffmpeg frames from a video, read as images), or report the file's URL in your final message.`
+      : "Its bytes are not available in a delegated child session — use bash (curl -o) to download it if you need to process it, or report the file's URL in your final message.";
+  const oversizeHint = oracle !== null ? lookOversizeHint(oracle) : undefined;
   return {
     read: createReadTool({
       workspace,
@@ -145,23 +194,17 @@ export function createTaskChildTools(options: TaskChildToolsOptions) {
       attachImagesToChat: false,
       maxInlineImageBytes: 0,
       dirConventions,
-      // No client re-injects bytes in a child session; asking the user is
-      // also off the table (ask_question is shimmed). Reporting is the
-      // honest move. Bash-based hints stay default — the child has bash.
-      imageUnavailableHint:
-        "Its pixels are not available in a delegated child session — report the image's path and metadata in your final message so the caller can view it.",
-      mediaUnavailableHint:
-        "Its bytes are not available in a delegated child session — use bash extraction if text will do, or report the file's path and metadata so the caller can handle it.",
+      imageUnavailableHint,
+      mediaUnavailableHint,
+      ...(oversizeHint !== undefined ? { oversizeHint } : {}),
     }),
     webfetch: createWebFetchTool({
       workspace,
       spillDir: options.spillDir,
       attachImagesToChat: false,
       maxInlineImageBytes: 0,
-      // Same honest move as read: children can't ask the user or deliver
-      // attachments, so the honest guidance is to report the URL.
-      imageUnavailableHint:
-        "Its pixels are not available in a delegated child session — report the image's URL in your final message so the caller can fetch it.",
+      imageUnavailableHint: fetchedImageUnavailableHint,
+      mediaUnavailableHint: fetchedMediaUnavailableHint,
     }),
   };
 }
@@ -237,6 +280,13 @@ export interface TaskDescriptionOptions {
   workspaceNoun?: string;
 }
 
+// NOTE: the description deliberately carries NO tier-model media-capability
+// sentence. A delegated child never receives media inline regardless of its
+// pinned model (attach-disabled read/webfetch — no park-delivery hook), so
+// "this tier's model can view images" would invite routing image-heavy work
+// to a child that only ever gets metadata plus the shared `look` oracle. The
+// honest media story is the consumer's `capabilityNote`. Revisit if eve
+// grows file parts in the subagent input contract (design/upstream-asks.md).
 /** Pure default for a task subagent's parent-facing tool description. */
 export function buildTaskDescription(options: TaskDescriptionOptions): string {
   const noun = options.workspaceNoun ?? "workspace";
@@ -308,6 +358,12 @@ export interface GatewayModelInfo {
   id: string;
   name: string | undefined;
   description: string | undefined;
+  /**
+   * Capability tags (e.g. `vision`, `file-input`, `reasoning`, `tool-use`) —
+   * the input-modality signal `capabilitiesFromCatalogEntry`
+   * (./model-capabilities.ts) reads. `undefined` when the entry carries none.
+   */
+  tags: readonly string[] | undefined;
 }
 
 /** The AI Gateway's public model-catalog endpoint (no API key required). */
@@ -332,6 +388,10 @@ export function parseGatewayModelCatalog(value: unknown): GatewayModelInfo[] | n
       id: entry.id,
       name: typeof entry.name === "string" ? entry.name : undefined,
       description: typeof entry.description === "string" ? entry.description : undefined,
+      tags:
+        Array.isArray(entry.tags) && entry.tags.every((tag) => typeof tag === "string")
+          ? entry.tags
+          : undefined,
     });
   }
   return models;

@@ -26,16 +26,18 @@ import { buildTasksToolset } from "./tools/tasks";
 const root = realpathSync(mkdtempSync(join(tmpdir(), "agent-sdk-schema-")));
 afterAll(() => rmSync(root, { recursive: true, force: true }));
 
+// mediaOracle on so the sweep covers `look` in both toolsets.
 const stdlib = createStdlib({
   workspaceRoot: root,
   stateDir: join(root, ".agent"),
+  mediaOracle: true,
 });
 const tasks = buildTasksToolset({
   registry: stdlib.registry,
   backgroundables: stdlib.backgroundables,
 });
 if (tasks === null) throw new Error("stdlib always has the bash backgroundable");
-const sandbox = createSandboxFileTools({ workspaceRoot: "/workspace" });
+const sandbox = createSandboxFileTools({ workspaceRoot: "/workspace", mediaOracle: true });
 
 const { tasks: _tasksDynamic, ...stdlibStatic } = stdlib.tools;
 const allTools: Record<string, { inputSchema: unknown }> = {
@@ -44,12 +46,17 @@ const allTools: Record<string, { inputSchema: unknown }> = {
   ...prefixed("sandbox", sandbox.tools),
 };
 
-function prefixed<T extends Record<string, { inputSchema: unknown }>>(
+function prefixed(
   prefix: string,
-  tools: T,
+  // `look` is a conditionally-present key on both toolsets, so the property
+  // type admits undefined; absent tools are skipped (the roster pin above
+  // catches a tool that unexpectedly vanishes).
+  tools: Record<string, { inputSchema: unknown } | undefined>,
 ): Record<string, { inputSchema: unknown }> {
   return Object.fromEntries(
-    Object.entries(tools).map(([name, tool]) => [`${prefix}.${name}`, tool]),
+    Object.entries(tools).flatMap(([name, tool]) =>
+      tool === undefined ? [] : [[`${prefix}.${name}`, tool] as const],
+    ),
   );
 }
 
@@ -89,12 +96,14 @@ describe("model-facing schema shape", () => {
         "sandbox.edit",
         "sandbox.glob",
         "sandbox.grep",
+        "sandbox.look",
         "sandbox.read",
         "sandbox.write",
         "stdlib.bash",
         "stdlib.edit",
         "stdlib.glob",
         "stdlib.grep",
+        "stdlib.look",
         "stdlib.read",
         "stdlib.webfetch",
         "stdlib.write",

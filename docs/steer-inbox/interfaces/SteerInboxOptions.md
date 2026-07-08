@@ -6,7 +6,7 @@
 
 # Interface: SteerInboxOptions
 
-Defined in: [packages/agent-sdk/src/steer-inbox.ts:20](https://github.com/zocomputer/zov2-code/blob/5cd4dc50234e29b61bac1ae63f95c9b3f3a18361/packages/agent-sdk/src/steer-inbox.ts#L20)
+Defined in: [packages/agent-sdk/src/steer-inbox.ts:20](https://github.com/zocomputer/zov2-code/blob/aba140d6dd71d0ea05075bf6e9ebcc5739f7a7b3/packages/agent-sdk/src/steer-inbox.ts#L20)
 
 Options for creating a steer inbox that manages steered messages per session.
 
@@ -16,7 +16,7 @@ Options for creating a steer inbox that manages steered messages per session.
 
 > **dir**: `string`
 
-Defined in: [packages/agent-sdk/src/steer-inbox.ts:22](https://github.com/zocomputer/zov2-code/blob/5cd4dc50234e29b61bac1ae63f95c9b3f3a18361/packages/agent-sdk/src/steer-inbox.ts#L22)
+Defined in: [packages/agent-sdk/src/steer-inbox.ts:22](https://github.com/zocomputer/zov2-code/blob/aba140d6dd71d0ea05075bf6e9ebcc5739f7a7b3/packages/agent-sdk/src/steer-inbox.ts#L22)
 
 Directory holding the per-session inbox files (created on first append).
 
@@ -26,7 +26,7 @@ Directory holding the per-session inbox files (created on first append).
 
 > `optional` **newId?**: () => `string`
 
-Defined in: [packages/agent-sdk/src/steer-inbox.ts:26](https://github.com/zocomputer/zov2-code/blob/5cd4dc50234e29b61bac1ae63f95c9b3f3a18361/packages/agent-sdk/src/steer-inbox.ts#L26)
+Defined in: [packages/agent-sdk/src/steer-inbox.ts:26](https://github.com/zocomputer/zov2-code/blob/aba140d6dd71d0ea05075bf6e9ebcc5739f7a7b3/packages/agent-sdk/src/steer-inbox.ts#L26)
 
 Injectable id source for tests; defaults to `crypto.randomUUID`.
 
@@ -40,7 +40,7 @@ Injectable id source for tests; defaults to `crypto.randomUUID`.
 
 > `optional` **now?**: () => `number`
 
-Defined in: [packages/agent-sdk/src/steer-inbox.ts:24](https://github.com/zocomputer/zov2-code/blob/5cd4dc50234e29b61bac1ae63f95c9b3f3a18361/packages/agent-sdk/src/steer-inbox.ts#L24)
+Defined in: [packages/agent-sdk/src/steer-inbox.ts:24](https://github.com/zocomputer/zov2-code/blob/aba140d6dd71d0ea05075bf6e9ebcc5739f7a7b3/packages/agent-sdk/src/steer-inbox.ts#L24)
 
 Injectable clock for tests; defaults to `Date.now`.
 
@@ -54,7 +54,7 @@ Injectable clock for tests; defaults to `Date.now`.
 
 > `optional` **readFile?**: (`path`) => `string`
 
-Defined in: [packages/agent-sdk/src/steer-inbox.ts:28](https://github.com/zocomputer/zov2-code/blob/5cd4dc50234e29b61bac1ae63f95c9b3f3a18361/packages/agent-sdk/src/steer-inbox.ts#L28)
+Defined in: [packages/agent-sdk/src/steer-inbox.ts:28](https://github.com/zocomputer/zov2-code/blob/aba140d6dd71d0ea05075bf6e9ebcc5739f7a7b3/packages/agent-sdk/src/steer-inbox.ts#L28)
 
 Injectable file reader for tests (drain's failure path); defaults to `readFileSync`.
 

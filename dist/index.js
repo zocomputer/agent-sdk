@@ -1,7 +1,7 @@
-// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/index.ts
+// ../../../../../tmp/agent-sdk-mirror-fVZkPN/repo/src/index.ts
 import { join as join8 } from "node:path";
 
-// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/attachments.ts
+// ../../../../../tmp/agent-sdk-mirror-fVZkPN/repo/src/attachments.ts
 var CHAT_ATTACHMENT_FIELD = "chatAttachment";
 var DEFAULT_MAX_INLINE_IMAGE_BYTES = 3 * 1024 * 1024;
 var DEFAULT_MAX_INLINE_MEDIA_BYTES = 10 * 1024 * 1024;
@@ -48,7 +48,7 @@ function readChatAttachment(toolOutput) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/async-tasks.ts
+// ../../../../../tmp/agent-sdk-mirror-fVZkPN/repo/src/async-tasks.ts
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname } from "node:path";
 function isRecord2(value) {
@@ -226,7 +226,7 @@ function buildTaskRegistry(opts) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/backgroundable.ts
+// ../../../../../tmp/agent-sdk-mirror-fVZkPN/repo/src/backgroundable.ts
 import { z } from "zod";
 function defineOp(cfg) {
   return {
@@ -270,7 +270,7 @@ function createBashOp(runner) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/bounded-output.ts
+// ../../../../../tmp/agent-sdk-mirror-fVZkPN/repo/src/bounded-output.ts
 import { appendFileSync, mkdirSync as mkdirSync2, writeFileSync as writeFileSync2 } from "node:fs";
 import { dirname as dirname2 } from "node:path";
 var HEAD_CHARS = 25000;
@@ -371,7 +371,7 @@ function createBoundedCapture(opts = {}) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/dir-conventions.ts
+// ../../../../../tmp/agent-sdk-mirror-fVZkPN/repo/src/dir-conventions.ts
 import { readFileSync as readFileSync2 } from "node:fs";
 import { join } from "node:path";
 var DEFAULT_MAX_BYTES_PER_FILE = 16 * 1024;
@@ -483,10 +483,71 @@ function createDirConventionsTracker(options) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/instructions.ts
+// ../../../../../tmp/agent-sdk-mirror-fVZkPN/repo/src/instructions.ts
 import { readFileSync as readFileSync3 } from "node:fs";
 import { resolve } from "node:path";
 import { defineDynamic, defineInstructions } from "eve/instructions";
+
+// ../../../../../tmp/agent-sdk-mirror-fVZkPN/repo/src/model-capabilities.ts
+var TEXT_ONLY_CAPABILITIES = {
+  image: false,
+  pdf: false,
+  video: false,
+  audio: false
+};
+var MEDIA_CAPABILITY_OVERLAY = {
+  google: { video: true, audio: true }
+};
+function capabilitiesFromCatalogEntry(entry) {
+  const tags = entry.tags ?? [];
+  return {
+    image: tags.includes("vision"),
+    pdf: tags.includes("file-input"),
+    video: false,
+    audio: false
+  };
+}
+function modelFamily(modelId) {
+  const slash = modelId.indexOf("/");
+  return slash > 0 ? modelId.slice(0, slash).toLowerCase() : "";
+}
+function capabilitiesForModel(modelId, catalog) {
+  const entry = catalog.find((model) => model.id === modelId);
+  const base = entry ? capabilitiesFromCatalogEntry(entry) : TEXT_ONLY_CAPABILITIES;
+  const overlay = MEDIA_CAPABILITY_OVERLAY[modelFamily(modelId)];
+  if (overlay === undefined)
+    return base;
+  return {
+    image: base.image || (overlay.image ?? false),
+    pdf: base.pdf || (overlay.pdf ?? false),
+    video: base.video || (overlay.video ?? false),
+    audio: base.audio || (overlay.audio ?? false)
+  };
+}
+var CAPABILITY_LABELS = [
+  ["image", "images"],
+  ["pdf", "PDFs"],
+  ["video", "video"],
+  ["audio", "audio"]
+];
+function joinList(items, conjunction) {
+  if (items.length <= 1)
+    return items[0] ?? "";
+  if (items.length === 2)
+    return `${items[0]} ${conjunction} ${items[1]}`;
+  return `${items.slice(0, -1).join(", ")}, ${conjunction} ${items[items.length - 1]}`;
+}
+function describeCapabilities(caps) {
+  const can = CAPABILITY_LABELS.filter(([key]) => caps[key]).map(([, label]) => label);
+  const cannot = CAPABILITY_LABELS.filter(([key]) => !caps[key]).map(([, label]) => label);
+  if (can.length === 0)
+    return "can view text only (no images, PDFs, video, or audio)";
+  if (cannot.length === 0)
+    return `can view ${joinList(can, "and")}`;
+  return `can view ${joinList(can, "and")}, but not ${joinList(cannot, "or")}`;
+}
+
+// ../../../../../tmp/agent-sdk-mirror-fVZkPN/repo/src/instructions.ts
 function buildRepoConventionsMarkdown(workspaceRoot) {
   let agents = "";
   try {
@@ -590,6 +651,26 @@ function createHitlInstruction() {
     }
   });
 }
+function buildLookMarkdown(opts) {
+  const oraclePhrase = describeCapabilities(opts.capabilities);
+  const parentSentence = opts.parentCapabilities ? ` Your own model ${describeCapabilities(opts.parentCapabilities)}.` : "";
+  return `## Media you can't view (look)
+
+Some files carry content your model can't take as input.${parentSentence} The \`look\` tool delegates one question about a media file to ${opts.modelName} — a model that ${oraclePhrase} — sending the file's bytes and your prompt in a single call and returning the answer as text.
+
+- **Documents come back as text.** PDFs, DOCX, and spreadsheets convert through \`read\` — no delegation needed for their text.
+- **Prefer \`read\` for media it can deliver.** When \`read\` can put a media file in front of you it says so in its result; when it returns metadata only, its note names the right move.
+- **\`look\` at what you can't view.** For kinds outside your own input support (or when a read note points there), pass the path and a self-contained question to \`look\` instead of reporting a dead end.
+- **Ask for the deliverable, not a viewing.** The model sees only the file and your prompt — request the specific extraction you need (transcribe the visible text, describe the layout, summarize the recording) so one answer suffices.`;
+}
+function createLookInstruction(opts) {
+  const instruction = defineInstructions({ markdown: buildLookMarkdown(opts) });
+  return defineDynamic({
+    events: {
+      "session.started": () => instruction
+    }
+  });
+}
 function buildSubagentMarkdown(workspaceNoun = "workspace", roster) {
   const noun = workspaceNoun;
   const rosterSection = roster && roster.length > 0 ? `
@@ -623,7 +704,7 @@ function createSubagentInstruction(opts) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/run.ts
+// ../../../../../tmp/agent-sdk-mirror-fVZkPN/repo/src/run.ts
 import { spawn } from "node:child_process";
 import { join as join2 } from "node:path";
 var MAX_PREVIEW = 20000;
@@ -724,7 +805,7 @@ function createCommandRunner(opts) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/steer-inbox.ts
+// ../../../../../tmp/agent-sdk-mirror-fVZkPN/repo/src/steer-inbox.ts
 import {
   appendFileSync as appendFileSync2,
   linkSync,
@@ -735,7 +816,7 @@ import {
 } from "node:fs";
 import { join as join3 } from "node:path";
 
-// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/steer.ts
+// ../../../../../tmp/agent-sdk-mirror-fVZkPN/repo/src/steer.ts
 var STEER_FIELD = "user_steer";
 var STEER_WRAPPED_OUTPUT_FIELD = "steer_wrapped_output";
 var STEER_DIRNAME = "steer";
@@ -805,7 +886,7 @@ function parseSteerLine(line) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/steer-inbox.ts
+// ../../../../../tmp/agent-sdk-mirror-fVZkPN/repo/src/steer-inbox.ts
 var drainSequence = 0;
 function createSteerInbox(options) {
   const now = options.now ?? Date.now;
@@ -854,7 +935,7 @@ function createSteerInbox(options) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/steer-tool.ts
+// ../../../../../tmp/agent-sdk-mirror-fVZkPN/repo/src/steer-tool.ts
 import { defineTool } from "eve/tools";
 function withSteerDelivery(tool, inbox) {
   const originalToModelOutput = tool.toModelOutput?.bind(tool);
@@ -886,11 +967,11 @@ function createSteerWrapper(inbox) {
   return (tool) => withSteerDelivery(tool, inbox);
 }
 
-// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/tools/bash.ts
+// ../../../../../tmp/agent-sdk-mirror-fVZkPN/repo/src/tools/bash.ts
 import { defineTool as defineTool2 } from "eve/tools";
 import { z as z2 } from "zod";
 
-// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/park-delivery.ts
+// ../../../../../tmp/agent-sdk-mirror-fVZkPN/repo/src/park-delivery.ts
 function isRecord4(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
@@ -1006,7 +1087,7 @@ function setParkNotificationHandler(handler) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/watch-output.ts
+// ../../../../../tmp/agent-sdk-mirror-fVZkPN/repo/src/watch-output.ts
 var DEFAULT_WATCH_DEBOUNCE_MS = 5000;
 var DEFAULT_MAX_WATCH_NOTIFICATIONS = 5;
 function createOutputWatcher(options) {
@@ -1064,7 +1145,7 @@ function formatCompletionNotification(opts) {
   return `Background task ${opts.taskId} (${opts.label}) ${outcome}. Call await_task to collect its result.`;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/tools/bash.ts
+// ../../../../../tmp/agent-sdk-mirror-fVZkPN/repo/src/tools/bash.ts
 var DEFAULT_INTERACTIVE_HINT = "This is a piped shell with NO tty: avoid interactive or full-screen CLIs (a REPL, vim, an interactive installer/prompt) — those programs hang or degrade without a real terminal.";
 function createBashTool(opts) {
   const { workspace, runner, registry, noun } = opts;
@@ -1152,11 +1233,11 @@ function createBashTool(opts) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/tools/edit.ts
+// ../../../../../tmp/agent-sdk-mirror-fVZkPN/repo/src/tools/edit.ts
 import { defineTool as defineTool3 } from "eve/tools";
 import { z as z3 } from "zod";
 
-// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/edit-match.ts
+// ../../../../../tmp/agent-sdk-mirror-fVZkPN/repo/src/edit-match.ts
 class EditNotFoundError extends Error {
   constructor() {
     super("old_string not found. It must match the file contents exactly, including whitespace and indentation.");
@@ -1551,7 +1632,7 @@ function joinBom(text, bom) {
   return bom ? BOM + stripped : stripped;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/path-locks.ts
+// ../../../../../tmp/agent-sdk-mirror-fVZkPN/repo/src/path-locks.ts
 var LOCKS_KEY = Symbol.for("zocomputer.agent-sdk.path-locks");
 function lockChains() {
   const holder = globalThis;
@@ -1577,18 +1658,18 @@ async function withPathLock(path, fn) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/workspace-io.ts
+// ../../../../../tmp/agent-sdk-mirror-fVZkPN/repo/src/workspace-io.ts
 import { mkdirSync as mkdirSync4, readFileSync as readFileSync7, statSync as statSync2, writeFileSync as writeFileSync3 } from "node:fs";
 import { dirname as dirname3, join as join5 } from "node:path";
 
-// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/glob-match.ts
+// ../../../../../tmp/agent-sdk-mirror-fVZkPN/repo/src/glob-match.ts
 function globToRegExp(glob) {
   const escaped = glob.replace(/[.+^${}()|[\]\\]/g, "\\$&");
   const body = escaped.replace(/\*\*\/?/g, "\x00").replace(/\*/g, "[^/]*").replace(/\?/g, "[^/]").replace(/\u0000/g, "(?:.*/)?");
   return new RegExp(`^${body}$`);
 }
 
-// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/list-files.ts
+// ../../../../../tmp/agent-sdk-mirror-fVZkPN/repo/src/list-files.ts
 import { spawnSync } from "node:child_process";
 var MAX_BUFFER = 64 * 1024 * 1024;
 function gitPaths(root, args) {
@@ -1616,7 +1697,7 @@ function listGitFiles(root, scope) {
   return files.filter((path) => !gone.has(path));
 }
 
-// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/read-text.ts
+// ../../../../../tmp/agent-sdk-mirror-fVZkPN/repo/src/read-text.ts
 import { readFileSync as readFileSync5, statSync } from "node:fs";
 var MAX_SEARCH_FILE_BYTES = 1500000;
 var BINARY_SNIFF_BYTES = 8192;
@@ -1643,7 +1724,7 @@ function readTextForSearch(abs, maxBytes = MAX_SEARCH_FILE_BYTES) {
   return { kind: "text", content: buf.toString("utf8") };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/walk.ts
+// ../../../../../tmp/agent-sdk-mirror-fVZkPN/repo/src/walk.ts
 import { readFileSync as readFileSync6, readdirSync } from "node:fs";
 import { join as join4, relative, sep } from "node:path";
 import ignore from "ignore";
@@ -1725,7 +1806,7 @@ function* walkFiles(root, base = root) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/workspace.ts
+// ../../../../../tmp/agent-sdk-mirror-fVZkPN/repo/src/workspace.ts
 import { isAbsolute, relative as relative2, resolve as resolve2, sep as sep2 } from "node:path";
 function resolveWithin(root, path) {
   const abs = isAbsolute(path) ? resolve2(path) : resolve2(root, path);
@@ -1747,7 +1828,7 @@ function createWorkspace(root) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/workspace-io.ts
+// ../../../../../tmp/agent-sdk-mirror-fVZkPN/repo/src/workspace-io.ts
 function createLocalIo(root) {
   return {
     async stat(abs) {
@@ -1835,7 +1916,7 @@ async function searchLocal(root, options) {
   return { matches, stopped, skippedLargeFiles };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/tools/edit.ts
+// ../../../../../tmp/agent-sdk-mirror-fVZkPN/repo/src/tools/edit.ts
 function createEditTool(opts) {
   const { workspace, noun } = opts;
   const io = opts.io ?? localIoProvider(workspace.root);
@@ -1878,7 +1959,7 @@ function createEditTool(opts) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/tools/glob.ts
+// ../../../../../tmp/agent-sdk-mirror-fVZkPN/repo/src/tools/glob.ts
 import { defineTool as defineTool4 } from "eve/tools";
 import { z as z4 } from "zod";
 function createGlobTool(opts) {
@@ -1917,7 +1998,7 @@ function createGlobTool(opts) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/tools/grep.ts
+// ../../../../../tmp/agent-sdk-mirror-fVZkPN/repo/src/tools/grep.ts
 import { defineTool as defineTool5 } from "eve/tools";
 import { z as z5 } from "zod";
 import { join as join6 } from "node:path";
@@ -2010,12 +2091,12 @@ function createGrepTool(opts) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/tools/read.ts
+// ../../../../../tmp/agent-sdk-mirror-fVZkPN/repo/src/tools/look.ts
 import { defineTool as defineTool6 } from "eve/tools";
-import { z as z6 } from "zod";
 import { basename } from "node:path";
+import { z as z6 } from "zod";
 
-// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/file-kind.ts
+// ../../../../../tmp/agent-sdk-mirror-fVZkPN/repo/src/file-kind.ts
 import { extname } from "node:path";
 function imageMediaType(format) {
   return `image/${format}`;
@@ -2213,7 +2294,201 @@ function detectFileKind(buf, path) {
   return { kind: "text", encoding: "utf8" };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/file-view.ts
+// ../../../../../tmp/agent-sdk-mirror-fVZkPN/repo/src/tools/look.ts
+var DEFAULT_LOOK_MAX_INPUT_BYTES = 20 * 1024 * 1024;
+var DEFAULT_LOOK_TIMEOUT_MS = 180000;
+var LOOK_MAX_ANSWER_CHARS = 30000;
+var DEFAULT_MEDIA_ORACLE = {
+  model: "google/gemini-3-flash",
+  modelName: "Gemini 3 Flash",
+  capabilities: { image: true, pdf: true, video: true, audio: true }
+};
+function resolveMediaOracle(option) {
+  return option === true ? DEFAULT_MEDIA_ORACLE : option;
+}
+var AI_MODULE_SPECIFIER = "ai";
+var defaultGenerate = async (options) => {
+  const { generateText } = await import(AI_MODULE_SPECIFIER);
+  return generateText({
+    model: options.model,
+    messages: options.messages,
+    timeout: options.timeoutMs,
+    ...options.headers !== undefined ? { headers: options.headers } : {}
+  });
+};
+var KIND_LABELS = {
+  image: "image",
+  pdf: "PDF",
+  video: "video",
+  audio: "audio"
+};
+function createLookTool(opts) {
+  const { workspace, oracle } = opts;
+  const noun = opts.noun ?? "workspace";
+  const io = opts.io ?? localIoProvider(workspace.root);
+  const maxInputBytes = opts.maxInputBytes ?? DEFAULT_LOOK_MAX_INPUT_BYTES;
+  const generate = opts.generateFn ?? defaultGenerate;
+  const capabilityPhrase = describeCapabilities(oracle.capabilities);
+  return defineTool6({
+    description: `Ask ${oracle.modelName} — a separate model that ${capabilityPhrase} — one question about a media file in the ${noun} that you cannot view yourself. Sends the file's bytes and your prompt in a single call and returns the model's answer as text. ` + `The model sees only the file and your prompt — none of your conversation — so pack the prompt with everything it needs and name the exact deliverable ` + `(e.g. "describe the UI layout and transcribe all visible text", "summarize what happens in this recording"). Text-readable files (source, PDFs-as-text, DOCX, spreadsheets) are cheaper through read; use look for pixels, video, and audio.`,
+    inputSchema: z6.object({
+      path: z6.string().min(1).describe(`Media file path, relative to the ${noun} root.`),
+      prompt: z6.string().min(1).describe("The question or task for the model, self-contained.")
+    }),
+    async execute({ path, prompt }, ctx) {
+      const abs = workspace.resolve(path);
+      const rel = workspace.relativize(abs);
+      const fio = io(ctx);
+      const stat = await fio.stat(abs);
+      if (stat === null)
+        throw new Error(`${rel} does not exist.`);
+      if (!stat.isFile) {
+        throw new Error(`${rel} is not a regular file. Use glob to list a directory.`);
+      }
+      if (stat.size > maxInputBytes) {
+        throw new Error(`${rel} is ${stat.size} bytes — too large to send to ${oracle.modelName} (max ${maxInputBytes}).`);
+      }
+      const buffer = await fio.readFile(abs);
+      if (buffer === null)
+        throw new Error(`${rel} does not exist.`);
+      if (buffer.length > maxInputBytes) {
+        throw new Error(`${rel} is ${buffer.length} bytes — too large to send to ${oracle.modelName} (max ${maxInputBytes}).`);
+      }
+      const kind = detectFileKind(buffer, rel);
+      const media = mediaPartFor(kind, rel, oracle);
+      const message = {
+        role: "user",
+        content: [
+          { type: "text", text: prompt },
+          {
+            type: "file",
+            data: buffer,
+            mediaType: media.mediaType,
+            filename: basename(rel)
+          }
+        ]
+      };
+      const result = await generate({
+        model: oracle.model,
+        messages: [message],
+        timeoutMs: oracle.timeoutMs ?? DEFAULT_LOOK_TIMEOUT_MS,
+        ...oracle.headers !== undefined ? { headers: oracle.headers } : {}
+      });
+      return {
+        path: rel,
+        media_type: media.mediaType,
+        model: oracle.modelName,
+        answer: boundAnswer(result.text)
+      };
+    }
+  });
+}
+function boundAnswer(text) {
+  if (typeof text !== "string" || text.length === 0) {
+    return "(the model returned no answer text)";
+  }
+  if (text.length <= LOOK_MAX_ANSWER_CHARS)
+    return text;
+  let cut = LOOK_MAX_ANSWER_CHARS;
+  const beforeCut = text.charCodeAt(cut - 1);
+  if (beforeCut >= 55296 && beforeCut <= 56319)
+    cut -= 1;
+  return `${text.slice(0, cut)}
+… [answer truncated: showing first ${cut} of ${text.length} chars]`;
+}
+function mediaPartFor(kind, rel, oracle) {
+  const refuseUnsupported = (label) => {
+    if (!oracle.capabilities[label]) {
+      const article = label === "audio" || label === "image" ? "an" : "a";
+      throw new Error(`${rel} is ${article} ${KIND_LABELS[label]} file, which ${oracle.modelName} cannot view — it ${describeCapabilities(oracle.capabilities)}.`);
+    }
+  };
+  switch (kind.kind) {
+    case "image":
+      refuseUnsupported("image");
+      return { mediaType: imageMediaType(kind.format) };
+    case "pdf":
+      refuseUnsupported("pdf");
+      return { mediaType: "application/pdf" };
+    case "video":
+      refuseUnsupported("video");
+      return { mediaType: videoMediaType(kind.format) };
+    case "audio":
+      refuseUnsupported("audio");
+      return { mediaType: audioMediaType(kind.format) };
+    case "text":
+      throw new Error(`${rel} is a text file — read it yourself with the read tool, or extract slices with bash (head, sed -n, rg) if it is too large to read.`);
+    case "docx":
+    case "sheet":
+    case "pptx":
+    case "odt":
+    case "odp":
+    case "epub":
+    case "ipynb":
+    case "rtf":
+      throw new Error(`${rel} converts to text — read it yourself with the read tool.`);
+    case "binary":
+      throw new Error(`${rel} is ${kind.description} — look cannot send it to a model.`);
+    default: {
+      const exhausted = kind;
+      throw new Error(`Unhandled file kind: ${JSON.stringify(exhausted)}`);
+    }
+  }
+}
+function lookReadImageHint(oracle) {
+  if (!oracle.capabilities.image)
+    return;
+  return `Pass the path and a question to the look tool to have ${oracle.modelName} examine it for you.`;
+}
+function lookAvKindClause(caps) {
+  if (caps.video && caps.audio)
+    return "a video or audio file";
+  if (caps.video)
+    return "a video file";
+  if (caps.audio)
+    return "an audio file";
+  return;
+}
+function lookReadMediaHint(oracle) {
+  const clause = lookAvKindClause(oracle.capabilities);
+  if (clause === undefined)
+    return;
+  return `If it is ${clause}, pass the path and a question to the look tool to have ${oracle.modelName} view it for you; otherwise extract what you can with bash (e.g. ffmpeg frames from a video, read as images).`;
+}
+function lookFetchedImageHint(oracle) {
+  if (!oracle.capabilities.image)
+    return;
+  return `Download it (e.g. bash curl -o) and pass the saved path with a question to the look tool to have ${oracle.modelName} examine it for you.`;
+}
+function lookFetchedMediaHint(oracle) {
+  const clause = lookAvKindClause(oracle.capabilities);
+  if (clause === undefined)
+    return;
+  return `If it is ${clause}, download it (e.g. bash curl -o) and pass the saved path with a question to the look tool to have ${oracle.modelName} view it for you; otherwise extract what you can with bash (e.g. ffmpeg frames from a video, read as images).`;
+}
+function lookOversizeHint(oracle, maxInputBytes = DEFAULT_LOOK_MAX_INPUT_BYTES) {
+  const caps = oracle.capabilities;
+  const kinds = [
+    ["image", "image"],
+    ["pdf", "PDF"],
+    ["video", "video"],
+    ["audio", "audio"]
+  ].filter(([key]) => caps[key]).map(([, label]) => label);
+  const first = kinds[0];
+  if (first === undefined)
+    return;
+  const kindList = kinds.length === 1 ? first : `${kinds.slice(0, -1).join(", ")}, or ${kinds[kinds.length - 1]}`;
+  const article = first === "image" || first === "audio" ? "an" : "a";
+  const capMb = Math.floor(maxInputBytes / 1048576);
+  return `For text, use bash (head, sed -n, rg) to extract the part you need. Only if it is ${article} ${kindList} file up to ${capMb} MB, pass the path and a question to the look tool to have ${oracle.modelName} examine it (look sends files read cannot; over ${capMb} MB, shrink it first, e.g. ffmpeg extraction).`;
+}
+
+// ../../../../../tmp/agent-sdk-mirror-fVZkPN/repo/src/tools/read.ts
+import { defineTool as defineTool7 } from "eve/tools";
+import { z as z7 } from "zod";
+import { basename as basename2 } from "node:path";
+
+// ../../../../../tmp/agent-sdk-mirror-fVZkPN/repo/src/file-view.ts
 var READ_FILE_DEFAULT_LINE_LIMIT = 2000;
 var READ_FILE_MAX_LINE_CHARS = 2000;
 var READ_FILE_MAX_CONTENT_CHARS = 50000;
@@ -2257,10 +2532,10 @@ function buildFileView(text, opts = {}) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/read-file-content.ts
+// ../../../../../tmp/agent-sdk-mirror-fVZkPN/repo/src/read-file-content.ts
 import { imageSize } from "image-size";
 
-// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/extract/cache.ts
+// ../../../../../tmp/agent-sdk-mirror-fVZkPN/repo/src/extract/cache.ts
 function createStatCache(limit) {
   const entries = new Map;
   return {
@@ -2285,7 +2560,7 @@ function createStatCache(limit) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/extract/docx.ts
+// ../../../../../tmp/agent-sdk-mirror-fVZkPN/repo/src/extract/docx.ts
 import mammoth from "mammoth";
 async function extractDocx(buffer) {
   try {
@@ -2297,10 +2572,10 @@ async function extractDocx(buffer) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/extract/epub.ts
+// ../../../../../tmp/agent-sdk-mirror-fVZkPN/repo/src/extract/epub.ts
 import { Parser } from "htmlparser2";
 
-// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/extract/zip.ts
+// ../../../../../tmp/agent-sdk-mirror-fVZkPN/repo/src/extract/zip.ts
 import { inflateRawSync } from "node:zlib";
 var EOCD_SIGNATURE = 101010256;
 var CENTRAL_SIGNATURE = 33639248;
@@ -2388,7 +2663,7 @@ function openZip(buffer) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/extract/epub.ts
+// ../../../../../tmp/agent-sdk-mirror-fVZkPN/repo/src/extract/epub.ts
 var EPUB_SECTION_CAP = 200;
 var BLOCK_TAGS = new Set([
   "p",
@@ -2524,7 +2799,7 @@ function extractEpub(bytes, options = {}) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/extract/ipynb.ts
+// ../../../../../tmp/agent-sdk-mirror-fVZkPN/repo/src/extract/ipynb.ts
 function joinSource(value) {
   if (typeof value === "string")
     return value;
@@ -2635,7 +2910,7 @@ function extractNotebook(bytes) {
 `), cells: cells.length };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/extract/odf.ts
+// ../../../../../tmp/agent-sdk-mirror-fVZkPN/repo/src/extract/odf.ts
 import { Parser as Parser2 } from "htmlparser2";
 var ODP_EMPTY_SLIDE_NOTE = "[no text on this slide — likely image-only; images cannot be extracted]";
 function parseContentXml(xml) {
@@ -2722,7 +2997,7 @@ function extractOdp(bytes) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/extract/pdf.ts
+// ../../../../../tmp/agent-sdk-mirror-fVZkPN/repo/src/extract/pdf.ts
 import { openPdf } from "clawpdf";
 var PDF_EMPTY_PAGE_NOTE = "[no text on this page — likely scanned or image-only; rendered pages cannot be attached]";
 var PDF_PAGE_CAP = 200;
@@ -2757,7 +3032,7 @@ async function extractPdf(bytes, options = {}) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/extract/pptx.ts
+// ../../../../../tmp/agent-sdk-mirror-fVZkPN/repo/src/extract/pptx.ts
 import { Parser as Parser3 } from "htmlparser2";
 var PPTX_EMPTY_SLIDE_NOTE = "[no text on this slide — likely image-only; images cannot be extracted]";
 var PPTX_SLIDE_CAP = 200;
@@ -2913,7 +3188,7 @@ function extractPptx(bytes, options = {}) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/extract/rtf.ts
+// ../../../../../tmp/agent-sdk-mirror-fVZkPN/repo/src/extract/rtf.ts
 var SKIP_DESTINATIONS = new Set([
   "fonttbl",
   "colortbl",
@@ -3111,7 +3386,7 @@ function extractRtf(bytes) {
   return { ok: true, text: text.replace(/\n+$/, "") };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/extract/sheet.ts
+// ../../../../../tmp/agent-sdk-mirror-fVZkPN/repo/src/extract/sheet.ts
 import { read, utils } from "xlsx";
 var SHEET_ROW_CAP = 5000;
 function extractSheets(buffer, rowCap = SHEET_ROW_CAP) {
@@ -3152,7 +3427,7 @@ function extractSheets(buffer, rowCap = SHEET_ROW_CAP) {
 `), sheets };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/read-file-content.ts
+// ../../../../../tmp/agent-sdk-mirror-fVZkPN/repo/src/read-file-content.ts
 var EXTRACTION_CACHE_LIMIT = 20;
 var extractionCache = createStatCache(EXTRACTION_CACHE_LIMIT);
 function decodeText(buffer, encoding) {
@@ -3271,7 +3546,7 @@ async function loadFileContent(buffer, path, id) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/tools/read.ts
+// ../../../../../tmp/agent-sdk-mirror-fVZkPN/repo/src/tools/read.ts
 function buildMediaHint(attach, verb) {
   const kinds = ["image", "video", "audio"];
   const on = kinds.filter((kind) => attach[kind]);
@@ -3295,12 +3570,12 @@ function createReadTool(opts) {
   const conventionsHint = dirConventions ? ` When a read first enters a directory with its own ${dirConventions.fileName} conventions file, the result includes it under directory_conventions (once per directory per session) — honor those conventions for work in that directory.` : "";
   const mediaHint = buildMediaHint({ image: attachImagesToChat, video: attachVideoToChat, audio: attachAudioToChat }, "reading");
   const editHint = opts.includeEditGuidance ?? true ? " Read a file before editing it so your edits target the current text." : "";
-  return defineTool6({
+  return defineTool7({
     description: `Read a file from the ${noun}, returning line-numbered text. Documents are converted to plain text: PDF (per-page markers), DOCX/ODT/RTF, PPTX/ODP decks (per-slide markers, speaker notes), spreadsheets (.xlsx, .xlsm, .xls, .ods; TSV per sheet), EPUB (per-section markers), and Jupyter notebooks (per-cell markers); ${mediaHint}.${editHint} Returns up to 2000 lines per call by default; page bigger files with offset/limit.` + conventionsHint,
-    inputSchema: z6.object({
-      path: z6.string().min(1).describe(`File path, relative to the ${noun} root.`),
-      offset: z6.number().int().positive().optional().describe("1-based line to start reading from."),
-      limit: z6.number().int().positive().optional().describe("Max number of lines to return.")
+    inputSchema: z7.object({
+      path: z7.string().min(1).describe(`File path, relative to the ${noun} root.`),
+      offset: z7.number().int().positive().optional().describe("1-based line to start reading from."),
+      limit: z7.number().int().positive().optional().describe("Max number of lines to return.")
     }),
     async execute({ path, offset, limit }, ctx) {
       const abs = workspace.resolve(path);
@@ -3418,7 +3693,7 @@ function createReadTool(opts) {
             kind: "image",
             dataUrl: `data:${imageMediaType(content.format)};base64,${buffer.toString("base64")}`,
             mediaType: imageMediaType(content.format),
-            filename: basename(rel),
+            filename: basename2(rel),
             width: content.width,
             height: content.height
           };
@@ -3454,7 +3729,7 @@ function createReadTool(opts) {
             kind,
             dataUrl: `data:${mediaType};base64,${buffer.toString("base64")}`,
             mediaType,
-            filename: basename(rel)
+            filename: basename2(rel)
           };
           return {
             ...meta,
@@ -3475,9 +3750,9 @@ function createReadTool(opts) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/tools/tasks.ts
-import { defineDynamic as defineDynamic2, defineTool as defineTool7 } from "eve/tools";
-import { z as z7 } from "zod";
+// ../../../../../tmp/agent-sdk-mirror-fVZkPN/repo/src/tools/tasks.ts
+import { defineDynamic as defineDynamic2, defineTool as defineTool8 } from "eve/tools";
+import { z as z8 } from "zod";
 var DEFAULT_WAIT_MS = 120000;
 function elapsedMs(task) {
   const end = task.status === "running" ? Date.now() : task.finishedAt;
@@ -3519,20 +3794,20 @@ function buildTasksToolset(opts) {
 `);
   const wrap = createSteerWrapper(opts.steerInbox ?? null);
   return {
-    run_async: wrap(defineTool7({
+    run_async: wrap(defineTool8({
       description: `Start a tool running in the BACKGROUND and return immediately with a task id, instead of blocking until it finishes. Use it for long work whose result your next step doesn't need yet (tests, builds, installs) so you can keep working in parallel; poll with check_tasks and collect the result with await_task. If your very next step needs the output, just call the tool directly instead. For work where you only care about a specific output signal, pass notify — matching lines are delivered to you as a message while you're idle, instead of you polling.
 
 Backgroundable tools (pass \`input\` matching the tool's own schema):
 ` + catalog,
-      inputSchema: z7.object({
-        tool: z7.enum(toolNames).describe("Which backgroundable tool to run."),
-        input: z7.record(z7.string(), z7.unknown()).describe("Arguments for that tool — the same object you'd pass calling it directly."),
-        notify: z7.object({
-          pattern: z7.string().min(1).describe("Regex matched against complete output lines."),
-          reason: z7.string().min(1).describe("Short phrase naming what you're watching for, e.g. 'build errors'."),
-          debounce_ms: z7.number().int().positive().optional().describe("Minimum ms between match notifications (default 5000).")
+      inputSchema: z8.object({
+        tool: z8.enum(toolNames).describe("Which backgroundable tool to run."),
+        input: z8.record(z8.string(), z8.unknown()).describe("Arguments for that tool — the same object you'd pass calling it directly."),
+        notify: z8.object({
+          pattern: z8.string().min(1).describe("Regex matched against complete output lines."),
+          reason: z8.string().min(1).describe("Short phrase naming what you're watching for, e.g. 'build errors'."),
+          debounce_ms: z8.number().int().positive().optional().describe("Minimum ms between match notifications (default 5000).")
         }).optional().describe("Watch the task's output: matching lines are delivered to you as a message while you're idle."),
-        notify_on_complete: z7.boolean().optional().describe("Also deliver a message when the task settles (default false; await_task remains the primary way to collect results).")
+        notify_on_complete: z8.boolean().optional().describe("Also deliver a message when the task settles (default false; await_task remains the primary way to collect results).")
       }),
       execute({ tool, input, notify, notify_on_complete }, ctx) {
         const op = backgroundables.find((o) => o.name === tool);
@@ -3601,19 +3876,19 @@ Backgroundable tools (pass \`input\` matching the tool's own schema):
         };
       }
     })),
-    check_tasks: wrap(defineTool7({
+    check_tasks: wrap(defineTool8({
       description: "List background tasks and their status without blocking; returns `runningCount` plus the task list. For tasks that support progress (notably bash), includes a live stdout/stderr preview. Call await_task to collect a task's final result.",
-      inputSchema: z7.object({}),
+      inputSchema: z8.object({}),
       execute() {
         const tasks = registry.listTasks().map(peek);
         return { runningCount: tasks.filter((t) => t.status === "running").length, tasks };
       }
     })),
-    await_task: wrap(defineTool7({
+    await_task: wrap(defineTool8({
       description: "Block until a background task finishes (up to wait_ms), then return its full result. Use it when your next step needs the task's final output. If the wait elapses while it's still running, returns the running status plus any live progress so you can decide to keep waiting or move on.",
-      inputSchema: z7.object({
-        task_id: z7.string().min(1).describe("Task id returned by run_async or a backgrounded bash call."),
-        wait_ms: z7.number().int().positive().optional().describe(`Max time to block in ms (default ${DEFAULT_WAIT_MS}).`)
+      inputSchema: z8.object({
+        task_id: z8.string().min(1).describe("Task id returned by run_async or a backgrounded bash call."),
+        wait_ms: z8.number().int().positive().optional().describe(`Max time to block in ms (default ${DEFAULT_WAIT_MS}).`)
       }),
       async execute({ task_id, wait_ms }) {
         const task = await registry.awaitTask(task_id, wait_ms ?? DEFAULT_WAIT_MS);
@@ -3632,17 +3907,17 @@ function createTasksTools(opts) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/tools/webfetch.ts
-import { defineTool as defineTool8 } from "eve/tools";
-import { z as z8 } from "zod";
-import { basename as basename2, join as join7 } from "node:path";
+// ../../../../../tmp/agent-sdk-mirror-fVZkPN/repo/src/tools/webfetch.ts
+import { defineTool as defineTool9 } from "eve/tools";
+import { z as z9 } from "zod";
+import { basename as basename3, join as join7 } from "node:path";
 
-// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/web-fetch.ts
+// ../../../../../tmp/agent-sdk-mirror-fVZkPN/repo/src/web-fetch.ts
 import { Parser as Parser4 } from "htmlparser2";
 import { parseHTML as parseHTML2 } from "linkedom";
 import TurndownService from "turndown";
 
-// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/web-page.ts
+// ../../../../../tmp/agent-sdk-mirror-fVZkPN/repo/src/web-page.ts
 import Defuddle from "defuddle";
 import { parseHTML } from "linkedom";
 var asField = (value) => {
@@ -3753,7 +4028,7 @@ function looksLikeRawHtmlOutput(rendered) {
   return tagChars / rendered.length > 0.1;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/web-fetch.ts
+// ../../../../../tmp/agent-sdk-mirror-fVZkPN/repo/src/web-fetch.ts
 var WEB_FETCH_MAX_RESPONSE_BYTES = 5 * 1024 * 1024;
 var WEB_FETCH_DEFAULT_TIMEOUT_SECONDS = 30;
 var WEB_FETCH_PDF_DEFAULT_TIMEOUT_SECONDS = 60;
@@ -3943,7 +4218,7 @@ function urlLooksLikePdf(url) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/tools/webfetch.ts
+// ../../../../../tmp/agent-sdk-mirror-fVZkPN/repo/src/tools/webfetch.ts
 var SPILL_EXTENSION = {
   markdown: "md",
   text: "txt",
@@ -3956,7 +4231,7 @@ function spillFilename(format, kind) {
 }
 function fetchedFilename(finalUrl, fallback) {
   try {
-    const name = basename2(new URL(finalUrl).pathname);
+    const name = basename3(new URL(finalUrl).pathname);
     return name === "" || name === "/" ? fallback : name;
   } catch {
     return fallback;
@@ -4032,6 +4307,7 @@ function pathLabelForFetch(finalUrl, contentType, body) {
 function createWebFetchTool(opts) {
   const { workspace, spillDir, attachImagesToChat, maxInlineImageBytes, fetchImpl } = opts;
   const imageUnavailableHint = opts.imageUnavailableHint ?? "If you need to see this image, ask the user to attach it to the chat.";
+  const mediaUnavailableHint = opts.mediaUnavailableHint ?? "Use bash (curl -o) to download it if you need to process it.";
   const attachVideoToChat = opts.attachVideoToChat ?? false;
   const attachAudioToChat = opts.attachAudioToChat ?? false;
   const maxInlineMediaBytes = opts.maxInlineMediaBytes ?? DEFAULT_MAX_INLINE_MEDIA_BYTES;
@@ -4050,12 +4326,12 @@ function createWebFetchTool(opts) {
     };
   };
   const mediaHint = buildMediaHint({ image: attachImagesToChat, video: attachVideoToChat, audio: attachAudioToChat }, "fetching");
-  return defineTool8({
+  return defineTool9({
     description: `Fetch a URL and return its content. HTML pages are reduced to their main content (boilerplate stripped, title/author/date header) and converted to readable markdown by default (set format to "text" for plain text or "html" for the raw page). Fetched documents (PDF, DOCX/ODT/RTF, PPTX/ODP, spreadsheets, EPUB, Jupyter notebooks) are converted to plain text; ${mediaHint}. Content over the in-context budget is truncated head+tail and the complete output is spilled to a file named in the truncation marker — read or grep that file instead of re-fetching. Default timeout ${WEB_FETCH_DEFAULT_TIMEOUT_SECONDS}s (${WEB_FETCH_PDF_DEFAULT_TIMEOUT_SECONDS}s for PDFs), max ${WEB_FETCH_MAX_TIMEOUT_SECONDS}s; responses over 5 MB error. Read-only: one HTTP GET, no side effects.`,
-    inputSchema: z8.object({
-      url: z8.string().min(1).describe("The URL to fetch. Must start with http:// or https://."),
-      format: z8.enum(["markdown", "text", "html"]).optional().describe('How to render HTML responses: "markdown" (default), "text", or "html" (raw). Non-HTML content is unaffected.'),
-      timeout: z8.number().int().positive().optional().describe(`Timeout in seconds (default ${WEB_FETCH_DEFAULT_TIMEOUT_SECONDS}, max ${WEB_FETCH_MAX_TIMEOUT_SECONDS}).`)
+    inputSchema: z9.object({
+      url: z9.string().min(1).describe("The URL to fetch. Must start with http:// or https://."),
+      format: z9.enum(["markdown", "text", "html"]).optional().describe('How to render HTML responses: "markdown" (default), "text", or "html" (raw). Non-HTML content is unaffected.'),
+      timeout: z9.number().int().positive().optional().describe(`Timeout in seconds (default ${WEB_FETCH_DEFAULT_TIMEOUT_SECONDS}, max ${WEB_FETCH_MAX_TIMEOUT_SECONDS}).`)
     }),
     async execute({ url, format, timeout }) {
       const renderFormat = format ?? "markdown";
@@ -4185,7 +4461,7 @@ function createWebFetchTool(opts) {
             const why = enabled && body.byteLength > maxInlineMediaBytes ? `too large to attach automatically (${body.byteLength} bytes, max ${maxInlineMediaBytes})` : `cannot be returned as a tool result (text/json only), and ${kind} attachments are not enabled for this agent`;
             return {
               ...mediaMeta,
-              note: `${label2} content ${why}. Use bash (curl -o) to download it if you need to process it.`
+              note: `${label2} content ${why}. ${mediaUnavailableHint}`
             };
           }
           const attachment = {
@@ -4212,17 +4488,17 @@ function createWebFetchTool(opts) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/tools/write.ts
-import { defineTool as defineTool9 } from "eve/tools";
-import { z as z9 } from "zod";
+// ../../../../../tmp/agent-sdk-mirror-fVZkPN/repo/src/tools/write.ts
+import { defineTool as defineTool10 } from "eve/tools";
+import { z as z10 } from "zod";
 function createWriteTool(opts) {
   const { workspace, noun } = opts;
   const io = opts.io ?? localIoProvider(workspace.root);
-  return defineTool9({
+  return defineTool10({
     description: `Write a complete file to the ${noun}, creating parent directories and overwriting any existing file. For a small change to an existing file, prefer edit so you don't have to reproduce the whole file.`,
-    inputSchema: z9.object({
-      path: z9.string().min(1).describe(`File path, relative to the ${noun} root.`),
-      content: z9.string().describe("The full contents to write.")
+    inputSchema: z10.object({
+      path: z10.string().min(1).describe(`File path, relative to the ${noun} root.`),
+      content: z10.string().describe("The full contents to write.")
     }),
     async execute({ path, content }, ctx) {
       const abs = workspace.resolve(path);
@@ -4244,7 +4520,7 @@ function createWriteTool(opts) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/sandbox-io.ts
+// ../../../../../tmp/agent-sdk-mirror-fVZkPN/repo/src/sandbox-io.ts
 import ignore2 from "ignore";
 function shellSingleQuote(value) {
   return `'${value.replaceAll("'", `'\\''`)}'`;
@@ -4459,11 +4735,11 @@ function parseSearchOutput(stdout, maxMatches, flooded = false) {
   }
   return { matches, stopped, skippedLargeFiles: null };
 }
-// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/hooks.ts
+// ../../../../../tmp/agent-sdk-mirror-fVZkPN/repo/src/hooks.ts
 import { Client } from "eve/client";
 import { defineHook } from "eve/hooks";
 
-// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/redeliver.ts
+// ../../../../../tmp/agent-sdk-mirror-fVZkPN/repo/src/redeliver.ts
 function isRecord6(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
@@ -4533,7 +4809,7 @@ function createRedeliveryState() {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/hooks.ts
+// ../../../../../tmp/agent-sdk-mirror-fVZkPN/repo/src/hooks.ts
 var RETRY_DELAYS_MS = [500, 2000, 5000];
 function buildDeliveryMessage(request) {
   const media = request.items.flatMap((item) => item.payload.kind === "media" ? [{ toolCallId: item.key, attachment: item.payload.attachment }] : []);
@@ -4632,8 +4908,9 @@ function createParkDeliveryHook(options = {}) {
     }
   });
 }
-// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/build-externals.ts
+// ../../../../../tmp/agent-sdk-mirror-fVZkPN/repo/src/build-externals.ts
 var STDLIB_EXTERNAL_DEPENDENCIES = [
+  "ai",
   "clawpdf",
   "defuddle",
   "htmlparser2",
@@ -4645,11 +4922,11 @@ var STDLIB_EXTERNAL_DEPENDENCIES = [
   "xlsx",
   "zod"
 ];
-// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/task.ts
+// ../../../../../tmp/agent-sdk-mirror-fVZkPN/repo/src/task.ts
 import { defineAgent } from "eve";
 import { defineDynamic as defineDynamic3, defineInstructions as defineInstructions2 } from "eve/instructions";
 
-// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/visible-reasoning.ts
+// ../../../../../tmp/agent-sdk-mirror-fVZkPN/repo/src/visible-reasoning.ts
 var ANTHROPIC_ADAPTIVE_THINKING_MODELS = [
   /^anthropic\/claude-fable-/,
   /^anthropic\/claude-mythos-/,
@@ -4675,7 +4952,7 @@ function visibleReasoningModelOptions(modelId) {
   return;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/task.ts
+// ../../../../../tmp/agent-sdk-mirror-fVZkPN/repo/src/task.ts
 var TASK_DISABLED_BUILTINS = ["ask_question"];
 function expectedTaskToolNames(options) {
   const parent = new Set(options.parentToolNames);
@@ -4705,6 +4982,13 @@ function createTaskChildTools(options) {
     }),
     fileName: conventionsFileName
   } : undefined;
+  const oracle = options.mediaOracle !== undefined ? resolveMediaOracle(options.mediaOracle) : null;
+  const imageUnavailableHint = oracle !== null && oracle.capabilities.image ? `Its pixels are not available as an attachment in a delegated child session — pass the path and a question to the look tool to have ${oracle.modelName} examine it, or report the image's path and metadata in your final message.` : "Its pixels are not available in a delegated child session — report the image's path and metadata in your final message so the caller can view it.";
+  const avClause = oracle !== null ? lookAvKindClause(oracle.capabilities) : undefined;
+  const mediaUnavailableHint = oracle !== null && avClause !== undefined ? `Its bytes are not available as an attachment in a delegated child session — if it is ${avClause}, pass the path and a question to the look tool to have ${oracle.modelName} view it; otherwise extract what you can with bash (e.g. ffmpeg frames from a video, read as images), or report the file's path and metadata.` : "Its bytes are not available in a delegated child session — use bash extraction if text will do, or report the file's path and metadata so the caller can handle it.";
+  const fetchedImageUnavailableHint = oracle !== null && oracle.capabilities.image ? `Its pixels are not available as an attachment in a delegated child session — download it (e.g. bash curl -o) and pass the saved path with a question to the look tool, or report the image's URL in your final message.` : "Its pixels are not available in a delegated child session — report the image's URL in your final message so the caller can fetch it.";
+  const fetchedMediaUnavailableHint = oracle !== null && avClause !== undefined ? `Its bytes are not available as an attachment in a delegated child session — if it is ${avClause}, download it (e.g. bash curl -o) and pass the saved path with a question to the look tool; otherwise extract what you can with bash (e.g. ffmpeg frames from a video, read as images), or report the file's URL in your final message.` : "Its bytes are not available in a delegated child session — use bash (curl -o) to download it if you need to process it, or report the file's URL in your final message.";
+  const oversizeHint = oracle !== null ? lookOversizeHint(oracle) : undefined;
   return {
     read: createReadTool({
       workspace,
@@ -4712,15 +4996,17 @@ function createTaskChildTools(options) {
       attachImagesToChat: false,
       maxInlineImageBytes: 0,
       dirConventions,
-      imageUnavailableHint: "Its pixels are not available in a delegated child session — report the image's path and metadata in your final message so the caller can view it.",
-      mediaUnavailableHint: "Its bytes are not available in a delegated child session — use bash extraction if text will do, or report the file's path and metadata so the caller can handle it."
+      imageUnavailableHint,
+      mediaUnavailableHint,
+      ...oversizeHint !== undefined ? { oversizeHint } : {}
     }),
     webfetch: createWebFetchTool({
       workspace,
       spillDir: options.spillDir,
       attachImagesToChat: false,
       maxInlineImageBytes: 0,
-      imageUnavailableHint: "Its pixels are not available in a delegated child session — report the image's URL in your final message so the caller can fetch it."
+      imageUnavailableHint: fetchedImageUnavailableHint,
+      mediaUnavailableHint: fetchedMediaUnavailableHint
     })
   };
 }
@@ -4777,7 +5063,8 @@ function parseGatewayModelCatalog(value) {
     models.push({
       id: entry.id,
       name: typeof entry.name === "string" ? entry.name : undefined,
-      description: typeof entry.description === "string" ? entry.description : undefined
+      description: typeof entry.description === "string" ? entry.description : undefined,
+      tags: Array.isArray(entry.tags) && entry.tags.every((tag) => typeof tag === "string") ? entry.tags : undefined
     });
   }
   return models;
@@ -4795,7 +5082,7 @@ async function fetchGatewayModelCatalog(options) {
   }
   return parsed;
 }
-// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/mock-model.ts
+// ../../../../../tmp/agent-sdk-mirror-fVZkPN/repo/src/mock-model.ts
 var STORY_SENTENCES = [
   "The lighthouse keeper counted the waves as they broke against the rocks.",
   "Every seventh wave carried a whisper from the old town beneath the sea.",
@@ -5257,7 +5544,7 @@ That changes the plan.`
     }
   };
 }
-// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/orphaned-turns.ts
+// ../../../../../tmp/agent-sdk-mirror-fVZkPN/repo/src/orphaned-turns.ts
 function isOrphanedTurn(input) {
   if (!input.reconciled || !input.inFlightAfter)
     return false;
@@ -5272,7 +5559,7 @@ function workerEpochMs(now = Date.now) {
   return holder[WORKER_EPOCH_KEY];
 }
 
-// ../../../../../tmp/agent-sdk-mirror-wlIFbx/repo/src/index.ts
+// ../../../../../tmp/agent-sdk-mirror-fVZkPN/repo/src/index.ts
 function createStdlib(options) {
   const noun = options.workspaceNoun ?? "workspace";
   const workspace2 = createWorkspace(options.workspaceRoot);
@@ -5295,6 +5582,13 @@ function createStdlib(options) {
   } : undefined;
   const steerInbox = options.steer ? createSteerInbox({ dir: options.steer.dir }) : null;
   const steer2 = createSteerWrapper(steerInbox);
+  const oracle = options.mediaOracle !== undefined ? resolveMediaOracle(options.mediaOracle) : null;
+  const attachImagesToChat = options.attachImagesToChat ?? options.parentCapabilities?.image ?? true;
+  const readImageHint = oracle ? lookReadImageHint(oracle) : undefined;
+  const readMediaHint = oracle ? lookReadMediaHint(oracle) : undefined;
+  const readOversizeHint = oracle ? lookOversizeHint(oracle) : undefined;
+  const fetchedImageHint = oracle ? lookFetchedImageHint(oracle) : undefined;
+  const fetchedMediaHint = oracle ? lookFetchedMediaHint(oracle) : undefined;
   return {
     workspace: workspace2,
     runner,
@@ -5302,16 +5596,20 @@ function createStdlib(options) {
     spillDir,
     backgroundables,
     steerInbox,
+    mediaOracle: oracle,
     tools: {
       read: steer2(createReadTool({
         workspace: workspace2,
         noun,
-        attachImagesToChat: options.attachImagesToChat ?? true,
+        attachImagesToChat,
         maxInlineImageBytes: options.maxInlineImageBytes ?? DEFAULT_MAX_INLINE_IMAGE_BYTES,
         attachVideoToChat: options.attachVideoToChat ?? false,
         attachAudioToChat: options.attachAudioToChat ?? false,
         maxInlineMediaBytes: options.maxInlineMediaBytes ?? DEFAULT_MAX_INLINE_MEDIA_BYTES,
-        dirConventions
+        dirConventions,
+        ...readImageHint !== undefined ? { imageUnavailableHint: readImageHint } : {},
+        ...readMediaHint !== undefined ? { mediaUnavailableHint: readMediaHint } : {},
+        ...readOversizeHint !== undefined ? { oversizeHint: readOversizeHint } : {}
       })),
       edit: steer2(createEditTool({ workspace: workspace2, noun })),
       write: steer2(createWriteTool({ workspace: workspace2, noun })),
@@ -5328,12 +5626,15 @@ function createStdlib(options) {
       webfetch: steer2(createWebFetchTool({
         workspace: workspace2,
         spillDir,
-        attachImagesToChat: options.attachImagesToChat ?? true,
+        attachImagesToChat,
         maxInlineImageBytes: options.maxInlineImageBytes ?? DEFAULT_MAX_INLINE_IMAGE_BYTES,
         attachVideoToChat: options.attachVideoToChat ?? false,
         attachAudioToChat: options.attachAudioToChat ?? false,
-        maxInlineMediaBytes: options.maxInlineMediaBytes ?? DEFAULT_MAX_INLINE_MEDIA_BYTES
-      }))
+        maxInlineMediaBytes: options.maxInlineMediaBytes ?? DEFAULT_MAX_INLINE_MEDIA_BYTES,
+        ...fetchedImageHint !== undefined ? { imageUnavailableHint: fetchedImageHint } : {},
+        ...fetchedMediaHint !== undefined ? { mediaUnavailableHint: fetchedMediaHint } : {}
+      })),
+      ...oracle !== null ? { look: steer2(createLookTool({ workspace: workspace2, noun, oracle })) } : {}
     },
     instructions: {
       parallelTools: createParallelToolsInstruction(),
@@ -5342,6 +5643,13 @@ function createStdlib(options) {
         workspaceNoun: noun,
         roster: options.subagentRoster
       }),
+      ...oracle !== null ? {
+        media: createLookInstruction({
+          modelName: oracle.modelName,
+          capabilities: oracle.capabilities,
+          parentCapabilities: options.parentCapabilities
+        })
+      } : {},
       workflow: createWorkflowInstruction({
         workspaceNoun: noun,
         verifyCommandHint: options.verifyCommandHint
@@ -5366,9 +5674,14 @@ function createSandboxFileTools(options) {
     }),
     fileName: conventionsFileName
   } : undefined;
+  const oracle = options.mediaOracle !== undefined ? resolveMediaOracle(options.mediaOracle) : null;
+  const readImageHint = oracle ? lookReadImageHint(oracle) : undefined;
+  const readMediaHint = oracle ? lookReadMediaHint(oracle) : undefined;
+  const readOversizeHint = oracle ? lookOversizeHint(oracle) : undefined;
   return {
     workspace: workspace2,
     io,
+    mediaOracle: oracle,
     tools: {
       read: createReadTool({
         workspace: workspace2,
@@ -5379,7 +5692,10 @@ function createSandboxFileTools(options) {
         attachVideoToChat: options.attachVideoToChat ?? false,
         attachAudioToChat: options.attachAudioToChat ?? false,
         maxInlineMediaBytes: options.maxInlineMediaBytes ?? DEFAULT_MAX_INLINE_MEDIA_BYTES,
-        dirConventions
+        dirConventions,
+        ...readImageHint !== undefined ? { imageUnavailableHint: readImageHint } : {},
+        ...readMediaHint !== undefined ? { mediaUnavailableHint: readMediaHint } : {},
+        ...readOversizeHint !== undefined ? { oversizeHint: readOversizeHint } : {}
       }),
       edit: createEditTool({ workspace: workspace2, noun, io }),
       write: createWriteTool({ workspace: workspace2, noun, io }),
@@ -5389,7 +5705,8 @@ function createSandboxFileTools(options) {
         noun,
         io,
         ...options.spillDir !== undefined ? { spillDir: options.spillDir } : {}
-      })
+      }),
+      ...oracle !== null ? { look: createLookTool({ workspace: workspace2, noun, oracle, io }) } : {}
     }
   };
 }
@@ -5413,6 +5730,7 @@ export {
   sandboxIoProvider,
   resolveWithin,
   resolveWebFetchTimeoutMs,
+  resolveMediaOracle,
   replaceForgiving,
   renderWebText,
   relativizeWithin,
@@ -5425,10 +5743,16 @@ export {
   parseSearchOutput,
   parseGatewayModelCatalog,
   openZip,
+  modelFamily,
   mockScenarioFrom,
   mergeSteerIntoModelOutput,
   markdownChunks,
   looksLikeHtml,
+  lookReadMediaHint,
+  lookReadImageHint,
+  lookFetchedMediaHint,
+  lookFetchedImageHint,
+  lookAvKindClause,
   localIoProvider,
   loadFileContent,
   listGitFiles,
@@ -5458,6 +5782,7 @@ export {
   expectedTaskToolNames,
   dirChain,
   detectFileKind,
+  describeCapabilities,
   defineOp,
   createWriteTool,
   createWorkspace,
@@ -5483,6 +5808,8 @@ export {
   createParallelToolsInstruction,
   createOutputWatcher,
   createMockStoryModel,
+  createLookTool,
+  createLookInstruction,
   createLocalIo,
   createHitlInstruction,
   createGrepTool,
@@ -5496,6 +5823,8 @@ export {
   createBashOp,
   convertHtmlToMarkdown,
   clientContinuationToken,
+  capabilitiesFromCatalogEntry,
+  capabilitiesForModel,
   buildWorkflowMarkdown,
   buildWebFetchHeaders,
   buildTasksToolset,
@@ -5505,6 +5834,7 @@ export {
   buildSteerPayload,
   buildRepoConventionsMarkdown,
   buildRedeliveryMessage,
+  buildLookMarkdown,
   buildHitlMarkdown,
   buildFileView,
   buildCommunicationMarkdown,
@@ -5520,6 +5850,7 @@ export {
   WEB_FETCH_DEFAULT_TIMEOUT_SECONDS,
   TrimmedBoundaryReplacer,
   TOOL_OUTPUT_DIRNAME,
+  TEXT_ONLY_CAPABILITIES,
   TASK_DISABLED_BUILTINS,
   TASK_CHILD_TOOL_OVERRIDES,
   TAIL_CHARS,
@@ -5542,9 +5873,11 @@ export {
   ODP_EMPTY_SLIDE_NOTE,
   MultiOccurrenceReplacer,
   MOCK_SCENARIOS,
+  MEDIA_CAPABILITY_OVERLAY,
   MAX_SEARCH_FILE_BYTES,
   MAX_PREVIEW,
   LineTrimmedReplacer,
+  LOOK_MAX_ANSWER_CHARS,
   IndentationFlexibleReplacer,
   HEAD_CHARS,
   GATEWAY_MODELS_URL,
@@ -5555,9 +5888,12 @@ export {
   EditDisproportionateError,
   EPUB_SECTION_CAP,
   DEFAULT_WATCH_DEBOUNCE_MS,
+  DEFAULT_MEDIA_ORACLE,
   DEFAULT_MAX_WATCH_NOTIFICATIONS,
   DEFAULT_MAX_INLINE_MEDIA_BYTES,
   DEFAULT_MAX_INLINE_IMAGE_BYTES,
+  DEFAULT_LOOK_TIMEOUT_MS,
+  DEFAULT_LOOK_MAX_INPUT_BYTES,
   ContextAwareReplacer,
   CHAT_ATTACHMENT_FIELD,
   BlockAnchorReplacer,

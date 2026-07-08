@@ -23,9 +23,8 @@
  *
  * Declared subagents compile with their own manifest config, so pass the list
  * to each tier's `createTaskAgent({ build: ... })` as well. Append your
- * agent's other heavy direct imports (e.g. `"ai"` when the config builds a
- * gateway) to the spread. `eve` itself stays off the list — the compiler
- * always keeps framework imports external.
+ * agent's other heavy direct imports to the spread. `eve` itself stays off
+ * the list — the compiler always keeps framework imports external.
  *
  * The agent app must also declare these packages in its own `dependencies`:
  * an externalized import stays a bare specifier in the compiled bundle, which
@@ -36,6 +35,7 @@
  * Kept in sync with `package.json` by `build-externals.test.ts`.
  */
 export const STDLIB_EXTERNAL_DEPENDENCIES: readonly string[] = [
+  "ai",
   "clawpdf",
   "defuddle",
   "htmlparser2",

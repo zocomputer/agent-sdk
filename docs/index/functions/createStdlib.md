@@ -8,7 +8,7 @@
 
 > **createStdlib**(`options`): `object`
 
-Defined in: [packages/agent-sdk/src/index.ts:142](https://github.com/zocomputer/zov2-code/blob/5cd4dc50234e29b61bac1ae63f95c9b3f3a18361/packages/agent-sdk/src/index.ts#L142)
+Defined in: [packages/agent-sdk/src/index.ts:180](https://github.com/zocomputer/zov2-code/blob/aba140d6dd71d0ea05075bf6e9ebcc5739f7a7b3/packages/agent-sdk/src/index.ts#L180)
 
 Create the standard library for a real-filesystem eve agent: workspace-scoped
 file tools (read/edit/write/glob/grep), host bash, webfetch, the background-
@@ -22,8 +22,6 @@ workspace, runner, registry, and instructions.
 [`StdlibOptions`](../interfaces/StdlibOptions.md)
 
 ## Returns
-
-`object`
 
 ### backgroundables
 
@@ -41,6 +39,10 @@ workspace, runner, registry, and instructions.
 
 > **hitl**: `DynamicSentinel`
 
+#### instructions.media?
+
+> `optional` **media?**: `DynamicSentinel`
+
 #### instructions.parallelTools
 
 > **parallelTools**: `DynamicSentinel`
@@ -56,6 +58,18 @@ workspace, runner, registry, and instructions.
 #### instructions.workflow
 
 > **workflow**: `DynamicSentinel`
+
+### mediaOracle
+
+> **mediaOracle**: [`LookOracleConfig`](../interfaces/LookOracleConfig.md) \| `null` = `oracle`
+
+The RESOLVED look oracle (`null` when `mediaOracle` wasn't set). Task
+children must derive their hints from this exact config — pass it to
+`createTaskChildTools({ mediaOracle: stdlib.mediaOracle ?? undefined })`
+— because the child's `look` is a re-export of the parent's instance:
+a child resolving its own option (e.g. `true` against a custom parent
+oracle) would advertise a model and capability set its `look` doesn't
+run.
 
 ### registry
 
@@ -92,6 +106,10 @@ workspace, runner, registry, and instructions.
 #### tools.grep
 
 > **grep**: `ToolDefinition`\<\{ `glob?`: `string`; `ignore_case?`: `boolean`; `max_results?`: `number`; `path?`: `string`; `pattern`: `string`; \}, [`GrepResult`](../interfaces/GrepResult.md)\>
+
+#### tools.look?
+
+> `optional` **look?**: `ToolDefinition`\<\{ `path`: `string`; `prompt`: `string`; \}, \{ `answer`: `string`; `media_type`: `string`; `model`: `string`; `path`: `string`; \}\>
 
 #### tools.read
 

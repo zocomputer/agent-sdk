@@ -6,7 +6,7 @@
 
 # Class: StateFilesHandleError
 
-Defined in: [packages/agent-sdk/src/state-files.ts:88](https://github.com/zocomputer/zov2-code/blob/5cd4dc50234e29b61bac1ae63f95c9b3f3a18361/packages/agent-sdk/src/state-files.ts#L88)
+Defined in: [packages/agent-sdk/src/state-files.ts:88](https://github.com/zocomputer/zov2-code/blob/aba140d6dd71d0ea05075bf6e9ebcc5739f7a7b3/packages/agent-sdk/src/state-files.ts#L88)
 
 Error thrown when requesting a state-files handle fails. Carries the HTTP status and broker error code.
 
@@ -20,7 +20,7 @@ Error thrown when requesting a state-files handle fails. Carries the HTTP status
 
 > **new StateFilesHandleError**(`message`, `options`): `StateFilesHandleError`
 
-Defined in: [packages/agent-sdk/src/state-files.ts:100](https://github.com/zocomputer/zov2-code/blob/5cd4dc50234e29b61bac1ae63f95c9b3f3a18361/packages/agent-sdk/src/state-files.ts#L100)
+Defined in: [packages/agent-sdk/src/state-files.ts:100](https://github.com/zocomputer/zov2-code/blob/aba140d6dd71d0ea05075bf6e9ebcc5739f7a7b3/packages/agent-sdk/src/state-files.ts#L100)
 
 #### Parameters
 
@@ -70,7 +70,7 @@ The cause of the error.
 
 > `readonly` **code**: `string` \| `null`
 
-Defined in: [packages/agent-sdk/src/state-files.ts:90](https://github.com/zocomputer/zov2-code/blob/5cd4dc50234e29b61bac1ae63f95c9b3f3a18361/packages/agent-sdk/src/state-files.ts#L90)
+Defined in: [packages/agent-sdk/src/state-files.ts:90](https://github.com/zocomputer/zov2-code/blob/aba140d6dd71d0ea05075bf6e9ebcc5739f7a7b3/packages/agent-sdk/src/state-files.ts#L90)
 
 ***
 
@@ -78,7 +78,7 @@ Defined in: [packages/agent-sdk/src/state-files.ts:90](https://github.com/zocomp
 
 > `readonly` **consent**: \{ `bindingId`: `string`; `declarationName`: `string`; `party`: \{ `external`: `boolean`; `handle`: `string`; `intentDivergenceNote?`: `string`; \}; `resourceName`: `string`; \} \| `null`
 
-Defined in: [packages/agent-sdk/src/state-files.ts:98](https://github.com/zocomputer/zov2-code/blob/5cd4dc50234e29b61bac1ae63f95c9b3f3a18361/packages/agent-sdk/src/state-files.ts#L98)
+Defined in: [packages/agent-sdk/src/state-files.ts:98](https://github.com/zocomputer/zov2-code/blob/aba140d6dd71d0ea05075bf6e9ebcc5739f7a7b3/packages/agent-sdk/src/state-files.ts#L98)
 
 The consent envelope, present ONLY on a `consent_required` 409 whose body
 carried the full contract (bindingId, declarationName, resourceName, party).
@@ -128,7 +128,7 @@ Defined in: node\_modules/.bun/typescript@6.0.3/node\_modules/typescript/lib/lib
 
 > `readonly` **status**: `number`
 
-Defined in: [packages/agent-sdk/src/state-files.ts:89](https://github.com/zocomputer/zov2-code/blob/5cd4dc50234e29b61bac1ae63f95c9b3f3a18361/packages/agent-sdk/src/state-files.ts#L89)
+Defined in: [packages/agent-sdk/src/state-files.ts:89](https://github.com/zocomputer/zov2-code/blob/aba140d6dd71d0ea05075bf6e9ebcc5739f7a7b3/packages/agent-sdk/src/state-files.ts#L89)
 
 ***
 

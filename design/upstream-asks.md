@@ -46,6 +46,20 @@ built, verified patches) graduate to [`proposals/`](./proposals).
   [vercel/eve#543](https://github.com/vercel/eve/issues/543); the PR follows
   on maintainer go-ahead. It would make `read`'s opt-in video/audio
   attachments (`attachVideoToChat`/`attachAudioToChat`) work end-to-end.
+- **Subagents can't receive media (and have no per-call model).** A subagent
+  tool's input is fixed at `{ message, outputSchema? }` — text only, no file
+  parts — and its model compiles from its `agent.ts`, so "hand this video to
+  a model that can see it" can't be a subagent call: the child can't be
+  given the bytes (park-delivery is deliberately unwired in children), and
+  the model can't be chosen per call. Our workaround is the `look` media
+  oracle (see the guide's
+  [Media oracle](../GUIDE.md#the-media-oracle-look)): a plain tool that
+  reads the bytes and makes its own one-shot `generateText` with a file
+  part, sidestepping eve's media path entirely. The full form — a media
+  subagent that carries tools and conversation — needs file parts in the
+  subagent input contract plus the hydration widening above; a per-call
+  `model` field validated against an allowlist would also collapse the
+  tool-per-tier encoding (`task_fast`/`task_deep`) into one subagent.
 - **HITL replay.** eve persists `input.requested` but not the client's
   `input.responded`, so a replayed session reopens answered prompts as
   pending. We append synthetic responded-events from client-side storage;

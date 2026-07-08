@@ -19,6 +19,10 @@ just the pieces it wants.
 - **Rich reads.** `read` handles PDFs, Office documents (DOCX/PPTX/ODT/ODP),
   spreadsheets, EPUB e-books, Jupyter notebooks, and RTF as text;
   reading an image puts the actual pixels in front of the model.
+- **A media oracle for what your model can't see.** The opt-in `look` tool
+  delegates one question about an image, PDF, video, or audio file to a
+  pinned capable model (Gemini by default) and returns the answer as text —
+  so a text-only model still gets media described, and any model gets video.
 - **A bash that behaves.** Long commands auto-background instead of hanging
   the turn; oversized output spills to disk instead of flooding the context
   window.
@@ -150,6 +154,8 @@ The [guide](./GUIDE.md) documents each subsystem:
   beyond its boring name.
 - [Media reads](./GUIDE.md#media-reads-images-video-audio) — how images
   reach the model, and the video/audio opt-ins.
+- [The media oracle](./GUIDE.md#the-media-oracle-look) — delegating media
+  the model can't view to a capable one with `look`.
 - [Steering](./GUIDE.md#steering-mid-turn-messages) — delivering user
   messages into a running turn.
 - [Model-tier task subagents](./GUIDE.md#model-tier-task-subagents) —
