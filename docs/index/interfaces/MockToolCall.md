@@ -6,7 +6,7 @@
 
 # Interface: MockToolCall
 
-Defined in: [packages/agent-sdk/src/mock-model.ts:108](https://github.com/zocomputer/zov2-code/blob/a8636edc2f6184e686ebe291b26c3e5e9b3ae7ef/packages/agent-sdk/src/mock-model.ts#L108)
+Defined in: [packages/agent-sdk/src/mock-model.ts:108](https://github.com/zocomputer/zov2-code/blob/d15edc03b49c31d0244c34c64095ce9b88216fe1/packages/agent-sdk/src/mock-model.ts#L108)
 
 One tool call a scripted step emits.
 
@@ -16,7 +16,7 @@ One tool call a scripted step emits.
 
 > **input**: `Record`\<`string`, `unknown`\>
 
-Defined in: [packages/agent-sdk/src/mock-model.ts:110](https://github.com/zocomputer/zov2-code/blob/a8636edc2f6184e686ebe291b26c3e5e9b3ae7ef/packages/agent-sdk/src/mock-model.ts#L110)
+Defined in: [packages/agent-sdk/src/mock-model.ts:110](https://github.com/zocomputer/zov2-code/blob/d15edc03b49c31d0244c34c64095ce9b88216fe1/packages/agent-sdk/src/mock-model.ts#L110)
 
 ***
 
@@ -24,4 +24,4 @@ Defined in: [packages/agent-sdk/src/mock-model.ts:110](https://github.com/zocomp
 
 > **toolName**: `string`
 
-Defined in: [packages/agent-sdk/src/mock-model.ts:109](https://github.com/zocomputer/zov2-code/blob/a8636edc2f6184e686ebe291b26c3e5e9b3ae7ef/packages/agent-sdk/src/mock-model.ts#L109)
+Defined in: [packages/agent-sdk/src/mock-model.ts:109](https://github.com/zocomputer/zov2-code/blob/d15edc03b49c31d0244c34c64095ce9b88216fe1/packages/agent-sdk/src/mock-model.ts#L109)

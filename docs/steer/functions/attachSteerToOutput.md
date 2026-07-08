@@ -8,7 +8,7 @@
 
 > **attachSteerToOutput**(`output`, `messages`): `Record`\<`string`, `unknown`\>
 
-Defined in: [packages/agent-sdk/src/steer.ts:65](https://github.com/zocomputer/zov2-code/blob/a8636edc2f6184e686ebe291b26c3e5e9b3ae7ef/packages/agent-sdk/src/steer.ts#L65)
+Defined in: [packages/agent-sdk/src/steer.ts:65](https://github.com/zocomputer/zov2-code/blob/d15edc03b49c31d0244c34c64095ce9b88216fe1/packages/agent-sdk/src/steer.ts#L65)
 
 Attach steered messages to a tool output. A record output keeps its own
 keys with the payload spread in alongside (merging with any messages a

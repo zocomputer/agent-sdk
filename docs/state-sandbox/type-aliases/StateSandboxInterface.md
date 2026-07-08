@@ -8,6 +8,6 @@
 
 > **StateSandboxInterface** = `"exec"` \| `"files"`
 
-Defined in: [packages/agent-sdk/src/state-sandbox.ts:9](https://github.com/zocomputer/zov2-code/blob/a8636edc2f6184e686ebe291b26c3e5e9b3ae7ef/packages/agent-sdk/src/state-sandbox.ts#L9)
+Defined in: [packages/agent-sdk/src/state-sandbox.ts:9](https://github.com/zocomputer/zov2-code/blob/d15edc03b49c31d0244c34c64095ce9b88216fe1/packages/agent-sdk/src/state-sandbox.ts#L9)
 
 The interface a state sandbox handle exposes: `exec` for shell commands, `files` for read/write.

@@ -6,7 +6,7 @@
 
 # Interface: StateFilesCredentials
 
-Defined in: [packages/agent-sdk/src/state-files.ts:27](https://github.com/zocomputer/zov2-code/blob/a8636edc2f6184e686ebe291b26c3e5e9b3ae7ef/packages/agent-sdk/src/state-files.ts#L27)
+Defined in: [packages/agent-sdk/src/state-files.ts:27](https://github.com/zocomputer/zov2-code/blob/d15edc03b49c31d0244c34c64095ce9b88216fe1/packages/agent-sdk/src/state-files.ts#L27)
 
 Temporary S3-compatible credentials for direct object-store access. Never log the secrets.
 
@@ -16,7 +16,7 @@ Temporary S3-compatible credentials for direct object-store access. Never log th
 
 > `readonly` **accessKeyId**: `string`
 
-Defined in: [packages/agent-sdk/src/state-files.ts:28](https://github.com/zocomputer/zov2-code/blob/a8636edc2f6184e686ebe291b26c3e5e9b3ae7ef/packages/agent-sdk/src/state-files.ts#L28)
+Defined in: [packages/agent-sdk/src/state-files.ts:28](https://github.com/zocomputer/zov2-code/blob/d15edc03b49c31d0244c34c64095ce9b88216fe1/packages/agent-sdk/src/state-files.ts#L28)
 
 ***
 
@@ -24,7 +24,7 @@ Defined in: [packages/agent-sdk/src/state-files.ts:28](https://github.com/zocomp
 
 > `readonly` **expiresAt**: `string`
 
-Defined in: [packages/agent-sdk/src/state-files.ts:31](https://github.com/zocomputer/zov2-code/blob/a8636edc2f6184e686ebe291b26c3e5e9b3ae7ef/packages/agent-sdk/src/state-files.ts#L31)
+Defined in: [packages/agent-sdk/src/state-files.ts:31](https://github.com/zocomputer/zov2-code/blob/d15edc03b49c31d0244c34c64095ce9b88216fe1/packages/agent-sdk/src/state-files.ts#L31)
 
 ***
 
@@ -32,7 +32,7 @@ Defined in: [packages/agent-sdk/src/state-files.ts:31](https://github.com/zocomp
 
 > `readonly` **secretAccessKey**: `string`
 
-Defined in: [packages/agent-sdk/src/state-files.ts:29](https://github.com/zocomputer/zov2-code/blob/a8636edc2f6184e686ebe291b26c3e5e9b3ae7ef/packages/agent-sdk/src/state-files.ts#L29)
+Defined in: [packages/agent-sdk/src/state-files.ts:29](https://github.com/zocomputer/zov2-code/blob/d15edc03b49c31d0244c34c64095ce9b88216fe1/packages/agent-sdk/src/state-files.ts#L29)
 
 ***
 
@@ -40,4 +40,4 @@ Defined in: [packages/agent-sdk/src/state-files.ts:29](https://github.com/zocomp
 
 > `readonly` **sessionToken**: `string`
 
-Defined in: [packages/agent-sdk/src/state-files.ts:30](https://github.com/zocomputer/zov2-code/blob/a8636edc2f6184e686ebe291b26c3e5e9b3ae7ef/packages/agent-sdk/src/state-files.ts#L30)
+Defined in: [packages/agent-sdk/src/state-files.ts:30](https://github.com/zocomputer/zov2-code/blob/d15edc03b49c31d0244c34c64095ce9b88216fe1/packages/agent-sdk/src/state-files.ts#L30)

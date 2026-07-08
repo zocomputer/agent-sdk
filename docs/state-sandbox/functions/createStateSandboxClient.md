@@ -8,7 +8,7 @@
 
 > **createStateSandboxClient**(`options`): [`StateSandboxClient`](../interfaces/StateSandboxClient.md)
 
-Defined in: [packages/agent-sdk/src/state-sandbox.ts:396](https://github.com/zocomputer/zov2-code/blob/a8636edc2f6184e686ebe291b26c3e5e9b3ae7ef/packages/agent-sdk/src/state-sandbox.ts#L396)
+Defined in: [packages/agent-sdk/src/state-sandbox.ts:396](https://github.com/zocomputer/zov2-code/blob/d15edc03b49c31d0244c34c64095ce9b88216fe1/packages/agent-sdk/src/state-sandbox.ts#L396)
 
 Creates a sandbox client that automatically renews its handle and caches the underlying session.
 Manages handle expiry, session disposal, and request queuing transparently.

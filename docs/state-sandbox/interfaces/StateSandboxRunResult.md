@@ -6,7 +6,7 @@
 
 # Interface: StateSandboxRunResult
 
-Defined in: [packages/agent-sdk/src/state-sandbox.ts:256](https://github.com/zocomputer/zov2-code/blob/a8636edc2f6184e686ebe291b26c3e5e9b3ae7ef/packages/agent-sdk/src/state-sandbox.ts#L256)
+Defined in: [packages/agent-sdk/src/state-sandbox.ts:256](https://github.com/zocomputer/zov2-code/blob/d15edc03b49c31d0244c34c64095ce9b88216fe1/packages/agent-sdk/src/state-sandbox.ts#L256)
 
 The result of running a shell command in a state sandbox.
 Contains exit code, stdout, and stderr as UTF-8 strings.
@@ -17,7 +17,7 @@ Contains exit code, stdout, and stderr as UTF-8 strings.
 
 > `readonly` **exitCode**: `number`
 
-Defined in: [packages/agent-sdk/src/state-sandbox.ts:257](https://github.com/zocomputer/zov2-code/blob/a8636edc2f6184e686ebe291b26c3e5e9b3ae7ef/packages/agent-sdk/src/state-sandbox.ts#L257)
+Defined in: [packages/agent-sdk/src/state-sandbox.ts:257](https://github.com/zocomputer/zov2-code/blob/d15edc03b49c31d0244c34c64095ce9b88216fe1/packages/agent-sdk/src/state-sandbox.ts#L257)
 
 ***
 
@@ -25,7 +25,7 @@ Defined in: [packages/agent-sdk/src/state-sandbox.ts:257](https://github.com/zoc
 
 > `readonly` **stderr**: `string`
 
-Defined in: [packages/agent-sdk/src/state-sandbox.ts:259](https://github.com/zocomputer/zov2-code/blob/a8636edc2f6184e686ebe291b26c3e5e9b3ae7ef/packages/agent-sdk/src/state-sandbox.ts#L259)
+Defined in: [packages/agent-sdk/src/state-sandbox.ts:259](https://github.com/zocomputer/zov2-code/blob/d15edc03b49c31d0244c34c64095ce9b88216fe1/packages/agent-sdk/src/state-sandbox.ts#L259)
 
 ***
 
@@ -33,4 +33,4 @@ Defined in: [packages/agent-sdk/src/state-sandbox.ts:259](https://github.com/zoc
 
 > `readonly` **stdout**: `string`
 
-Defined in: [packages/agent-sdk/src/state-sandbox.ts:258](https://github.com/zocomputer/zov2-code/blob/a8636edc2f6184e686ebe291b26c3e5e9b3ae7ef/packages/agent-sdk/src/state-sandbox.ts#L258)
+Defined in: [packages/agent-sdk/src/state-sandbox.ts:258](https://github.com/zocomputer/zov2-code/blob/d15edc03b49c31d0244c34c64095ce9b88216fe1/packages/agent-sdk/src/state-sandbox.ts#L258)
