@@ -121,6 +121,69 @@ describe("webfetch tool", () => {
     expect(readFileSync(spillPath, "utf8")).toBe(body);
   });
 
+  test("inline-first mode (no spillDir) returns whole content under the cap", async () => {
+    // ~80k chars: over the spill mode's 50k in-context budget but under the
+    // inline-first 100k default — exactly the band where the modes differ.
+    const underCap = `start-marker\n${"m".repeat(80_000)}\nend-marker`;
+    const tool = createWebFetchTool({
+      workspace,
+      attachImagesToChat: true,
+      maxInlineImageBytes: 5 * 1024 * 1024,
+      fetchImpl: () =>
+        Promise.resolve(
+          new Response(underCap, { status: 200, headers: { "content-type": "text/plain" } }),
+        ),
+    });
+    const result = await tool.execute({ url: "https://example.com/long.txt" }, ctx);
+    if (!("content" in result) || !("truncated" in result)) throw new Error("expected content");
+    // Whole content, verbatim — no truncation, nothing on disk.
+    expect(result.truncated).toBe(false);
+    expect(result.content).toBe(underCap);
+    expect(tool.description).toContain("Content returns whole");
+    expect(tool.description).not.toContain("spilled to a file");
+  });
+
+  test("inline-first mode truncates head+tail past the cap, naming no file", async () => {
+    const body = `start-marker\n${"middle line\n".repeat(20_000)}end-marker\n`; // ~240k chars
+    const tool = createWebFetchTool({
+      workspace,
+      attachImagesToChat: true,
+      maxInlineImageBytes: 5 * 1024 * 1024,
+      fetchImpl: () =>
+        Promise.resolve(
+          new Response(body, { status: 200, headers: { "content-type": "text/plain" } }),
+        ),
+    });
+    const result = await tool.execute({ url: "https://example.com/huge.txt" }, ctx);
+    if (!("content" in result) || !("truncated" in result)) throw new Error("expected content");
+    expect(result.truncated).toBe(true);
+    expect(result.totalChars).toBe(body.length);
+    // Head AND tail survive, within the inline budget (+ marker slack).
+    expect(result.content).toContain("start-marker");
+    expect(result.content).toContain("end-marker");
+    expect(result.content.length).toBeLessThan(100_000 + 500);
+    // No spill: the marker must not point at a file.
+    expect(result.content).not.toContain("full output:");
+  });
+
+  test("a custom maxInlineContentChars tightens the inline-first budget", async () => {
+    const body = "x".repeat(5_000);
+    const tool = createWebFetchTool({
+      workspace,
+      maxInlineContentChars: 1_000,
+      attachImagesToChat: true,
+      maxInlineImageBytes: 5 * 1024 * 1024,
+      fetchImpl: () =>
+        Promise.resolve(
+          new Response(body, { status: 200, headers: { "content-type": "text/plain" } }),
+        ),
+    });
+    const result = await tool.execute({ url: "https://example.com/x.txt" }, ctx);
+    if (!("content" in result) || !("truncated" in result)) throw new Error("expected content");
+    expect(result.truncated).toBe(true);
+    expect(result.content.length).toBeLessThan(1_000 + 200);
+  });
+
   test("extracts a fetched PDF to text with a page count", async () => {
     const pdf = readFileSync(fixture("two-page.pdf"));
     const tool = toolWith(

@@ -8,7 +8,7 @@
 
 > `const` **ContextAwareReplacer**: [`Replacer`](../type-aliases/Replacer.md)
 
-Defined in: [packages/agent-sdk/src/edit-match.ts:386](https://github.com/zocomputer/zov2-code/blob/b4029c52fbf982f223af7621dd5db23545388982/packages/agent-sdk/src/edit-match.ts#L386)
+Defined in: [packages/agent-sdk/src/edit-match.ts:386](https://github.com/zocomputer/zov2-code/blob/0bb195a93a5e8bd5814dac23311408353312bc4f/packages/agent-sdk/src/edit-match.ts#L386)
 
 Anchors like BlockAnchorReplacer (finds of 3+ lines) but the block must be
 exactly the find's length and at least half the middle non-empty trimmed

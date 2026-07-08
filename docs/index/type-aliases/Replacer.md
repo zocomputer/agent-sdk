@@ -8,7 +8,7 @@
 
 > **Replacer** = (`content`, `find`) => `Generator`\<`string`, `void`, `unknown`\>
 
-Defined in: [packages/agent-sdk/src/edit-match.ts:24](https://github.com/zocomputer/zov2-code/blob/b4029c52fbf982f223af7621dd5db23545388982/packages/agent-sdk/src/edit-match.ts#L24)
+Defined in: [packages/agent-sdk/src/edit-match.ts:24](https://github.com/zocomputer/zov2-code/blob/0bb195a93a5e8bd5814dac23311408353312bc4f/packages/agent-sdk/src/edit-match.ts#L24)
 
 A matching strategy: yields candidate spans of `content` that `find` may have meant.
 

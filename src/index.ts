@@ -496,7 +496,10 @@ export {
 } from "./tools/look";
 export { createReadTool } from "./tools/read";
 export { buildTasksToolset, createTasksTools } from "./tools/tasks";
-export { createWebFetchTool } from "./tools/webfetch";
+export {
+  createWebFetchTool,
+  DEFAULT_MAX_INLINE_CONTENT_CHARS,
+} from "./tools/webfetch";
 export { createWriteTool } from "./tools/write";
 
 export * from "./attachments";

@@ -8,6 +8,6 @@
 
 > `const` **WEB\_FETCH\_DEFAULT\_TIMEOUT\_SECONDS**: `30` = `30`
 
-Defined in: [packages/agent-sdk/src/web-fetch.ts:25](https://github.com/zocomputer/zov2-code/blob/b4029c52fbf982f223af7621dd5db23545388982/packages/agent-sdk/src/web-fetch.ts#L25)
+Defined in: [packages/agent-sdk/src/web-fetch.ts:25](https://github.com/zocomputer/zov2-code/blob/0bb195a93a5e8bd5814dac23311408353312bc4f/packages/agent-sdk/src/web-fetch.ts#L25)
 
 Default fetch timeout for HTML/text pages, in seconds.

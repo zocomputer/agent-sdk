@@ -8,7 +8,7 @@
 
 > **StateConsentEnvelope** = [`RequestStateConsentInput`](RequestStateConsentInput.md)
 
-Defined in: [packages/agent-sdk/src/state-consent-envelope.ts:47](https://github.com/zocomputer/zov2-code/blob/b4029c52fbf982f223af7621dd5db23545388982/packages/agent-sdk/src/state-consent-envelope.ts#L47)
+Defined in: [packages/agent-sdk/src/state-consent-envelope.ts:47](https://github.com/zocomputer/zov2-code/blob/0bb195a93a5e8bd5814dac23311408353312bc4f/packages/agent-sdk/src/state-consent-envelope.ts#L47)
 
 The consent envelope carried on a `consent_required` state error and passed
 through the tool — the single shape shared by the broker 409, the wrapper

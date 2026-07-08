@@ -132,8 +132,14 @@ The names are deliberately boring; the behavior behind them is the point:
   that leaves raw HTML flags itself. Fetched documents (PDF, DOCX/ODT/RTF,
   PPTX/ODP, spreadsheets, EPUB, notebooks) route through the same extractors
   as `read` (`.pdf` URLs get a longer default timeout); images return
-  metadata and attach to the chat like `read`; oversized bodies spill to
-  `stateDir`.
+  metadata and attach to the chat like `read`. Overflow has **two modes**:
+  with `spillDir` (what `createStdlib` wires — right wherever `read` shares a
+  filesystem with the tool), content past ~50k chars truncates head+tail and
+  the complete output spills to a file the marker names; **without it**
+  (inline-first — the split-topology mode, where a spill would land on the
+  eve process's disk the sandbox-backed `read` can't reach), the whole
+  rendered content returns inline up to `maxInlineContentChars` (default
+  100k), then truncates head+tail with no file to point at.
 - **`run_async` / `check_tasks` / `await_task`** persist the task registry
   across restarts (tasks running across a restart report as `lost`); any
   `defineOp` op becomes `run_async`-able via `extraBackgroundables`.

@@ -138,10 +138,39 @@ function pathLabelForFetch(finalUrl: string, contentType: string, body: Buffer):
   return pathname + ext;
 }
 
+/**
+ * Default in-context character budget for the inline-first mode (no
+ * `spillDir`): the whole rendered content returns inline up to this, then
+ * head+tail truncation. ~25k tokens — markdownified pages are compact, so
+ * most land far under it; the cap is the "extremely long" ceiling and a
+ * context-cost knob (tool results enter the transcript permanently).
+ */
+export const DEFAULT_MAX_INLINE_CONTENT_CHARS = 100_000;
+
+// Inline-first keeps most of the budget at the head (the extracted main
+// content reads top-down) but preserves a tail slice so the end of a long
+// page — footers, appendices, the last table — survives truncation.
+const INLINE_TAIL_FRACTION = 0.25;
+
 /** Build the webfetch tool that fetches URLs, renders HTML to markdown, extracts documents, and queues media attachments. */
 export function createWebFetchTool(opts: {
   workspace: Workspace;
-  spillDir: string;
+  /**
+   * Where oversized output spills as a file the truncation marker names —
+   * the right mode wherever `read` shares a filesystem with this tool (a
+   * local agent): content over ~50k chars truncates head+tail and the
+   * complete output lands on disk. **Omit for the inline-first mode** (the
+   * hosted/split-topology default, where a spill would land on the eve
+   * process's disk that the sandbox-backed `read` can't reach): the whole
+   * rendered content returns inline up to `maxInlineContentChars`, then
+   * truncates head+tail with no file to point at.
+   */
+  spillDir?: string;
+  /**
+   * Inline-first mode's character budget (no effect when `spillDir` is
+   * set). Defaults to {@link DEFAULT_MAX_INLINE_CONTENT_CHARS}.
+   */
+  maxInlineContentChars?: number;
   attachImagesToChat: boolean;
   maxInlineImageBytes: number;
   /** Attach fetched video the way images attach — see `createReadTool`. Default false. */
@@ -177,13 +206,30 @@ export function createWebFetchTool(opts: {
   const attachVideoToChat = opts.attachVideoToChat ?? false;
   const attachAudioToChat = opts.attachAudioToChat ?? false;
   const maxInlineMediaBytes = opts.maxInlineMediaBytes ?? DEFAULT_MAX_INLINE_MEDIA_BYTES;
+  const maxInlineContentChars =
+    opts.maxInlineContentChars ?? DEFAULT_MAX_INLINE_CONTENT_CHARS;
+  const inlineTailChars = Math.floor(maxInlineContentChars * INLINE_TAIL_FRACTION);
+  const inlineHeadChars = maxInlineContentChars - inlineTailChars;
 
   const bounded = (text: string, format: WebFetchFormat, kind: "text" | "extracted") => {
-    const spillPath = join(spillDir, spillFilename(format, kind));
-    const capture = createBoundedCapture({
-      spillPath,
-      spillLabel: workspace.relativize(spillPath),
-    });
+    // Two modes, decided at factory time: spill (tight inline budget, the
+    // complete output on disk) vs inline-first (the whole content in the
+    // result up to the cap, nothing on disk). createBoundedCapture reports
+    // an untruncated result whenever head+tail hold everything contiguously,
+    // so under the cap the inline-first mode returns the exact content.
+    const capture =
+      spillDir !== undefined
+        ? (() => {
+            const spillPath = join(spillDir, spillFilename(format, kind));
+            return createBoundedCapture({
+              spillPath,
+              spillLabel: workspace.relativize(spillPath),
+            });
+          })()
+        : createBoundedCapture({
+            headChars: inlineHeadChars,
+            tailChars: inlineTailChars,
+          });
     capture.append(text);
     const snapshot = capture.snapshot();
     return {
@@ -198,9 +244,16 @@ export function createWebFetchTool(opts: {
     "fetching",
   );
 
+  // Static per factory build (prompt-cache safe): the overflow sentence
+  // matches the bounding mode.
+  const overflowHint =
+    spillDir !== undefined
+      ? "Content over the in-context budget is truncated head+tail and the complete output is spilled to a file named in the truncation marker — read or grep that file instead of re-fetching."
+      : "Content returns whole; only extremely long pages truncate head+tail (the marker shows the boundary) — refetch a narrower page or a more specific URL if the middle matters.";
+
   return defineTool({
     description:
-      `Fetch a URL and return its content. HTML pages are reduced to their main content (boilerplate stripped, title/author/date header) and converted to readable markdown by default (set format to "text" for plain text or "html" for the raw page). Fetched documents (PDF, DOCX/ODT/RTF, PPTX/ODP, spreadsheets, EPUB, Jupyter notebooks) are converted to plain text; ${mediaHint}. Content over the in-context budget is truncated head+tail and the complete output is spilled to a file named in the truncation marker — read or grep that file instead of re-fetching. Default timeout ${WEB_FETCH_DEFAULT_TIMEOUT_SECONDS}s (${WEB_FETCH_PDF_DEFAULT_TIMEOUT_SECONDS}s for PDFs), max ${WEB_FETCH_MAX_TIMEOUT_SECONDS}s; responses over 5 MB error. Read-only: one HTTP GET, no side effects.`,
+      `Fetch a URL and return its content. HTML pages are reduced to their main content (boilerplate stripped, title/author/date header) and converted to readable markdown by default (set format to "text" for plain text or "html" for the raw page). Fetched documents (PDF, DOCX/ODT/RTF, PPTX/ODP, spreadsheets, EPUB, Jupyter notebooks) are converted to plain text; ${mediaHint}. ${overflowHint} Default timeout ${WEB_FETCH_DEFAULT_TIMEOUT_SECONDS}s (${WEB_FETCH_PDF_DEFAULT_TIMEOUT_SECONDS}s for PDFs), max ${WEB_FETCH_MAX_TIMEOUT_SECONDS}s; responses over 5 MB error. Read-only: one HTTP GET, no side effects.`,
     inputSchema: z.object({
       url: z
         .string()
