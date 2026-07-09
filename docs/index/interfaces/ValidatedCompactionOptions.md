@@ -6,7 +6,7 @@
 
 # Interface: ValidatedCompactionOptions
 
-Defined in: [packages/agent-sdk/src/validated-compaction.ts:95](https://github.com/zocomputer/zov2-code/blob/c013587aa4ecd77d27b6774cf5b1fead3e0418d5/packages/agent-sdk/src/validated-compaction.ts#L95)
+Defined in: [packages/agent-sdk/src/validated-compaction.ts:95](https://github.com/zocomputer/zov2-code/blob/2c62d8b884523ef65360fa00bdaffe3cdda99189/packages/agent-sdk/src/validated-compaction.ts#L95)
 
 Options for [withValidatedCompaction](../functions/withValidatedCompaction.md).
 
@@ -16,7 +16,7 @@ Options for [withValidatedCompaction](../functions/withValidatedCompaction.md).
 
 > `optional` **judgeMaxOutputTokens?**: `number`
 
-Defined in: [packages/agent-sdk/src/validated-compaction.ts:120](https://github.com/zocomputer/zov2-code/blob/c013587aa4ecd77d27b6774cf5b1fead3e0418d5/packages/agent-sdk/src/validated-compaction.ts#L120)
+Defined in: [packages/agent-sdk/src/validated-compaction.ts:120](https://github.com/zocomputer/zov2-code/blob/2c62d8b884523ef65360fa00bdaffe3cdda99189/packages/agent-sdk/src/validated-compaction.ts#L120)
 
 `maxOutputTokens` for the judge call. Defaults to
 [DEFAULT\_JUDGE\_MAX\_OUTPUT\_TOKENS](../variables/DEFAULT_JUDGE_MAX_OUTPUT_TOKENS.md).
@@ -27,7 +27,7 @@ Defined in: [packages/agent-sdk/src/validated-compaction.ts:120](https://github.
 
 > `optional` **judgeTimeoutMs?**: `number`
 
-Defined in: [packages/agent-sdk/src/validated-compaction.ts:125](https://github.com/zocomputer/zov2-code/blob/c013587aa4ecd77d27b6774cf5b1fead3e0418d5/packages/agent-sdk/src/validated-compaction.ts#L125)
+Defined in: [packages/agent-sdk/src/validated-compaction.ts:125](https://github.com/zocomputer/zov2-code/blob/2c62d8b884523ef65360fa00bdaffe3cdda99189/packages/agent-sdk/src/validated-compaction.ts#L125)
 
 Judge-call timeout in milliseconds; on expiry the facade fails open.
 Defaults to [DEFAULT\_JUDGE\_TIMEOUT\_MS](../variables/DEFAULT_JUDGE_TIMEOUT_MS.md).
@@ -38,7 +38,7 @@ Defaults to [DEFAULT\_JUDGE\_TIMEOUT\_MS](../variables/DEFAULT_JUDGE_TIMEOUT_MS.
 
 > `optional` **maxRecoveredChars?**: `number`
 
-Defined in: [packages/agent-sdk/src/validated-compaction.ts:109](https://github.com/zocomputer/zov2-code/blob/c013587aa4ecd77d27b6774cf5b1fead3e0418d5/packages/agent-sdk/src/validated-compaction.ts#L109)
+Defined in: [packages/agent-sdk/src/validated-compaction.ts:109](https://github.com/zocomputer/zov2-code/blob/2c62d8b884523ef65360fa00bdaffe3cdda99189/packages/agent-sdk/src/validated-compaction.ts#L109)
 
 Cap on the appended recovery section, in characters. Facts are kept
 whole — the last one that would cross the cap is dropped, not clipped.
@@ -50,7 +50,7 @@ Defaults to [DEFAULT\_MAX\_RECOVERED\_CHARS](../variables/DEFAULT_MAX_RECOVERED_
 
 > `optional` **maxRecoveredFacts?**: `number`
 
-Defined in: [packages/agent-sdk/src/validated-compaction.ts:115](https://github.com/zocomputer/zov2-code/blob/c013587aa4ecd77d27b6774cf5b1fead3e0418d5/packages/agent-sdk/src/validated-compaction.ts#L115)
+Defined in: [packages/agent-sdk/src/validated-compaction.ts:115](https://github.com/zocomputer/zov2-code/blob/2c62d8b884523ef65360fa00bdaffe3cdda99189/packages/agent-sdk/src/validated-compaction.ts#L115)
 
 Cap on how many judge-reported facts are considered (the judge is told to
 order most-important-first). Defaults to
@@ -62,7 +62,7 @@ order most-important-first). Defaults to
 
 > `optional` **onValidation?**: (`report`) => `void`
 
-Defined in: [packages/agent-sdk/src/validated-compaction.ts:131](https://github.com/zocomputer/zov2-code/blob/c013587aa4ecd77d27b6774cf5b1fead3e0418d5/packages/agent-sdk/src/validated-compaction.ts#L131)
+Defined in: [packages/agent-sdk/src/validated-compaction.ts:131](https://github.com/zocomputer/zov2-code/blob/2c62d8b884523ef65360fa00bdaffe3cdda99189/packages/agent-sdk/src/validated-compaction.ts#L131)
 
 Observer for each validated compaction. Called once per intercepted
 compaction call with the [CompactionValidationReport](../type-aliases/CompactionValidationReport.md); exceptions it
@@ -84,7 +84,7 @@ throws are swallowed (observability must not fail the compaction).
 
 > `optional` **validationSystemPrompt?**: `string`
 
-Defined in: [packages/agent-sdk/src/validated-compaction.ts:103](https://github.com/zocomputer/zov2-code/blob/c013587aa4ecd77d27b6774cf5b1fead3e0418d5/packages/agent-sdk/src/validated-compaction.ts#L103)
+Defined in: [packages/agent-sdk/src/validated-compaction.ts:103](https://github.com/zocomputer/zov2-code/blob/2c62d8b884523ef65360fa00bdaffe3cdda99189/packages/agent-sdk/src/validated-compaction.ts#L103)
 
 The judge's system prompt. Defaults to
 [buildValidationSystemPrompt](../functions/buildValidationSystemPrompt.md) over `maxRecoveredFacts`. Replace it to

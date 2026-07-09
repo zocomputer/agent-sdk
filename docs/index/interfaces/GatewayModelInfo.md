@@ -6,7 +6,7 @@
 
 # Interface: GatewayModelInfo
 
-Defined in: [packages/agent-sdk/src/task.ts:365](https://github.com/zocomputer/zov2-code/blob/c013587aa4ecd77d27b6774cf5b1fead3e0418d5/packages/agent-sdk/src/task.ts#L365)
+Defined in: [packages/agent-sdk/src/task.ts:365](https://github.com/zocomputer/zov2-code/blob/2c62d8b884523ef65360fa00bdaffe3cdda99189/packages/agent-sdk/src/task.ts#L365)
 
 One model entry from the AI Gateway's public model catalog.
 
@@ -16,7 +16,7 @@ One model entry from the AI Gateway's public model catalog.
 
 > **contextWindow**: `number` \| `undefined`
 
-Defined in: [packages/agent-sdk/src/task.ts:383](https://github.com/zocomputer/zov2-code/blob/c013587aa4ecd77d27b6774cf5b1fead3e0418d5/packages/agent-sdk/src/task.ts#L383)
+Defined in: [packages/agent-sdk/src/task.ts:383](https://github.com/zocomputer/zov2-code/blob/2c62d8b884523ef65360fa00bdaffe3cdda99189/packages/agent-sdk/src/task.ts#L383)
 
 The model's context window in tokens (the catalog's `context_window`).
 The number eve's `modelContextWindowTokens` needs for wrapped models
@@ -31,7 +31,7 @@ check the resolved value in, never fetch at agent build time.
 
 > **description**: `string` \| `undefined`
 
-Defined in: [packages/agent-sdk/src/task.ts:368](https://github.com/zocomputer/zov2-code/blob/c013587aa4ecd77d27b6774cf5b1fead3e0418d5/packages/agent-sdk/src/task.ts#L368)
+Defined in: [packages/agent-sdk/src/task.ts:368](https://github.com/zocomputer/zov2-code/blob/2c62d8b884523ef65360fa00bdaffe3cdda99189/packages/agent-sdk/src/task.ts#L368)
 
 ***
 
@@ -39,7 +39,7 @@ Defined in: [packages/agent-sdk/src/task.ts:368](https://github.com/zocomputer/z
 
 > **id**: `string`
 
-Defined in: [packages/agent-sdk/src/task.ts:366](https://github.com/zocomputer/zov2-code/blob/c013587aa4ecd77d27b6774cf5b1fead3e0418d5/packages/agent-sdk/src/task.ts#L366)
+Defined in: [packages/agent-sdk/src/task.ts:366](https://github.com/zocomputer/zov2-code/blob/2c62d8b884523ef65360fa00bdaffe3cdda99189/packages/agent-sdk/src/task.ts#L366)
 
 ***
 
@@ -47,7 +47,7 @@ Defined in: [packages/agent-sdk/src/task.ts:366](https://github.com/zocomputer/z
 
 > **maxOutputTokens**: `number` \| `undefined`
 
-Defined in: [packages/agent-sdk/src/task.ts:388](https://github.com/zocomputer/zov2-code/blob/c013587aa4ecd77d27b6774cf5b1fead3e0418d5/packages/agent-sdk/src/task.ts#L388)
+Defined in: [packages/agent-sdk/src/task.ts:388](https://github.com/zocomputer/zov2-code/blob/2c62d8b884523ef65360fa00bdaffe3cdda99189/packages/agent-sdk/src/task.ts#L388)
 
 The model's maximum output tokens per response (the catalog's
 `max_tokens`). `undefined` when the entry carries none.
@@ -58,7 +58,7 @@ The model's maximum output tokens per response (the catalog's
 
 > **name**: `string` \| `undefined`
 
-Defined in: [packages/agent-sdk/src/task.ts:367](https://github.com/zocomputer/zov2-code/blob/c013587aa4ecd77d27b6774cf5b1fead3e0418d5/packages/agent-sdk/src/task.ts#L367)
+Defined in: [packages/agent-sdk/src/task.ts:367](https://github.com/zocomputer/zov2-code/blob/2c62d8b884523ef65360fa00bdaffe3cdda99189/packages/agent-sdk/src/task.ts#L367)
 
 ***
 
@@ -66,7 +66,7 @@ Defined in: [packages/agent-sdk/src/task.ts:367](https://github.com/zocomputer/z
 
 > **tags**: readonly `string`[] \| `undefined`
 
-Defined in: [packages/agent-sdk/src/task.ts:374](https://github.com/zocomputer/zov2-code/blob/c013587aa4ecd77d27b6774cf5b1fead3e0418d5/packages/agent-sdk/src/task.ts#L374)
+Defined in: [packages/agent-sdk/src/task.ts:374](https://github.com/zocomputer/zov2-code/blob/2c62d8b884523ef65360fa00bdaffe3cdda99189/packages/agent-sdk/src/task.ts#L374)
 
 Capability tags (e.g. `vision`, `file-input`, `reasoning`, `tool-use`) —
 the input-modality signal `capabilitiesFromCatalogEntry`

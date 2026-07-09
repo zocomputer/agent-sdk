@@ -8,7 +8,7 @@
 
 > **renderTruncationMarker**(`opts`): `string`
 
-Defined in: [packages/agent-sdk/src/bounded-output.ts:46](https://github.com/zocomputer/zov2-code/blob/c013587aa4ecd77d27b6774cf5b1fead3e0418d5/packages/agent-sdk/src/bounded-output.ts#L46)
+Defined in: [packages/agent-sdk/src/bounded-output.ts:46](https://github.com/zocomputer/zov2-code/blob/2c62d8b884523ef65360fa00bdaffe3cdda99189/packages/agent-sdk/src/bounded-output.ts#L46)
 
 Render the in-text truncation marker for a bounded capture. Exported so
 runners that assemble `head + marker + tail` themselves (the sandbox
