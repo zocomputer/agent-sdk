@@ -8,7 +8,7 @@
 
 > **dirChain**(`relPath`): `string`[]
 
-Defined in: [packages/agent-sdk/src/dir-conventions.ts:98](https://github.com/zocomputer/zov2-code/blob/a97705ed30ddbf8dde363ccc922ce6eb90aa90a3/packages/agent-sdk/src/dir-conventions.ts#L98)
+Defined in: [packages/agent-sdk/src/dir-conventions.ts:98](https://github.com/zocomputer/zov2-code/blob/8718aaa2765d9af21ff0cbb162dec35286dbcb11/packages/agent-sdk/src/dir-conventions.ts#L98)
 
 The directory chain a read of `relPath` passes through, shallow → deep,
 excluding the workspace root itself. Accepts `/` or `\` separators and

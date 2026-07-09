@@ -6,7 +6,7 @@
 
 # Interface: StateFilesObject
 
-Defined in: [packages/agent-sdk/src/state-files.ts:195](https://github.com/zocomputer/zov2-code/blob/a97705ed30ddbf8dde363ccc922ce6eb90aa90a3/packages/agent-sdk/src/state-files.ts#L195)
+Defined in: [packages/agent-sdk/src/state-files.ts:195](https://github.com/zocomputer/zov2-code/blob/8718aaa2765d9af21ff0cbb162dec35286dbcb11/packages/agent-sdk/src/state-files.ts#L195)
 
 Metadata for a single object in the state-files store.
 
@@ -16,7 +16,7 @@ Metadata for a single object in the state-files store.
 
 > `readonly` `optional` **etag?**: `string`
 
-Defined in: [packages/agent-sdk/src/state-files.ts:198](https://github.com/zocomputer/zov2-code/blob/a97705ed30ddbf8dde363ccc922ce6eb90aa90a3/packages/agent-sdk/src/state-files.ts#L198)
+Defined in: [packages/agent-sdk/src/state-files.ts:198](https://github.com/zocomputer/zov2-code/blob/8718aaa2765d9af21ff0cbb162dec35286dbcb11/packages/agent-sdk/src/state-files.ts#L198)
 
 ***
 
@@ -24,7 +24,7 @@ Defined in: [packages/agent-sdk/src/state-files.ts:198](https://github.com/zocom
 
 > `readonly` **key**: `string`
 
-Defined in: [packages/agent-sdk/src/state-files.ts:196](https://github.com/zocomputer/zov2-code/blob/a97705ed30ddbf8dde363ccc922ce6eb90aa90a3/packages/agent-sdk/src/state-files.ts#L196)
+Defined in: [packages/agent-sdk/src/state-files.ts:196](https://github.com/zocomputer/zov2-code/blob/8718aaa2765d9af21ff0cbb162dec35286dbcb11/packages/agent-sdk/src/state-files.ts#L196)
 
 ***
 
@@ -32,7 +32,7 @@ Defined in: [packages/agent-sdk/src/state-files.ts:196](https://github.com/zocom
 
 > `readonly` `optional` **lastModified?**: `Date`
 
-Defined in: [packages/agent-sdk/src/state-files.ts:199](https://github.com/zocomputer/zov2-code/blob/a97705ed30ddbf8dde363ccc922ce6eb90aa90a3/packages/agent-sdk/src/state-files.ts#L199)
+Defined in: [packages/agent-sdk/src/state-files.ts:199](https://github.com/zocomputer/zov2-code/blob/8718aaa2765d9af21ff0cbb162dec35286dbcb11/packages/agent-sdk/src/state-files.ts#L199)
 
 ***
 
@@ -40,4 +40,4 @@ Defined in: [packages/agent-sdk/src/state-files.ts:199](https://github.com/zocom
 
 > `readonly` `optional` **size?**: `number`
 
-Defined in: [packages/agent-sdk/src/state-files.ts:197](https://github.com/zocomputer/zov2-code/blob/a97705ed30ddbf8dde363ccc922ce6eb90aa90a3/packages/agent-sdk/src/state-files.ts#L197)
+Defined in: [packages/agent-sdk/src/state-files.ts:197](https://github.com/zocomputer/zov2-code/blob/8718aaa2765d9af21ff0cbb162dec35286dbcb11/packages/agent-sdk/src/state-files.ts#L197)

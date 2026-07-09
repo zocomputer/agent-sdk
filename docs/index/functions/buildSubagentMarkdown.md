@@ -6,21 +6,27 @@
 
 # Function: buildSubagentMarkdown()
 
-> **buildSubagentMarkdown**(`workspaceNoun?`, `roster?`): `string`
+> **buildSubagentMarkdown**(`opts?`): `string`
 
-Defined in: [packages/agent-sdk/src/instructions.ts:229](https://github.com/zocomputer/zov2-code/blob/a97705ed30ddbf8dde363ccc922ce6eb90aa90a3/packages/agent-sdk/src/instructions.ts#L229)
+Defined in: [packages/agent-sdk/src/instructions.ts:536](https://github.com/zocomputer/zov2-code/blob/8718aaa2765d9af21ff0cbb162dec35286dbcb11/packages/agent-sdk/src/instructions.ts#L536)
 
 Pure markdown for the subagent delegation playbook.
 
 ## Parameters
 
-### workspaceNoun?
+### opts?
 
-`string` = `"workspace"`
-
-### roster?
+#### roster?
 
 readonly [`SubagentRosterEntry`](../interfaces/SubagentRosterEntry.md)[]
+
+#### tier?
+
+[`InstructionTier`](../type-aliases/InstructionTier.md)
+
+#### workspaceNoun?
+
+`string`
 
 ## Returns
 

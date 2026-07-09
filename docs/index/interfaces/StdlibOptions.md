@@ -6,7 +6,7 @@
 
 # Interface: StdlibOptions
 
-Defined in: [packages/agent-sdk/src/index.ts:62](https://github.com/zocomputer/zov2-code/blob/a97705ed30ddbf8dde363ccc922ce6eb90aa90a3/packages/agent-sdk/src/index.ts#L62)
+Defined in: [packages/agent-sdk/src/index.ts:66](https://github.com/zocomputer/zov2-code/blob/8718aaa2765d9af21ff0cbb162dec35286dbcb11/packages/agent-sdk/src/index.ts#L66)
 
 Options for building the stdlib: workspace root, state directory, display
 noun, attachment/media settings, steering, subagent roster, and optional
@@ -18,7 +18,7 @@ extra backgroundable operations.
 
 > `optional` **attachAudioToChat?**: `boolean`
 
-Defined in: [packages/agent-sdk/src/index.ts:138](https://github.com/zocomputer/zov2-code/blob/a97705ed30ddbf8dde363ccc922ce6eb90aa90a3/packages/agent-sdk/src/index.ts#L138)
+Defined in: [packages/agent-sdk/src/index.ts:142](https://github.com/zocomputer/zov2-code/blob/8718aaa2765d9af21ff0cbb162dec35286dbcb11/packages/agent-sdk/src/index.ts#L142)
 
 Attach audio files (mp3/wav/ogg/flac/m4a). Same gating as video.
 
@@ -28,7 +28,7 @@ Attach audio files (mp3/wav/ogg/flac/m4a). Same gating as video.
 
 > `optional` **attachImagesToChat?**: `boolean`
 
-Defined in: [packages/agent-sdk/src/index.ts:97](https://github.com/zocomputer/zov2-code/blob/a97705ed30ddbf8dde363ccc922ce6eb90aa90a3/packages/agent-sdk/src/index.ts#L97)
+Defined in: [packages/agent-sdk/src/index.ts:101](https://github.com/zocomputer/zov2-code/blob/8718aaa2765d9af21ff0cbb162dec35286dbcb11/packages/agent-sdk/src/index.ts#L101)
 
 When `read` or `webfetch` hits an image, embed its bytes on the tool
 result so a client can re-inject it as a viewable attachment on the next
@@ -45,7 +45,7 @@ fails the redelivery turn at the provider). An explicit value always wins.
 
 > `optional` **attachVideoToChat?**: `boolean`
 
-Defined in: [packages/agent-sdk/src/index.ts:136](https://github.com/zocomputer/zov2-code/blob/a97705ed30ddbf8dde363ccc922ce6eb90aa90a3/packages/agent-sdk/src/index.ts#L136)
+Defined in: [packages/agent-sdk/src/index.ts:140](https://github.com/zocomputer/zov2-code/blob/8718aaa2765d9af21ff0cbb162dec35286dbcb11/packages/agent-sdk/src/index.ts#L140)
 
 Attach video files (mp4/mov/webm/mkv/avi) the way images attach. Defaults
 to `false`: video input is provider-gated (Gemini accepts it; Claude and
@@ -59,7 +59,7 @@ enable once both hold for your agent.
 
 > `optional` **bashInteractiveHint?**: `string`
 
-Defined in: [packages/agent-sdk/src/index.ts:81](https://github.com/zocomputer/zov2-code/blob/a97705ed30ddbf8dde363ccc922ce6eb90aa90a3/packages/agent-sdk/src/index.ts#L81)
+Defined in: [packages/agent-sdk/src/index.ts:85](https://github.com/zocomputer/zov2-code/blob/8718aaa2765d9af21ff0cbb162dec35286dbcb11/packages/agent-sdk/src/index.ts#L85)
 
 Replaces bash's default "avoid interactive CLIs" warning — point it at
 your agent's real-terminal tool if it has one.
@@ -70,7 +70,7 @@ your agent's real-terminal tool if it has one.
 
 > `optional` **conventionsFileName?**: `string`
 
-Defined in: [packages/agent-sdk/src/index.ts:159](https://github.com/zocomputer/zov2-code/blob/a97705ed30ddbf8dde363ccc922ce6eb90aa90a3/packages/agent-sdk/src/index.ts#L159)
+Defined in: [packages/agent-sdk/src/index.ts:163](https://github.com/zocomputer/zov2-code/blob/8718aaa2765d9af21ff0cbb162dec35286dbcb11/packages/agent-sdk/src/index.ts#L163)
 
 Conventions filename the read riders look for. Defaults to "AGENTS.md".
 
@@ -80,7 +80,7 @@ Conventions filename the read riders look for. Defaults to "AGENTS.md".
 
 > `optional` **extraBackgroundables?**: (`ctx`) => readonly [`BackgroundableOp`](BackgroundableOp.md)[]
 
-Defined in: [packages/agent-sdk/src/index.ts:83](https://github.com/zocomputer/zov2-code/blob/a97705ed30ddbf8dde363ccc922ce6eb90aa90a3/packages/agent-sdk/src/index.ts#L83)
+Defined in: [packages/agent-sdk/src/index.ts:87](https://github.com/zocomputer/zov2-code/blob/8718aaa2765d9af21ff0cbb162dec35286dbcb11/packages/agent-sdk/src/index.ts#L87)
 
 Extra run_async-able ops beyond bash (see defineOp).
 
@@ -102,11 +102,25 @@ readonly [`BackgroundableOp`](BackgroundableOp.md)[]
 
 ***
 
+### extraInstructionSections?
+
+> `optional` **extraInstructionSections?**: readonly [`PlacedPromptSection`](PlacedPromptSection.md)[] \| (() => readonly [`PlacedPromptSection`](PlacedPromptSection.md)[])
+
+Defined in: [packages/agent-sdk/src/index.ts:200](https://github.com/zocomputer/zov2-code/blob/8718aaa2765d9af21ff0cbb162dec35286dbcb11/packages/agent-sdk/src/index.ts#L200)
+
+Consumer-owned sections `instructions.stack` inserts at baseline anchors
+(see [PlacedPromptSection](PlacedPromptSection.md)). Pass a function to defer building
+until "session.started" — for sections that read the filesystem per
+session (e.g. a skills catalog) while staying prompt-cache stable within
+the session.
+
+***
+
 ### injectDirConventions?
 
 > `optional` **injectDirConventions?**: `boolean`
 
-Defined in: [packages/agent-sdk/src/index.ts:155](https://github.com/zocomputer/zov2-code/blob/a97705ed30ddbf8dde363ccc922ce6eb90aa90a3/packages/agent-sdk/src/index.ts#L155)
+Defined in: [packages/agent-sdk/src/index.ts:159](https://github.com/zocomputer/zov2-code/blob/8718aaa2765d9af21ff0cbb162dec35286dbcb11/packages/agent-sdk/src/index.ts#L159)
 
 Attach a directory's conventions file to the first `read` under it, once
 per directory per session (see ./dir-conventions.ts). The root file is
@@ -114,11 +128,26 @@ excluded — `instructions.repoConventions` covers it. Defaults to `true`.
 
 ***
 
+### instructionTier?
+
+> `optional` **instructionTier?**: [`InstructionTier`](../type-aliases/InstructionTier.md)
+
+Defined in: [packages/agent-sdk/src/index.ts:186](https://github.com/zocomputer/zov2-code/blob/8718aaa2765d9af21ff0cbb162dec35286dbcb11/packages/agent-sdk/src/index.ts#L186)
+
+Prose depth for every instruction section: `"full"` (default, each rule
+with its rationale) or `"compact"` (~⅓ the prose, same load-bearing rules
+and tool names — for small/code-tuned models where a long behavioral
+prompt crowds the context). Both tiers are generated from one source, so
+they can't drift. Applies to `instructions.stack` and every à la carte
+instruction.
+
+***
+
 ### maxInlineImageBytes?
 
 > `optional` **maxInlineImageBytes?**: `number`
 
-Defined in: [packages/agent-sdk/src/index.ts:128](https://github.com/zocomputer/zov2-code/blob/a97705ed30ddbf8dde363ccc922ce6eb90aa90a3/packages/agent-sdk/src/index.ts#L128)
+Defined in: [packages/agent-sdk/src/index.ts:132](https://github.com/zocomputer/zov2-code/blob/8718aaa2765d9af21ff0cbb162dec35286dbcb11/packages/agent-sdk/src/index.ts#L132)
 
 Max image size (bytes) to inline on the tool result; larger images fall
 back to the metadata-only note. Defaults to 3 MiB — eve's attachment
@@ -133,7 +162,7 @@ read/fetch).
 
 > `optional` **maxInlineMediaBytes?**: `number`
 
-Defined in: [packages/agent-sdk/src/index.ts:144](https://github.com/zocomputer/zov2-code/blob/a97705ed30ddbf8dde363ccc922ce6eb90aa90a3/packages/agent-sdk/src/index.ts#L144)
+Defined in: [packages/agent-sdk/src/index.ts:148](https://github.com/zocomputer/zov2-code/blob/8718aaa2765d9af21ff0cbb162dec35286dbcb11/packages/agent-sdk/src/index.ts#L148)
 
 Max video/audio size (bytes) to inline on the tool result. Defaults to
 10 MB (read's stat guard rejects bigger files outright; webfetch's 5 MB
@@ -145,7 +174,7 @@ response cap bites first for fetches).
 
 > `optional` **mediaOracle?**: [`MediaOracleOption`](../type-aliases/MediaOracleOption.md)
 
-Defined in: [packages/agent-sdk/src/index.ts:119](https://github.com/zocomputer/zov2-code/blob/a97705ed30ddbf8dde363ccc922ce6eb90aa90a3/packages/agent-sdk/src/index.ts#L119)
+Defined in: [packages/agent-sdk/src/index.ts:123](https://github.com/zocomputer/zov2-code/blob/8718aaa2765d9af21ff0cbb162dec35286dbcb11/packages/agent-sdk/src/index.ts#L123)
 
 Wire the `look` media-oracle tool: delegate one question about a media
 file the session model can't view to a pinned capable model. `true`
@@ -158,11 +187,23 @@ routing playbook, and read/webfetch's unavailable-media hints route to
 
 ***
 
+### omitInstructionSections?
+
+> `optional` **omitInstructionSections?**: readonly (`"subagents"` \| `"media"` \| `"repo-conventions"` \| `"workflow"` \| `"planning"` \| `"parallel-tools"` \| `"communication"` \| `"hitl"`)[]
+
+Defined in: [packages/agent-sdk/src/index.ts:192](https://github.com/zocomputer/zov2-code/blob/8718aaa2765d9af21ff0cbb162dec35286dbcb11/packages/agent-sdk/src/index.ts#L192)
+
+Baseline sections `instructions.stack` should drop, by id (e.g. a
+chat-only agent omitting `"subagents"`). À la carte instructions are
+unaffected — simply don't wire the ones you don't want.
+
+***
+
 ### parentCapabilities?
 
 > `optional` **parentCapabilities?**: [`ModelInputCapabilities`](ModelInputCapabilities.md)
 
-Defined in: [packages/agent-sdk/src/index.ts:108](https://github.com/zocomputer/zov2-code/blob/a97705ed30ddbf8dde363ccc922ce6eb90aa90a3/packages/agent-sdk/src/index.ts#L108)
+Defined in: [packages/agent-sdk/src/index.ts:112](https://github.com/zocomputer/zov2-code/blob/8718aaa2765d9af21ff0cbb162dec35286dbcb11/packages/agent-sdk/src/index.ts#L112)
 
 The session model's own input capabilities, resolved by the consumer
 (`capabilitiesForModel` over the gateway catalog, checked in — see
@@ -179,7 +220,7 @@ capability-derived default would promise media the runtime won't deliver.
 
 > **stateDir**: `string`
 
-Defined in: [packages/agent-sdk/src/index.ts:70](https://github.com/zocomputer/zov2-code/blob/a97705ed30ddbf8dde363ccc922ce6eb90aa90a3/packages/agent-sdk/src/index.ts#L70)
+Defined in: [packages/agent-sdk/src/index.ts:74](https://github.com/zocomputer/zov2-code/blob/8718aaa2765d9af21ff0cbb162dec35286dbcb11/packages/agent-sdk/src/index.ts#L74)
 
 Directory for the stdlib's local state: the background-task store
 (`tasks.json`) and spilled oversized tool output (`tool-outputs/`).
@@ -191,7 +232,7 @@ Typically a gitignored dot-directory inside the workspace.
 
 > `optional` **steer?**: `object`
 
-Defined in: [packages/agent-sdk/src/index.ts:167](https://github.com/zocomputer/zov2-code/blob/a97705ed30ddbf8dde363ccc922ce6eb90aa90a3/packages/agent-sdk/src/index.ts#L167)
+Defined in: [packages/agent-sdk/src/index.ts:171](https://github.com/zocomputer/zov2-code/blob/8718aaa2765d9af21ff0cbb162dec35286dbcb11/packages/agent-sdk/src/index.ts#L171)
 
 Enable steering: a directory (typically under `stateDir`) where UI
 clients queue mid-turn messages (see ./steer-inbox). Every stdlib tool is
@@ -209,7 +250,7 @@ before delivering go out on park instead.
 
 > `optional` **subagentRoster?**: readonly [`SubagentRosterEntry`](SubagentRosterEntry.md)[]
 
-Defined in: [packages/agent-sdk/src/index.ts:173](https://github.com/zocomputer/zov2-code/blob/a97705ed30ddbf8dde363ccc922ce6eb90aa90a3/packages/agent-sdk/src/index.ts#L173)
+Defined in: [packages/agent-sdk/src/index.ts:177](https://github.com/zocomputer/zov2-code/blob/8718aaa2765d9af21ff0cbb162dec35286dbcb11/packages/agent-sdk/src/index.ts#L177)
 
 Declared subagents the delegation playbook should route work to (e.g. the
 model-tier task preset — see ./task.ts). Grows `instructions.subagents`
@@ -221,7 +262,7 @@ with a "Choosing a subagent" section. Interpolated once at build time.
 
 > `optional` **verifyCommandHint?**: `string`
 
-Defined in: [packages/agent-sdk/src/index.ts:149](https://github.com/zocomputer/zov2-code/blob/a97705ed30ddbf8dde363ccc922ce6eb90aa90a3/packages/agent-sdk/src/index.ts#L149)
+Defined in: [packages/agent-sdk/src/index.ts:153](https://github.com/zocomputer/zov2-code/blob/8718aaa2765d9af21ff0cbb162dec35286dbcb11/packages/agent-sdk/src/index.ts#L153)
 
 Verify command mentioned by the workflow instruction (e.g. "bun run
 check"). Interpolated once at build time; omit for a generic hint.
@@ -232,7 +273,7 @@ check"). Interpolated once at build time; omit for a generic hint.
 
 > `optional` **workspaceNoun?**: `string`
 
-Defined in: [packages/agent-sdk/src/index.ts:76](https://github.com/zocomputer/zov2-code/blob/a97705ed30ddbf8dde363ccc922ce6eb90aa90a3/packages/agent-sdk/src/index.ts#L76)
+Defined in: [packages/agent-sdk/src/index.ts:80](https://github.com/zocomputer/zov2-code/blob/8718aaa2765d9af21ff0cbb162dec35286dbcb11/packages/agent-sdk/src/index.ts#L80)
 
 What tool descriptions call the workspace — "repo" for a coding agent in a
 git checkout, "project", … Defaults to "workspace". Interpolated once at
@@ -244,6 +285,6 @@ build time, so descriptions stay prompt-cache stable.
 
 > **workspaceRoot**: `string`
 
-Defined in: [packages/agent-sdk/src/index.ts:64](https://github.com/zocomputer/zov2-code/blob/a97705ed30ddbf8dde363ccc922ce6eb90aa90a3/packages/agent-sdk/src/index.ts#L64)
+Defined in: [packages/agent-sdk/src/index.ts:68](https://github.com/zocomputer/zov2-code/blob/8718aaa2765d9af21ff0cbb162dec35286dbcb11/packages/agent-sdk/src/index.ts#L68)
 
 Directory the agent works in; file tools refuse paths that escape it.

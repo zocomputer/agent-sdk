@@ -1,7 +1,7 @@
-// ../../../../../tmp/agent-sdk-mirror-49AUeD/repo/src/index.ts
+// ../../../../../tmp/agent-sdk-mirror-eEkw45/repo/src/index.ts
 import { join as join8 } from "node:path";
 
-// ../../../../../tmp/agent-sdk-mirror-49AUeD/repo/src/attachments.ts
+// ../../../../../tmp/agent-sdk-mirror-eEkw45/repo/src/attachments.ts
 var CHAT_ATTACHMENT_FIELD = "chatAttachment";
 var DEFAULT_MAX_INLINE_IMAGE_BYTES = 3 * 1024 * 1024;
 var DEFAULT_MAX_INLINE_MEDIA_BYTES = 10 * 1024 * 1024;
@@ -48,7 +48,7 @@ function readChatAttachment(toolOutput) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-49AUeD/repo/src/async-tasks.ts
+// ../../../../../tmp/agent-sdk-mirror-eEkw45/repo/src/async-tasks.ts
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname } from "node:path";
 function isRecord2(value) {
@@ -226,7 +226,7 @@ function buildTaskRegistry(opts) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-49AUeD/repo/src/backgroundable.ts
+// ../../../../../tmp/agent-sdk-mirror-eEkw45/repo/src/backgroundable.ts
 import { z } from "zod";
 function defineOp(cfg) {
   return {
@@ -270,7 +270,7 @@ function createBashOp(runner) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-49AUeD/repo/src/bounded-output.ts
+// ../../../../../tmp/agent-sdk-mirror-eEkw45/repo/src/bounded-output.ts
 import { appendFileSync, mkdirSync as mkdirSync2, writeFileSync as writeFileSync2 } from "node:fs";
 import { dirname as dirname2 } from "node:path";
 var HEAD_CHARS = 25000;
@@ -371,7 +371,7 @@ function createBoundedCapture(opts = {}) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-49AUeD/repo/src/dir-conventions.ts
+// ../../../../../tmp/agent-sdk-mirror-eEkw45/repo/src/dir-conventions.ts
 import { readFileSync as readFileSync2 } from "node:fs";
 import { join } from "node:path";
 var DEFAULT_MAX_BYTES_PER_FILE = 16 * 1024;
@@ -483,12 +483,12 @@ function createDirConventionsTracker(options) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-49AUeD/repo/src/instructions.ts
+// ../../../../../tmp/agent-sdk-mirror-eEkw45/repo/src/instructions.ts
 import { readFileSync as readFileSync3 } from "node:fs";
 import { resolve } from "node:path";
 import { defineDynamic, defineInstructions } from "eve/instructions";
 
-// ../../../../../tmp/agent-sdk-mirror-49AUeD/repo/src/model-capabilities.ts
+// ../../../../../tmp/agent-sdk-mirror-eEkw45/repo/src/model-capabilities.ts
 var TEXT_ONLY_CAPABILITIES = {
   image: false,
   pdf: false,
@@ -547,21 +547,67 @@ function describeCapabilities(caps) {
   return `can view ${joinList(can, "and")}, but not ${joinList(cannot, "or")}`;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-49AUeD/repo/src/instructions.ts
-function buildRepoConventionsMarkdown(workspaceRoot) {
+// ../../../../../tmp/agent-sdk-mirror-eEkw45/repo/src/prompt-sections.ts
+function renderPromptSection(section) {
+  const body = section.body.trim();
+  if (body === "")
+    return "";
+  return `## ${section.heading}
+
+${body}`;
+}
+function renderPromptSections(sections) {
+  return sections.map(renderPromptSection).filter((rendered) => rendered !== "").join(`
+
+`);
+}
+function composePromptSections(baseline, options) {
+  const omit = new Set(options?.omit ?? []);
+  const kept = baseline.filter((section) => !omit.has(section.id));
+  const keptIds = new Set(kept.map((section) => section.id));
+  const before = new Map;
+  const after = new Map;
+  const trailing = [];
+  for (const extra of options?.extras ?? []) {
+    const placement = extra.placement;
+    const anchor = placement === undefined ? undefined : ("before" in placement) ? placement.before : placement.after;
+    if (anchor === undefined || !keptIds.has(anchor)) {
+      trailing.push(extra.section);
+      continue;
+    }
+    const bucket = placement !== undefined && "before" in placement ? before : after;
+    const list = bucket.get(anchor) ?? [];
+    list.push(extra.section);
+    bucket.set(anchor, list);
+  }
+  const composed = [];
+  for (const section of kept) {
+    composed.push(...before.get(section.id) ?? []);
+    composed.push(section);
+    composed.push(...after.get(section.id) ?? []);
+  }
+  composed.push(...trailing);
+  return composed;
+}
+
+// ../../../../../tmp/agent-sdk-mirror-eEkw45/repo/src/instructions.ts
+function repoConventionsSection(opts) {
   let agents = "";
   try {
-    agents = readFileSync3(resolve(workspaceRoot, "AGENTS.md"), "utf8").trim();
+    agents = readFileSync3(resolve(opts.workspaceRoot, "AGENTS.md"), "utf8").trim();
   } catch {}
-  if (!agents)
-    return "";
-  return `## Repository conventions (root AGENTS.md)
-
-These repo-wide conventions always apply. Nested directories add their own \`AGENTS.md\` — read those for the code you touch.
+  return {
+    id: "repo-conventions",
+    heading: "Repository conventions (root AGENTS.md)",
+    body: agents ? `These repo-wide conventions always apply. Nested directories add their own \`AGENTS.md\` — read those for the code you touch.
 
 <root-agents-md>
 ${agents}
-</root-agents-md>`;
+</root-agents-md>` : ""
+  };
+}
+function buildRepoConventionsMarkdown(workspaceRoot) {
+  return renderPromptSection(repoConventionsSection({ workspaceRoot }));
 }
 function createRepoConventionsInstruction(opts) {
   const { workspaceRoot } = opts;
@@ -571,11 +617,71 @@ function createRepoConventionsInstruction(opts) {
     }
   });
 }
-function createParallelToolsInstruction() {
-  const instruction = defineInstructions({
-    markdown: `## Parallel tool calls
+function workflowSection(opts) {
+  const noun = opts?.workspaceNoun ?? "workspace";
+  const verify = opts?.verifyCommandHint ? ` (e.g. \`${opts.verifyCommandHint}\`)` : "";
+  const body = (opts?.tier ?? "full") === "compact" ? `- Explore with \`glob\`/\`grep\` and \`read\` before editing; match the ${noun}'s existing patterns.
+- Read a file before editing it. \`edit\` for targeted changes; \`write\` for new files or full rewrites.
+- Fixing a bug? Write a minimal reproduction (a failing test or script), run it to confirm the failure, fix, then re-run it to confirm the failure is gone.
+- After changing code, run the relevant checks${verify} and fix what you broke.
+- Track multi-step work with \`todo\`.
+- Don't end your turn on promised work ("I'll…"), next steps you could take now, or a question a tool call could answer — do the work, or report what blocks it.` : `1. **Explore before you edit.** Find the relevant code with \`glob\`/\`grep\` and \`read\` it — match the ${noun}'s existing patterns instead of guessing.
+2. **Read a file before editing it**, so your edits target the current text. Prefer \`edit\` for targeted changes; use \`write\` for new files or full rewrites.
+3. **Follow the surrounding conventions.** Match the style, structure, and idioms of the code around your change rather than imposing your own.
+4. **Reproduce a bug before you fix it.** When the task is a bug fix, write a minimal reproduction — a failing test, or a small script — and run it to confirm the failure before changing code. After the fix, re-run the reproduction to prove the failure is gone; prefer a test-shaped repro that stays in the suite so the bug stays fixed. A fix you never watched fail is a guess.
+5. **Verify your work.** After changing code, run the relevant checks${verify} and fix what you broke. Leave the ${noun} in a working state.
+6. **Track multi-step work** with \`todo\`, and keep it current as you finish each step.
+7. **Finish the job before ending your turn.** Reread your final message: if it promises work ("I'll…"), lays out next steps you could take now, or asks a question you could answer yourself with a tool call, do that work instead of stopping. End your turn only when the task is complete or you're blocked on something only the user can provide.`;
+  return { id: "workflow", heading: "How to work", body };
+}
+function buildWorkflowMarkdown(opts) {
+  return renderPromptSection(workflowSection(opts));
+}
+function createWorkflowInstruction(opts) {
+  const instruction = defineInstructions({ markdown: buildWorkflowMarkdown(opts) });
+  return defineDynamic({
+    events: {
+      "session.started": () => instruction
+    }
+  });
+}
+function planningSection(opts) {
+  const body = (opts?.tier ?? "full") === "compact" ? `- Track any multi-step task with \`todo\`; skip the list for a single obvious action.
+- Steps are specific and verifiable — no filler items ("investigate", "final polish").
+- Keep exactly one item \`in_progress\`; mark items \`completed\` the moment they're done, not batched at the end.
+- Each \`todo\` write replaces the whole list — always send every item.
+- Rewrite the plan when scope changes; mark obsolete items \`cancelled\`.
+- End your turn with every item \`completed\` or \`cancelled\`.` : `Use the \`todo\` tool as your live plan for any multi-step task — the user watches it to follow your progress.
 
-Long-running work can continue in the **background** instead of blocking the turn. The \`bash\` tool does this automatically: if a command is still running after its short foreground wait, it returns a \`task_id\` and keeps the process alive. You can also use \`run_async\` when you already know the work should start in the background. After you start background work, decide whether your *next* action depends on its output:
+- **Plan real tasks, skip trivia.** A task with several distinct steps (or real ambiguity about the approach) gets a todo list up front; a single obvious action doesn't need one.
+- **Make steps specific and verifiable.** Each item names concrete work with a clear done-state, not a vague direction. No filler steps ("investigate", "final polish"), and don't pad a two-step task into five.
+- **Keep exactly one item \`in_progress\`.** Mark it before you start that work, and mark it \`completed\` the moment it's done — don't batch completions at the end.
+- **Each write replaces the whole list**, so always send every item, not a delta.
+- **Rewrite the plan when the task changes.** New discoveries or a scope pivot mean updating the list to match reality — mark items that no longer apply \`cancelled\` rather than leaving them pending.
+- **Don't restate the list in prose.** The user sees the todo list itself; your messages should carry what it can't.
+- **End your turn with every item \`completed\` or \`cancelled\`.** An item still \`pending\` or \`in_progress\` means the work isn't done — finish it or say what blocks it.`;
+  return { id: "planning", heading: "Planning your work (todo)", body };
+}
+function buildPlanningMarkdown(opts) {
+  return renderPromptSection(planningSection(opts));
+}
+function createPlanningInstruction(opts) {
+  const instruction = defineInstructions({ markdown: buildPlanningMarkdown(opts) });
+  return defineDynamic({
+    events: {
+      "session.started": () => instruction
+    }
+  });
+}
+function parallelToolsSection(opts) {
+  const body = (opts?.tier ?? "full") === "compact" ? `Long-running work continues in the **background**: \`bash\` auto-returns a \`task_id\` when a command outlives its short foreground wait; \`run_async\` starts there directly.
+
+- Next action independent of the result? Keep working, then \`check_tasks\` (non-blocking status) or \`await_task\` (blocks for the result). Dependent? \`await_task\` right away.
+- Several tasks can run at once — track their \`task_id\`s.
+- Watching for one signal in the output? Pass \`notify\` (\`{ pattern, reason }\`) to \`bash\`/\`run_async\`, or \`run_async\`'s \`notify_on_complete\`, instead of polling.
+- When you do poll on wall-clock time, keep each blocking call under ~4 minutes — one long silent call lets the provider prompt cache expire and re-prices your whole context.
+- Completed results survive restarts; a task running through a restart reports \`lost\` — start it again if it still matters.
+- Before ending your turn, await every task whose result matters (\`check_tasks\` if unsure what's in flight).` : `Long-running work can continue in the **background** instead of blocking the turn. The \`bash\` tool does this automatically: if a command is still running after its short foreground wait, it returns a \`task_id\` and keeps the process alive. You can also use \`run_async\` when you already know the work should start in the background. After you start background work, decide whether your *next* action depends on its output:
 
 - **Independent?** Keep working — read files, make edits, start other tasks — then \`check_tasks\` (non-blocking status + live output preview) or \`await_task\` (blocks for the result) when it's convenient.
 - **Dependent?** Call \`await_task\` right away; treat it like a normal blocking call.
@@ -587,7 +693,15 @@ Guidance:
 - For a long job where you only care about a specific signal — a failure line, a "listening on" banner — pass \`notify\` (\`{ pattern, reason }\`) to \`bash\` or \`run_async\` instead of polling: matching output is delivered to you as a message while you're idle. \`run_async\`'s \`notify_on_complete\` does the same when the task settles.
 - When you do poll on wall-clock time (waiting on CI, a review, a deploy), keep any single blocking call under ~4 minutes — one sleep+check per call, not a whole retry loop in one call. Provider prompt caches expire after ~5 minutes of model inactivity, so one long silent call re-prices your entire context on the next step; returning between polls keeps it warm.
 - Background task metadata and completed results persist across agent restarts. A task still running during a restart is reported as \`lost\`; start it again if its result still matters.
-- Before finishing your turn, make sure any background task whose result matters has been awaited — don't end while relevant work is still running. If you're unsure what's still in flight, call \`check_tasks\`. A task you set a \`notify\` watcher on may keep running — its matches will reach you as messages.`
+- Before finishing your turn, make sure any background task whose result matters has been awaited — don't end while relevant work is still running. If you're unsure what's still in flight, call \`check_tasks\`. A task you set a \`notify\` watcher on may keep running — its matches will reach you as messages.`;
+  return { id: "parallel-tools", heading: "Parallel tool calls", body };
+}
+function buildParallelToolsMarkdown(opts) {
+  return renderPromptSection(parallelToolsSection(opts));
+}
+function createParallelToolsInstruction(opts) {
+  const instruction = defineInstructions({
+    markdown: buildParallelToolsMarkdown(opts)
   });
   return defineDynamic({
     events: {
@@ -595,73 +709,74 @@ Guidance:
     }
   });
 }
-function buildWorkflowMarkdown(opts) {
-  const noun = opts?.workspaceNoun ?? "workspace";
-  const verify = opts?.verifyCommandHint ? ` (e.g. \`${opts.verifyCommandHint}\`)` : "";
-  return `## How to work
-
-1. **Explore before you edit.** Find the relevant code with \`glob\`/\`grep\` and \`read\` it — match the ${noun}'s existing patterns instead of guessing.
-2. **Read a file before editing it**, so your edits target the current text. Prefer \`edit\` for targeted changes; use \`write\` for new files or full rewrites.
-3. **Follow the surrounding conventions.** Match the style, structure, and idioms of the code around your change rather than imposing your own.
-4. **Verify your work.** After changing code, run the relevant checks${verify} and fix what you broke. Leave the ${noun} in a working state.
-5. **Track multi-step work** with \`todo\`, and keep it current as you finish each step.
-6. **Finish the job before ending your turn.** Reread your final message: if it promises work ("I'll…"), lays out next steps you could take now, or asks a question you could answer yourself with a tool call, do that work instead of stopping. End your turn only when the task is complete or you're blocked on something only the user can provide.`;
-}
-function createWorkflowInstruction(opts) {
-  const instruction = defineInstructions({ markdown: buildWorkflowMarkdown(opts) });
-  return defineDynamic({
-    events: {
-      "session.started": () => instruction
-    }
-  });
-}
-function buildCommunicationMarkdown() {
-  return `## Communicating
-
-- **Lead with the outcome.** The first sentence of your final message answers "what happened" — what changed, what you found, whether it worked. Supporting detail and reasoning come after, for readers who want them.
+function communicationSection(opts) {
+  const body = (opts?.tier ?? "full") === "compact" ? `- Lead with the outcome: the first sentence says what changed, what you found, whether it worked.
+- Readable beats brief — complete sentences, and name the specific file, function, or command, not "the relevant helper".
+- When the user is diagnosing, investigate and report; apply a fix only when asked.
+- Act within scope without asking permission; stop only for destructive or hard-to-reverse actions, or genuine scope changes.
+- Report faithfully: a failed check gets said with its output, a skipped step gets named, done-and-verified gets stated plainly.` : `- **Lead with the outcome.** The first sentence of your final message answers "what happened" — what changed, what you found, whether it worked. Supporting detail and reasoning come after, for readers who want them.
 - **Readable beats brief.** Shorten by dropping detail that doesn't change what the reader does next — not by compressing prose into fragments, arrow chains, or bare jargon. Write complete sentences and name the specific thing (the actual file, function, or command), not "the relevant helper".
 - **Report, don't fix, when the user is diagnosing.** If they're describing a problem or asking a question, the deliverable is your assessment: investigate and report. Apply a fix only when they ask for one.
 - **Act within scope without asking.** For reversible actions that follow from the task, decide and proceed — asking "Should I…?" stalls the work. Stop to ask only for destructive or hard-to-reverse actions, or genuine scope changes the user must decide.
 - **Report outcomes faithfully.** If a check fails, say so and include the output; if you skipped a step, say that; when something is done and verified, state it plainly without hedging.`;
+  return { id: "communication", heading: "Communicating", body };
 }
-function createCommunicationInstruction() {
-  const instruction = defineInstructions({ markdown: buildCommunicationMarkdown() });
+function buildCommunicationMarkdown(opts) {
+  return renderPromptSection(communicationSection(opts));
+}
+function createCommunicationInstruction(opts) {
+  const instruction = defineInstructions({
+    markdown: buildCommunicationMarkdown(opts)
+  });
   return defineDynamic({
     events: {
       "session.started": () => instruction
     }
   });
 }
-function buildHitlMarkdown() {
-  return `## Asking the user (ask_question)
+function hitlSection(opts) {
+  const body = (opts?.tier ?? "full") === "compact" ? `Call \`ask_question\` only when you're blocked on a choice that is the user's to make — never for permission to proceed with a reasonable default.
 
-Call \`ask_question\` only when you're genuinely blocked on a choice that is the user's to make — not for permission to proceed with a reasonable default you can pick yourself. When you do ask:
+- Enumerable choices → \`options\` (each \`{ id, label, description?, style? }\`); put your recommendation first with \`style: "primary"\`, use \`style: "danger"\` for destructive choices.
+- Keep \`allowFreeform: true\` unless the answer must be exactly one of the options.
+- Ask independent questions as several \`ask_question\` calls in one response — they collect into a single prompt with all answers at once.` : `Call \`ask_question\` only when you're genuinely blocked on a choice that is the user's to make — not for permission to proceed with a reasonable default you can pick yourself. When you do ask:
 
 - **Offer \`options\` when the choices are enumerable** instead of asking open-ended; each option is \`{ id, label, description?, style? }\` and the user answers with one click.
 - **Put your recommended option first** and mark it \`style: "primary"\`. Use \`style: "danger"\` for destructive or hard-to-reverse choices.
 - **Use each option's \`description\`** for the trade-off the label can't carry.
 - **Keep free text open** (\`allowFreeform: true\`) unless the answer must be exactly one of the options.
 - **Ask independent questions together**: emit several \`ask_question\` calls in one response — they collect into a single prompt and you get all the answers at once, instead of making the user answer serial round-trips.`;
+  return { id: "hitl", heading: "Asking the user (ask_question)", body };
 }
-function createHitlInstruction() {
-  const instruction = defineInstructions({ markdown: buildHitlMarkdown() });
+function buildHitlMarkdown(opts) {
+  return renderPromptSection(hitlSection(opts));
+}
+function createHitlInstruction(opts) {
+  const instruction = defineInstructions({ markdown: buildHitlMarkdown(opts) });
   return defineDynamic({
     events: {
       "session.started": () => instruction
     }
   });
 }
-function buildLookMarkdown(opts) {
+function lookSection(opts) {
   const oraclePhrase = describeCapabilities(opts.capabilities);
   const parentSentence = opts.parentCapabilities ? ` Your own model ${describeCapabilities(opts.parentCapabilities)}.` : "";
-  return `## Media you can't view (look)
+  const body = (opts.tier ?? "full") === "compact" ? `The \`look\` tool delegates one question about a media file you can't view to ${opts.modelName} — a model that ${oraclePhrase} — and returns its answer as text.${parentSentence}
 
-Some files carry content your model can't take as input.${parentSentence} The \`look\` tool delegates one question about a media file to ${opts.modelName} — a model that ${oraclePhrase} — sending the file's bytes and your prompt in a single call and returning the answer as text.
+- Documents (PDF, DOCX, spreadsheets) convert to text through \`read\` — no delegation needed.
+- Prefer \`read\` for media it can deliver; when it returns metadata only, its note names the right move.
+- \`look\` at kinds outside your own input support: pass the path and a self-contained question.
+- Ask for the deliverable (transcribe, describe, summarize), not a viewing — the model sees only the file and your prompt.` : `Some files carry content your model can't take as input.${parentSentence} The \`look\` tool delegates one question about a media file to ${opts.modelName} — a model that ${oraclePhrase} — sending the file's bytes and your prompt in a single call and returning the answer as text.
 
 - **Documents come back as text.** PDFs, DOCX, and spreadsheets convert through \`read\` — no delegation needed for their text.
 - **Prefer \`read\` for media it can deliver.** When \`read\` can put a media file in front of you it says so in its result; when it returns metadata only, its note names the right move.
 - **\`look\` at what you can't view.** For kinds outside your own input support (or when a read note points there), pass the path and a self-contained question to \`look\` instead of reporting a dead end.
 - **Ask for the deliverable, not a viewing.** The model sees only the file and your prompt — request the specific extraction you need (transcribe the visible text, describe the layout, summarize the recording) so one answer suffices.`;
+  return { id: "media", heading: "Media you can't view (look)", body };
+}
+function buildLookMarkdown(opts) {
+  return renderPromptSection(lookSection(opts));
 }
 function createLookInstruction(opts) {
   const instruction = defineInstructions({ markdown: buildLookMarkdown(opts) });
@@ -671,9 +786,18 @@ function createLookInstruction(opts) {
     }
   });
 }
-function buildSubagentMarkdown(workspaceNoun = "workspace", roster) {
-  const noun = workspaceNoun;
-  const rosterSection = roster && roster.length > 0 ? `
+function subagentSection(opts) {
+  const noun = opts?.workspaceNoun ?? "workspace";
+  const roster = opts?.roster;
+  const compact = (opts?.tier ?? "full") === "compact";
+  const rosterSection = roster && roster.length > 0 ? compact ? `
+
+Declared specialists (same \`{ message, outputSchema? }\` input):
+
+${roster.map((entry) => `- **\`${entry.name}\`** — ${entry.when}.`).join(`
+`)}
+
+Prefer the matching specialist; use the clone \`agent\` when none fits. Writing specialists share the non-overlapping write-scope rule; read-only ones fan out freely.` : `
 
 ### Choosing a subagent
 
@@ -683,19 +807,26 @@ ${roster.map((entry) => `- **\`${entry.name}\`** — ${entry.when}.`).join(`
 `)}
 
 Prefer a specialist when its purpose or model tier matches the subtask; use the clone \`agent\` when none fits. A specialist that can edit shares the non-overlapping write-scope rule above; one that cannot write is safe to fan out freely.` : "";
-  return `## Delegating with the agent tool
+  const body = compact ? `\`agent\` runs a focused subtask in a fresh clone of yourself — same tools and instructions, same ${noun}, but a **blank conversation**: the child sees only your \`message\`.
 
-\`agent\` runs a focused subtask in a **fresh copy of yourself** — same tools and instructions, same ${noun}, but a **blank conversation**: the child sees only the \`message\` you send, none of your history. It's how you parallelize.
+- Pack the message with everything the child needs: the exact deliverable, paths, constraints, context it can't discover cheaply.
+- Fan out independent subtasks as several \`agent\` calls in one response; give parallel children non-overlapping write scopes — they share your ${noun}.
+- Don't delegate what one or two direct tool calls would answer.
+- Set \`outputSchema\` when you need structured output back.${rosterSection}` : `\`agent\` runs a focused subtask in a **fresh copy of yourself** — same tools and instructions, same ${noun}, but a **blank conversation**: the child sees only the \`message\` you send, none of your history. It's how you parallelize.
 
 - **Pack the message with everything the child needs**: the exact deliverable, relevant paths, constraints, and any context it can't discover cheaply. A vague delegation wastes the whole child run.
 - **Fan out independent subtasks in parallel**: emit several \`agent\` calls in one response — they run concurrently and all results return before you continue. Fan out only work that's genuinely independent.
 - **Give parallel children non-overlapping write scopes** (different files or directories). They share your ${noun} and see each other's writes; overlapping edits clobber.
 - **Don't delegate trivia.** A subtask that one or two direct tool calls would answer is faster done yourself; delegation pays off for self-contained work with real depth (multi-file exploration, an isolated fix + verify, a report).
 - Set \`outputSchema\` when you need structured output back instead of prose.${rosterSection}`;
+  return { id: "subagents", heading: "Delegating with the agent tool", body };
+}
+function buildSubagentMarkdown(opts) {
+  return renderPromptSection(subagentSection(opts));
 }
 function createSubagentInstruction(opts) {
   const instruction = defineInstructions({
-    markdown: buildSubagentMarkdown(opts?.workspaceNoun, opts?.roster)
+    markdown: buildSubagentMarkdown(opts)
   });
   return defineDynamic({
     events: {
@@ -703,8 +834,48 @@ function createSubagentInstruction(opts) {
     }
   });
 }
+var INSTRUCTION_STACK_SECTION_IDS = [
+  "repo-conventions",
+  "workflow",
+  "planning",
+  "parallel-tools",
+  "subagents",
+  "media",
+  "hitl",
+  "communication"
+];
+function buildInstructionStackSections(opts) {
+  const tier = opts.tier ?? "full";
+  const workspaceNoun = opts.workspaceNoun;
+  const baseline = [
+    repoConventionsSection({ workspaceRoot: opts.workspaceRoot }),
+    workflowSection({
+      workspaceNoun,
+      verifyCommandHint: opts.verifyCommandHint,
+      tier
+    }),
+    planningSection({ tier }),
+    parallelToolsSection({ tier }),
+    subagentSection({ workspaceNoun, roster: opts.subagentRoster, tier }),
+    ...opts.media ? [lookSection({ ...opts.media, tier })] : [],
+    hitlSection({ tier }),
+    communicationSection({ tier })
+  ];
+  const extras = typeof opts.extraSections === "function" ? opts.extraSections() : opts.extraSections;
+  return composePromptSections(baseline, { omit: opts.omitSections, extras });
+}
+function buildInstructionStackMarkdown(opts) {
+  return renderPromptSections(buildInstructionStackSections(opts));
+}
+function createInstructionStackInstruction(opts) {
+  return defineDynamic({
+    events: {
+      "session.started": () => defineInstructions({ markdown: buildInstructionStackMarkdown(opts) })
+    }
+  });
+}
 
-// ../../../../../tmp/agent-sdk-mirror-49AUeD/repo/src/run.ts
+// ../../../../../tmp/agent-sdk-mirror-eEkw45/repo/src/run.ts
 import { spawn } from "node:child_process";
 import { join as join2 } from "node:path";
 var MAX_PREVIEW = 20000;
@@ -805,7 +976,7 @@ function createCommandRunner(opts) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-49AUeD/repo/src/steer-inbox.ts
+// ../../../../../tmp/agent-sdk-mirror-eEkw45/repo/src/steer-inbox.ts
 import {
   appendFileSync as appendFileSync2,
   linkSync,
@@ -816,7 +987,7 @@ import {
 } from "node:fs";
 import { join as join3 } from "node:path";
 
-// ../../../../../tmp/agent-sdk-mirror-49AUeD/repo/src/steer.ts
+// ../../../../../tmp/agent-sdk-mirror-eEkw45/repo/src/steer.ts
 var STEER_FIELD = "user_steer";
 var STEER_WRAPPED_OUTPUT_FIELD = "steer_wrapped_output";
 var STEER_DIRNAME = "steer";
@@ -886,7 +1057,7 @@ function parseSteerLine(line) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-49AUeD/repo/src/steer-inbox.ts
+// ../../../../../tmp/agent-sdk-mirror-eEkw45/repo/src/steer-inbox.ts
 var drainSequence = 0;
 function createSteerInbox(options) {
   const now = options.now ?? Date.now;
@@ -935,7 +1106,7 @@ function createSteerInbox(options) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-49AUeD/repo/src/steer-tool.ts
+// ../../../../../tmp/agent-sdk-mirror-eEkw45/repo/src/steer-tool.ts
 import { defineTool } from "eve/tools";
 function withSteerDelivery(tool, inbox) {
   const originalToModelOutput = tool.toModelOutput?.bind(tool);
@@ -967,11 +1138,11 @@ function createSteerWrapper(inbox) {
   return (tool) => withSteerDelivery(tool, inbox);
 }
 
-// ../../../../../tmp/agent-sdk-mirror-49AUeD/repo/src/tools/bash.ts
+// ../../../../../tmp/agent-sdk-mirror-eEkw45/repo/src/tools/bash.ts
 import { defineTool as defineTool2 } from "eve/tools";
 import { z as z2 } from "zod";
 
-// ../../../../../tmp/agent-sdk-mirror-49AUeD/repo/src/park-delivery.ts
+// ../../../../../tmp/agent-sdk-mirror-eEkw45/repo/src/park-delivery.ts
 function isRecord4(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
@@ -1087,7 +1258,7 @@ function setParkNotificationHandler(handler) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-49AUeD/repo/src/watch-output.ts
+// ../../../../../tmp/agent-sdk-mirror-eEkw45/repo/src/watch-output.ts
 var DEFAULT_WATCH_DEBOUNCE_MS = 5000;
 var DEFAULT_MAX_WATCH_NOTIFICATIONS = 5;
 function createOutputWatcher(options) {
@@ -1145,7 +1316,7 @@ function formatCompletionNotification(opts) {
   return `Background task ${opts.taskId} (${opts.label}) ${outcome}. Call await_task to collect its result.`;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-49AUeD/repo/src/tools/bash.ts
+// ../../../../../tmp/agent-sdk-mirror-eEkw45/repo/src/tools/bash.ts
 var DEFAULT_INTERACTIVE_HINT = "This is a piped shell with NO tty: avoid interactive or full-screen CLIs (a REPL, vim, an interactive installer/prompt) — those programs hang or degrade without a real terminal.";
 function createBashTool(opts) {
   const { workspace, runner, registry, noun } = opts;
@@ -1233,11 +1404,11 @@ function createBashTool(opts) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-49AUeD/repo/src/tools/edit.ts
+// ../../../../../tmp/agent-sdk-mirror-eEkw45/repo/src/tools/edit.ts
 import { defineTool as defineTool3 } from "eve/tools";
 import { z as z3 } from "zod";
 
-// ../../../../../tmp/agent-sdk-mirror-49AUeD/repo/src/edit-match.ts
+// ../../../../../tmp/agent-sdk-mirror-eEkw45/repo/src/edit-match.ts
 class EditNotFoundError extends Error {
   constructor() {
     super("old_string not found. It must match the file contents exactly, including whitespace and indentation.");
@@ -1684,7 +1855,7 @@ function joinBom(text, bom) {
   return bom ? BOM + stripped : stripped;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-49AUeD/repo/src/path-locks.ts
+// ../../../../../tmp/agent-sdk-mirror-eEkw45/repo/src/path-locks.ts
 var LOCKS_KEY = Symbol.for("zocomputer.agent-sdk.path-locks");
 function lockChains() {
   const holder = globalThis;
@@ -1710,18 +1881,18 @@ async function withPathLock(path, fn) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-49AUeD/repo/src/workspace-io.ts
+// ../../../../../tmp/agent-sdk-mirror-eEkw45/repo/src/workspace-io.ts
 import { mkdirSync as mkdirSync4, readFileSync as readFileSync7, statSync as statSync2, writeFileSync as writeFileSync3 } from "node:fs";
 import { dirname as dirname3, join as join5 } from "node:path";
 
-// ../../../../../tmp/agent-sdk-mirror-49AUeD/repo/src/glob-match.ts
+// ../../../../../tmp/agent-sdk-mirror-eEkw45/repo/src/glob-match.ts
 function globToRegExp(glob) {
   const escaped = glob.replace(/[.+^${}()|[\]\\]/g, "\\$&");
   const body = escaped.replace(/\*\*\/?/g, "\x00").replace(/\*/g, "[^/]*").replace(/\?/g, "[^/]").replace(/\u0000/g, "(?:.*/)?");
   return new RegExp(`^${body}$`);
 }
 
-// ../../../../../tmp/agent-sdk-mirror-49AUeD/repo/src/list-files.ts
+// ../../../../../tmp/agent-sdk-mirror-eEkw45/repo/src/list-files.ts
 import { spawnSync } from "node:child_process";
 var MAX_BUFFER = 64 * 1024 * 1024;
 function gitPaths(root, args) {
@@ -1749,7 +1920,7 @@ function listGitFiles(root, scope) {
   return files.filter((path) => !gone.has(path));
 }
 
-// ../../../../../tmp/agent-sdk-mirror-49AUeD/repo/src/read-text.ts
+// ../../../../../tmp/agent-sdk-mirror-eEkw45/repo/src/read-text.ts
 import { readFileSync as readFileSync5, statSync } from "node:fs";
 var MAX_SEARCH_FILE_BYTES = 1500000;
 var BINARY_SNIFF_BYTES = 8192;
@@ -1776,7 +1947,7 @@ function readTextForSearch(abs, maxBytes = MAX_SEARCH_FILE_BYTES) {
   return { kind: "text", content: buf.toString("utf8") };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-49AUeD/repo/src/walk.ts
+// ../../../../../tmp/agent-sdk-mirror-eEkw45/repo/src/walk.ts
 import { readFileSync as readFileSync6, readdirSync } from "node:fs";
 import { join as join4, relative, sep } from "node:path";
 import ignore from "ignore";
@@ -1858,7 +2029,7 @@ function* walkFiles(root, base = root) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-49AUeD/repo/src/workspace.ts
+// ../../../../../tmp/agent-sdk-mirror-eEkw45/repo/src/workspace.ts
 import { isAbsolute, relative as relative2, resolve as resolve2, sep as sep2 } from "node:path";
 function resolveWithin(root, path) {
   const abs = isAbsolute(path) ? resolve2(path) : resolve2(root, path);
@@ -1880,7 +2051,7 @@ function createWorkspace(root) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-49AUeD/repo/src/workspace-io.ts
+// ../../../../../tmp/agent-sdk-mirror-eEkw45/repo/src/workspace-io.ts
 function createLocalIo(root) {
   return {
     async stat(abs) {
@@ -1968,7 +2139,7 @@ async function searchLocal(root, options) {
   return { matches, stopped, skippedLargeFiles };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-49AUeD/repo/src/tools/edit.ts
+// ../../../../../tmp/agent-sdk-mirror-eEkw45/repo/src/tools/edit.ts
 function createEditTool(opts) {
   const { workspace, noun } = opts;
   const io = opts.io ?? localIoProvider(workspace.root);
@@ -2016,7 +2187,7 @@ ${hint.preview}`;
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-49AUeD/repo/src/tools/glob.ts
+// ../../../../../tmp/agent-sdk-mirror-eEkw45/repo/src/tools/glob.ts
 import { defineTool as defineTool4 } from "eve/tools";
 import { z as z4 } from "zod";
 function createGlobTool(opts) {
@@ -2055,7 +2226,7 @@ function createGlobTool(opts) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-49AUeD/repo/src/tools/grep.ts
+// ../../../../../tmp/agent-sdk-mirror-eEkw45/repo/src/tools/grep.ts
 import { defineTool as defineTool5 } from "eve/tools";
 import { z as z5 } from "zod";
 import { join as join6 } from "node:path";
@@ -2148,12 +2319,12 @@ function createGrepTool(opts) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-49AUeD/repo/src/tools/look.ts
+// ../../../../../tmp/agent-sdk-mirror-eEkw45/repo/src/tools/look.ts
 import { defineTool as defineTool6 } from "eve/tools";
 import { basename } from "node:path";
 import { z as z6 } from "zod";
 
-// ../../../../../tmp/agent-sdk-mirror-49AUeD/repo/src/file-kind.ts
+// ../../../../../tmp/agent-sdk-mirror-eEkw45/repo/src/file-kind.ts
 import { extname } from "node:path";
 function imageMediaType(format) {
   return `image/${format}`;
@@ -2351,7 +2522,7 @@ function detectFileKind(buf, path) {
   return { kind: "text", encoding: "utf8" };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-49AUeD/repo/src/tools/look.ts
+// ../../../../../tmp/agent-sdk-mirror-eEkw45/repo/src/tools/look.ts
 var DEFAULT_LOOK_MAX_INPUT_BYTES = 20 * 1024 * 1024;
 var DEFAULT_LOOK_TIMEOUT_MS = 180000;
 var LOOK_MAX_ANSWER_CHARS = 30000;
@@ -2540,12 +2711,12 @@ function lookOversizeHint(oracle, maxInputBytes = DEFAULT_LOOK_MAX_INPUT_BYTES) 
   return `For text, use bash (head, sed -n, rg) to extract the part you need. Only if it is ${article} ${kindList} file up to ${capMb} MB, pass the path and a question to the look tool to have ${oracle.modelName} examine it (look sends files read cannot; over ${capMb} MB, shrink it first, e.g. ffmpeg extraction).`;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-49AUeD/repo/src/tools/read.ts
+// ../../../../../tmp/agent-sdk-mirror-eEkw45/repo/src/tools/read.ts
 import { defineTool as defineTool7 } from "eve/tools";
 import { z as z7 } from "zod";
 import { basename as basename2 } from "node:path";
 
-// ../../../../../tmp/agent-sdk-mirror-49AUeD/repo/src/file-view.ts
+// ../../../../../tmp/agent-sdk-mirror-eEkw45/repo/src/file-view.ts
 var READ_FILE_DEFAULT_LINE_LIMIT = 2000;
 var READ_FILE_MAX_LINE_CHARS = 2000;
 var READ_FILE_MAX_CONTENT_CHARS = 50000;
@@ -2589,10 +2760,10 @@ function buildFileView(text, opts = {}) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-49AUeD/repo/src/read-file-content.ts
+// ../../../../../tmp/agent-sdk-mirror-eEkw45/repo/src/read-file-content.ts
 import { imageSize } from "image-size";
 
-// ../../../../../tmp/agent-sdk-mirror-49AUeD/repo/src/extract/cache.ts
+// ../../../../../tmp/agent-sdk-mirror-eEkw45/repo/src/extract/cache.ts
 function createStatCache(limit) {
   const entries = new Map;
   return {
@@ -2617,7 +2788,7 @@ function createStatCache(limit) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-49AUeD/repo/src/extract/docx.ts
+// ../../../../../tmp/agent-sdk-mirror-eEkw45/repo/src/extract/docx.ts
 import mammoth from "mammoth";
 async function extractDocx(buffer) {
   try {
@@ -2629,10 +2800,10 @@ async function extractDocx(buffer) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-49AUeD/repo/src/extract/epub.ts
+// ../../../../../tmp/agent-sdk-mirror-eEkw45/repo/src/extract/epub.ts
 import { Parser } from "htmlparser2";
 
-// ../../../../../tmp/agent-sdk-mirror-49AUeD/repo/src/extract/zip.ts
+// ../../../../../tmp/agent-sdk-mirror-eEkw45/repo/src/extract/zip.ts
 import { inflateRawSync } from "node:zlib";
 var EOCD_SIGNATURE = 101010256;
 var CENTRAL_SIGNATURE = 33639248;
@@ -2720,7 +2891,7 @@ function openZip(buffer) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-49AUeD/repo/src/extract/epub.ts
+// ../../../../../tmp/agent-sdk-mirror-eEkw45/repo/src/extract/epub.ts
 var EPUB_SECTION_CAP = 200;
 var BLOCK_TAGS = new Set([
   "p",
@@ -2856,7 +3027,7 @@ function extractEpub(bytes, options = {}) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-49AUeD/repo/src/extract/ipynb.ts
+// ../../../../../tmp/agent-sdk-mirror-eEkw45/repo/src/extract/ipynb.ts
 function joinSource(value) {
   if (typeof value === "string")
     return value;
@@ -2967,7 +3138,7 @@ function extractNotebook(bytes) {
 `), cells: cells.length };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-49AUeD/repo/src/extract/odf.ts
+// ../../../../../tmp/agent-sdk-mirror-eEkw45/repo/src/extract/odf.ts
 import { Parser as Parser2 } from "htmlparser2";
 var ODP_EMPTY_SLIDE_NOTE = "[no text on this slide — likely image-only; images cannot be extracted]";
 function parseContentXml(xml) {
@@ -3054,7 +3225,7 @@ function extractOdp(bytes) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-49AUeD/repo/src/extract/pdf.ts
+// ../../../../../tmp/agent-sdk-mirror-eEkw45/repo/src/extract/pdf.ts
 import { openPdf } from "clawpdf";
 var PDF_EMPTY_PAGE_NOTE = "[no text on this page — likely scanned or image-only; rendered pages cannot be attached]";
 var PDF_PAGE_CAP = 200;
@@ -3089,7 +3260,7 @@ async function extractPdf(bytes, options = {}) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-49AUeD/repo/src/extract/pptx.ts
+// ../../../../../tmp/agent-sdk-mirror-eEkw45/repo/src/extract/pptx.ts
 import { Parser as Parser3 } from "htmlparser2";
 var PPTX_EMPTY_SLIDE_NOTE = "[no text on this slide — likely image-only; images cannot be extracted]";
 var PPTX_SLIDE_CAP = 200;
@@ -3245,7 +3416,7 @@ function extractPptx(bytes, options = {}) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-49AUeD/repo/src/extract/rtf.ts
+// ../../../../../tmp/agent-sdk-mirror-eEkw45/repo/src/extract/rtf.ts
 var SKIP_DESTINATIONS = new Set([
   "fonttbl",
   "colortbl",
@@ -3443,7 +3614,7 @@ function extractRtf(bytes) {
   return { ok: true, text: text.replace(/\n+$/, "") };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-49AUeD/repo/src/extract/sheet.ts
+// ../../../../../tmp/agent-sdk-mirror-eEkw45/repo/src/extract/sheet.ts
 import { read, utils } from "xlsx";
 var SHEET_ROW_CAP = 5000;
 function extractSheets(buffer, rowCap = SHEET_ROW_CAP) {
@@ -3484,7 +3655,7 @@ function extractSheets(buffer, rowCap = SHEET_ROW_CAP) {
 `), sheets };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-49AUeD/repo/src/read-file-content.ts
+// ../../../../../tmp/agent-sdk-mirror-eEkw45/repo/src/read-file-content.ts
 var EXTRACTION_CACHE_LIMIT = 20;
 var extractionCache = createStatCache(EXTRACTION_CACHE_LIMIT);
 function decodeText(buffer, encoding) {
@@ -3603,7 +3774,7 @@ async function loadFileContent(buffer, path, id) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-49AUeD/repo/src/tools/read.ts
+// ../../../../../tmp/agent-sdk-mirror-eEkw45/repo/src/tools/read.ts
 function buildMediaHint(attach, verb) {
   const kinds = ["image", "video", "audio"];
   const on = kinds.filter((kind) => attach[kind]);
@@ -3807,7 +3978,7 @@ function createReadTool(opts) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-49AUeD/repo/src/tools/tasks.ts
+// ../../../../../tmp/agent-sdk-mirror-eEkw45/repo/src/tools/tasks.ts
 import { defineDynamic as defineDynamic2, defineTool as defineTool8 } from "eve/tools";
 import { z as z8 } from "zod";
 var DEFAULT_WAIT_MS = 120000;
@@ -3964,11 +4135,11 @@ function createTasksTools(opts) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-49AUeD/repo/src/tools/todo.ts
+// ../../../../../tmp/agent-sdk-mirror-eEkw45/repo/src/tools/todo.ts
 import { defineTool as defineTool9 } from "eve/tools";
 import { todo as eveTodo } from "eve/tools/defaults";
 
-// ../../../../../tmp/agent-sdk-mirror-49AUeD/repo/src/todo-discipline.ts
+// ../../../../../tmp/agent-sdk-mirror-eEkw45/repo/src/todo-discipline.ts
 function isRecord6(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
@@ -4076,7 +4247,7 @@ var TODO_DISCIPLINE_RIDER = [
 ].join(`
 `);
 
-// ../../../../../tmp/agent-sdk-mirror-49AUeD/repo/src/tools/todo.ts
+// ../../../../../tmp/agent-sdk-mirror-eEkw45/repo/src/tools/todo.ts
 function isRecord7(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
@@ -4103,17 +4274,17 @@ ${TODO_DISCIPLINE_RIDER}`,
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-49AUeD/repo/src/tools/webfetch.ts
+// ../../../../../tmp/agent-sdk-mirror-eEkw45/repo/src/tools/webfetch.ts
 import { defineTool as defineTool10 } from "eve/tools";
 import { z as z9 } from "zod";
 import { basename as basename3, join as join7 } from "node:path";
 
-// ../../../../../tmp/agent-sdk-mirror-49AUeD/repo/src/web-fetch.ts
+// ../../../../../tmp/agent-sdk-mirror-eEkw45/repo/src/web-fetch.ts
 import { Parser as Parser4 } from "htmlparser2";
 import { parseHTML as parseHTML2 } from "linkedom";
 import TurndownService from "turndown";
 
-// ../../../../../tmp/agent-sdk-mirror-49AUeD/repo/src/web-page.ts
+// ../../../../../tmp/agent-sdk-mirror-eEkw45/repo/src/web-page.ts
 import Defuddle from "defuddle";
 import { parseHTML } from "linkedom";
 var asField = (value) => {
@@ -4224,7 +4395,7 @@ function looksLikeRawHtmlOutput(rendered) {
   return tagChars / rendered.length > 0.1;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-49AUeD/repo/src/web-fetch.ts
+// ../../../../../tmp/agent-sdk-mirror-eEkw45/repo/src/web-fetch.ts
 var WEB_FETCH_MAX_RESPONSE_BYTES = 5 * 1024 * 1024;
 var WEB_FETCH_DEFAULT_TIMEOUT_SECONDS = 30;
 var WEB_FETCH_PDF_DEFAULT_TIMEOUT_SECONDS = 60;
@@ -4414,7 +4585,7 @@ function urlLooksLikePdf(url) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-49AUeD/repo/src/tools/webfetch.ts
+// ../../../../../tmp/agent-sdk-mirror-eEkw45/repo/src/tools/webfetch.ts
 var SPILL_EXTENSION = {
   markdown: "md",
   text: "txt",
@@ -4695,7 +4866,7 @@ function createWebFetchTool(opts) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-49AUeD/repo/src/tools/write.ts
+// ../../../../../tmp/agent-sdk-mirror-eEkw45/repo/src/tools/write.ts
 import { defineTool as defineTool11 } from "eve/tools";
 import { z as z10 } from "zod";
 function createWriteTool(opts) {
@@ -4727,7 +4898,7 @@ function createWriteTool(opts) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-49AUeD/repo/src/sandbox-io.ts
+// ../../../../../tmp/agent-sdk-mirror-eEkw45/repo/src/sandbox-io.ts
 import ignore2 from "ignore";
 function shellSingleQuote(value) {
   return `'${value.replaceAll("'", `'\\''`)}'`;
@@ -4942,11 +5113,11 @@ function parseSearchOutput(stdout, maxMatches, flooded = false) {
   }
   return { matches, stopped, skippedLargeFiles: null };
 }
-// ../../../../../tmp/agent-sdk-mirror-49AUeD/repo/src/hooks.ts
+// ../../../../../tmp/agent-sdk-mirror-eEkw45/repo/src/hooks.ts
 import { Client } from "eve/client";
 import { defineHook } from "eve/hooks";
 
-// ../../../../../tmp/agent-sdk-mirror-49AUeD/repo/src/redeliver.ts
+// ../../../../../tmp/agent-sdk-mirror-eEkw45/repo/src/redeliver.ts
 function isRecord8(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
@@ -5016,7 +5187,7 @@ function createRedeliveryState() {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-49AUeD/repo/src/hooks.ts
+// ../../../../../tmp/agent-sdk-mirror-eEkw45/repo/src/hooks.ts
 var RETRY_DELAYS_MS = [500, 2000, 5000];
 function buildDeliveryMessage(request) {
   const media = request.items.flatMap((item) => item.payload.kind === "media" ? [{ toolCallId: item.key, attachment: item.payload.attachment }] : []);
@@ -5115,7 +5286,7 @@ function createParkDeliveryHook(options = {}) {
     }
   });
 }
-// ../../../../../tmp/agent-sdk-mirror-49AUeD/repo/src/build-externals.ts
+// ../../../../../tmp/agent-sdk-mirror-eEkw45/repo/src/build-externals.ts
 var STDLIB_EXTERNAL_DEPENDENCIES = [
   "ai",
   "clawpdf",
@@ -5129,11 +5300,11 @@ var STDLIB_EXTERNAL_DEPENDENCIES = [
   "xlsx",
   "zod"
 ];
-// ../../../../../tmp/agent-sdk-mirror-49AUeD/repo/src/task.ts
+// ../../../../../tmp/agent-sdk-mirror-eEkw45/repo/src/task.ts
 import { defineAgent } from "eve";
 import { defineDynamic as defineDynamic3, defineInstructions as defineInstructions2 } from "eve/instructions";
 
-// ../../../../../tmp/agent-sdk-mirror-49AUeD/repo/src/visible-reasoning.ts
+// ../../../../../tmp/agent-sdk-mirror-eEkw45/repo/src/visible-reasoning.ts
 var ANTHROPIC_ADAPTIVE_THINKING_MODELS = [
   /^anthropic\/claude-fable-/,
   /^anthropic\/claude-mythos-/,
@@ -5159,7 +5330,7 @@ function visibleReasoningModelOptions(modelId) {
   return;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-49AUeD/repo/src/task.ts
+// ../../../../../tmp/agent-sdk-mirror-eEkw45/repo/src/task.ts
 var TASK_DISABLED_BUILTINS = ["ask_question"];
 function expectedTaskToolNames(options) {
   const parent = new Set(options.parentToolNames);
@@ -5300,7 +5471,7 @@ async function fetchGatewayModelCatalog(options) {
   }
   return parsed;
 }
-// ../../../../../tmp/agent-sdk-mirror-49AUeD/repo/src/mock-model.ts
+// ../../../../../tmp/agent-sdk-mirror-eEkw45/repo/src/mock-model.ts
 var STORY_SENTENCES = [
   "The lighthouse keeper counted the waves as they broke against the rocks.",
   "Every seventh wave carried a whisper from the old town beneath the sea.",
@@ -5762,7 +5933,7 @@ That changes the plan.`
     }
   };
 }
-// ../../../../../tmp/agent-sdk-mirror-49AUeD/repo/src/orphaned-turns.ts
+// ../../../../../tmp/agent-sdk-mirror-eEkw45/repo/src/orphaned-turns.ts
 function isOrphanedTurn(input) {
   if (!input.reconciled || !input.inFlightAfter)
     return false;
@@ -5777,7 +5948,7 @@ function workerEpochMs(now = Date.now) {
   return holder[WORKER_EPOCH_KEY];
 }
 
-// ../../../../../tmp/agent-sdk-mirror-49AUeD/repo/src/index.ts
+// ../../../../../tmp/agent-sdk-mirror-eEkw45/repo/src/index.ts
 function createStdlib(options) {
   const noun = options.workspaceNoun ?? "workspace";
   const workspace2 = createWorkspace(options.workspaceRoot);
@@ -5856,25 +6027,43 @@ function createStdlib(options) {
       ...oracle !== null ? { look: steer2(createLookTool({ workspace: workspace2, noun, oracle })) } : {}
     },
     instructions: {
-      parallelTools: createParallelToolsInstruction(),
+      stack: createInstructionStackInstruction({
+        workspaceRoot: workspace2.root,
+        tier: options.instructionTier,
+        workspaceNoun: noun,
+        verifyCommandHint: options.verifyCommandHint,
+        subagentRoster: options.subagentRoster,
+        media: oracle ? {
+          modelName: oracle.modelName,
+          capabilities: oracle.capabilities,
+          parentCapabilities: options.parentCapabilities
+        } : undefined,
+        omitSections: options.omitInstructionSections,
+        extraSections: options.extraInstructionSections
+      }),
+      parallelTools: createParallelToolsInstruction({ tier: options.instructionTier }),
       repoConventions: createRepoConventionsInstruction({ workspaceRoot: workspace2.root }),
       subagents: createSubagentInstruction({
         workspaceNoun: noun,
-        roster: options.subagentRoster
+        roster: options.subagentRoster,
+        tier: options.instructionTier
       }),
       ...oracle !== null ? {
         media: createLookInstruction({
           modelName: oracle.modelName,
           capabilities: oracle.capabilities,
-          parentCapabilities: options.parentCapabilities
+          parentCapabilities: options.parentCapabilities,
+          tier: options.instructionTier
         })
       } : {},
       workflow: createWorkflowInstruction({
         workspaceNoun: noun,
-        verifyCommandHint: options.verifyCommandHint
+        verifyCommandHint: options.verifyCommandHint,
+        tier: options.instructionTier
       }),
-      communication: createCommunicationInstruction(),
-      hitl: createHitlInstruction()
+      planning: createPlanningInstruction({ tier: options.instructionTier }),
+      communication: createCommunicationInstruction({ tier: options.instructionTier }),
+      hitl: createHitlInstruction({ tier: options.instructionTier })
     }
   };
 }
@@ -5931,6 +6120,7 @@ function createSandboxFileTools(options) {
 }
 export {
   xhtmlToText,
+  workflowSection,
   workerEpochMs,
   withSteerDelivery,
   walkFiles,
@@ -5938,6 +6128,7 @@ export {
   videoMediaType,
   validateTodoWrite,
   toolInputFragments,
+  subagentSection,
   stripSteerFromOutput,
   splitBom,
   slideParagraphs,
@@ -5951,25 +6142,31 @@ export {
   resolveWithin,
   resolveWebFetchTimeoutMs,
   resolveMediaOracle,
+  repoConventionsSection,
   replaceForgiving,
   renderWebText,
+  renderPromptSections,
+  renderPromptSection,
   relativizeWithin,
   redeliveryFromEvent,
   readTextForSearch,
   readSteerMessages,
   readChatAttachment,
   postParkNotification,
+  planningSection,
   parseTodoListResult,
   parseTodoItems,
   parseSteerLine,
   parseSearchOutput,
   parseGatewayModelCatalog,
+  parallelToolsSection,
   openZip,
   modelFamily,
   mockScenarioFrom,
   mergeSteerIntoModelOutput,
   markdownChunks,
   looksLikeHtml,
+  lookSection,
   lookReadMediaHint,
   lookReadImageHint,
   lookFetchedMediaHint,
@@ -5984,6 +6181,7 @@ export {
   isHtmlContentType,
   isDisproportionateMatch,
   imageMediaType,
+  hitlSection,
   globToRegExp,
   formatWatchNotification,
   formatTodoViolations,
@@ -6028,6 +6226,7 @@ export {
   createRepoConventionsInstruction,
   createRedeliveryState,
   createReadTool,
+  createPlanningInstruction,
   createParkDeliveryState,
   createParkDeliveryHook,
   createParallelToolsInstruction,
@@ -6036,6 +6235,7 @@ export {
   createLookTool,
   createLookInstruction,
   createLocalIo,
+  createInstructionStackInstruction,
   createHitlInstruction,
   createGrepTool,
   createGlobTool,
@@ -6047,6 +6247,8 @@ export {
   createBashTool,
   createBashOp,
   convertHtmlToMarkdown,
+  composePromptSections,
+  communicationSection,
   clientContinuationToken,
   capabilitiesFromCatalogEntry,
   capabilitiesForModel,
@@ -6059,7 +6261,11 @@ export {
   buildSteerPayload,
   buildRepoConventionsMarkdown,
   buildRedeliveryMessage,
+  buildPlanningMarkdown,
+  buildParallelToolsMarkdown,
   buildLookMarkdown,
+  buildInstructionStackSections,
+  buildInstructionStackMarkdown,
   buildHitlMarkdown,
   buildFileView,
   buildCommunicationMarkdown,
@@ -6107,6 +6313,7 @@ export {
   LineTrimmedReplacer,
   LOOK_MAX_ANSWER_CHARS,
   IndentationFlexibleReplacer,
+  INSTRUCTION_STACK_SECTION_IDS,
   HEAD_CHARS,
   GATEWAY_MODELS_URL,
   FALLBACK_USER_AGENT,

@@ -103,18 +103,20 @@ import { disableTool } from "eve/tools";
 export default disableTool();
 ```
 
-**4. Register the instructions** — same pattern, one re-export file per
-instruction under `agent/instructions/`:
+**4. Register the instructions** — one file, the composed stack:
 
 ```ts
-// agent/instructions/workflow.ts
+// agent/instructions/stack.ts
 import { stdlib } from "../lib/stdlib";
-export default stdlib.instructions.workflow;
+export default stdlib.instructions.stack;
 ```
 
-Repeat for `communication`, `hitl`, `parallelTools`, `repoConventions`, and
-`subagents` — see the [instruction stack](./GUIDE.md#the-instruction-stack)
-for what each one teaches.
+That's the SDK's whole baseline prompt (repo conventions, how to work,
+planning, background tasks, delegation, asking, communicating) in its
+deliberate section order — eve orders instruction files alphabetically, so
+the one-file stack is what keeps the order intentional. See the
+[instruction stack](./GUIDE.md#the-instruction-stack) for the sections, the
+`compact` tier, and how to splice in your own sections or drop baseline ones.
 
 **5. Register the park-delivery hook**, which delivers images and
 background-task notifications to the model:

@@ -10,13 +10,17 @@ import { createDirConventionsTracker } from "./dir-conventions";
 import {
   createCommunicationInstruction,
   createHitlInstruction,
+  createInstructionStackInstruction,
   createLookInstruction,
   createParallelToolsInstruction,
+  createPlanningInstruction,
   createRepoConventionsInstruction,
   createSubagentInstruction,
   createWorkflowInstruction,
+  type InstructionStackSectionId,
   type SubagentRosterEntry,
 } from "./instructions";
+import type { InstructionTier, PlacedPromptSection } from "./prompt-sections";
 import type { ModelInputCapabilities } from "./model-capabilities";
 import { createCommandRunner, type CommandRunner } from "./run";
 import { createSteerInbox, type SteerInbox } from "./steer-inbox";
@@ -171,6 +175,31 @@ export interface StdlibOptions {
    * with a "Choosing a subagent" section. Interpolated once at build time.
    */
   subagentRoster?: readonly SubagentRosterEntry[];
+  /**
+   * Prose depth for every instruction section: `"full"` (default, each rule
+   * with its rationale) or `"compact"` (~⅓ the prose, same load-bearing rules
+   * and tool names — for small/code-tuned models where a long behavioral
+   * prompt crowds the context). Both tiers are generated from one source, so
+   * they can't drift. Applies to `instructions.stack` and every à la carte
+   * instruction.
+   */
+  instructionTier?: InstructionTier;
+  /**
+   * Baseline sections `instructions.stack` should drop, by id (e.g. a
+   * chat-only agent omitting `"subagents"`). À la carte instructions are
+   * unaffected — simply don't wire the ones you don't want.
+   */
+  omitInstructionSections?: readonly InstructionStackSectionId[];
+  /**
+   * Consumer-owned sections `instructions.stack` inserts at baseline anchors
+   * (see {@link PlacedPromptSection}). Pass a function to defer building
+   * until "session.started" — for sections that read the filesystem per
+   * session (e.g. a skills catalog) while staying prompt-cache stable within
+   * the session.
+   */
+  extraInstructionSections?:
+    | readonly PlacedPromptSection[]
+    | (() => readonly PlacedPromptSection[]);
 }
 
 /**
@@ -300,11 +329,36 @@ export function createStdlib(options: StdlibOptions) {
         : {}),
     },
     instructions: {
-      parallelTools: createParallelToolsInstruction(),
+      /**
+       * The whole baseline prompt as ONE instruction, in the SDK's canonical
+       * section order — wire this single re-export instead of the per-section
+       * files below (eve orders instruction slots alphabetically by filename,
+       * so per-file wiring surrenders section order to filenames). Honors
+       * `instructionTier`, `omitInstructionSections`, and
+       * `extraInstructionSections`.
+       */
+      stack: createInstructionStackInstruction({
+        workspaceRoot: workspace.root,
+        tier: options.instructionTier,
+        workspaceNoun: noun,
+        verifyCommandHint: options.verifyCommandHint,
+        subagentRoster: options.subagentRoster,
+        media: oracle
+          ? {
+              modelName: oracle.modelName,
+              capabilities: oracle.capabilities,
+              parentCapabilities: options.parentCapabilities,
+            }
+          : undefined,
+        omitSections: options.omitInstructionSections,
+        extraSections: options.extraInstructionSections,
+      }),
+      parallelTools: createParallelToolsInstruction({ tier: options.instructionTier }),
       repoConventions: createRepoConventionsInstruction({ workspaceRoot: workspace.root }),
       subagents: createSubagentInstruction({
         workspaceNoun: noun,
         roster: options.subagentRoster,
+        tier: options.instructionTier,
       }),
       ...(oracle !== null
         ? {
@@ -312,15 +366,18 @@ export function createStdlib(options: StdlibOptions) {
               modelName: oracle.modelName,
               capabilities: oracle.capabilities,
               parentCapabilities: options.parentCapabilities,
+              tier: options.instructionTier,
             }),
           }
         : {}),
       workflow: createWorkflowInstruction({
         workspaceNoun: noun,
         verifyCommandHint: options.verifyCommandHint,
+        tier: options.instructionTier,
       }),
-      communication: createCommunicationInstruction(),
-      hitl: createHitlInstruction(),
+      planning: createPlanningInstruction({ tier: options.instructionTier }),
+      communication: createCommunicationInstruction({ tier: options.instructionTier }),
+      hitl: createHitlInstruction({ tier: options.instructionTier }),
     },
   };
 }
@@ -556,6 +613,7 @@ export * from "./web-fetch";
 export * from "./instructions";
 export * from "./list-files";
 export * from "./model-capabilities";
+export * from "./prompt-sections";
 export * from "./read-file-content";
 export * from "./read-text";
 export * from "./run";

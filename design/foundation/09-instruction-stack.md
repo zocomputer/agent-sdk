@@ -3,15 +3,39 @@
 ## The decision
 
 The SDK ships the **operational prose** alongside the tools: `workflow`
-(explore before edit, read before edit, verify, todo tracking, finish before
-ending the turn), `communication` (lead with the outcome, readable over
+(explore before edit, read before edit, reproduce a bug before fixing it,
+verify, finish before ending the turn), `planning` (the framework `todo`
+tool's contract), `communication` (lead with the outcome, readable over
 brief, report-don't-fix, act without permission-seeking),
 `hitl` (the `ask_question` playbook), `parallelTools` (the background-work
 scheduling policy), `subagents` (the delegation playbook + roster routing),
-and `repoConventions` ([10](./10-repo-conventions-injection.md)). Each is a
-one-file re-export in the consuming agent, parameterized like the tools
-(`workspaceNoun`) and built once per session
+and `repoConventions` ([10](./10-repo-conventions-injection.md)). Each is
+parameterized like the tools (`workspaceNoun`) and built once per session
 ([04](./04-prompt-cache-stability.md)).
+
+**The prescribed wiring is one composed instruction** —
+`stdlib.instructions.stack`, every section rendered in a canonical order
+(repo-conventions → workflow → planning → parallel-tools → subagents → media
+→ hitl → communication). eve orders instruction slots alphabetically by
+filename, so per-section re-export files put the prompt in alphabetical
+order; the one-file stack is what makes section order a design decision. The
+sections stay exported à la carte for declared subagent dirs, which inherit
+nothing and want a subset.
+
+**Sections are the consumer surface.** Each section is a `PromptSection`
+(`id`/`heading`/`body`, `src/prompt-sections.ts` — framework-free), and the
+stack takes composition edits, not prose edits: `omitSections` drops a
+baseline section by id, `extraSections` splices consumer sections in at an
+anchored spot (`{ after: "workflow" }`), with a function form evaluated on
+`session.started` for per-session catalogs (rib's skills). An unknown anchor
+appends rather than throws.
+
+**Two tiers, one source.** Every section is authored in `full` (numbered
+rules, worked examples) and `compact` (same contracts, tighter prose) in the
+same builder function, selected by `instructionTier`. Tests pin tier parity
+— the same load-bearing tool names and thresholds must appear in both, and
+compact must actually be shorter — so the tiers can't drift the way
+hand-maintained prompt forks do.
 
 **Persona stays consumer-owned.** The stack ships behavior contracts, not
 voice — an agent's identity is its own instruction file.
@@ -54,9 +78,22 @@ now…" text into a self-trigger) are adapted from prose demonstrably working
 in that harness. rib's `instructions.md` was the in-house draft; the stack is
 its extraction.
 
+The composed stack, tiers, and planning section came from codex — the
+learning-from-codex note's anatomy of its two shipped prompts: one document
+of deliberately ordered sections (not alphabetical fragments), a full and a
+compact variant of the *same* sections for different models (with the
+explicit warning that hand-maintained forks drift — hence tiers in one
+builder, pinned by parity tests), and a real planning section for the
+harness's plan tool where eve ships `todo` with no guidance (the same gap
+the HITL section fills for `ask_question`). The reproduce-before-fix
+workflow rule is from SWE-bench harness research: repro-first discipline is
+universal among top performers, and neither codex's prompts nor ours had it.
+
 ## Sources
 
 - `journal/team/harness-research/2026-07-02-learning-from-cursor.md` §2, §3, §5.
+- `journal/team/harness-research/2026-07-08-learning-from-codex.md` — prompt
+  anatomy, per-model tiers, the plan-tool section.
 - `rib/learnings/05-parallel-tool-orchestration.md` — the prompting half of
   the task machinery.
 - `rib/learnings/23-subagent-stream-topology.md` — the delegation playbook.

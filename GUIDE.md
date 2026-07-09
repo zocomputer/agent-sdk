@@ -48,18 +48,68 @@ eve injects every built-in tool whose name you don't override or disable:
 
 The stdlib ships the operational prose alongside the tools — the workflow,
 communication, and HITL contracts that make an agent behave well, not just
-the file operations. One re-export file per instruction under
-`agent/instructions/`:
+the file operations. The prescribed wiring is **one file**, the composed
+stack:
 
-| file                  | export                                | teaches |
-| --------------------- | ------------------------------------- | ------- |
-| `workflow.ts`         | `stdlib.instructions.workflow`        | explore before edit, read before edit, verify, todo tracking, finish before ending the turn |
-| `communication.ts`    | `stdlib.instructions.communication`   | lead with the outcome, readable over brief, report-don't-fix, act without permission-seeking |
-| `hitl.ts`             | `stdlib.instructions.hitl`            | the `ask_question` playbook — options, `style: "primary"`, `allowFreeform`, ask independent questions together |
-| `parallel-tools.ts`   | `stdlib.instructions.parallelTools`   | background tasks, `notify` watchers, await-before-ending |
-| `repo-conventions.ts` | `stdlib.instructions.repoConventions` | injects the workspace's root `AGENTS.md` |
-| `subagents.ts`        | `stdlib.instructions.subagents`       | delegation with eve's built-in `agent` tool |
-| `media.ts`            | `stdlib.instructions.media`           | (only with `mediaOracle` set) view natively what the model supports, `look` at the rest |
+```ts
+// agent/instructions/stack.ts
+import { stdlib } from "../lib/stdlib";
+export default stdlib.instructions.stack;
+```
+
+One file matters because eve orders instruction slots **alphabetically by
+filename** — per-section files put the prompt in alphabetical order, not a
+deliberate one. The stack renders every section in its canonical order:
+
+| section id        | heading                                   | teaches |
+| ----------------- | ----------------------------------------- | ------- |
+| `repo-conventions`| Repository conventions (root AGENTS.md)   | injects the workspace's root `AGENTS.md` |
+| `workflow`        | How to work                               | explore before edit, read before edit, reproduce a bug before fixing it, verify, finish before ending the turn |
+| `planning`        | Planning your work (todo)                 | the `todo` tool contract — when to plan, whole-list writes, one `in_progress`, rewrite on pivots |
+| `parallel-tools`  | Parallel tool calls                       | background tasks, `notify` watchers, await-before-ending |
+| `subagents`       | Delegating with the agent tool            | delegation with eve's built-in `agent` tool (+ roster routing) |
+| `media`           | Media you can't view (look)               | (only with `mediaOracle` set) view natively what the model supports, `look` at the rest |
+| `hitl`            | Asking the user (ask_question)            | the `ask_question` playbook — options, `style: "primary"`, `allowFreeform`, ask independent questions together |
+| `communication`   | Communicating                             | lead with the outcome, readable over brief, report-don't-fix, act without permission-seeking |
+
+**Tiers.** Every section is authored in two depths — `full` (the default:
+numbered rules, worked examples) and `compact` (the same contracts, tighter
+prose, for models that follow instructions well without the redundancy).
+`createStdlib({ instructionTier: "compact" })` switches the whole stack; the
+à la carte factories take the same `tier` option. Both tiers of a section
+live in one builder function and tests pin their parity (same load-bearing
+tool names and thresholds in both), so the compact tier can't silently drift
+from the full one — the failure mode of maintaining two prompt files by hand.
+
+**Extending the stack.** Consumers edit the composition, not the prose:
+
+```ts
+createStdlib({
+  // drop a baseline section by id
+  omitInstructionSections: ["planning"],
+  // splice your own sections in at a deliberate spot; the function form is
+  // evaluated on session.started, for catalogs read from disk per session
+  extraInstructionSections: () => [
+    {
+      section: { id: "skills", heading: "Available skills", body: renderCatalog() },
+      placement: { after: "workflow" }, // or { before: id }; omitted → appended last
+    },
+  ],
+});
+```
+
+An unknown anchor appends the extra at the end rather than throwing — a typo
+degrades, never crashes a session. The vocabulary (`PromptSection`,
+`PlacedPromptSection`, `composePromptSections`, `renderPromptSections`) is
+exported for consumers building their own composed instructions.
+
+**À la carte.** Every section also remains an individual instruction
+(`stdlib.instructions.workflow`, `.planning`, `.communication`, `.hitl`,
+`.parallelTools`, `.repoConventions`, `.subagents`, `.media`) — that's what
+declared subagent dirs re-export, since they inherit nothing and typically
+want a subset (see [Model-tier task subagents](#model-tier-task-subagents)).
+Don't register the stack *and* the same section à la carte in one agent —
+the model would read the prose twice.
 
 Persona stays yours: the stdlib ships operational contracts, not voice —
 write your agent's identity as your own instruction file (see the example's

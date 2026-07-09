@@ -6,11 +6,19 @@
 
 # Function: buildHitlMarkdown()
 
-> **buildHitlMarkdown**(): `string`
+> **buildHitlMarkdown**(`opts?`): `string`
 
-Defined in: [packages/agent-sdk/src/instructions.ts:144](https://github.com/zocomputer/zov2-code/blob/a97705ed30ddbf8dde363ccc922ce6eb90aa90a3/packages/agent-sdk/src/instructions.ts#L144)
+Defined in: [packages/agent-sdk/src/instructions.ts:370](https://github.com/zocomputer/zov2-code/blob/8718aaa2765d9af21ff0cbb162dec35286dbcb11/packages/agent-sdk/src/instructions.ts#L370)
 
 Pure markdown for the ask_question playbook; see createHitlInstruction.
+
+## Parameters
+
+### opts?
+
+#### tier?
+
+[`InstructionTier`](../type-aliases/InstructionTier.md)
 
 ## Returns
 

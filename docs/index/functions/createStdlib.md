@@ -8,7 +8,7 @@
 
 > **createStdlib**(`options`): `object`
 
-Defined in: [packages/agent-sdk/src/index.ts:183](https://github.com/zocomputer/zov2-code/blob/a97705ed30ddbf8dde363ccc922ce6eb90aa90a3/packages/agent-sdk/src/index.ts#L183)
+Defined in: [packages/agent-sdk/src/index.ts:212](https://github.com/zocomputer/zov2-code/blob/8718aaa2765d9af21ff0cbb162dec35286dbcb11/packages/agent-sdk/src/index.ts#L212)
 
 Create the standard library for a real-filesystem eve agent: workspace-scoped
 file tools (read/edit/write/glob/grep), host bash, webfetch, the discipline-
@@ -48,9 +48,24 @@ instructions.
 
 > **parallelTools**: `DynamicSentinel`
 
+#### instructions.planning
+
+> **planning**: `DynamicSentinel`
+
 #### instructions.repoConventions
 
 > **repoConventions**: `DynamicSentinel`
+
+#### instructions.stack
+
+> **stack**: `DynamicSentinel`
+
+The whole baseline prompt as ONE instruction, in the SDK's canonical
+section order — wire this single re-export instead of the per-section
+files below (eve orders instruction slots alphabetically by filename,
+so per-file wiring surrenders section order to filenames). Honors
+`instructionTier`, `omitInstructionSections`, and
+`extraInstructionSections`.
 
 #### instructions.subagents
 

@@ -8,7 +8,7 @@
 
 > **lookFetchedMediaHint**(`oracle`): `string` \| `undefined`
 
-Defined in: [packages/agent-sdk/src/tools/look.ts:403](https://github.com/zocomputer/zov2-code/blob/a97705ed30ddbf8dde363ccc922ce6eb90aa90a3/packages/agent-sdk/src/tools/look.ts#L403)
+Defined in: [packages/agent-sdk/src/tools/look.ts:403](https://github.com/zocomputer/zov2-code/blob/8718aaa2765d9af21ff0cbb162dec35286dbcb11/packages/agent-sdk/src/tools/look.ts#L403)
 
 `webfetch`'s video/audio-unavailable hint when a look oracle is wired —
 download-then-look, like [lookFetchedImageHint](lookFetchedImageHint.md), with the look

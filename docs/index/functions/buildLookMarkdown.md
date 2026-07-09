@@ -8,7 +8,7 @@
 
 > **buildLookMarkdown**(`opts`): `string`
 
-Defined in: [packages/agent-sdk/src/instructions.ts:172](https://github.com/zocomputer/zov2-code/blob/a97705ed30ddbf8dde363ccc922ce6eb90aa90a3/packages/agent-sdk/src/instructions.ts#L172)
+Defined in: [packages/agent-sdk/src/instructions.ts:441](https://github.com/zocomputer/zov2-code/blob/8718aaa2765d9af21ff0cbb162dec35286dbcb11/packages/agent-sdk/src/instructions.ts#L441)
 
 Pure markdown for the media-delegation playbook; see createLookInstruction.
 
@@ -20,20 +20,17 @@ Pure markdown for the media-delegation playbook; see createLookInstruction.
 
 [`ModelInputCapabilities`](../interfaces/ModelInputCapabilities.md)
 
-The oracle model's input capabilities.
-
 #### modelName
 
 `string`
-
-The oracle model's display name (e.g. "Gemini 3 Flash").
 
 #### parentCapabilities?
 
 [`ModelInputCapabilities`](../interfaces/ModelInputCapabilities.md)
 
-The session model's own input capabilities, when the consumer resolved
-them — adds the "view what you can natively" half of the routing rule.
+#### tier?
+
+[`InstructionTier`](../type-aliases/InstructionTier.md)
 
 ## Returns
 

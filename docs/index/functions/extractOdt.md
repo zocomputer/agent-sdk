@@ -8,7 +8,7 @@
 
 > **extractOdt**(`bytes`): [`OdtExtraction`](../type-aliases/OdtExtraction.md)
 
-Defined in: [packages/agent-sdk/src/extract/odf.ts:102](https://github.com/zocomputer/zov2-code/blob/a97705ed30ddbf8dde363ccc922ce6eb90aa90a3/packages/agent-sdk/src/extract/odf.ts#L102)
+Defined in: [packages/agent-sdk/src/extract/odf.ts:102](https://github.com/zocomputer/zov2-code/blob/8718aaa2765d9af21ff0cbb162dec35286dbcb11/packages/agent-sdk/src/extract/odf.ts#L102)
 
 Extract ODT (OpenDocument text) bytes into paragraph text.
 

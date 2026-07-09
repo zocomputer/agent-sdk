@@ -85,12 +85,14 @@ describe("createStdlib", () => {
     expect(stdlib.backgroundables.map((o) => o.name)).toEqual(["bash"]);
   });
 
-  test("ships the full instruction stack", () => {
+  test("ships the composed stack plus every à la carte instruction", () => {
     expect(Object.keys(stdlib.instructions).sort()).toEqual([
       "communication",
       "hitl",
       "parallelTools",
+      "planning",
       "repoConventions",
+      "stack",
       "subagents",
       "workflow",
     ]);

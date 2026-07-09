@@ -8,7 +8,7 @@
 
 > `const` **TODO\_DISCIPLINE\_RIDER**: `string`
 
-Defined in: [packages/agent-sdk/src/todo-discipline.ts:181](https://github.com/zocomputer/zov2-code/blob/a97705ed30ddbf8dde363ccc922ce6eb90aa90a3/packages/agent-sdk/src/todo-discipline.ts#L181)
+Defined in: [packages/agent-sdk/src/todo-discipline.ts:181](https://github.com/zocomputer/zov2-code/blob/8718aaa2765d9af21ff0cbb162dec35286dbcb11/packages/agent-sdk/src/todo-discipline.ts#L181)
 
 The description rider the `todo` wrapper appends to eve's own tool
 description at factory time (prompt-cache stable), stating the enforced

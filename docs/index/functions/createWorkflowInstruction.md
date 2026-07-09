@@ -8,15 +8,20 @@
 
 > **createWorkflowInstruction**(`opts?`): `DynamicSentinel`
 
-Defined in: [packages/agent-sdk/src/instructions.ts:106](https://github.com/zocomputer/zov2-code/blob/a97705ed30ddbf8dde363ccc922ce6eb90aa90a3/packages/agent-sdk/src/instructions.ts#L106)
+Defined in: [packages/agent-sdk/src/instructions.ts:148](https://github.com/zocomputer/zov2-code/blob/8718aaa2765d9af21ff0cbb162dec35286dbcb11/packages/agent-sdk/src/instructions.ts#L148)
 
-The how-to-work contract: explore→read→edit→verify, todo tracking, and the
-end-of-turn completeness check. Static markdown, session-stable
-(prompt-cache safe); the verify hint interpolates once at build time.
+The how-to-work contract: explore→read→edit→verify, reproduction-first bug
+fixing, todo tracking, and the end-of-turn completeness check. Static
+markdown, session-stable (prompt-cache safe); the verify hint interpolates
+once at build time.
 
 ## Parameters
 
 ### opts?
+
+#### tier?
+
+[`InstructionTier`](../type-aliases/InstructionTier.md)
 
 #### verifyCommandHint?
 

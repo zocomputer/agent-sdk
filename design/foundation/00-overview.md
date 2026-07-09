@@ -73,7 +73,9 @@ make.
   queue-and-send-as-next-user-turn channel for anything that must reach a
   parked session.
 - [09 — The instruction stack](./09-instruction-stack.md): ship the
-  operational prose with the tools; persona stays consumer-owned.
+  operational prose with the tools — composed into one section-ordered
+  instruction with full/compact tiers and consumer omit/extra section edits;
+  persona stays consumer-owned.
 - [10 — Repo conventions injection](./10-repo-conventions-injection.md): root
   `AGENTS.md` at session start, nested `AGENTS.md` as read riders.
 - [11 — The model-tier task subagent kit](./11-task-subagents.md): full parent
