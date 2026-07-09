@@ -6,9 +6,9 @@
 
 # Function: mockScenarioFrom()
 
-> **mockScenarioFrom**(`text`): `"markdown"` \| `"hitl"` \| `"parallel"` \| `"todo"` \| `"delegate"` \| `"fail"` \| `"burst"` \| `"interleave"` \| `"empty"` \| `null`
+> **mockScenarioFrom**(`text`): `"markdown"` \| `"hitl"` \| `"parallel"` \| `"todo"` \| `"delegate"` \| `"fail"` \| `"burst"` \| `"interleave"` \| `"empty"` \| `"recall"` \| `null`
 
-Defined in: [packages/agent-sdk/src/mock-model.ts:156](https://github.com/zocomputer/zov2-code/blob/f16d57089a60328b9900d1483bcd363cd844b8b3/packages/agent-sdk/src/mock-model.ts#L156)
+Defined in: [packages/agent-sdk/src/mock-model.ts:168](https://github.com/zocomputer/zov2-code/blob/58f42fa9905e1eaf108a953f694006c436ab7598/packages/agent-sdk/src/mock-model.ts#L168)
 
 The `[mock:<scenario>]` directive in the turn's user text, if any.
 
@@ -20,4 +20,4 @@ The `[mock:<scenario>]` directive in the turn's user text, if any.
 
 ## Returns
 
-`"markdown"` \| `"hitl"` \| `"parallel"` \| `"todo"` \| `"delegate"` \| `"fail"` \| `"burst"` \| `"interleave"` \| `"empty"` \| `null`
+`"markdown"` \| `"hitl"` \| `"parallel"` \| `"todo"` \| `"delegate"` \| `"fail"` \| `"burst"` \| `"interleave"` \| `"empty"` \| `"recall"` \| `null`

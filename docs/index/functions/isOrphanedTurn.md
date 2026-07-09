@@ -8,7 +8,7 @@
 
 > **isOrphanedTurn**(`input`): `boolean`
 
-Defined in: [packages/agent-sdk/src/orphaned-turns.ts:61](https://github.com/zocomputer/zov2-code/blob/f16d57089a60328b9900d1483bcd363cd844b8b3/packages/agent-sdk/src/orphaned-turns.ts#L61)
+Defined in: [packages/agent-sdk/src/orphaned-turns.ts:61](https://github.com/zocomputer/zov2-code/blob/58f42fa9905e1eaf108a953f694006c436ab7598/packages/agent-sdk/src/orphaned-turns.ts#L61)
 
 Whether a mid-turn session's turn is orphaned — dead with no terminal event
 ever coming — and should be ruled dead.

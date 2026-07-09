@@ -13,6 +13,14 @@
 //   `[mock:todo]` writes then updates a todo list, `[mock:delegate]` delegates
 //   to a declared subagent. Each scenario ends with a short wrap-up text, so
 //   the HITL prompt, todo checklist, and subagent card render end-to-end.
+//
+// doGenerate is compaction-aware: eve's compaction call (the only doGenerate
+// traffic on a turn model) gets a canned generic summary, and the validated-
+// compaction judge call gets a deterministic verdict — bullets recovering any
+// `[fact:<token>]` markers planted in the transcript, else NOTHING MISSING.
+// `[mock:recall]` closes the loop in-band: it echoes the recovered-context
+// section if one made it into the prompt, so an eval can assert the full
+// compact → judge → repair → next-call path without credentials.
 import type {
   LanguageModelV4,
   LanguageModelV4CallOptions,
@@ -20,6 +28,7 @@ import type {
   LanguageModelV4StreamPart,
   LanguageModelV4Usage,
 } from "@ai-sdk/provider";
+import { COMPACTION_SENTINEL, RECOVERED_CONTEXT_HEADER } from "./validated-compaction";
 
 /**
  * Configuration for the slow-streaming mock model's behavior: how long each
@@ -78,7 +87,9 @@ function usageFor(outputTokens: number): LanguageModelV4Usage {
  * (`hitl`, `parallel`, `todo`, `delegate`) plus special stream shapes
  * (`fail` ends in a terminal error, `burst` streams with no pacing,
  * `markdown` splits structure across deltas, `interleave` alternates
- * reasoning and text blocks, `empty` finishes with zero content parts).
+ * reasoning and text blocks, `empty` finishes with zero content parts,
+ * `recall` echoes the prompt's recovered-context section — see
+ * `recallReply` in this module).
  */
 export const MOCK_SCENARIOS = [
   "hitl",
@@ -90,6 +101,7 @@ export const MOCK_SCENARIOS = [
   "markdown",
   "interleave",
   "empty",
+  "recall",
 ] as const;
 /**
  * Any scenario the mock model recognizes in a `[mock:<scenario>]` directive.
@@ -322,6 +334,94 @@ export function toolInputFragments(inputJson: string, fragmentSize = 24): readon
   return fragments;
 }
 
+// --- Compaction-aware doGenerate (pure helpers, unit-tested) -----------------
+
+/**
+ * The opening sentence of the validated-compaction judge's DEFAULT system
+ * prompt, used to recognize a judge call on the mock model. Pinned against
+ * `buildValidationSystemPrompt` in the unit tests so the two can't drift; a
+ * custom `validationSystemPrompt` is deliberately not recognized (the mock
+ * only scripts the default contract).
+ */
+export const MOCK_JUDGE_PROMPT_OPENING =
+  "You audit conversation summaries for information loss.";
+
+/**
+ * The canned summary the mock returns for eve's compaction call. Generic by
+ * design — it names no specifics, so any `[fact:<token>]` marker in the
+ * compacted transcript is guaranteed dropped and the judge/repair path has
+ * real work to do.
+ */
+export const MOCK_COMPACTION_SUMMARY =
+  "Goal: continue the mock conversation. Accomplished: the assistant streamed deterministic story turns. Next steps: keep replying in mock mode.";
+
+/**
+ * Fact tokens planted in a transcript via `[fact:<token>]` markers (letters,
+ * digits, hyphens), in order of appearance — what the mock judge "recovers".
+ */
+export function plantedFactTokens(text: string): readonly string[] {
+  return [...text.matchAll(/\[fact:([A-Za-z0-9-]+)\]/g)].flatMap((match) =>
+    match[1] !== undefined && match[1] !== "" ? [match[1]] : [],
+  );
+}
+
+/** Joined text of a prompt's user messages (a doGenerate call's input). */
+function userTextFrom(prompt: LanguageModelV4Prompt): string {
+  const chunks: string[] = [];
+  for (const message of prompt) {
+    if (message.role !== "user") continue;
+    for (const part of message.content) {
+      if (part.type === "text") chunks.push(part.text);
+    }
+  }
+  return chunks.join("\n\n");
+}
+
+/**
+ * The mock's reply for a `doGenerate` call, by the call's system prompt:
+ *
+ * - eve's compaction call (system starts with {@link COMPACTION_SENTINEL}) →
+ *   {@link MOCK_COMPACTION_SUMMARY}, which drops every planted fact.
+ * - the validated-compaction judge (system starts with
+ *   {@link MOCK_JUDGE_PROMPT_OPENING}) → one `- ` bullet per `[fact:<token>]`
+ *   marker in the call's user text, or `NOTHING MISSING` when none.
+ * - anything else → the fixed non-streaming reply.
+ */
+export function mockGenerateReply(prompt: LanguageModelV4Prompt): string {
+  const first = prompt[0];
+  const system = first !== undefined && first.role === "system" ? first.content : undefined;
+  if (system?.startsWith(COMPACTION_SENTINEL) === true) return MOCK_COMPACTION_SUMMARY;
+  if (system?.startsWith(MOCK_JUDGE_PROMPT_OPENING) === true) {
+    const tokens = plantedFactTokens(userTextFrom(prompt));
+    if (tokens.length === 0) return "NOTHING MISSING";
+    return tokens
+      .map((token) => `- The planted fact token ${token} must be preserved verbatim.`)
+      .join("\n");
+  }
+  return "(mock model, non-streaming reply)";
+}
+
+/**
+ * The `[mock:recall]` reply: the prompt's recovered-context section (from the
+ * {@link RECOVERED_CONTEXT_HEADER} onward, out of whichever message carries
+ * it — after compaction that's the repaired summary), or a fixed
+ * "no recovered context" line. Lets an eval assert in-band that a repaired
+ * summary actually reached the NEXT model call's prompt.
+ */
+export function recallReply(prompt: LanguageModelV4Prompt): string {
+  for (const message of prompt) {
+    if (message.role !== "assistant" && message.role !== "user") continue;
+    for (const part of message.content) {
+      if (part.type !== "text") continue;
+      const index = part.text.indexOf(RECOVERED_CONTEXT_HEADER);
+      if (index !== -1) {
+        return `Recovered context found in the prompt:\n\n${part.text.slice(index)}`;
+      }
+    }
+  }
+  return "No recovered context in the prompt.";
+}
+
 // --- The model ---------------------------------------------------------------
 
 /**
@@ -346,11 +446,15 @@ export function createMockStoryModel(options: MockStoryModelOptions = {}): Langu
     provider: "anthropic",
     modelId: "claude-sonnet-4-6",
     supportedUrls: {},
-    async doGenerate() {
+    async doGenerate(callOptions: LanguageModelV4CallOptions) {
+      // Compaction-aware: eve's compaction call gets a canned generic summary,
+      // the validated-compaction judge gets a deterministic verdict (see
+      // mockGenerateReply). Everything else keeps the fixed reply.
+      const text = mockGenerateReply(callOptions.prompt);
       return {
-        content: [{ type: "text" as const, text: "(mock model, non-streaming reply)" }],
+        content: [{ type: "text" as const, text }],
         finishReason: { unified: "stop" as const, raw: "stop" },
-        usage: usageFor(10),
+        usage: usageFor(Math.ceil(text.length / 4)),
         warnings: [],
       };
     },
@@ -476,6 +580,27 @@ export function createMockStoryModel(options: MockStoryModelOptions = {}): Langu
               type: "finish",
               finishReason: { unified: "stop", raw: "stop" },
               usage: usageFor(120),
+            });
+            controller.close();
+            return;
+          }
+
+          if (scenario === "recall") {
+            // Echo the prompt's recovered-context section (or its absence) so
+            // the compaction eval can assert the repaired summary made it into
+            // this call's prompt — in-band, no side channel.
+            const reply = recallReply(callOptions.prompt);
+            controller.enqueue({ type: "text-start", id: "t1" });
+            for (const word of reply.split(" ")) {
+              if (abortSignal?.aborted) break;
+              await delay(Math.min(chunkDelayMs, 40));
+              controller.enqueue({ type: "text-delta", id: "t1", delta: `${word} ` });
+            }
+            controller.enqueue({ type: "text-end", id: "t1" });
+            controller.enqueue({
+              type: "finish",
+              finishReason: { unified: "stop", raw: "stop" },
+              usage: usageFor(reply.length),
             });
             controller.close();
             return;

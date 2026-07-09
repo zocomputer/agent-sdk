@@ -202,3 +202,35 @@ built, verified patches) graduate to [`proposals/`](./proposals).
     summary will only be read by you". Task state survives compaction far
     better under the sectioned prompt; eve's `onCompaction` todo
     re-injection helps but the summary itself is the weak link.
+- **Authored `compaction.model` silently resolves to the turn model.** The
+  config knob exists, but `loadSourceBackedRuntimeModelReference` resolves the
+  authored reference back to the session's turn model before `compactMessages`
+  runs — pointing compaction at a cheaper (or validating) model is a no-op,
+  with no warning. Either honoring the authored reference or rejecting it at
+  compile time would make the knob truthful; today the only working seam is
+  wrapping the turn model itself, which is how our validated-compaction facade
+  attaches (`@zocomputer/agent-sdk/validated-compaction`).
+- **No compaction-validation hook.** Compaction is the one step where the
+  harness deletes information on the model's behalf, and nothing downstream
+  compares the summary to what it replaced — Slipstream (arXiv:2605.08580)
+  measures the resulting silent quality loss. Our workaround intercepts the
+  compaction call at the model seam (a `LanguageModelV4` facade recognizing
+  `COMPACTION_SYSTEM_PROMPT`), judges the summary against the transcript
+  embedded in the call's own prompt, and repairs it in place — it works, but
+  it rides two incidental facts (compaction is the turn model's only
+  `doGenerate`, and the transcript travels inside the prompt). A first-class
+  seam — `compaction.validate?: (transcript, summary) => summary` or an
+  `onCompaction` variant that can amend the summary before it persists —
+  would delete the sentinel sniffing and survive prompt refactors.
+- **The eval client's HTTP layer flakes with ECONNRESET under fast streams.**
+  Running the coder example's eval suites locally, eve's client
+  intermittently dies with `socket hang up` (`ECONNRESET`) — on the stream
+  GET (`/eve/v1/session/<id>/stream?startIndex=N`) mid-run or on the very
+  first `POST /eve/v1/session` — and the affected eval fails. It usually
+  hits whichever eval runs first against the fresh server (`burst` in the
+  mock suite, `nothing-missing` in the compaction suite). It reproduces
+  on unmodified `main` (3/5 targeted runs of the `burst` scenario, the
+  fastest/unpaced stream) so it looks like a keep-alive reuse race in the
+  Node HTTP client, not anything app-side. A retry on idempotent requests
+  (or `Connection: close` for the short-lived eval client) upstream would
+  make `eve evals` runs deterministic.

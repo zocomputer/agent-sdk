@@ -8,7 +8,7 @@
 
 > `const` **PPTX\_SLIDE\_CAP**: `200` = `200`
 
-Defined in: [packages/agent-sdk/src/extract/pptx.ts:27](https://github.com/zocomputer/zov2-code/blob/f16d57089a60328b9900d1483bcd363cd844b8b3/packages/agent-sdk/src/extract/pptx.ts#L27)
+Defined in: [packages/agent-sdk/src/extract/pptx.ts:27](https://github.com/zocomputer/zov2-code/blob/58f42fa9905e1eaf108a953f694006c436ab7598/packages/agent-sdk/src/extract/pptx.ts#L27)
 
 Extraction slide cap. Read's view budget paginates the text; this bounds
 the extraction work itself. `slides` still reports the true total.

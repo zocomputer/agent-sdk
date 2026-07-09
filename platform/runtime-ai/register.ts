@@ -1,4 +1,5 @@
 import { zoGateway } from "./gateway";
+import { withValidatedCompactionProvider } from "./validated-compaction";
 
 // Register the Zo gateway as the AI SDK's default provider
 // (`globalThis.AI_SDK_DEFAULT_PROVIDER`, read as `?? gateway` by
@@ -11,12 +12,18 @@ import { zoGateway } from "./gateway";
 // anywhere else. A missed override fails loud, not leaky: agents hold no real
 // gateway key, so calls 401 at the real gateway instead of bypassing metering.
 // See plans/ray/eve-web-search-under-gateway-models.md (Option B).
+//
+// The provider is wrapped with validated compaction: eve's compaction summary
+// (the only doGenerate traffic on a turn model — turns stream) gets judged
+// against the transcript it replaces and repaired in place when it dropped
+// load-bearing facts. The wrap lives at the provider so agents keep their bare
+// string slugs (see above — wrapping a model instance breaks web_search).
 
 const SLOT = "AI_SDK_DEFAULT_PROVIDER";
 
 if (!(SLOT in globalThis)) {
   Object.defineProperty(globalThis, SLOT, {
-    value: zoGateway(),
+    value: withValidatedCompactionProvider(zoGateway()),
     // Locked down so a later accidental assignment throws instead of silently
     // rerouting model traffic.
     writable: false,

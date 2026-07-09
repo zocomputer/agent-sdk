@@ -85,6 +85,9 @@ make.
   into a running turn over tool results.
 - [13 — Work with the grain of eve](./13-work-with-the-grain-of-eve.md): build
   workarounds app-side, document every gap as an upstream ask.
+- [14 — Validated compaction](./14-validated-compaction.md): judge eve's
+  compaction summary against the transcript it replaces and repair dropped
+  facts in place, at the model facade.
 
 ## Relation to the other docs
 

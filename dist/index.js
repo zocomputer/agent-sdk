@@ -1,7 +1,7 @@
-// ../../../../../tmp/agent-sdk-mirror-mPPfin/repo/src/index.ts
+// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/index.ts
 import { join as join8 } from "node:path";
 
-// ../../../../../tmp/agent-sdk-mirror-mPPfin/repo/src/attachments.ts
+// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/attachments.ts
 var CHAT_ATTACHMENT_FIELD = "chatAttachment";
 var DEFAULT_MAX_INLINE_IMAGE_BYTES = 3 * 1024 * 1024;
 var DEFAULT_MAX_INLINE_MEDIA_BYTES = 10 * 1024 * 1024;
@@ -48,7 +48,7 @@ function readChatAttachment(toolOutput) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-mPPfin/repo/src/async-tasks.ts
+// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/async-tasks.ts
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname } from "node:path";
 function isRecord2(value) {
@@ -226,7 +226,7 @@ function buildTaskRegistry(opts) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-mPPfin/repo/src/backgroundable.ts
+// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/backgroundable.ts
 import { z } from "zod";
 function defineOp(cfg) {
   return {
@@ -271,7 +271,7 @@ function createBashOp(runner) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-mPPfin/repo/src/bounded-output.ts
+// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/bounded-output.ts
 import { appendFileSync, mkdirSync as mkdirSync2, writeFileSync as writeFileSync2 } from "node:fs";
 import { dirname as dirname2 } from "node:path";
 var HEAD_CHARS = 25000;
@@ -372,7 +372,7 @@ function createBoundedCapture(opts = {}) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-mPPfin/repo/src/dir-conventions.ts
+// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/dir-conventions.ts
 import { readFileSync as readFileSync2 } from "node:fs";
 import { join } from "node:path";
 var DEFAULT_MAX_BYTES_PER_FILE = 16 * 1024;
@@ -484,12 +484,12 @@ function createDirConventionsTracker(options) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-mPPfin/repo/src/instructions.ts
+// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/instructions.ts
 import { readFileSync as readFileSync3 } from "node:fs";
 import { resolve } from "node:path";
 import { defineDynamic, defineInstructions } from "eve/instructions";
 
-// ../../../../../tmp/agent-sdk-mirror-mPPfin/repo/src/model-capabilities.ts
+// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/model-capabilities.ts
 var TEXT_ONLY_CAPABILITIES = {
   image: false,
   pdf: false,
@@ -548,7 +548,7 @@ function describeCapabilities(caps) {
   return `can view ${joinList(can, "and")}, but not ${joinList(cannot, "or")}`;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-mPPfin/repo/src/prompt-sections.ts
+// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/prompt-sections.ts
 function renderPromptSection(section) {
   const body = section.body.trim();
   if (body === "")
@@ -591,7 +591,7 @@ function composePromptSections(baseline, options) {
   return composed;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-mPPfin/repo/src/instructions.ts
+// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/instructions.ts
 function repoConventionsSection(opts) {
   let agents = "";
   try {
@@ -876,7 +876,7 @@ function createInstructionStackInstruction(opts) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-mPPfin/repo/src/run.ts
+// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/run.ts
 import { spawn } from "node:child_process";
 import { join as join2 } from "node:path";
 var MAX_PREVIEW = 20000;
@@ -977,7 +977,7 @@ function createCommandRunner(opts) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-mPPfin/repo/src/steer-inbox.ts
+// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/steer-inbox.ts
 import {
   appendFileSync as appendFileSync2,
   linkSync,
@@ -988,7 +988,7 @@ import {
 } from "node:fs";
 import { join as join3 } from "node:path";
 
-// ../../../../../tmp/agent-sdk-mirror-mPPfin/repo/src/steer.ts
+// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/steer.ts
 var STEER_FIELD = "user_steer";
 var STEER_WRAPPED_OUTPUT_FIELD = "steer_wrapped_output";
 var STEER_DIRNAME = "steer";
@@ -1058,7 +1058,7 @@ function parseSteerLine(line) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-mPPfin/repo/src/steer-inbox.ts
+// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/steer-inbox.ts
 var drainSequence = 0;
 function createSteerInbox(options) {
   const now = options.now ?? Date.now;
@@ -1107,7 +1107,7 @@ function createSteerInbox(options) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-mPPfin/repo/src/steer-tool.ts
+// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/steer-tool.ts
 import { defineTool } from "eve/tools";
 function withSteerDelivery(tool, inbox) {
   const originalToModelOutput = tool.toModelOutput?.bind(tool);
@@ -1139,11 +1139,11 @@ function createSteerWrapper(inbox) {
   return (tool) => withSteerDelivery(tool, inbox);
 }
 
-// ../../../../../tmp/agent-sdk-mirror-mPPfin/repo/src/tools/bash.ts
+// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/tools/bash.ts
 import { defineTool as defineTool2 } from "eve/tools";
 import { z as z2 } from "zod";
 
-// ../../../../../tmp/agent-sdk-mirror-mPPfin/repo/src/park-delivery.ts
+// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/park-delivery.ts
 function isRecord4(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
@@ -1259,7 +1259,7 @@ function setParkNotificationHandler(handler) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-mPPfin/repo/src/watch-output.ts
+// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/watch-output.ts
 var DEFAULT_WATCH_DEBOUNCE_MS = 5000;
 var DEFAULT_MAX_WATCH_NOTIFICATIONS = 5;
 function createOutputWatcher(options) {
@@ -1323,7 +1323,7 @@ function formatCompletionNotification(opts) {
   return `Background task ${opts.taskId} (${opts.label}) ${outcome}. Call await_task to collect its result.`;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-mPPfin/repo/src/tools/bash.ts
+// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/tools/bash.ts
 var DEFAULT_INTERACTIVE_HINT = "This is a piped shell with NO tty: avoid interactive or full-screen CLIs (a REPL, vim, an interactive installer/prompt) — those programs hang or degrade without a real terminal.";
 function createBashTool(opts) {
   const { workspace, runner, registry, noun } = opts;
@@ -1411,11 +1411,11 @@ function createBashTool(opts) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-mPPfin/repo/src/tools/edit.ts
+// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/tools/edit.ts
 import { defineTool as defineTool3 } from "eve/tools";
 import { z as z3 } from "zod";
 
-// ../../../../../tmp/agent-sdk-mirror-mPPfin/repo/src/edit-match.ts
+// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/edit-match.ts
 class EditNotFoundError extends Error {
   constructor() {
     super("old_string not found. It must match the file contents exactly, including whitespace and indentation.");
@@ -1862,7 +1862,7 @@ function joinBom(text, bom) {
   return bom ? BOM + stripped : stripped;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-mPPfin/repo/src/path-locks.ts
+// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/path-locks.ts
 var LOCKS_KEY = Symbol.for("zocomputer.agent-sdk.path-locks");
 function lockChains() {
   const holder = globalThis;
@@ -1888,18 +1888,18 @@ async function withPathLock(path, fn) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-mPPfin/repo/src/workspace-io.ts
+// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/workspace-io.ts
 import { mkdirSync as mkdirSync4, readFileSync as readFileSync7, statSync as statSync2, writeFileSync as writeFileSync3 } from "node:fs";
 import { dirname as dirname3, join as join5 } from "node:path";
 
-// ../../../../../tmp/agent-sdk-mirror-mPPfin/repo/src/glob-match.ts
+// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/glob-match.ts
 function globToRegExp(glob) {
   const escaped = glob.replace(/[.+^${}()|[\]\\]/g, "\\$&");
   const body = escaped.replace(/\*\*\/?/g, "\x00").replace(/\*/g, "[^/]*").replace(/\?/g, "[^/]").replace(/\u0000/g, "(?:.*/)?");
   return new RegExp(`^${body}$`);
 }
 
-// ../../../../../tmp/agent-sdk-mirror-mPPfin/repo/src/list-files.ts
+// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/list-files.ts
 import { spawnSync } from "node:child_process";
 var MAX_BUFFER = 64 * 1024 * 1024;
 function gitPaths(root, args) {
@@ -1927,7 +1927,7 @@ function listGitFiles(root, scope) {
   return files.filter((path) => !gone.has(path));
 }
 
-// ../../../../../tmp/agent-sdk-mirror-mPPfin/repo/src/read-text.ts
+// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/read-text.ts
 import { readFileSync as readFileSync5, statSync } from "node:fs";
 var MAX_SEARCH_FILE_BYTES = 1500000;
 var BINARY_SNIFF_BYTES = 8192;
@@ -1954,7 +1954,7 @@ function readTextForSearch(abs, maxBytes = MAX_SEARCH_FILE_BYTES) {
   return { kind: "text", content: buf.toString("utf8") };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-mPPfin/repo/src/walk.ts
+// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/walk.ts
 import { readFileSync as readFileSync6, readdirSync } from "node:fs";
 import { join as join4, relative, sep } from "node:path";
 import ignore from "ignore";
@@ -2036,7 +2036,7 @@ function* walkFiles(root, base = root) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-mPPfin/repo/src/workspace.ts
+// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/workspace.ts
 import { isAbsolute, relative as relative2, resolve as resolve2, sep as sep2 } from "node:path";
 function resolveWithin(root, path) {
   const abs = isAbsolute(path) ? resolve2(path) : resolve2(root, path);
@@ -2058,7 +2058,7 @@ function createWorkspace(root) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-mPPfin/repo/src/workspace-io.ts
+// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/workspace-io.ts
 function createLocalIo(root) {
   return {
     async stat(abs) {
@@ -2146,7 +2146,7 @@ async function searchLocal(root, options) {
   return { matches, stopped, skippedLargeFiles };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-mPPfin/repo/src/tools/edit.ts
+// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/tools/edit.ts
 function createEditTool(opts) {
   const { workspace, noun } = opts;
   const io = opts.io ?? localIoProvider(workspace.root);
@@ -2200,7 +2200,7 @@ ${hint.preview}`;
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-mPPfin/repo/src/tools/glob.ts
+// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/tools/glob.ts
 import { defineTool as defineTool4 } from "eve/tools";
 import { z as z4 } from "zod";
 function createGlobTool(opts) {
@@ -2239,7 +2239,7 @@ function createGlobTool(opts) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-mPPfin/repo/src/tools/grep.ts
+// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/tools/grep.ts
 import { defineTool as defineTool5 } from "eve/tools";
 import { z as z5 } from "zod";
 import { join as join6 } from "node:path";
@@ -2332,12 +2332,12 @@ function createGrepTool(opts) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-mPPfin/repo/src/tools/look.ts
+// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/tools/look.ts
 import { defineTool as defineTool6 } from "eve/tools";
 import { basename } from "node:path";
 import { z as z6 } from "zod";
 
-// ../../../../../tmp/agent-sdk-mirror-mPPfin/repo/src/file-kind.ts
+// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/file-kind.ts
 import { extname } from "node:path";
 function imageMediaType(format) {
   return `image/${format}`;
@@ -2535,7 +2535,7 @@ function detectFileKind(buf, path) {
   return { kind: "text", encoding: "utf8" };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-mPPfin/repo/src/tools/look.ts
+// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/tools/look.ts
 var DEFAULT_LOOK_MAX_INPUT_BYTES = 20 * 1024 * 1024;
 var DEFAULT_LOOK_TIMEOUT_MS = 180000;
 var LOOK_MAX_ANSWER_CHARS = 30000;
@@ -2724,12 +2724,12 @@ function lookOversizeHint(oracle, maxInputBytes = DEFAULT_LOOK_MAX_INPUT_BYTES) 
   return `For text, use bash (head, sed -n, rg) to extract the part you need. Only if it is ${article} ${kindList} file up to ${capMb} MB, pass the path and a question to the look tool to have ${oracle.modelName} examine it (look sends files read cannot; over ${capMb} MB, shrink it first, e.g. ffmpeg extraction).`;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-mPPfin/repo/src/tools/read.ts
+// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/tools/read.ts
 import { defineTool as defineTool7 } from "eve/tools";
 import { z as z7 } from "zod";
 import { basename as basename2 } from "node:path";
 
-// ../../../../../tmp/agent-sdk-mirror-mPPfin/repo/src/file-view.ts
+// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/file-view.ts
 var READ_FILE_DEFAULT_LINE_LIMIT = 2000;
 var READ_FILE_MAX_LINE_CHARS = 2000;
 var READ_FILE_MAX_CONTENT_CHARS = 50000;
@@ -2773,10 +2773,10 @@ function buildFileView(text, opts = {}) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-mPPfin/repo/src/read-file-content.ts
+// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/read-file-content.ts
 import { imageSize } from "image-size";
 
-// ../../../../../tmp/agent-sdk-mirror-mPPfin/repo/src/extract/cache.ts
+// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/extract/cache.ts
 function createStatCache(limit) {
   const entries = new Map;
   return {
@@ -2801,7 +2801,7 @@ function createStatCache(limit) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-mPPfin/repo/src/extract/docx.ts
+// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/extract/docx.ts
 import mammoth from "mammoth";
 async function extractDocx(buffer) {
   try {
@@ -2813,10 +2813,10 @@ async function extractDocx(buffer) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-mPPfin/repo/src/extract/epub.ts
+// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/extract/epub.ts
 import { Parser } from "htmlparser2";
 
-// ../../../../../tmp/agent-sdk-mirror-mPPfin/repo/src/extract/zip.ts
+// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/extract/zip.ts
 import { inflateRawSync } from "node:zlib";
 var EOCD_SIGNATURE = 101010256;
 var CENTRAL_SIGNATURE = 33639248;
@@ -2904,7 +2904,7 @@ function openZip(buffer) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-mPPfin/repo/src/extract/epub.ts
+// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/extract/epub.ts
 var EPUB_SECTION_CAP = 200;
 var BLOCK_TAGS = new Set([
   "p",
@@ -3040,7 +3040,7 @@ function extractEpub(bytes, options = {}) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-mPPfin/repo/src/extract/ipynb.ts
+// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/extract/ipynb.ts
 function joinSource(value) {
   if (typeof value === "string")
     return value;
@@ -3151,7 +3151,7 @@ function extractNotebook(bytes) {
 `), cells: cells.length };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-mPPfin/repo/src/extract/odf.ts
+// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/extract/odf.ts
 import { Parser as Parser2 } from "htmlparser2";
 var ODP_EMPTY_SLIDE_NOTE = "[no text on this slide — likely image-only; images cannot be extracted]";
 function parseContentXml(xml) {
@@ -3238,7 +3238,7 @@ function extractOdp(bytes) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-mPPfin/repo/src/extract/pdf.ts
+// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/extract/pdf.ts
 import { openPdf } from "clawpdf";
 var PDF_EMPTY_PAGE_NOTE = "[no text on this page — likely scanned or image-only; rendered pages cannot be attached]";
 var PDF_PAGE_CAP = 200;
@@ -3273,7 +3273,7 @@ async function extractPdf(bytes, options = {}) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-mPPfin/repo/src/extract/pptx.ts
+// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/extract/pptx.ts
 import { Parser as Parser3 } from "htmlparser2";
 var PPTX_EMPTY_SLIDE_NOTE = "[no text on this slide — likely image-only; images cannot be extracted]";
 var PPTX_SLIDE_CAP = 200;
@@ -3429,7 +3429,7 @@ function extractPptx(bytes, options = {}) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-mPPfin/repo/src/extract/rtf.ts
+// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/extract/rtf.ts
 var SKIP_DESTINATIONS = new Set([
   "fonttbl",
   "colortbl",
@@ -3627,7 +3627,7 @@ function extractRtf(bytes) {
   return { ok: true, text: text.replace(/\n+$/, "") };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-mPPfin/repo/src/extract/sheet.ts
+// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/extract/sheet.ts
 import { read, utils } from "xlsx";
 var SHEET_ROW_CAP = 5000;
 function extractSheets(buffer, rowCap = SHEET_ROW_CAP) {
@@ -3668,7 +3668,7 @@ function extractSheets(buffer, rowCap = SHEET_ROW_CAP) {
 `), sheets };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-mPPfin/repo/src/read-file-content.ts
+// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/read-file-content.ts
 var EXTRACTION_CACHE_LIMIT = 20;
 var extractionCache = createStatCache(EXTRACTION_CACHE_LIMIT);
 function decodeText(buffer, encoding) {
@@ -3787,7 +3787,7 @@ async function loadFileContent(buffer, path, id) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-mPPfin/repo/src/tools/read.ts
+// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/tools/read.ts
 function buildMediaHint(attach, verb) {
   const kinds = ["image", "video", "audio"];
   const on = kinds.filter((kind) => attach[kind]);
@@ -3991,7 +3991,7 @@ function createReadTool(opts) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-mPPfin/repo/src/tools/tasks.ts
+// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/tools/tasks.ts
 import { defineDynamic as defineDynamic2, defineTool as defineTool8 } from "eve/tools";
 import { z as z8 } from "zod";
 var DEFAULT_WAIT_MS = 120000;
@@ -4149,11 +4149,11 @@ function createTasksTools(opts) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-mPPfin/repo/src/tools/todo.ts
+// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/tools/todo.ts
 import { defineTool as defineTool9 } from "eve/tools";
 import { todo as eveTodo } from "eve/tools/defaults";
 
-// ../../../../../tmp/agent-sdk-mirror-mPPfin/repo/src/todo-discipline.ts
+// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/todo-discipline.ts
 function isRecord6(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
@@ -4261,7 +4261,7 @@ var TODO_DISCIPLINE_RIDER = [
 ].join(`
 `);
 
-// ../../../../../tmp/agent-sdk-mirror-mPPfin/repo/src/tools/todo.ts
+// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/tools/todo.ts
 function isRecord7(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
@@ -4288,17 +4288,17 @@ ${TODO_DISCIPLINE_RIDER}`,
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-mPPfin/repo/src/tools/webfetch.ts
+// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/tools/webfetch.ts
 import { defineTool as defineTool10 } from "eve/tools";
 import { z as z9 } from "zod";
 import { basename as basename3, join as join7 } from "node:path";
 
-// ../../../../../tmp/agent-sdk-mirror-mPPfin/repo/src/web-fetch.ts
+// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/web-fetch.ts
 import { Parser as Parser4 } from "htmlparser2";
 import { parseHTML as parseHTML2 } from "linkedom";
 import TurndownService from "turndown";
 
-// ../../../../../tmp/agent-sdk-mirror-mPPfin/repo/src/web-page.ts
+// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/web-page.ts
 import Defuddle from "defuddle";
 import { parseHTML } from "linkedom";
 var asField = (value) => {
@@ -4409,7 +4409,7 @@ function looksLikeRawHtmlOutput(rendered) {
   return tagChars / rendered.length > 0.1;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-mPPfin/repo/src/web-fetch.ts
+// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/web-fetch.ts
 var WEB_FETCH_MAX_RESPONSE_BYTES = 5 * 1024 * 1024;
 var WEB_FETCH_DEFAULT_TIMEOUT_SECONDS = 30;
 var WEB_FETCH_PDF_DEFAULT_TIMEOUT_SECONDS = 60;
@@ -4599,7 +4599,7 @@ function urlLooksLikePdf(url) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-mPPfin/repo/src/tools/webfetch.ts
+// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/tools/webfetch.ts
 var SPILL_EXTENSION = {
   markdown: "md",
   text: "txt",
@@ -4880,7 +4880,7 @@ function createWebFetchTool(opts) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-mPPfin/repo/src/tools/write.ts
+// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/tools/write.ts
 import { defineTool as defineTool11 } from "eve/tools";
 import { z as z10 } from "zod";
 function createWriteTool(opts) {
@@ -4916,7 +4916,7 @@ function createWriteTool(opts) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-mPPfin/repo/src/sandbox-io.ts
+// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/sandbox-io.ts
 import ignore2 from "ignore";
 function shellSingleQuote(value) {
   return `'${value.replaceAll("'", `'\\''`)}'`;
@@ -5131,11 +5131,11 @@ function parseSearchOutput(stdout, maxMatches, flooded = false) {
   }
   return { matches, stopped, skippedLargeFiles: null };
 }
-// ../../../../../tmp/agent-sdk-mirror-mPPfin/repo/src/hooks.ts
+// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/hooks.ts
 import { Client } from "eve/client";
 import { defineHook } from "eve/hooks";
 
-// ../../../../../tmp/agent-sdk-mirror-mPPfin/repo/src/redeliver.ts
+// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/redeliver.ts
 function isRecord8(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
@@ -5205,7 +5205,7 @@ function createRedeliveryState() {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-mPPfin/repo/src/hooks.ts
+// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/hooks.ts
 var RETRY_DELAYS_MS = [500, 2000, 5000];
 function buildDeliveryMessage(request) {
   const media = request.items.flatMap((item) => item.payload.kind === "media" ? [{ toolCallId: item.key, attachment: item.payload.attachment }] : []);
@@ -5304,7 +5304,7 @@ function createParkDeliveryHook(options = {}) {
     }
   });
 }
-// ../../../../../tmp/agent-sdk-mirror-mPPfin/repo/src/build-externals.ts
+// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/build-externals.ts
 var STDLIB_EXTERNAL_DEPENDENCIES = [
   "ai",
   "clawpdf",
@@ -5318,11 +5318,11 @@ var STDLIB_EXTERNAL_DEPENDENCIES = [
   "xlsx",
   "zod"
 ];
-// ../../../../../tmp/agent-sdk-mirror-mPPfin/repo/src/task.ts
+// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/task.ts
 import { defineAgent } from "eve";
 import { defineDynamic as defineDynamic3, defineInstructions as defineInstructions2 } from "eve/instructions";
 
-// ../../../../../tmp/agent-sdk-mirror-mPPfin/repo/src/visible-reasoning.ts
+// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/visible-reasoning.ts
 var ANTHROPIC_ADAPTIVE_THINKING_MODELS = [
   /^anthropic\/claude-fable-/,
   /^anthropic\/claude-mythos-/,
@@ -5348,7 +5348,7 @@ function visibleReasoningModelOptions(modelId) {
   return;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-mPPfin/repo/src/task.ts
+// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/task.ts
 var TASK_DISABLED_BUILTINS = ["ask_question"];
 function expectedTaskToolNames(options) {
   const parent = new Set(options.parentToolNames);
@@ -5489,7 +5489,191 @@ async function fetchGatewayModelCatalog(options) {
   }
   return parsed;
 }
-// ../../../../../tmp/agent-sdk-mirror-mPPfin/repo/src/mock-model.ts
+// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/validated-compaction.ts
+var COMPACTION_SENTINEL = "You are a conversation summarizer.";
+var RECOVERED_CONTEXT_HEADER = "## Recovered context (compaction audit)";
+var DEFAULT_MAX_RECOVERED_CHARS = 2000;
+var DEFAULT_MAX_RECOVERED_FACTS = 12;
+var DEFAULT_JUDGE_MAX_OUTPUT_TOKENS = 1024;
+var DEFAULT_JUDGE_TIMEOUT_MS = 60000;
+function buildValidationSystemPrompt(maxFacts) {
+  return [
+    "You audit conversation summaries for information loss.",
+    "You will receive the original conversation transcript and a candidate summary of it.",
+    "Identify concrete, load-bearing facts present in the transcript but missing from the summary:",
+    "task goals and their status, files or paths modified, decisions and their reasons, constraints,",
+    "open questions, pending verification steps, exact identifiers (names, commands, versions, URLs).",
+    "Reply with exactly `NOTHING MISSING` if the summary preserves everything needed.",
+    "Otherwise reply with one missing fact per line, each line starting with `- `,",
+    `most important first, at most ${maxFacts} lines, no other text.`
+  ].join(" ");
+}
+function parseJudgeVerdict(text) {
+  if (/^nothing missing[.!]?$/i.test(text.trim())) {
+    return { kind: "nothing-missing" };
+  }
+  const facts = [];
+  for (const line of text.split(`
+`)) {
+    const match = /^\s*[-*]\s+(.+)$/.exec(line);
+    const fact = match?.[1]?.trim();
+    if (fact !== undefined && fact !== "")
+      facts.push(fact);
+  }
+  if (facts.length === 0)
+    return { kind: "nothing-missing" };
+  return { kind: "missing", facts };
+}
+function buildRecoverySection(facts, maxChars) {
+  const intro = "Facts from the pre-compaction transcript the summary above omitted:";
+  let text = `${RECOVERED_CONTEXT_HEADER}
+${intro}`;
+  let kept = 0;
+  for (const fact of facts) {
+    const withFact = `${text}
+- ${fact}`;
+    if (withFact.length > maxChars)
+      break;
+    text = withFact;
+    kept += 1;
+  }
+  if (kept === 0)
+    return null;
+  return { text, kept, truncated: kept < facts.length };
+}
+function extractTranscript(prompt) {
+  const chunks = [];
+  for (const message of prompt) {
+    if (message.role !== "user")
+      continue;
+    for (const part of message.content) {
+      if (part.type === "text" && part.text !== "")
+        chunks.push(part.text);
+    }
+  }
+  return chunks.join(`
+
+`);
+}
+function isTextContent(part) {
+  return part.type === "text";
+}
+function extractText(content) {
+  return content.filter(isTextContent).map((part) => part.text).join("");
+}
+function withValidatedCompaction(model, options = {}) {
+  const maxRecoveredChars = options.maxRecoveredChars ?? DEFAULT_MAX_RECOVERED_CHARS;
+  const maxRecoveredFacts = options.maxRecoveredFacts ?? DEFAULT_MAX_RECOVERED_FACTS;
+  const judgeMaxOutputTokens = options.judgeMaxOutputTokens ?? DEFAULT_JUDGE_MAX_OUTPUT_TOKENS;
+  const judgeTimeoutMs = options.judgeTimeoutMs ?? DEFAULT_JUDGE_TIMEOUT_MS;
+  const judgeSystemPrompt = options.validationSystemPrompt ?? buildValidationSystemPrompt(maxRecoveredFacts);
+  const emit = (report) => {
+    try {
+      options.onValidation?.(report);
+    } catch {}
+  };
+  const validate = async (params, result) => {
+    const transcript = extractTranscript(params.prompt);
+    if (transcript === "") {
+      emit({ kind: "skipped", reason: "no-transcript" });
+      return result;
+    }
+    const candidate = extractText(result.content);
+    if (candidate.trim() === "") {
+      emit({ kind: "skipped", reason: "no-summary-text" });
+      return result;
+    }
+    let judgeText;
+    try {
+      const signals = [AbortSignal.timeout(judgeTimeoutMs)];
+      if (params.abortSignal)
+        signals.push(params.abortSignal);
+      const judgeResult = await model.doGenerate({
+        prompt: [
+          { role: "system", content: judgeSystemPrompt },
+          {
+            role: "user",
+            content: [
+              {
+                type: "text",
+                text: `Original conversation transcript:
+<transcript>
+${transcript}
+</transcript>
+
+Candidate summary:
+<summary>
+${candidate}
+</summary>`
+              }
+            ]
+          }
+        ],
+        temperature: 0,
+        maxOutputTokens: judgeMaxOutputTokens,
+        abortSignal: AbortSignal.any(signals),
+        ...params.headers !== undefined && { headers: params.headers },
+        ...params.providerOptions !== undefined && {
+          providerOptions: params.providerOptions
+        }
+      });
+      judgeText = extractText(judgeResult.content);
+    } catch (error) {
+      emit({ kind: "judge-error", error });
+      return result;
+    }
+    const verdict = parseJudgeVerdict(judgeText);
+    if (verdict.kind === "nothing-missing") {
+      emit({ kind: "nothing-missing", judgeText });
+      return result;
+    }
+    const capped = verdict.facts.slice(0, maxRecoveredFacts);
+    const cappedByCount = capped.length < verdict.facts.length;
+    const section = buildRecoverySection(capped, maxRecoveredChars);
+    if (section === null) {
+      emit({ kind: "nothing-missing", judgeText });
+      return result;
+    }
+    const lastTextIndex = result.content.findLastIndex(isTextContent);
+    const lastText = result.content[lastTextIndex];
+    if (lastText === undefined || !isTextContent(lastText)) {
+      emit({ kind: "skipped", reason: "no-summary-text" });
+      return result;
+    }
+    const appended = `
+
+${section.text}`;
+    const content = result.content.map((part, index) => index === lastTextIndex && isTextContent(part) ? { ...part, text: part.text + appended } : part);
+    emit({
+      kind: "repaired",
+      facts: capped.slice(0, section.kept),
+      truncated: section.truncated || cappedByCount,
+      appendedChars: appended.length
+    });
+    return { ...result, content };
+  };
+  return {
+    specificationVersion: "v4",
+    provider: model.provider,
+    modelId: model.modelId,
+    get supportedUrls() {
+      return model.supportedUrls;
+    },
+    async doGenerate(params) {
+      const first = params.prompt[0];
+      const isCompaction = first !== undefined && first.role === "system" && first.content.startsWith(COMPACTION_SENTINEL);
+      if (!isCompaction)
+        return model.doGenerate(params);
+      const result = await model.doGenerate(params);
+      return validate(params, result);
+    },
+    doStream(params) {
+      return model.doStream(params);
+    }
+  };
+}
+
+// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/mock-model.ts
 var STORY_SENTENCES = [
   "The lighthouse keeper counted the waves as they broke against the rocks.",
   "Every seventh wave carried a whisper from the old town beneath the sea.",
@@ -5525,7 +5709,8 @@ var MOCK_SCENARIOS = [
   "burst",
   "markdown",
   "interleave",
-  "empty"
+  "empty",
+  "recall"
 ];
 function markdownChunks() {
   return [
@@ -5709,6 +5894,56 @@ function toolInputFragments(inputJson, fragmentSize = 24) {
   }
   return fragments;
 }
+var MOCK_JUDGE_PROMPT_OPENING = "You audit conversation summaries for information loss.";
+var MOCK_COMPACTION_SUMMARY = "Goal: continue the mock conversation. Accomplished: the assistant streamed deterministic story turns. Next steps: keep replying in mock mode.";
+function plantedFactTokens(text) {
+  return [...text.matchAll(/\[fact:([A-Za-z0-9-]+)\]/g)].flatMap((match) => match[1] !== undefined && match[1] !== "" ? [match[1]] : []);
+}
+function userTextFrom(prompt) {
+  const chunks = [];
+  for (const message of prompt) {
+    if (message.role !== "user")
+      continue;
+    for (const part of message.content) {
+      if (part.type === "text")
+        chunks.push(part.text);
+    }
+  }
+  return chunks.join(`
+
+`);
+}
+function mockGenerateReply(prompt) {
+  const first = prompt[0];
+  const system = first !== undefined && first.role === "system" ? first.content : undefined;
+  if (system?.startsWith(COMPACTION_SENTINEL) === true)
+    return MOCK_COMPACTION_SUMMARY;
+  if (system?.startsWith(MOCK_JUDGE_PROMPT_OPENING) === true) {
+    const tokens = plantedFactTokens(userTextFrom(prompt));
+    if (tokens.length === 0)
+      return "NOTHING MISSING";
+    return tokens.map((token) => `- The planted fact token ${token} must be preserved verbatim.`).join(`
+`);
+  }
+  return "(mock model, non-streaming reply)";
+}
+function recallReply(prompt) {
+  for (const message of prompt) {
+    if (message.role !== "assistant" && message.role !== "user")
+      continue;
+    for (const part of message.content) {
+      if (part.type !== "text")
+        continue;
+      const index = part.text.indexOf(RECOVERED_CONTEXT_HEADER);
+      if (index !== -1) {
+        return `Recovered context found in the prompt:
+
+${part.text.slice(index)}`;
+      }
+    }
+  }
+  return "No recovered context in the prompt.";
+}
 function createMockStoryModel(options = {}) {
   const chunkCount = options.chunkCount ?? 240;
   const chunkDelayMs = options.chunkDelayMs ?? 250;
@@ -5720,11 +5955,12 @@ function createMockStoryModel(options = {}) {
     provider: "anthropic",
     modelId: "claude-sonnet-4-6",
     supportedUrls: {},
-    async doGenerate() {
+    async doGenerate(callOptions) {
+      const text = mockGenerateReply(callOptions.prompt);
       return {
-        content: [{ type: "text", text: "(mock model, non-streaming reply)" }],
+        content: [{ type: "text", text }],
         finishReason: { unified: "stop", raw: "stop" },
-        usage: usageFor(10),
+        usage: usageFor(Math.ceil(text.length / 4)),
         warnings: []
       };
     },
@@ -5854,6 +6090,24 @@ That changes the plan.`
             controller.close();
             return;
           }
+          if (scenario === "recall") {
+            const reply = recallReply(callOptions.prompt);
+            controller.enqueue({ type: "text-start", id: "t1" });
+            for (const word of reply.split(" ")) {
+              if (abortSignal?.aborted)
+                break;
+              await delay(Math.min(chunkDelayMs, 40));
+              controller.enqueue({ type: "text-delta", id: "t1", delta: `${word} ` });
+            }
+            controller.enqueue({ type: "text-end", id: "t1" });
+            controller.enqueue({
+              type: "finish",
+              finishReason: { unified: "stop", raw: "stop" },
+              usage: usageFor(reply.length)
+            });
+            controller.close();
+            return;
+          }
           if (scenario === "empty") {
             controller.enqueue({
               type: "finish",
@@ -5951,7 +6205,7 @@ That changes the plan.`
     }
   };
 }
-// ../../../../../tmp/agent-sdk-mirror-mPPfin/repo/src/orphaned-turns.ts
+// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/orphaned-turns.ts
 function isOrphanedTurn(input) {
   if (!input.reconciled || !input.inFlightAfter)
     return false;
@@ -5966,7 +6220,7 @@ function workerEpochMs(now = Date.now) {
   return holder[WORKER_EPOCH_KEY];
 }
 
-// ../../../../../tmp/agent-sdk-mirror-mPPfin/repo/src/index.ts
+// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/index.ts
 function createStdlib(options) {
   const noun = options.workspaceNoun ?? "workspace";
   const workspace2 = createWorkspace(options.workspaceRoot);
@@ -6158,6 +6412,7 @@ export {
   xhtmlToText,
   workflowSection,
   workerEpochMs,
+  withValidatedCompaction,
   withSteerDelivery,
   walkFiles,
   visibleReasoningModelOptions,
@@ -6194,6 +6449,7 @@ export {
   parseTodoItems,
   parseSteerLine,
   parseSearchOutput,
+  parseJudgeVerdict,
   parseGatewayModelCatalog,
   parallelToolsSection,
   openZip,
@@ -6290,6 +6546,7 @@ export {
   capabilitiesForModel,
   buildWorkflowMarkdown,
   buildWebFetchHeaders,
+  buildValidationSystemPrompt,
   buildTasksToolset,
   buildTaskMarkdown,
   buildTaskDescription,
@@ -6297,6 +6554,7 @@ export {
   buildSteerPayload,
   buildRepoConventionsMarkdown,
   buildRedeliveryMessage,
+  buildRecoverySection,
   buildPlanningMarkdown,
   buildParallelToolsMarkdown,
   buildLookMarkdown,
@@ -6332,6 +6590,7 @@ export {
   STDLIB_EXTERNAL_DEPENDENCIES,
   SHEET_ROW_CAP,
   SEARCH_OUTPUT_CAP_BYTES,
+  RECOVERED_CONTEXT_HEADER,
   READ_FILE_MAX_LINE_CHARS,
   READ_FILE_MAX_CONTENT_CHARS,
   READ_FILE_MAX_BYTES,
@@ -6361,12 +6620,17 @@ export {
   DEFAULT_WATCH_DEBOUNCE_MS,
   DEFAULT_MEDIA_ORACLE,
   DEFAULT_MAX_WATCH_NOTIFICATIONS,
+  DEFAULT_MAX_RECOVERED_FACTS,
+  DEFAULT_MAX_RECOVERED_CHARS,
   DEFAULT_MAX_INLINE_MEDIA_BYTES,
   DEFAULT_MAX_INLINE_IMAGE_BYTES,
   DEFAULT_MAX_INLINE_CONTENT_CHARS,
   DEFAULT_LOOK_TIMEOUT_MS,
   DEFAULT_LOOK_MAX_INPUT_BYTES,
+  DEFAULT_JUDGE_TIMEOUT_MS,
+  DEFAULT_JUDGE_MAX_OUTPUT_TOKENS,
   ContextAwareReplacer,
+  COMPACTION_SENTINEL,
   CHAT_ATTACHMENT_FIELD,
   BlockAnchorReplacer,
   BROWSER_USER_AGENT,

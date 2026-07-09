@@ -523,6 +523,61 @@ point is converting a *dead* connection into a retryable error, not racing a
 slow-but-alive reasoning model. Override via the second argument
 (`{ firstByteMs, idleMs }`).
 
+## Validated compaction (judge-and-repair summaries)
+
+When a conversation outgrows the context window, eve compacts: the older
+messages are replaced by a model-written summary, and nothing ever checks
+that summary against what it deleted. Slipstream (arXiv:2605.08580) measured
+the failure that invites: summaries silently drop load-bearing facts — the
+task list, which files were already modified, the verification steps still
+pending — and quality degrades with no visible error.
+`withValidatedCompaction` (`@zocomputer/agent-sdk/validated-compaction`)
+closes the loop at the model seam:
+
+```ts
+import { createGateway } from "ai";
+import { withValidatedCompaction } from "@zocomputer/agent-sdk/validated-compaction";
+
+const gateway = createGateway({ fetch: withStreamGuards(fetch) });
+export default defineAgent({
+  model: withValidatedCompaction(gateway("anthropic/claude-opus-4.8")),
+  // A wrapped model instance forfeits eve's catalog window auto-resolution —
+  // set the window explicitly or compilation fails.
+  modelContextWindowTokens: 200_000,
+});
+```
+
+How it works: eve's compaction is the only non-streaming (`doGenerate`) call
+a turn model ever receives, and it announces itself with eve's summarizer
+system prompt — the wrapper recognizes it, lets the summary generate, then
+asks the **same model** to judge the candidate against the original
+transcript (which travels inside the compaction call's own prompt). If the
+judge names dropped facts, the wrapper appends a bounded
+`## Recovered context (compaction audit)` section to the summary before eve
+persists it; if nothing's missing, the summary passes through byte-identical.
+One extra model call per compaction — a slight delay, traded for a summary
+checked against ground truth.
+
+Knobs (`ValidatedCompactionOptions`): `validationSystemPrompt` replaces the
+judge prompt (the default asks for `- ` bullets or the literal
+`NOTHING MISSING`; a custom prompt must keep that output contract),
+`maxRecoveredFacts`/`maxRecoveredChars` bound the repair,
+`judgeMaxOutputTokens`/`judgeTimeoutMs` bound the judge call, and
+`onValidation` observes every verdict (a `CompactionValidationReport` — the
+coder example appends them to an NDJSON file its eval suite asserts on).
+Every failure mode fails open: a judge error, timeout, or unparseable
+verdict degrades to the unvalidated summary, never a broken compaction.
+
+Two wiring notes. First, wrap the **turn model** — eve has an authored
+`compaction.model` knob, but it resolves back to the turn model before
+compaction runs (a filed upstream bug; see
+[`design/upstream-asks.md`](./design/upstream-asks.md)), so a wrapper there
+never executes. Second, a bare string slug keeps eve's window auto-resolution
+and gateway prompt caching, both of which a wrapped model instance forfeits —
+so wrap a gateway *instance*, set `modelContextWindowTokens`, and (for a
+plain `createGateway` wrap) re-enable caching via
+`providerOptions: { gateway: { caching: "auto" } }`.
+
 ## Visible reasoning (the invisible-thinking gotcha)
 
 `defineAgent`'s `reasoning` effort turns extended thinking ON, but on several
@@ -658,6 +713,7 @@ message scripts the turn instead:
 | `[mock:markdown]` | Structure-heavy markdown split across deltas (fences, tables, unicode) — streaming-renderer stability. |
 | `[mock:interleave]` | Alternating reasoning and text blocks in one message, like extended-thinking models stream. |
 | `[mock:empty]` | A completion with zero content parts. |
+| `[mock:recall]` | Echoes the prompt's `## Recovered context (compaction audit)` section (or says none was there) — the in-band probe for [validated compaction](#validated-compaction-judge-and-repair-summaries). |
 
 Scripted tool inputs stream as fragmented `tool-input-delta` parts (like a
 real model), each scripted step opens with a reasoning burst so "Thinking…"
@@ -669,6 +725,17 @@ byte-deterministic streams. Because the mock is credential-free, `eve eval`
 suites built on it can run end-to-end in CI — the coder example's
 [`evals-mock/`](./examples/coder/evals-mock) suite (run via its
 `scripts/eval.ts`) is the reference setup.
+
+The mock's `doGenerate` is **compaction-aware**, so the validated-compaction
+loop is testable without credentials too: eve's compaction call gets a
+canned generic summary (guaranteed to drop anything specific), and the
+default judge call gets a deterministic verdict — one bullet per
+`[fact:<token>]` marker planted anywhere in the transcript, or
+`NOTHING MISSING` when none are. Plant a fact in turn 1, force a compaction
+(a tiny `modelContextWindowTokens`), then send `[mock:recall]` — if the
+repaired summary reached the prompt, the reply names the token. The coder
+example's [`evals-compaction/`](./examples/coder/evals-compaction) suite
+(`bun run eval:compaction`) runs exactly that through a real eve server.
 
 ## Zo platform modules (`platform/`)
 

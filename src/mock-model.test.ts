@@ -7,12 +7,24 @@ import type {
 import {
   createMockStoryModel,
   lastUserTextFrom,
+  MOCK_COMPACTION_SUMMARY,
+  MOCK_JUDGE_PROMPT_OPENING,
   MOCK_SCENARIOS,
+  mockGenerateReply,
   mockScenarioFrom,
+  plantedFactTokens,
+  recallReply,
   scriptActionFor,
   scriptStepFrom,
   toolInputFragments,
 } from "./mock-model";
+import {
+  buildValidationSystemPrompt,
+  COMPACTION_SENTINEL,
+  parseJudgeVerdict,
+  RECOVERED_CONTEXT_HEADER,
+  withValidatedCompaction,
+} from "./validated-compaction";
 
 function callOptions(userText: string): LanguageModelV4CallOptions {
   return {
@@ -329,5 +341,107 @@ describe("the scenario script", () => {
     expect(fragments.every((f, i) => (i < fragments.length - 1 ? f.length === 7 : f.length > 0))).toBe(
       true,
     );
+  });
+});
+
+describe("compaction-aware doGenerate", () => {
+  function generatePrompt(system: string, userText: string): LanguageModelV4Prompt {
+    return [
+      { role: "system", content: system },
+      { role: "user", content: [{ type: "text", text: userText }] },
+    ];
+  }
+
+  test("MOCK_JUDGE_PROMPT_OPENING pins the default judge prompt's opening", () => {
+    // The mock recognizes judge calls by this prefix; keep it honest against
+    // the real prompt builder for any maxFacts.
+    expect(buildValidationSystemPrompt(1).startsWith(MOCK_JUDGE_PROMPT_OPENING)).toBe(true);
+    expect(buildValidationSystemPrompt(40).startsWith(MOCK_JUDGE_PROMPT_OPENING)).toBe(true);
+  });
+
+  test("the canned compaction summary names no planted facts", () => {
+    expect(plantedFactTokens(MOCK_COMPACTION_SUMMARY)).toEqual([]);
+  });
+
+  test("plantedFactTokens finds every [fact:<token>] marker in order", () => {
+    expect(plantedFactTokens("no markers here")).toEqual([]);
+    expect(
+      plantedFactTokens("first [fact:harbor-beacon-7391], then [fact:tide-42] later"),
+    ).toEqual(["harbor-beacon-7391", "tide-42"]);
+    // Malformed markers don't match.
+    expect(plantedFactTokens("[fact:] [fact:has space] [fakt:x]")).toEqual([]);
+  });
+
+  test("a compaction call gets the canned summary", () => {
+    const reply = mockGenerateReply(
+      generatePrompt(
+        `${COMPACTION_SENTINEL} More instructions follow.`,
+        "Conversation transcript:\n### user\nRemember [fact:harbor-beacon-7391].",
+      ),
+    );
+    expect(reply).toBe(MOCK_COMPACTION_SUMMARY);
+  });
+
+  test("a judge call recovers planted facts as parseable bullets", () => {
+    const reply = mockGenerateReply(
+      generatePrompt(
+        buildValidationSystemPrompt(12),
+        "Original conversation transcript:\n<transcript>\nRemember [fact:harbor-beacon-7391].\n</transcript>\n\nCandidate summary:\n<summary>\nA summary.\n</summary>",
+      ),
+    );
+    expect(reply).toContain("harbor-beacon-7391");
+    const verdict = parseJudgeVerdict(reply);
+    if (verdict.kind !== "missing") throw new Error("expected a missing verdict");
+    expect(verdict.facts).toHaveLength(1);
+    expect(verdict.facts[0]).toContain("harbor-beacon-7391");
+  });
+
+  test("a judge call with no planted facts reads as nothing-missing", () => {
+    const reply = mockGenerateReply(
+      generatePrompt(buildValidationSystemPrompt(12), "transcript without markers"),
+    );
+    expect(parseJudgeVerdict(reply)).toEqual({ kind: "nothing-missing" });
+  });
+
+  test("any other doGenerate keeps the fixed reply", () => {
+    expect(mockGenerateReply(generatePrompt("You are a helpful agent.", "hello"))).toBe(
+      "(mock model, non-streaming reply)",
+    );
+    expect(
+      mockGenerateReply([{ role: "user", content: [{ type: "text", text: "no system" }] }]),
+    ).toBe("(mock model, non-streaming reply)");
+  });
+
+  test("recallReply echoes the recovered-context section from any message, else says none", () => {
+    const repaired = `${MOCK_COMPACTION_SUMMARY}\n\n${RECOVERED_CONTEXT_HEADER}\nFacts:\n- token harbor-beacon-7391`;
+    const prompt: LanguageModelV4Prompt = [
+      { role: "user", content: [{ type: "text", text: "Summary of our conversation so far:" }] },
+      { role: "assistant", content: [{ type: "text", text: repaired }] },
+      { role: "user", content: [{ type: "text", text: "[mock:recall]" }] },
+    ];
+    const reply = recallReply(prompt);
+    expect(reply).toStartWith("Recovered context found in the prompt:");
+    expect(reply).toContain(RECOVERED_CONTEXT_HEADER);
+    expect(reply).toContain("harbor-beacon-7391");
+    expect(recallReply([prompt[2]!])).toBe("No recovered context in the prompt.");
+  });
+
+  test("end-to-end: a wrapped mock repairs its own compaction summary, and recall sees it", async () => {
+    // The exact loop the evals-compaction suite drives through a real eve
+    // server, at unit scope: compaction call → canned summary → judge finds
+    // the planted fact → repaired summary → recall echoes it.
+    const model = withValidatedCompaction(createMockStoryModel());
+    const result = await model.doGenerate({
+      prompt: generatePrompt(
+        `${COMPACTION_SENTINEL} Write a summary.`,
+        "Conversation transcript:\n### user\nRemember this token: [fact:harbor-beacon-7391].",
+      ),
+    } as LanguageModelV4CallOptions);
+    const text = result.content.flatMap((p) => (p.type === "text" ? [p.text] : [])).join("");
+    expect(text).toStartWith(MOCK_COMPACTION_SUMMARY);
+    expect(text).toContain(RECOVERED_CONTEXT_HEADER);
+    expect(text).toContain("harbor-beacon-7391");
+    const reply = recallReply([{ role: "assistant", content: [{ type: "text", text }] }]);
+    expect(reply).toContain("harbor-beacon-7391");
   });
 });

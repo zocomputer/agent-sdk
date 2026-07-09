@@ -710,6 +710,7 @@ export {
   workerEpochMs,
 } from "./orphaned-turns";
 export * from "./sandbox-io";
+export * from "./validated-compaction";
 export * from "./visible-reasoning";
 export * from "./walk";
 export * from "./watch-output";

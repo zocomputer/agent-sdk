@@ -12,6 +12,7 @@
     "build": "eve build",
     "start": "eve start",
     "eval": "bun run scripts/eval.ts",
+    "eval:compaction": "bun run scripts/eval.ts --suite compaction",
     "test": "bun test",
     "typecheck": "tsc --noEmit"
   },

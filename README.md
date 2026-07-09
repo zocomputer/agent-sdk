@@ -33,6 +33,9 @@ just the pieces it wants.
   tools. Your agent's persona stays yours.
 - **Mid-turn steering.** Deliver a user's "actually, stop doing that" into a
   running turn instead of after it.
+- **Validated compaction.** When eve summarizes an overlong conversation,
+  a judge pass checks the summary against what it replaced and repairs
+  silently dropped facts in place.
 - **Credential-free testing.** A scripted mock model runs the entire eve
   stack deterministically — sessions, tools, streams — with zero API keys.
 
@@ -166,6 +169,8 @@ The [guide](./GUIDE.md) documents each subsystem:
   — the same tools when the workspace lives in a remote sandbox.
 - [Gateway stream guards](./GUIDE.md#gateway-stream-guards-surviving-a-dead-connection)
   — surviving a model call whose connection dies.
+- [Validated compaction](./GUIDE.md#validated-compaction-judge-and-repair-summaries)
+  — auditing eve's compaction summaries and repairing dropped facts.
 - [Mock model](./GUIDE.md#mock-model-credential-free-testing) — deterministic,
   credential-free end-to-end testing.
 - [Zo platform modules](./GUIDE.md#zo-platform-modules-platform) — the extra
