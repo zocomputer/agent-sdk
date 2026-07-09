@@ -8,12 +8,13 @@
 
 > **createStdlib**(`options`): `object`
 
-Defined in: [packages/agent-sdk/src/index.ts:180](https://github.com/zocomputer/zov2-code/blob/a259f6f3d345009ac90c86d9f10d9171b99736b9/packages/agent-sdk/src/index.ts#L180)
+Defined in: [packages/agent-sdk/src/index.ts:183](https://github.com/zocomputer/zov2-code/blob/a97705ed30ddbf8dde363ccc922ce6eb90aa90a3/packages/agent-sdk/src/index.ts#L183)
 
 Create the standard library for a real-filesystem eve agent: workspace-scoped
-file tools (read/edit/write/glob/grep), host bash, webfetch, the background-
-task registry, and the matching dynamic instructions. Returns tools, the
-workspace, runner, registry, and instructions.
+file tools (read/edit/write/glob/grep), host bash, webfetch, the discipline-
+enforcing todo, the background-task registry, and the matching dynamic
+instructions. Returns tools, the workspace, runner, registry, and
+instructions.
 
 ## Parameters
 
@@ -118,6 +119,10 @@ run.
 #### tools.tasks
 
 > **tasks**: `DynamicSentinel`
+
+#### tools.todo
+
+> **todo**: `ToolDefinition`\<`unknown`, `unknown`\>
 
 #### tools.webfetch
 

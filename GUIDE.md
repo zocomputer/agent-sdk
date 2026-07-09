@@ -24,6 +24,7 @@ calls.
 | `grep.ts`     | `stdlib.tools.grep`     | `grep`     |
 | `bash.ts`     | `stdlib.tools.bash`     | `bash`     |
 | `webfetch.ts` | `stdlib.tools.webfetch` | `webfetch` |
+| `todo.ts`     | `stdlib.tools.todo`     | `todo`     |
 | `tasks.ts`\*  | `stdlib.tools.tasks`    | `run_async`, `check_tasks`, `await_task` |
 | `look.ts`\*\* | `stdlib.tools.look`     | `look`     |
 
@@ -36,7 +37,8 @@ filename is free.
 eve injects every built-in tool whose name you don't override or disable:
 
 - **Same name → automatic override.** `bash.ts` already replaces eve's
-  built-in `bash`; nothing else to do.
+  built-in `bash`, and `todo.ts` replaces eve's framework `todo` with the
+  discipline-enforcing wrapper; nothing else to do.
 - **Different name → disable the built-in** so the model doesn't see two
   file readers/writers. The stdlib uses the Claude Code / opencode names
   (`read`, `write`), so shim out eve's `read_file` and `write_file` with
@@ -145,6 +147,19 @@ The names are deliberately boring; the behavior behind them is the point:
   eve process's disk the sandbox-backed `read` can't reach), the whole
   rendered content returns inline up to `maxInlineContentChars` (default
   100k), then truncates head+tail with no file to point at.
+- **`todo`** wraps eve's framework todo — same durable session state, same
+  schemas and `{ counts, todos }` result, so the UI checklist and the
+  compaction re-injection keep working — and enforces the checklist rules the
+  description used to merely suggest: every item needs non-empty content,
+  unique within the list (content is the item's identity across writes — the
+  write is a full replacement with no ids), at most **one** item
+  `in_progress`, and an item that was `pending` can't jump straight to
+  `completed` without passing through `in_progress`. An invalid write is
+  **rejected with the list unchanged** and a per-violation message, which is
+  feedback the model actually corrects on — an ignored guideline isn't. Reads
+  and valid writes pass straight through. The validation core is exported
+  standalone (`validateTodoWrite`, `parseTodoItems`, `formatTodoViolations`
+  in `todo-discipline.ts`).
 - **`run_async` / `check_tasks` / `await_task`** persist the task registry
   across restarts (tasks running across a restart report as `lost`); any
   `defineOp` op becomes `run_async`-able via `extraBackgroundables`.

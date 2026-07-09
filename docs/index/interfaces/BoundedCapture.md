@@ -6,7 +6,7 @@
 
 # Interface: BoundedCapture
 
-Defined in: [packages/agent-sdk/src/bounded-output.ts:39](https://github.com/zocomputer/zov2-code/blob/a259f6f3d345009ac90c86d9f10d9171b99736b9/packages/agent-sdk/src/bounded-output.ts#L39)
+Defined in: [packages/agent-sdk/src/bounded-output.ts:39](https://github.com/zocomputer/zov2-code/blob/a97705ed30ddbf8dde363ccc922ce6eb90aa90a3/packages/agent-sdk/src/bounded-output.ts#L39)
 
 A growing stream capture that keeps head + tail in-memory and spills the
 complete output to a file on first overflow.
@@ -17,7 +17,7 @@ complete output to a file on first overflow.
 
 > **append**(`chunk`): `void`
 
-Defined in: [packages/agent-sdk/src/bounded-output.ts:41](https://github.com/zocomputer/zov2-code/blob/a259f6f3d345009ac90c86d9f10d9171b99736b9/packages/agent-sdk/src/bounded-output.ts#L41)
+Defined in: [packages/agent-sdk/src/bounded-output.ts:41](https://github.com/zocomputer/zov2-code/blob/a97705ed30ddbf8dde363ccc922ce6eb90aa90a3/packages/agent-sdk/src/bounded-output.ts#L41)
 
 Add a chunk to the capture; updates head/tail/spill accordingly.
 
@@ -37,7 +37,7 @@ Add a chunk to the capture; updates head/tail/spill accordingly.
 
 > **latest**(): `string`
 
-Defined in: [packages/agent-sdk/src/bounded-output.ts:45](https://github.com/zocomputer/zov2-code/blob/a259f6f3d345009ac90c86d9f10d9171b99736b9/packages/agent-sdk/src/bounded-output.ts#L45)
+Defined in: [packages/agent-sdk/src/bounded-output.ts:45](https://github.com/zocomputer/zov2-code/blob/a97705ed30ddbf8dde363ccc922ce6eb90aa90a3/packages/agent-sdk/src/bounded-output.ts#L45)
 
 The most recent text we hold: the whole output until overflow, the rolling tail after.
 
@@ -51,7 +51,7 @@ The most recent text we hold: the whole output until overflow, the rolling tail 
 
 > **snapshot**(): [`CaptureSnapshot`](CaptureSnapshot.md)
 
-Defined in: [packages/agent-sdk/src/bounded-output.ts:43](https://github.com/zocomputer/zov2-code/blob/a259f6f3d345009ac90c86d9f10d9171b99736b9/packages/agent-sdk/src/bounded-output.ts#L43)
+Defined in: [packages/agent-sdk/src/bounded-output.ts:43](https://github.com/zocomputer/zov2-code/blob/a97705ed30ddbf8dde363ccc922ce6eb90aa90a3/packages/agent-sdk/src/bounded-output.ts#L43)
 
 Point-in-time snapshot of bounded text, total chars, truncation, and spill path.
 
@@ -65,7 +65,7 @@ Point-in-time snapshot of bounded text, total chars, truncation, and spill path.
 
 > **totalChars**(): `number`
 
-Defined in: [packages/agent-sdk/src/bounded-output.ts:47](https://github.com/zocomputer/zov2-code/blob/a259f6f3d345009ac90c86d9f10d9171b99736b9/packages/agent-sdk/src/bounded-output.ts#L47)
+Defined in: [packages/agent-sdk/src/bounded-output.ts:47](https://github.com/zocomputer/zov2-code/blob/a97705ed30ddbf8dde363ccc922ce6eb90aa90a3/packages/agent-sdk/src/bounded-output.ts#L47)
 
 Total characters appended so far.
 

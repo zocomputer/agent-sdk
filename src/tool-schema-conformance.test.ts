@@ -2,6 +2,7 @@ import { afterAll, describe, expect, test } from "bun:test";
 import { mkdtempSync, realpathSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { todo as eveTodo } from "eve/tools/defaults";
 import { z } from "zod";
 import { createSandboxFileTools, createStdlib } from "./index";
 import { buildTasksToolset } from "./tools/tasks";
@@ -39,7 +40,13 @@ const tasks = buildTasksToolset({
 if (tasks === null) throw new Error("stdlib always has the bash backgroundable");
 const sandbox = createSandboxFileTools({ workspaceRoot: "/workspace", mediaOracle: true });
 
-const { tasks: _tasksDynamic, ...stdlibStatic } = stdlib.tools;
+// `todo` is exempt from the zod sweep by design: it wraps eve's framework
+// tool and passes eve's own JSON schema through byte-identical — an array of
+// TodoItem objects with additionalProperties: false, which IS the model
+// prior here (Claude Code's TodoWrite ships the same shape), and rewriting
+// it would drift the wrapper from the state contract eve validates against.
+// The dedicated pass-through pin below keeps the exemption honest.
+const { tasks: _tasksDynamic, todo: todoTool, ...stdlibStatic } = stdlib.tools;
 const allTools: Record<string, { inputSchema: unknown }> = {
   ...prefixed("stdlib", stdlibStatic),
   ...prefixed("tasks", tasks),
@@ -91,6 +98,9 @@ describe("model-facing schema shape", () => {
   // would make every assertion below vacuously pass (the notCalledTool trap
   // from rib/learnings/20).
   test("covers the full shipped toolset", () => {
+    // `todo` is deliberately outside allTools (the exemption above) but must
+    // still exist — the roster can't silently shrink.
+    expect(todoTool).toBeDefined();
     expect(Object.keys(allTools).sort()).toEqual(
       [
         "sandbox.edit",
@@ -146,5 +156,13 @@ describe("model-facing schema shape", () => {
         new_string: "after",
       });
     }
+  });
+
+  test("todo passes eve's own schemas through untouched (the exemption's contract)", () => {
+    // The wrapper adds validation in execute, never a schema of its own: the
+    // model-facing input/output contracts stay whatever the installed eve
+    // ships, so an eve schema change flows through instead of drifting.
+    expect(todoTool.inputSchema).toBe(eveTodo.inputSchema);
+    expect(todoTool.outputSchema).toBe(eveTodo.outputSchema);
   });
 });

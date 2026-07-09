@@ -38,15 +38,17 @@ import {
 } from "./tools/look";
 import { createReadTool } from "./tools/read";
 import { createTasksTools } from "./tools/tasks";
+import { createTodoTool } from "./tools/todo";
 import { createWebFetchTool } from "./tools/webfetch";
 import { createWriteTool } from "./tools/write";
 import { createWorkspace, type Workspace } from "./workspace";
 import { sandboxIoProvider, type SandboxIoOptions } from "./sandbox-io";
 
 // One call wires the whole standard library for a real-filesystem eve agent:
-// a workspace-scoped toolset (read/edit/write/glob/grep + host bash + webfetch),
-// the background-task machinery (run_async/check_tasks/await_task over a
-// persisted registry), and the matching dynamic instructions. Each
+// a workspace-scoped toolset (read/edit/write/glob/grep + host bash + webfetch
+// + the discipline-enforcing todo), the background-task machinery
+// (run_async/check_tasks/await_task over a persisted registry), and the
+// matching dynamic instructions. Each
 // `agent/tools/<name>.ts` file re-exports one tool — the filename is the wire
 // name, so agents keep naming control (and can vacate eve's built-in
 // read_file/write_file/bash with disable shims). Everything is also exported à
@@ -173,9 +175,10 @@ export interface StdlibOptions {
 
 /**
  * Create the standard library for a real-filesystem eve agent: workspace-scoped
- * file tools (read/edit/write/glob/grep), host bash, webfetch, the background-
- * task registry, and the matching dynamic instructions. Returns tools, the
- * workspace, runner, registry, and instructions.
+ * file tools (read/edit/write/glob/grep), host bash, webfetch, the discipline-
+ * enforcing todo, the background-task registry, and the matching dynamic
+ * instructions. Returns tools, the workspace, runner, registry, and
+ * instructions.
  */
 export function createStdlib(options: StdlibOptions) {
   const noun = options.workspaceNoun ?? "workspace";
@@ -272,6 +275,7 @@ export function createStdlib(options: StdlibOptions) {
         }),
       ),
       tasks: createTasksTools({ registry, backgroundables, steerInbox }),
+      todo: steer(createTodoTool()),
       webfetch: steer(
         createWebFetchTool({
           workspace,
@@ -496,6 +500,7 @@ export {
 } from "./tools/look";
 export { createReadTool } from "./tools/read";
 export { buildTasksToolset, createTasksTools } from "./tools/tasks";
+export { createTodoTool } from "./tools/todo";
 export {
   createWebFetchTool,
   DEFAULT_MAX_INLINE_CONTENT_CHARS,
@@ -533,6 +538,7 @@ export * from "./build-externals";
 export * from "./dir-conventions";
 export * from "./edit-match";
 export * from "./task";
+export * from "./todo-discipline";
 export * from "./extract/cache";
 export * from "./extract/docx";
 export * from "./extract/epub";
