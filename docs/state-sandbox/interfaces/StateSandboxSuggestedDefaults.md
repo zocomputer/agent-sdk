@@ -6,7 +6,7 @@
 
 # Interface: StateSandboxSuggestedDefaults
 
-Defined in: [packages/agent-sdk/src/state-sandbox.ts:61](https://github.com/zocomputer/zov2-code/blob/edfd579427fbfafd3e21ca75b7f30a50695b254b/packages/agent-sdk/src/state-sandbox.ts#L61)
+Defined in: [packages/agent-sdk/src/state-sandbox.ts:61](https://github.com/zocomputer/zov2-code/blob/09e5498b7ca8b96ad6bf74ed9ca9414f7ea0fd66/packages/agent-sdk/src/state-sandbox.ts#L61)
 
 Optional engine and partition defaults to suggest when requesting a sandbox handle.
 The broker may ignore these; they influence zero-config binding, not enforcement.
@@ -17,7 +17,7 @@ The broker may ignore these; they influence zero-config binding, not enforcement
 
 > `readonly` `optional` **engine?**: `"sandbox-daytona"`
 
-Defined in: [packages/agent-sdk/src/state-sandbox.ts:62](https://github.com/zocomputer/zov2-code/blob/edfd579427fbfafd3e21ca75b7f30a50695b254b/packages/agent-sdk/src/state-sandbox.ts#L62)
+Defined in: [packages/agent-sdk/src/state-sandbox.ts:62](https://github.com/zocomputer/zov2-code/blob/09e5498b7ca8b96ad6bf74ed9ca9414f7ea0fd66/packages/agent-sdk/src/state-sandbox.ts#L62)
 
 ***
 
@@ -25,4 +25,4 @@ Defined in: [packages/agent-sdk/src/state-sandbox.ts:62](https://github.com/zoco
 
 > `readonly` `optional` **partition?**: [`StateSandboxPartition`](../type-aliases/StateSandboxPartition.md)
 
-Defined in: [packages/agent-sdk/src/state-sandbox.ts:63](https://github.com/zocomputer/zov2-code/blob/edfd579427fbfafd3e21ca75b7f30a50695b254b/packages/agent-sdk/src/state-sandbox.ts#L63)
+Defined in: [packages/agent-sdk/src/state-sandbox.ts:63](https://github.com/zocomputer/zov2-code/blob/09e5498b7ca8b96ad6bf74ed9ca9414f7ea0fd66/packages/agent-sdk/src/state-sandbox.ts#L63)

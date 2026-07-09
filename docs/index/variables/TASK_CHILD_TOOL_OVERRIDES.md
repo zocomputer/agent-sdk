@@ -8,6 +8,6 @@
 
 > `const` **TASK\_CHILD\_TOOL\_OVERRIDES**: readonly \[`"read"`, `"webfetch"`\]
 
-Defined in: [packages/agent-sdk/src/task.ts:213](https://github.com/zocomputer/zov2-code/blob/edfd579427fbfafd3e21ca75b7f30a50695b254b/packages/agent-sdk/src/task.ts#L213)
+Defined in: [packages/agent-sdk/src/task.ts:213](https://github.com/zocomputer/zov2-code/blob/09e5498b7ca8b96ad6bf74ed9ca9414f7ea0fd66/packages/agent-sdk/src/task.ts#L213)
 
 Tool names [createTaskChildTools](../functions/createTaskChildTools.md) overrides (not parent re-exports).
