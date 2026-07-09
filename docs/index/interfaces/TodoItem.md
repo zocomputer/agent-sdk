@@ -6,7 +6,7 @@
 
 # Interface: TodoItem
 
-Defined in: [packages/agent-sdk/src/todo-discipline.ts:33](https://github.com/zocomputer/zov2-code/blob/8718aaa2765d9af21ff0cbb162dec35286dbcb11/packages/agent-sdk/src/todo-discipline.ts#L33)
+Defined in: [packages/agent-sdk/src/todo-discipline.ts:33](https://github.com/zocomputer/zov2-code/blob/7513818a294edcc3dc2a057e2719d829477c04ad/packages/agent-sdk/src/todo-discipline.ts#L33)
 
 One checklist item, mirroring eve's framework todo shape.
 
@@ -16,7 +16,7 @@ One checklist item, mirroring eve's framework todo shape.
 
 > `readonly` **content**: `string`
 
-Defined in: [packages/agent-sdk/src/todo-discipline.ts:35](https://github.com/zocomputer/zov2-code/blob/8718aaa2765d9af21ff0cbb162dec35286dbcb11/packages/agent-sdk/src/todo-discipline.ts#L35)
+Defined in: [packages/agent-sdk/src/todo-discipline.ts:35](https://github.com/zocomputer/zov2-code/blob/7513818a294edcc3dc2a057e2719d829477c04ad/packages/agent-sdk/src/todo-discipline.ts#L35)
 
 Brief description of the task; also the item's identity across writes.
 
@@ -26,7 +26,7 @@ Brief description of the task; also the item's identity across writes.
 
 > `readonly` **priority**: `"low"` \| `"medium"` \| `"high"`
 
-Defined in: [packages/agent-sdk/src/todo-discipline.ts:39](https://github.com/zocomputer/zov2-code/blob/8718aaa2765d9af21ff0cbb162dec35286dbcb11/packages/agent-sdk/src/todo-discipline.ts#L39)
+Defined in: [packages/agent-sdk/src/todo-discipline.ts:39](https://github.com/zocomputer/zov2-code/blob/7513818a294edcc3dc2a057e2719d829477c04ad/packages/agent-sdk/src/todo-discipline.ts#L39)
 
 Priority level.
 
@@ -36,6 +36,6 @@ Priority level.
 
 > `readonly` **status**: `"completed"` \| `"pending"` \| `"in_progress"` \| `"cancelled"`
 
-Defined in: [packages/agent-sdk/src/todo-discipline.ts:37](https://github.com/zocomputer/zov2-code/blob/8718aaa2765d9af21ff0cbb162dec35286dbcb11/packages/agent-sdk/src/todo-discipline.ts#L37)
+Defined in: [packages/agent-sdk/src/todo-discipline.ts:37](https://github.com/zocomputer/zov2-code/blob/7513818a294edcc3dc2a057e2719d829477c04ad/packages/agent-sdk/src/todo-discipline.ts#L37)
 
 Current lifecycle status.

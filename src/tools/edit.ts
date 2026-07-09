@@ -51,6 +51,15 @@ export function createEditTool(opts: {
       // two unserialized edits to one file both read the same original text —
       // the second write silently drops the first edit (see ../path-locks.ts).
       return withPathLock(abs, async () => {
+        // Stat before read: readFile on a directory throws a raw fs error
+        // (EISDIR) the model can't act on; this names the fix instead.
+        const stat = await fio.stat(abs);
+        if (stat === null) throw new Error(`${rel} does not exist.`);
+        if (!stat.isFile) {
+          throw new Error(
+            `${rel} is a directory, not a file — nothing was edited. Give the path of a file inside it instead.`,
+          );
+        }
         const bytes = await fio.readFile(abs);
         if (bytes === null) throw new Error(`${rel} does not exist.`);
         // Strip a leading BOM so old_string never has to match around it;

@@ -1,5 +1,5 @@
 import { afterAll, describe, expect, test } from "bun:test";
-import { mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import type { ToolContext } from "eve/tools";
@@ -113,6 +113,18 @@ describe("createEditTool concurrency", () => {
         ctx,
       ),
     ).rejects.toThrow(/Closest match, around line 1:[\s\S]*1\|export function greet/);
+  });
+
+  test("editing a directory fails with guidance, not a raw fs error", async () => {
+    // Without the stat guard, readFile on the directory throws EISDIR — a
+    // raw node error with no corrective action.
+    const dir = join(root, "a-directory");
+    writeFileSync(join(root, "placeholder.txt"), "x"); // keep root non-empty
+    mkdirSync(dir);
+    const edit = createEditTool({ workspace, noun: "workspace" });
+    expect(
+      edit.execute({ path: "a-directory", old_string: "x", new_string: "y" }, ctx),
+    ).rejects.toThrow(/a-directory is a directory, not a file — nothing was edited/);
   });
 
   test("an edit racing a write to the same file does not interleave", async () => {

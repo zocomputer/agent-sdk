@@ -41,4 +41,19 @@ describe("BackgroundableOp.start", () => {
     expect(() => bashOp.start({ command: 42 })).toThrow(/Invalid input for "bash"/);
     expect(() => bashOp.start({ command: "" })).toThrow(/Invalid input for "bash"/);
   });
+
+  test("the rejection is prettified and states nothing was started", () => {
+    // z.prettifyError, not error.message (a JSON issue dump): the model
+    // reads the message verbatim, so it must name the offending field and
+    // the recovery action in prose.
+    let message = "";
+    try {
+      bashOp.start({ command: 42 });
+    } catch (err) {
+      message = err instanceof Error ? err.message : String(err);
+    }
+    expect(message).toContain("nothing was started");
+    expect(message).toContain("command"); // the offending field, named
+    expect(message).not.toContain('"code"'); // no raw zod issue JSON
+  });
 });

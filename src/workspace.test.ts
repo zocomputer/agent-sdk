@@ -25,6 +25,13 @@ test("rejects an absolute path outside the root", () => {
   expect(() => resolveWithin(root, "/etc/hosts")).toThrow(/escapes the workspace root/);
 });
 
+test("the escape rejection carries corrective guidance", () => {
+  // The model sees this verbatim; it must name the fix, not just the refusal.
+  expect(() => resolveWithin(root, "/etc/hosts")).toThrow(
+    /use a root-relative path, or bash for anything outside it/,
+  );
+});
+
 test("rejects a sibling directory that shares a name prefix", () => {
   // /repo-evil must not be read as inside /repo.
   expect(() => resolveWithin(root, resolve("/repo-evil/x"))).toThrow(/escapes the workspace root/);

@@ -63,7 +63,11 @@ export function defineOp<I>(cfg: {
     start(rawInput, extras) {
       const parsed = cfg.inputSchema.safeParse(rawInput);
       if (!parsed.success) {
-        throw new Error(`Invalid input for "${cfg.name}": ${parsed.error.message}`);
+        // prettifyError, not error.message (a JSON issue dump): the model
+        // reads this verbatim and corrects the named fields on the resend.
+        throw new Error(
+          `Invalid input for "${cfg.name}" — nothing was started. Fix the input to match the tool's schema (shown in the run_async catalog) and resend.\n${z.prettifyError(parsed.error)}`,
+        );
       }
       const started = cfg.run(parsed.data, extras);
       if (started instanceof Promise) return { label: cfg.label(parsed.data), work: started };

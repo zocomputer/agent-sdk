@@ -6,6 +6,14 @@ import {
 } from "./watch-output";
 
 describe("createOutputWatcher", () => {
+  test("an invalid pattern throws a model-actionable error, not a raw SyntaxError", () => {
+    // Both callers build the watcher before starting any work, so the
+    // message can honestly claim nothing was started.
+    expect(() => createOutputWatcher({ pattern: "(" })).toThrow(
+      /Invalid notify\.pattern — nothing was started\..*Fix the regex and resend/,
+    );
+  });
+
   test("matches complete lines against the pattern", () => {
     const w = createOutputWatcher({ pattern: "FAIL", now: () => 0 });
     expect(w.feed("ok line\nFAIL: test one\nanother ok\n")).toEqual(["FAIL: test one"]);

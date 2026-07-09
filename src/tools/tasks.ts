@@ -214,7 +214,11 @@ export function buildTasksToolset(opts: {
       }),
       async execute({ task_id, wait_ms }) {
         const task = await registry.awaitTask(task_id, wait_ms ?? DEFAULT_WAIT_MS);
-        if (!task) throw new Error(`No such task: ${task_id}`);
+        if (!task) {
+          throw new Error(
+            `No such task: ${task_id}. Call check_tasks to list the current tasks and their ids, then resend with a real one.`,
+          );
+        }
         return full(task);
       },
     })),

@@ -30,7 +30,16 @@ export function createWriteTool(opts: {
       // same file in one concurrent step must not interleave with its
       // read-modify-write (see ../path-locks.ts).
       return withPathLock(abs, async () => {
-        const prior = await fio.readFile(abs);
+        // Stat before read: readFile on a directory throws a raw fs error
+        // (EISDIR) the model can't act on; this names the fix instead. Also
+        // skips the prior-content read entirely for a fresh file.
+        const stat = await fio.stat(abs);
+        if (stat !== null && !stat.isFile) {
+          throw new Error(
+            `${workspace.relativize(abs)} is a directory — nothing was written. Give a file path (e.g. a file inside that directory) instead.`,
+          );
+        }
+        const prior = stat === null ? null : await fio.readFile(abs);
         const created = prior === null;
         // Preserve an existing file's BOM: models reproduce file contents
         // from `read` output, which never shows the (invisible) BOM, so a

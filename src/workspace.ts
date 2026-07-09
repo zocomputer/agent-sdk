@@ -13,7 +13,9 @@ export function resolveWithin(root: string, path: string): string {
   // `root + sep` (not bare `root`) so a sibling like `/repo-evil` isn't read as
   // inside `/repo`.
   if (abs !== root && !abs.startsWith(root + sep)) {
-    throw new Error(`Path escapes the workspace root (${root}): ${path}`);
+    throw new Error(
+      `Path escapes the workspace root (${root}): ${path}. File tools only reach inside the workspace — use a root-relative path, or bash for anything outside it.`,
+    );
   }
   return abs;
 }

@@ -6,7 +6,7 @@
 
 # Interface: BaseTask
 
-Defined in: [packages/agent-sdk/src/async-tasks.ts:32](https://github.com/zocomputer/zov2-code/blob/8718aaa2765d9af21ff0cbb162dec35286dbcb11/packages/agent-sdk/src/async-tasks.ts#L32)
+Defined in: [packages/agent-sdk/src/async-tasks.ts:32](https://github.com/zocomputer/zov2-code/blob/7513818a294edcc3dc2a057e2719d829477c04ad/packages/agent-sdk/src/async-tasks.ts#L32)
 
 Fields every task carries regardless of status — see `Task`.
 
@@ -16,7 +16,7 @@ Fields every task carries regardless of status — see `Task`.
 
 > `readonly` **id**: `string`
 
-Defined in: [packages/agent-sdk/src/async-tasks.ts:33](https://github.com/zocomputer/zov2-code/blob/8718aaa2765d9af21ff0cbb162dec35286dbcb11/packages/agent-sdk/src/async-tasks.ts#L33)
+Defined in: [packages/agent-sdk/src/async-tasks.ts:33](https://github.com/zocomputer/zov2-code/blob/7513818a294edcc3dc2a057e2719d829477c04ad/packages/agent-sdk/src/async-tasks.ts#L33)
 
 ***
 
@@ -24,7 +24,7 @@ Defined in: [packages/agent-sdk/src/async-tasks.ts:33](https://github.com/zocomp
 
 > `readonly` **label**: `string`
 
-Defined in: [packages/agent-sdk/src/async-tasks.ts:35](https://github.com/zocomputer/zov2-code/blob/8718aaa2765d9af21ff0cbb162dec35286dbcb11/packages/agent-sdk/src/async-tasks.ts#L35)
+Defined in: [packages/agent-sdk/src/async-tasks.ts:35](https://github.com/zocomputer/zov2-code/blob/7513818a294edcc3dc2a057e2719d829477c04ad/packages/agent-sdk/src/async-tasks.ts#L35)
 
 Short human label, e.g. the command or query.
 
@@ -34,7 +34,7 @@ Short human label, e.g. the command or query.
 
 > `readonly` `optional` **progress?**: `unknown`
 
-Defined in: [packages/agent-sdk/src/async-tasks.ts:39](https://github.com/zocomputer/zov2-code/blob/8718aaa2765d9af21ff0cbb162dec35286dbcb11/packages/agent-sdk/src/async-tasks.ts#L39)
+Defined in: [packages/agent-sdk/src/async-tasks.ts:39](https://github.com/zocomputer/zov2-code/blob/7513818a294edcc3dc2a057e2719d829477c04ad/packages/agent-sdk/src/async-tasks.ts#L39)
 
 ***
 
@@ -42,7 +42,7 @@ Defined in: [packages/agent-sdk/src/async-tasks.ts:39](https://github.com/zocomp
 
 > `readonly` **startedAt**: `number`
 
-Defined in: [packages/agent-sdk/src/async-tasks.ts:38](https://github.com/zocomputer/zov2-code/blob/8718aaa2765d9af21ff0cbb162dec35286dbcb11/packages/agent-sdk/src/async-tasks.ts#L38)
+Defined in: [packages/agent-sdk/src/async-tasks.ts:38](https://github.com/zocomputer/zov2-code/blob/7513818a294edcc3dc2a057e2719d829477c04ad/packages/agent-sdk/src/async-tasks.ts#L38)
 
 ***
 
@@ -50,6 +50,6 @@ Defined in: [packages/agent-sdk/src/async-tasks.ts:38](https://github.com/zocomp
 
 > `readonly` **tool**: `string`
 
-Defined in: [packages/agent-sdk/src/async-tasks.ts:37](https://github.com/zocomputer/zov2-code/blob/8718aaa2765d9af21ff0cbb162dec35286dbcb11/packages/agent-sdk/src/async-tasks.ts#L37)
+Defined in: [packages/agent-sdk/src/async-tasks.ts:37](https://github.com/zocomputer/zov2-code/blob/7513818a294edcc3dc2a057e2719d829477c04ad/packages/agent-sdk/src/async-tasks.ts#L37)
 
 Which backgroundable op produced this task.

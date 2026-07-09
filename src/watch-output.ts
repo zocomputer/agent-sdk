@@ -42,10 +42,20 @@ export const DEFAULT_MAX_WATCH_NOTIFICATIONS = 5;
 
 /**
  * Build a watcher. An invalid regex throws here — at tool-input time, where
- * the error surfaces as a normal tool failure the model can correct.
+ * the error surfaces as a normal tool failure the model can correct. Both
+ * callers (bash, run_async) build the watcher before starting any work, so
+ * "nothing was started" holds, and both take the regex as `notify.pattern`.
  */
 export function createOutputWatcher(options: OutputWatcherOptions): OutputWatcher {
-  const regex = new RegExp(options.pattern);
+  let regex: RegExp;
+  try {
+    regex = new RegExp(options.pattern);
+  } catch (err) {
+    const reason = err instanceof Error ? err.message : String(err);
+    throw new Error(
+      `Invalid notify.pattern — nothing was started. ${reason}. Fix the regex and resend.`,
+    );
+  }
   const debounceMs = options.debounceMs ?? DEFAULT_WATCH_DEBOUNCE_MS;
   const maxNotifications = options.maxNotifications ?? DEFAULT_MAX_WATCH_NOTIFICATIONS;
   const now = options.now ?? Date.now;

@@ -174,7 +174,9 @@ The names are deliberately boring; the behavior behind them is the point:
   (`edit-match.ts`).
 - **`write`** creates parent directories, and preserves an existing file's
   leading BOM when the new content omits it — a model rewriting a BOM'd file
-  never strips the marker by accident.
+  never strips the marker by accident. Both `edit` and `write` refuse a
+  directory target with a named error saying to give a file path instead,
+  rather than leaking a raw `EISDIR`.
 - **`glob` / `grep`** prefer git-tracked candidates (`git ls-files`), falling
   back to a filesystem walk outside a repo, with bounded result counts.
 - **`bash`** waits briefly, then auto-backgrounds a still-running command
@@ -695,6 +697,11 @@ version:
   keys mirror the params that consume them (`task_id`).
 - **Workspace-scoped.** Every file tool resolves paths inside
   `workspaceRoot` and refuses escapes.
+- **Retry-friendly failures.** A rejected tool call is feedback the model
+  corrects on: every error names what happened, states that nothing changed
+  ("nothing was written/started"), and says exactly what to resend — never a
+  raw fs/zod/regex error. Tools you add to an agent built on this SDK (the
+  `examples/coder` agent included) should follow the same shape.
 - **No house types.** The package imports nothing repo-specific — plain
   discriminated unions, `eve` + `zod` as peers, WASM/pure-JS extraction deps
   (no native postinstalls).
