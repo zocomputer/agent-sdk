@@ -8,7 +8,7 @@
 
 > **markdownChunks**(): readonly `string`[]
 
-Defined in: [packages/agent-sdk/src/mock-model.ts:128](https://github.com/zocomputer/zov2-code/blob/7513818a294edcc3dc2a057e2719d829477c04ad/packages/agent-sdk/src/mock-model.ts#L128)
+Defined in: [packages/agent-sdk/src/mock-model.ts:128](https://github.com/zocomputer/zov2-code/blob/2004eea2e2488195525555d1ec03711235aadc63/packages/agent-sdk/src/mock-model.ts#L128)
 
 Markdown chunks that deliberately split structure across deltas: a fence
 opens in one delta and closes several later, table rows arrive one at a

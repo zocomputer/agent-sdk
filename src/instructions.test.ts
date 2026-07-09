@@ -278,6 +278,33 @@ describe("instruction stack", () => {
     );
   });
 
+  test("no workspaceRoot → no repo-conventions section (sandbox topology)", () => {
+    const sections = buildInstructionStackSections({});
+    expect(sections.map((s) => s.id)).toEqual(
+      INSTRUCTION_STACK_SECTION_IDS.filter(
+        (id) => id !== "repo-conventions" && id !== "media",
+      ),
+    );
+    const markdown = buildInstructionStackMarkdown({});
+    expect(markdown.startsWith("## How to work")).toBe(true);
+  });
+
+  test("extras anchored on an absent section append at the end", () => {
+    // A sandbox consumer may anchor to "repo-conventions" out of habit — the
+    // section isn't in its baseline, so the extra degrades to a trailing
+    // append instead of vanishing.
+    const sections = buildInstructionStackSections({
+      extraSections: [
+        {
+          section: { id: "house-rules", heading: "House rules", body: "- be kind" },
+          placement: { after: "repo-conventions" },
+        },
+      ],
+    });
+    const ids = sections.map((s) => s.id);
+    expect(ids[ids.length - 1]).toBe("house-rules");
+  });
+
   test("renders one markdown document with every heading in order", () => {
     const markdown = buildInstructionStackMarkdown({
       workspaceRoot: root,

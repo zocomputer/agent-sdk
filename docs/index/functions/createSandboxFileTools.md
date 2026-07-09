@@ -8,11 +8,13 @@
 
 > **createSandboxFileTools**(`options`): `object`
 
-Defined in: [packages/agent-sdk/src/index.ts:464](https://github.com/zocomputer/zov2-code/blob/7513818a294edcc3dc2a057e2719d829477c04ad/packages/agent-sdk/src/index.ts#L464)
+Defined in: [packages/agent-sdk/src/index.ts:491](https://github.com/zocomputer/zov2-code/blob/2004eea2e2488195525555d1ec03711235aadc63/packages/agent-sdk/src/index.ts#L491)
 
 Create sandbox-backed file tools for hosted agents: read/edit/write/glob/grep
 route through the sandbox session instead of the harness's local disk. Returns
-the workspace, IO provider, and the five tools.
+the workspace, IO provider, the tools, and a pre-configured
+`instructions.stack` (the composed baseline prompt, minus the sections that
+don't apply to this topology — see its doc).
 
 ## Parameters
 
@@ -21,6 +23,26 @@ the workspace, IO provider, and the five tools.
 [`SandboxFileToolsOptions`](../interfaces/SandboxFileToolsOptions.md)
 
 ## Returns
+
+### instructions
+
+> **instructions**: `object`
+
+#### instructions.stack
+
+> **stack**: `DynamicSentinel`
+
+The composed instruction stack (see
+`createInstructionStackInstruction`), pre-configured for the sandbox
+topology: no repo-conventions section (the workspace isn't on this
+process's disk and instruction resolvers have no sandbox access —
+nested conventions ride the read tool's dir-conventions riders
+instead) and no parallel-tools section (the SDK's bash/task machinery
+isn't in this toolset; hosted agents keep eve's built-in `bash`).
+The remaining baseline — workflow, planning, subagents, media (when
+the oracle is wired), hitl, communication — targets eve's framework
+tools plus this toolset. Honors `instructionTier`,
+`omitInstructionSections`, and `extraInstructionSections`.
 
 ### io
 

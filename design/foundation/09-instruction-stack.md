@@ -30,6 +30,18 @@ anchored spot (`{ after: "workflow" }`), with a function form evaluated on
 `session.started` for per-session catalogs (rib's skills). An unknown anchor
 appends rather than throws.
 
+**The stack travels with both topologies.** `createSandboxFileTools` returns
+the same stack pre-configured for the split topology: `workspaceRoot` is
+optional on the stack, and without it the baseline carries no
+repo-conventions section — the workspace's root `AGENTS.md` lives in the
+sandbox and eve's instruction resolvers (`DynamicResolveContext`) have no
+sandbox access, so the section *can't* be built there; nested conventions
+still deliver through the read tool's per-call riders
+([10](./10-repo-conventions-injection.md)). `parallel-tools` is dropped too
+(the sandbox toolset ships no SDK bash/tasks). Symmetric with `media`, which
+only renders when an oracle is wired: a section that can't be honest about
+its topology doesn't render at all.
+
 **Two tiers, one source.** Every section is authored in `full` (numbered
 rules, worked examples) and `compact` (same contracts, tighter prose) in the
 same builder function, selected by `instructionTier`. Tests pin tier parity

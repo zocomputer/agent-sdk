@@ -404,7 +404,9 @@ export type Stdlib = ReturnType<typeof createStdlib>;
 
 /**
  * Options for the sandbox file tools: workspace root (inside the sandbox),
- * display noun, session resolver, spill dir, and attachment/media settings.
+ * display noun, session resolver, spill dir, attachment/media settings, and
+ * the instruction-stack knobs (tier, omit/extra sections, verify hint,
+ * subagent roster).
  */
 export interface SandboxFileToolsOptions {
   /**
@@ -454,12 +456,37 @@ export interface SandboxFileToolsOptions {
    * the config so the runtime proxy labels the tool's own model traffic.
    */
   mediaOracle?: MediaOracleOption;
+  /**
+   * See {@link StdlibOptions.parentCapabilities}. Here it only informs the
+   * stack's media section (which kinds to view natively vs delegate) — it
+   * never drives an attachment default, since sandbox attachments stay
+   * explicitly off (see {@link SandboxFileToolsOptions.attachImagesToChat}).
+   */
+  parentCapabilities?: ModelInputCapabilities;
+  /** See {@link StdlibOptions.verifyCommandHint}. */
+  verifyCommandHint?: string;
+  /** See {@link StdlibOptions.subagentRoster}. */
+  subagentRoster?: readonly SubagentRosterEntry[];
+  /** See {@link StdlibOptions.instructionTier}. */
+  instructionTier?: InstructionTier;
+  /**
+   * Further baseline sections `instructions.stack` should drop, by id — on
+   * top of the sandbox topology's own omissions (see the `stack` doc on the
+   * return value).
+   */
+  omitInstructionSections?: readonly InstructionStackSectionId[];
+  /** See {@link StdlibOptions.extraInstructionSections}. */
+  extraInstructionSections?:
+    | readonly PlacedPromptSection[]
+    | (() => readonly PlacedPromptSection[]);
 }
 
 /**
  * Create sandbox-backed file tools for hosted agents: read/edit/write/glob/grep
  * route through the sandbox session instead of the harness's local disk. Returns
- * the workspace, IO provider, and the five tools.
+ * the workspace, IO provider, the tools, and a pre-configured
+ * `instructions.stack` (the composed baseline prompt, minus the sections that
+ * don't apply to this topology — see its doc).
  */
 export function createSandboxFileTools(options: SandboxFileToolsOptions) {
   const noun = options.workspaceNoun ?? "workspace";
@@ -523,12 +550,46 @@ export function createSandboxFileTools(options: SandboxFileToolsOptions) {
       }),
       ...(oracle !== null ? { look: createLookTool({ workspace, noun, oracle, io }) } : {}),
     },
+    instructions: {
+      /**
+       * The composed instruction stack (see
+       * `createInstructionStackInstruction`), pre-configured for the sandbox
+       * topology: no repo-conventions section (the workspace isn't on this
+       * process's disk and instruction resolvers have no sandbox access —
+       * nested conventions ride the read tool's dir-conventions riders
+       * instead) and no parallel-tools section (the SDK's bash/task machinery
+       * isn't in this toolset; hosted agents keep eve's built-in `bash`).
+       * The remaining baseline — workflow, planning, subagents, media (when
+       * the oracle is wired), hitl, communication — targets eve's framework
+       * tools plus this toolset. Honors `instructionTier`,
+       * `omitInstructionSections`, and `extraInstructionSections`.
+       */
+      stack: createInstructionStackInstruction({
+        tier: options.instructionTier,
+        workspaceNoun: noun,
+        verifyCommandHint: options.verifyCommandHint,
+        subagentRoster: options.subagentRoster,
+        media: oracle
+          ? {
+              modelName: oracle.modelName,
+              capabilities: oracle.capabilities,
+              parentCapabilities: options.parentCapabilities,
+            }
+          : undefined,
+        omitSections: [
+          "parallel-tools",
+          ...(options.omitInstructionSections ?? []),
+        ],
+        extraSections: options.extraInstructionSections,
+      }),
+    },
   };
 }
 
 /**
- * The sandbox file tools return type: workspace, IO provider, and tools
- * (read/edit/write/glob/grep).
+ * The sandbox file tools return type: workspace, IO provider, tools
+ * (read/edit/write/glob/grep + `look` when the oracle is wired), and the
+ * pre-configured `instructions.stack`.
  */
 export type SandboxFileTools = ReturnType<typeof createSandboxFileTools>;
 

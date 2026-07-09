@@ -12,7 +12,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import type { ToolContext } from "eve/tools";
 import { readChatAttachment } from "./attachments";
-import { createStdlib } from "./index";
+import { createSandboxFileTools, createStdlib } from "./index";
 import {
   __resetParkNotificationBridgeForTests,
   setParkNotificationHandler,
@@ -96,6 +96,80 @@ describe("createStdlib", () => {
       "subagents",
       "workflow",
     ]);
+  });
+});
+
+describe("createSandboxFileTools instructions", () => {
+  /** Resolve the stack's session.started markdown, parse-then-narrowed. */
+  async function renderStack(
+    sandbox: ReturnType<typeof createSandboxFileTools>,
+  ): Promise<string> {
+    const resolve = sandbox.instructions.stack.events["session.started"];
+    if (!resolve) throw new Error("expected the stack to build on session.started");
+    const resolved = await resolve(
+      {},
+      {
+        session: { id: "sandbox-session", auth: { current: null, initiator: null } },
+        channel: {},
+        messages: [],
+      },
+    );
+    if (typeof resolved !== "object" || resolved === null || !("markdown" in resolved)) {
+      throw new Error("expected the resolver to return instructions");
+    }
+    const { markdown } = resolved;
+    if (typeof markdown !== "string") throw new Error("expected markdown to be a string");
+    return markdown;
+  }
+
+  test("the sandbox stack drops repo-conventions and parallel-tools, keeps the rest", async () => {
+    const sandbox = createSandboxFileTools({
+      workspaceRoot: "/workspace",
+      mediaOracle: true,
+    });
+    const markdown = await renderStack(sandbox);
+    // The workspace isn't on this process's disk and this toolset ships no
+    // bash/tasks machinery — those two sections must never render.
+    expect(markdown).not.toContain("## Repository conventions");
+    expect(markdown).not.toContain("## Parallel tool calls");
+    for (const heading of [
+      "## How to work",
+      "## Planning your work (todo)",
+      "## Delegating with the agent tool",
+      "## Media you can't view (look)",
+      "## Asking the user (ask_question)",
+      "## Communicating",
+    ]) {
+      expect(markdown).toContain(heading);
+    }
+  });
+
+  test("no oracle → no media section in the sandbox stack", async () => {
+    const sandbox = createSandboxFileTools({ workspaceRoot: "/workspace" });
+    const markdown = await renderStack(sandbox);
+    expect(markdown).not.toContain("## Media you can't view (look)");
+  });
+
+  test("honors omitInstructionSections, extraInstructionSections, and the tier", async () => {
+    const sandbox = createSandboxFileTools({
+      workspaceRoot: "/workspace",
+      instructionTier: "compact",
+      omitInstructionSections: ["subagents"],
+      extraInstructionSections: [
+        {
+          section: { id: "persona", heading: "Who you are", body: "The builder." },
+          placement: { after: "workflow" },
+        },
+      ],
+    });
+    const markdown = await renderStack(sandbox);
+    expect(markdown).not.toContain("## Delegating with the agent tool");
+    expect(markdown.indexOf("## Who you are")).toBeGreaterThan(
+      markdown.indexOf("## How to work"),
+    );
+    // Compact tier renders shorter than the default full tier.
+    const full = await renderStack(createSandboxFileTools({ workspaceRoot: "/workspace" }));
+    expect(markdown.length).toBeLessThan(full.length);
   });
 });
 

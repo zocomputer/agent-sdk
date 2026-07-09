@@ -8,7 +8,7 @@
 
 > **extractNotebook**(`bytes`): [`NotebookExtraction`](../type-aliases/NotebookExtraction.md)
 
-Defined in: [packages/agent-sdk/src/extract/ipynb.ts:85](https://github.com/zocomputer/zov2-code/blob/7513818a294edcc3dc2a057e2719d829477c04ad/packages/agent-sdk/src/extract/ipynb.ts#L85)
+Defined in: [packages/agent-sdk/src/extract/ipynb.ts:85](https://github.com/zocomputer/zov2-code/blob/2004eea2e2488195525555d1ec03711235aadc63/packages/agent-sdk/src/extract/ipynb.ts#L85)
 
 Extract Jupyter notebook bytes (nbformat 4) into text with per-cell
 markers. Fails with a readable reason on malformed JSON or the legacy

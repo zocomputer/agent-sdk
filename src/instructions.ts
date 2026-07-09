@@ -573,7 +573,8 @@ export function createSubagentInstruction(opts?: {
  * then the core loop (workflow, planning), tool playbooks (parallel tools,
  * subagents, media), and the user-facing contracts last (asking, reporting).
  * These ids are the anchors for {@link PlacedPromptSection} placement and the
- * keys for omission. `media` appears only when an oracle is configured.
+ * keys for omission. `media` appears only when an oracle is configured;
+ * `repo-conventions` only when a local `workspaceRoot` is given.
  */
 export const INSTRUCTION_STACK_SECTION_IDS = [
   "repo-conventions",
@@ -595,8 +596,15 @@ export type InstructionStackSectionId = (typeof INSTRUCTION_STACK_SECTION_IDS)[n
  * (omit baseline sections, insert extras at anchors).
  */
 export interface InstructionStackOptions {
-  /** Workspace root — the repo-conventions section reads its `AGENTS.md`. */
-  workspaceRoot: string;
+  /**
+   * Local workspace root — the repo-conventions section reads its `AGENTS.md`
+   * off this process's own disk. Omit when the workspace isn't on that disk
+   * (a sandbox-backed agent, where the files live in a remote session and
+   * instruction resolvers have no sandbox access): the baseline then carries
+   * no repo-conventions section — like `media` without an oracle — and
+   * convention delivery rides the read tool's dir-conventions riders instead.
+   */
+  workspaceRoot?: string | undefined;
   /**
    * Prose depth for every section: `"full"` (default) or `"compact"` (~⅓ the
    * prose, same rules and tool names — for small/code-tuned models where a
@@ -639,9 +647,10 @@ export interface InstructionStackOptions {
 }
 
 /**
- * Build the stack's sections: the baseline in canonical order (media only
- * when an oracle is wired), minus `omitSections`, plus `extraSections` at
- * their anchors. Pure given the filesystem (reads the root AGENTS.md) — the
+ * Build the stack's sections: the baseline in canonical order
+ * (repo-conventions only with a local `workspaceRoot`, media only when an
+ * oracle is wired), minus `omitSections`, plus `extraSections` at their
+ * anchors. Pure given the filesystem (reads the root AGENTS.md) — the
  * tested core under {@link createInstructionStackInstruction}.
  */
 export function buildInstructionStackSections(
@@ -650,7 +659,9 @@ export function buildInstructionStackSections(
   const tier = opts.tier ?? "full";
   const workspaceNoun = opts.workspaceNoun;
   const baseline: PromptSection[] = [
-    repoConventionsSection({ workspaceRoot: opts.workspaceRoot }),
+    ...(opts.workspaceRoot !== undefined
+      ? [repoConventionsSection({ workspaceRoot: opts.workspaceRoot })]
+      : []),
     workflowSection({
       workspaceNoun,
       verifyCommandHint: opts.verifyCommandHint,

@@ -103,6 +103,10 @@ degrades, never crashes a session. The vocabulary (`PromptSection`,
 `PlacedPromptSection`, `composePromptSections`, `renderPromptSections`) is
 exported for consumers building their own composed instructions.
 
+On a split topology, `createSandboxFileTools` returns the same stack
+pre-configured for the sandbox — see
+[Sandbox-backed file tools](#sandbox-backed-file-tools-split-topologies).
+
 **À la carte.** Every section also remains an individual instruction
 (`stdlib.instructions.workflow`, `.planning`, `.communication`, `.hitl`,
 `.parallelTools`, `.repoConventions`, `.subagents`, `.media`) — that's what
@@ -478,6 +482,17 @@ send itself the next-turn message over loopback — unvalidated on hosted
 serverless runtimes — so until a consumer wires and verifies that leg, image
 reads return the honest metadata-only note instead of a "queued" promise that
 never delivers.
+
+The factory also returns `instructions.stack` — the composed stack from
+[The instruction stack](#the-instruction-stack), pre-configured for this
+topology. Two baseline sections never render here: `repo-conventions` (the
+workspace's root `AGENTS.md` lives in the sandbox, and eve's instruction
+resolvers have no sandbox access — nested conventions still ride the read
+tool's `directory_conventions` riders) and `parallel-tools` (this toolset
+ships no SDK bash/tasks). Wire it as one `agent/instructions/stack.ts`
+re-export exactly like the stdlib form; `instructionTier`,
+`omitInstructionSections`, `extraInstructionSections`, `verifyCommandHint`,
+and `subagentRoster` parameterize it through the factory's options.
 
 ## Gateway stream guards (surviving a dead connection)
 
