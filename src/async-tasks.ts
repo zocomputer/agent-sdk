@@ -35,6 +35,11 @@ export interface BaseTask {
   readonly label: string;
   /** Which backgroundable op produced this task. */
   readonly tool: string;
+  /**
+   * Session that spawned the task; scopes `listTasks`. Absent for tasks
+   * spawned without a tool context (tests, direct registry use).
+   */
+  readonly sessionId?: string;
   readonly startedAt: number;
   readonly progress?: unknown;
 }
@@ -55,11 +60,17 @@ export type Task =
  */
 export interface TaskRegistry {
   /** Register `work` as a background task and return its id immediately. */
-  spawnTask(tool: string, label: string, work: Promise<unknown>): string;
+  spawnTask(tool: string, label: string, work: Promise<unknown>, sessionId?: string): string;
   /** Update a running task's progress field; no-op when the task isn't running or doesn't exist. */
   updateTaskProgress(id: string, progress: unknown): void;
-  /** List all tasks, sorted by start time. */
-  listTasks(): Task[];
+  /**
+   * List tasks sorted by start time. With `sessionId`, only that session's
+   * tasks (plus session-less ones) — a shared warm instance must not leak
+   * other sessions' command lines into check_tasks. Lookups by id
+   * (`getTask`/`awaitTask`) stay unscoped: a task id is an unguessable
+   * capability the model got from its own run_async.
+   */
+  listTasks(sessionId?: string): Task[];
   /** Retrieve one task by id; undefined when not found. */
   getTask(id: string): Task | undefined;
   /**
@@ -84,6 +95,7 @@ function isTask(value: unknown): value is Task {
   ) {
     return false;
   }
+  if (value.sessionId !== undefined && typeof value.sessionId !== "string") return false;
   switch (value.status) {
     case "running":
       return true;
@@ -143,13 +155,19 @@ function buildTaskRegistry(opts: { storePath: string }): TaskRegistry {
   const pending = new Map<string, Promise<unknown>>();
   let counter = 0;
 
-  function listTasks(): Task[] {
+  function allTasks(): Task[] {
     return [...tasks.values()].sort((a, b) => a.startedAt - b.startedAt);
+  }
+
+  function listTasks(sessionId?: string): Task[] {
+    const all = allTasks();
+    if (sessionId === undefined) return all;
+    return all.filter((t) => t.sessionId === undefined || t.sessionId === sessionId);
   }
 
   function persist(): void {
     mkdirSync(dirname(storePath), { recursive: true });
-    writeFileSync(storePath, JSON.stringify({ tasks: listTasks() }, null, 2), "utf8");
+    writeFileSync(storePath, JSON.stringify({ tasks: allTasks() }, null, 2), "utf8");
   }
 
   function readStoreTasks(): Task[] {
@@ -206,10 +224,16 @@ function buildTaskRegistry(opts: { storePath: string }): TaskRegistry {
 
   // Attaches its own then/catch, so a rejecting op updates the task instead of
   // surfacing as an unhandledRejection.
-  function spawnTask(tool: string, label: string, work: Promise<unknown>): string {
+  function spawnTask(
+    tool: string,
+    label: string,
+    work: Promise<unknown>,
+    sessionId?: string,
+  ): string {
     const id = `task_${++counter}`;
     const startedAt = Date.now();
-    tasks.set(id, { id, tool, label, startedAt, status: "running" });
+    const scope = sessionId !== undefined ? { sessionId } : {};
+    tasks.set(id, { id, tool, label, ...scope, startedAt, status: "running" });
     pending.set(id, work);
     void work.then(
       (result) => {
@@ -217,6 +241,7 @@ function buildTaskRegistry(opts: { storePath: string }): TaskRegistry {
           id,
           tool,
           label,
+          ...scope,
           startedAt,
           status: "done",
           finishedAt: Date.now(),
@@ -231,6 +256,7 @@ function buildTaskRegistry(opts: { storePath: string }): TaskRegistry {
           id,
           tool,
           label,
+          ...scope,
           startedAt,
           status: "error",
           finishedAt: Date.now(),

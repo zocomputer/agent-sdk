@@ -1,7 +1,8 @@
-// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/index.ts
+// ../../../../../tmp/agent-sdk-mirror-cS9o0B/repo/src/index.ts
+import { tmpdir } from "node:os";
 import { join as join8 } from "node:path";
 
-// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/attachments.ts
+// ../../../../../tmp/agent-sdk-mirror-cS9o0B/repo/src/attachments.ts
 var CHAT_ATTACHMENT_FIELD = "chatAttachment";
 var DEFAULT_MAX_INLINE_IMAGE_BYTES = 3 * 1024 * 1024;
 var DEFAULT_MAX_INLINE_MEDIA_BYTES = 10 * 1024 * 1024;
@@ -48,7 +49,7 @@ function readChatAttachment(toolOutput) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/async-tasks.ts
+// ../../../../../tmp/agent-sdk-mirror-cS9o0B/repo/src/async-tasks.ts
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname } from "node:path";
 function isRecord2(value) {
@@ -60,6 +61,8 @@ function isTask(value) {
   if (typeof value.id !== "string" || typeof value.tool !== "string" || typeof value.label !== "string" || typeof value.startedAt !== "number" || typeof value.status !== "string") {
     return false;
   }
+  if (value.sessionId !== undefined && typeof value.sessionId !== "string")
+    return false;
   switch (value.status) {
     case "running":
       return true;
@@ -97,12 +100,18 @@ function buildTaskRegistry(opts) {
   const tasks = new Map;
   const pending = new Map;
   let counter = 0;
-  function listTasks() {
+  function allTasks() {
     return [...tasks.values()].sort((a, b) => a.startedAt - b.startedAt);
+  }
+  function listTasks(sessionId) {
+    const all = allTasks();
+    if (sessionId === undefined)
+      return all;
+    return all.filter((t) => t.sessionId === undefined || t.sessionId === sessionId);
   }
   function persist() {
     mkdirSync(dirname(storePath), { recursive: true });
-    writeFileSync(storePath, JSON.stringify({ tasks: listTasks() }, null, 2), "utf8");
+    writeFileSync(storePath, JSON.stringify({ tasks: allTasks() }, null, 2), "utf8");
   }
   function readStoreTasks() {
     if (!existsSync(storePath))
@@ -147,16 +156,18 @@ function buildTaskRegistry(opts) {
     }
     persist();
   }
-  function spawnTask(tool, label, work) {
+  function spawnTask(tool, label, work, sessionId) {
     const id = `task_${++counter}`;
     const startedAt = Date.now();
-    tasks.set(id, { id, tool, label, startedAt, status: "running" });
+    const scope = sessionId !== undefined ? { sessionId } : {};
+    tasks.set(id, { id, tool, label, ...scope, startedAt, status: "running" });
     pending.set(id, work);
     work.then((result) => {
       tasks.set(id, {
         id,
         tool,
         label,
+        ...scope,
         startedAt,
         status: "done",
         finishedAt: Date.now(),
@@ -170,6 +181,7 @@ function buildTaskRegistry(opts) {
         id,
         tool,
         label,
+        ...scope,
         startedAt,
         status: "error",
         finishedAt: Date.now(),
@@ -226,7 +238,7 @@ function buildTaskRegistry(opts) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/backgroundable.ts
+// ../../../../../tmp/agent-sdk-mirror-cS9o0B/repo/src/backgroundable.ts
 import { z } from "zod";
 function defineOp(cfg) {
   return {
@@ -261,7 +273,8 @@ function createBashOp(runner) {
     }),
     label: ({ command }) => truncate(command),
     run: ({ command, cwd, timeout_ms }, extras) => {
-      const running = runner.startCommand(command, {
+      const resolved = typeof runner === "function" ? runner(extras?.ctx) : runner;
+      const running = resolved.startCommand(command, {
         cwd,
         timeoutMs: timeout_ms ?? 600000,
         onOutput: extras?.onOutput
@@ -271,12 +284,18 @@ function createBashOp(runner) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/bounded-output.ts
+// ../../../../../tmp/agent-sdk-mirror-cS9o0B/repo/src/bounded-output.ts
 import { appendFileSync, mkdirSync as mkdirSync2, writeFileSync as writeFileSync2 } from "node:fs";
 import { dirname as dirname2 } from "node:path";
 var HEAD_CHARS = 25000;
 var TAIL_CHARS = 25000;
 var TOOL_OUTPUT_DIRNAME = "tool-outputs";
+function renderTruncationMarker(opts) {
+  const where = opts.label === undefined ? "" : `; full output: ${opts.label}`;
+  return `
+… [output truncated: showing first ${opts.headChars} and last ${opts.tailChars} of ${opts.totalChars} chars${where}]
+`;
+}
 var isHighSurrogate = (code) => code >= 55296 && code <= 56319;
 var isLowSurrogate = (code) => code >= 56320 && code <= 57343;
 var endsOnHighSurrogate = (text) => text.length > 0 && isHighSurrogate(text.charCodeAt(text.length - 1));
@@ -347,17 +366,21 @@ function createBoundedCapture(opts = {}) {
     },
     snapshot() {
       if (!overflowed) {
-        return { text: head, totalChars: total, truncated: false, spillPath: null };
+        return { text: head, head, tail: "", totalChars: total, truncated: false, spillPath: null };
       }
       if (head.length + tail.length === total) {
-        return { text: head + tail, totalChars: total, truncated: false, spillPath: null };
+        return { text: head + tail, head, tail, totalChars: total, truncated: false, spillPath: null };
       }
-      const where = spill === "live" ? `; full output: ${opts.spillLabel ?? opts.spillPath}` : "";
-      const marker = `
-… [output truncated: showing first ${head.length} and last ${tail.length} of ${total} chars${where}]
-`;
+      const marker = renderTruncationMarker({
+        headChars: head.length,
+        tailChars: tail.length,
+        totalChars: total,
+        label: spill === "live" ? opts.spillLabel ?? opts.spillPath : undefined
+      });
       return {
         text: `${head}${marker}${tail}`,
+        head,
+        tail,
         totalChars: total,
         truncated: true,
         spillPath: spill === "live" && opts.spillPath !== undefined ? opts.spillPath : null
@@ -372,7 +395,7 @@ function createBoundedCapture(opts = {}) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/dir-conventions.ts
+// ../../../../../tmp/agent-sdk-mirror-cS9o0B/repo/src/dir-conventions.ts
 import { readFileSync as readFileSync2 } from "node:fs";
 import { join } from "node:path";
 var DEFAULT_MAX_BYTES_PER_FILE = 16 * 1024;
@@ -484,12 +507,12 @@ function createDirConventionsTracker(options) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/instructions.ts
+// ../../../../../tmp/agent-sdk-mirror-cS9o0B/repo/src/instructions.ts
 import { readFileSync as readFileSync3 } from "node:fs";
 import { resolve } from "node:path";
 import { defineDynamic, defineInstructions } from "eve/instructions";
 
-// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/model-capabilities.ts
+// ../../../../../tmp/agent-sdk-mirror-cS9o0B/repo/src/model-capabilities.ts
 var TEXT_ONLY_CAPABILITIES = {
   image: false,
   pdf: false,
@@ -548,7 +571,7 @@ function describeCapabilities(caps) {
   return `can view ${joinList(can, "and")}, but not ${joinList(cannot, "or")}`;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/prompt-sections.ts
+// ../../../../../tmp/agent-sdk-mirror-cS9o0B/repo/src/prompt-sections.ts
 function renderPromptSection(section) {
   const body = section.body.trim();
   if (body === "")
@@ -591,7 +614,7 @@ function composePromptSections(baseline, options) {
   return composed;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/instructions.ts
+// ../../../../../tmp/agent-sdk-mirror-cS9o0B/repo/src/instructions.ts
 function repoConventionsSection(opts) {
   let agents = "";
   try {
@@ -675,26 +698,37 @@ function createPlanningInstruction(opts) {
   });
 }
 function parallelToolsSection(opts) {
-  const body = (opts?.tier ?? "full") === "compact" ? `Long-running work continues in the **background**: \`bash\` auto-returns a \`task_id\` when a command outlives its short foreground wait; \`run_async\` starts there directly.
-
-- Next action independent of the result? Keep working, then \`check_tasks\` (non-blocking status) or \`await_task\` (blocks for the result). Dependent? \`await_task\` right away.
-- Several tasks can run at once — track their \`task_id\`s.
-- Watching for one signal in the output? Pass \`notify\` (\`{ pattern, reason }\`) to \`bash\`/\`run_async\`, or \`run_async\`'s \`notify_on_complete\`, instead of polling.
-- When you do poll on wall-clock time, keep each blocking call under ~4 minutes — one long silent call lets the provider prompt cache expire and re-prices your whole context.
-- Completed results survive restarts; a task running through a restart reports \`lost\` — start it again if it still matters.
-- Before ending your turn, await every task whose result matters (\`check_tasks\` if unsure what's in flight).` : `Long-running work can continue in the **background** instead of blocking the turn. The \`bash\` tool does this automatically: if a command is still running after its short foreground wait, it returns a \`task_id\` and keeps the process alive. You can also use \`run_async\` when you already know the work should start in the background. After you start background work, decide whether your *next* action depends on its output:
-
-- **Independent?** Keep working — read files, make edits, start other tasks — then \`check_tasks\` (non-blocking status + live output preview) or \`await_task\` (blocks for the result) when it's convenient.
-- **Dependent?** Call \`await_task\` right away; treat it like a normal blocking call.
-
-Guidance:
-- Prefer plain \`bash\` for shell commands even when they might run long; it auto-returns a task handle if needed. Use \`run_async\` when you already know a command should start in the background and want to skip the foreground wait.
-- You can have several tasks in flight at once. Each \`run_async\` returns a \`task_id\`; keep track of them.
-- \`check_tasks\` shows status and live output previews for tasks that support progress. \`await_task\` returns the final output.
-- For a long job where you only care about a specific signal — a failure line, a "listening on" banner — pass \`notify\` (\`{ pattern, reason }\`) to \`bash\` or \`run_async\` instead of polling: matching output is delivered to you as a message while you're idle. \`run_async\`'s \`notify_on_complete\` does the same when the task settles.
-- When you do poll on wall-clock time (waiting on CI, a review, a deploy), keep any single blocking call under ~4 minutes — one sleep+check per call, not a whole retry loop in one call. Provider prompt caches expire after ~5 minutes of model inactivity, so one long silent call re-prices your entire context on the next step; returning between polls keeps it warm.
-- Background task metadata and completed results persist across agent restarts. A task still running during a restart is reported as \`lost\`; start it again if its result still matters.
-- Before finishing your turn, make sure any background task whose result matters has been awaited — don't end while relevant work is still running. If you're unsure what's still in flight, call \`check_tasks\`. A task you set a \`notify\` watcher on may keep running — its matches will reach you as messages.`;
+  const notifications = opts?.notifications ?? true;
+  const body = (opts?.tier ?? "full") === "compact" ? [
+    `Long-running work continues in the **background**: \`bash\` auto-returns a \`task_id\` when a command outlives its short foreground wait; \`run_async\` starts there directly.`,
+    ``,
+    `- Next action independent of the result? Keep working, then \`check_tasks\` (non-blocking status) or \`await_task\` (blocks for the result). Dependent? \`await_task\` right away.`,
+    `- Several tasks can run at once — track their \`task_id\`s.`,
+    ...notifications ? [
+      `- Watching for one signal in the output? Pass \`notify\` (\`{ pattern, reason }\`) to \`bash\`/\`run_async\`, or \`run_async\`'s \`notify_on_complete\`, instead of polling.`
+    ] : [],
+    `- When you do poll on wall-clock time, keep each blocking call under ~4 minutes — one long silent call lets the provider prompt cache expire and re-prices your whole context.`,
+    `- Completed results survive restarts; a task running through a restart reports \`lost\` — start it again if it still matters.`,
+    `- Before ending your turn, await every task whose result matters (\`check_tasks\` if unsure what's in flight).`
+  ].join(`
+`) : [
+    `Long-running work can continue in the **background** instead of blocking the turn. The \`bash\` tool does this automatically: if a command is still running after its short foreground wait, it returns a \`task_id\` and keeps the process alive. You can also use \`run_async\` when you already know the work should start in the background. After you start background work, decide whether your *next* action depends on its output:`,
+    ``,
+    `- **Independent?** Keep working — read files, make edits, start other tasks — then \`check_tasks\` (non-blocking status + live output preview) or \`await_task\` (blocks for the result) when it's convenient.`,
+    `- **Dependent?** Call \`await_task\` right away; treat it like a normal blocking call.`,
+    ``,
+    `Guidance:`,
+    `- Prefer plain \`bash\` for shell commands even when they might run long; it auto-returns a task handle if needed. Use \`run_async\` when you already know a command should start in the background and want to skip the foreground wait.`,
+    `- You can have several tasks in flight at once. Each \`run_async\` returns a \`task_id\`; keep track of them.`,
+    `- \`check_tasks\` shows status and live output previews for tasks that support progress. \`await_task\` returns the final output.`,
+    ...notifications ? [
+      `- For a long job where you only care about a specific signal — a failure line, a "listening on" banner — pass \`notify\` (\`{ pattern, reason }\`) to \`bash\` or \`run_async\` instead of polling: matching output is delivered to you as a message while you're idle. \`run_async\`'s \`notify_on_complete\` does the same when the task settles.`
+    ] : [],
+    `- When you do poll on wall-clock time (waiting on CI, a review, a deploy), keep any single blocking call under ~4 minutes — one sleep+check per call, not a whole retry loop in one call. Provider prompt caches expire after ~5 minutes of model inactivity, so one long silent call re-prices your entire context on the next step; returning between polls keeps it warm.`,
+    `- Background task metadata and completed results persist across agent restarts. A task still running during a restart is reported as \`lost\`; start it again if its result still matters.`,
+    `- Before finishing your turn, make sure any background task whose result matters has been awaited — don't end while relevant work is still running. If you're unsure what's still in flight, call \`check_tasks\`.${notifications ? " A task you set a `notify` watcher on may keep running — its matches will reach you as messages." : ""}`
+  ].join(`
+`);
   return { id: "parallel-tools", heading: "Parallel tool calls", body };
 }
 function buildParallelToolsMarkdown(opts) {
@@ -856,7 +890,7 @@ function buildInstructionStackSections(opts) {
       tier
     }),
     planningSection({ tier }),
-    parallelToolsSection({ tier }),
+    parallelToolsSection({ tier, notifications: opts.notifications }),
     subagentSection({ workspaceNoun, roster: opts.subagentRoster, tier }),
     ...opts.media ? [lookSection({ ...opts.media, tier })] : [],
     hitlSection({ tier }),
@@ -876,11 +910,11 @@ function createInstructionStackInstruction(opts) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/run.ts
+// ../../../../../tmp/agent-sdk-mirror-cS9o0B/repo/src/run.ts
 import { spawn } from "node:child_process";
 import { join as join2 } from "node:path";
 var MAX_PREVIEW = 20000;
-function previewOf(capture) {
+function capturePreview(capture) {
   const latest = capture.latest();
   if (capture.totalChars() <= MAX_PREVIEW)
     return latest;
@@ -956,8 +990,8 @@ function createCommandRunner(opts) {
       result,
       progress() {
         return {
-          stdout: previewOf(stdoutCapture),
-          stderr: previewOf(stderrCapture),
+          stdout: capturePreview(stdoutCapture),
+          stderr: capturePreview(stderrCapture),
           stdoutBytes,
           stderrBytes,
           stdoutTruncated: stdoutCapture.totalChars() > MAX_PREVIEW,
@@ -977,7 +1011,7 @@ function createCommandRunner(opts) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/steer-inbox.ts
+// ../../../../../tmp/agent-sdk-mirror-cS9o0B/repo/src/steer-inbox.ts
 import {
   appendFileSync as appendFileSync2,
   linkSync,
@@ -988,7 +1022,7 @@ import {
 } from "node:fs";
 import { join as join3 } from "node:path";
 
-// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/steer.ts
+// ../../../../../tmp/agent-sdk-mirror-cS9o0B/repo/src/steer.ts
 var STEER_FIELD = "user_steer";
 var STEER_WRAPPED_OUTPUT_FIELD = "steer_wrapped_output";
 var STEER_DIRNAME = "steer";
@@ -1058,7 +1092,7 @@ function parseSteerLine(line) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/steer-inbox.ts
+// ../../../../../tmp/agent-sdk-mirror-cS9o0B/repo/src/steer-inbox.ts
 var drainSequence = 0;
 function createSteerInbox(options) {
   const now = options.now ?? Date.now;
@@ -1107,7 +1141,7 @@ function createSteerInbox(options) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/steer-tool.ts
+// ../../../../../tmp/agent-sdk-mirror-cS9o0B/repo/src/steer-tool.ts
 import { defineTool } from "eve/tools";
 function withSteerDelivery(tool, inbox) {
   const originalToModelOutput = tool.toModelOutput?.bind(tool);
@@ -1139,11 +1173,11 @@ function createSteerWrapper(inbox) {
   return (tool) => withSteerDelivery(tool, inbox);
 }
 
-// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/tools/bash.ts
+// ../../../../../tmp/agent-sdk-mirror-cS9o0B/repo/src/tools/bash.ts
 import { defineTool as defineTool2 } from "eve/tools";
 import { z as z2 } from "zod";
 
-// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/park-delivery.ts
+// ../../../../../tmp/agent-sdk-mirror-cS9o0B/repo/src/park-delivery.ts
 function isRecord4(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
@@ -1259,7 +1293,7 @@ function setParkNotificationHandler(handler) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/watch-output.ts
+// ../../../../../tmp/agent-sdk-mirror-cS9o0B/repo/src/watch-output.ts
 var DEFAULT_WATCH_DEBOUNCE_MS = 5000;
 var DEFAULT_MAX_WATCH_NOTIFICATIONS = 5;
 function createOutputWatcher(options) {
@@ -1323,99 +1357,123 @@ function formatCompletionNotification(opts) {
   return `Background task ${opts.taskId} (${opts.label}) ${outcome}. Call await_task to collect its result.`;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/tools/bash.ts
+// ../../../../../tmp/agent-sdk-mirror-cS9o0B/repo/src/tools/bash.ts
 var DEFAULT_INTERACTIVE_HINT = "This is a piped shell with NO tty: avoid interactive or full-screen CLIs (a REPL, vim, an interactive installer/prompt) — those programs hang or degrade without a real terminal.";
+var notifyParam = z2.object({
+  pattern: z2.string().min(1).describe("Regex matched against complete output lines (stdout and stderr)."),
+  reason: z2.string().min(1).describe("Short phrase naming what you're watching for, e.g. 'test failures'."),
+  debounce_ms: z2.number().int().positive().optional().describe("Minimum ms between match notifications (default 5000).")
+}).optional().describe("Watch the command's output if it backgrounds: matching lines are delivered to you as a message while you're idle. No effect on a command that completes in the foreground.");
 function createBashTool(opts) {
-  const { workspace, runner, registry, noun } = opts;
+  const { workdir, registry, noun } = opts;
+  const execEnv = opts.execEnv ?? "host";
+  const notifications = opts.notifications ?? true;
   const interactiveHint = opts.interactiveHint ?? DEFAULT_INTERACTIVE_HINT;
-  return defineTool2({
-    description: `Run a shell command on the host, from the ${noun} root by default. Quick commands return normally. If the command is still running after foreground_ms, it keeps running in the background and returns a task_id plus current stdout/stderr; use check_tasks and await_task to monitor or collect the result. For a long-running command where you only care about a specific output signal (a failure line, a "listening on" banner), pass notify — if the command backgrounds, matching output is delivered to you as a message while you're idle, so you can keep working instead of polling. Use it for git, tests/builds/type-checks, ripgrep, dev servers, and anything the file tools don't cover. Very long output is truncated to its head and tail; the complete output is saved to a file named in the result — grep or read that file instead of re-running the command. This is a real shell on the user's machine with no sandbox and no undo — be careful with destructive commands. ` + interactiveHint,
-    inputSchema: z2.object({
-      command: z2.string().min(1).describe("The shell command to run."),
-      cwd: z2.string().optional().describe(`Working directory, relative to the ${noun} root. Defaults to the ${noun} root.`),
-      timeout_ms: z2.number().int().positive().optional().describe("Kill the command after this many milliseconds (default 600000)."),
-      foreground_ms: z2.number().int().positive().optional().describe("How long to wait before returning a background task handle (default 2000)."),
-      notify: z2.object({
-        pattern: z2.string().min(1).describe("Regex matched against complete output lines (stdout and stderr)."),
-        reason: z2.string().min(1).describe("Short phrase naming what you're watching for, e.g. 'test failures'."),
-        debounce_ms: z2.number().int().positive().optional().describe("Minimum ms between match notifications (default 5000).")
-      }).optional().describe("Watch the command's output if it backgrounds: matching lines are delivered to you as a message while you're idle. No effect on a command that completes in the foreground.")
-    }),
-    async execute({ command, cwd, timeout_ms, foreground_ms, notify }, ctx) {
-      const watcher = notify ? createOutputWatcher({ pattern: notify.pattern, debounceMs: notify.debounce_ms }) : null;
-      let feedLive = null;
-      const buffered = [];
-      const running = runner.startCommand(command, {
-        cwd,
-        timeoutMs: timeout_ms ?? 600000,
-        onOutput: watcher ? (chunk) => {
-          if (feedLive)
-            feedLive(chunk);
-          else
-            buffered.push(chunk);
-        } : undefined
-      });
-      const result = await Promise.race([
-        running.result,
-        new Promise((resolve2) => setTimeout(() => resolve2(null), foreground_ms ?? 2000))
-      ]);
-      if (result !== null) {
-        return {
-          workdir: workspace.root,
-          mode: "completed",
-          exitCode: result.exitCode,
-          timedOut: result.timedOut,
-          stdout: result.stdout,
-          stderr: result.stderr
-        };
-      }
-      const taskId = registry.spawnTask("bash", command, running.result);
-      registry.updateTaskProgress(taskId, running.progress());
-      const interval = setInterval(() => registry.updateTaskProgress(taskId, running.progress()), 500);
-      running.result.finally(() => clearInterval(interval)).catch(() => {
-        return;
-      });
-      if (watcher && notify) {
-        const sessionId = ctx?.session?.id;
-        let matchCount = 0;
-        const post = (lines) => {
-          if (!lines || !sessionId)
-            return;
-          matchCount += 1;
-          postParkNotification(sessionId, {
-            key: `${taskId}#watch${matchCount}`,
-            text: formatWatchNotification({ taskId, label: command, reason: notify.reason, lines })
-          });
-        };
-        feedLive = (chunk) => post(watcher.feed(chunk));
-        for (const chunk of buffered.splice(0))
+  const resolveRunner = (ctx) => typeof opts.runner === "function" ? opts.runner(ctx) : opts.runner;
+  const description = [
+    execEnv === "sandbox" ? `Run a shell command inside the session's workspace sandbox, from the ${noun} root by default.` : `Run a shell command on the host, from the ${noun} root by default.`,
+    "Quick commands return normally. If the command is still running after foreground_ms, it keeps running in the background and returns a task_id plus current stdout/stderr; use check_tasks and await_task to monitor or collect the result.",
+    ...notifications ? [
+      `For a long-running command where you only care about a specific output signal (a failure line, a "listening on" banner), pass notify — if the command backgrounds, matching output is delivered to you as a message while you're idle, so you can keep working instead of polling.`
+    ] : [],
+    "Use it for git, tests/builds/type-checks, ripgrep, dev servers, and anything the file tools don't cover. Very long output is truncated to its head and tail; the complete output is saved to a file named in the result — grep or read that file instead of re-running the command.",
+    execEnv === "sandbox" ? "This is a real shell inside the workspace sandbox with no undo — be careful with destructive commands." : "This is a real shell on the user's machine with no sandbox and no undo — be careful with destructive commands.",
+    interactiveHint
+  ].join(" ");
+  const baseParams = {
+    command: z2.string().min(1).describe("The shell command to run."),
+    cwd: z2.string().optional().describe(`Working directory, relative to the ${noun} root. Defaults to the ${noun} root.`),
+    timeout_ms: z2.number().int().positive().optional().describe("Kill the command after this many milliseconds (default 600000)."),
+    foreground_ms: z2.number().int().positive().optional().describe("How long to wait before returning a background task handle (default 2000).")
+  };
+  async function runBash(args, ctx) {
+    const { command, cwd, timeout_ms, foreground_ms, notify } = args;
+    const runner = resolveRunner(ctx);
+    const watcher = notify ? createOutputWatcher({ pattern: notify.pattern, debounceMs: notify.debounce_ms }) : null;
+    let feedLive = null;
+    const buffered = [];
+    const running = runner.startCommand(command, {
+      cwd,
+      timeoutMs: timeout_ms ?? 600000,
+      onOutput: watcher ? (chunk) => {
+        if (feedLive)
           feedLive(chunk);
-        running.result.finally(() => post(watcher.flush())).catch(() => {
-          return;
-        });
-      }
+        else
+          buffered.push(chunk);
+      } : undefined
+    });
+    const result = await Promise.race([
+      running.result,
+      new Promise((resolve2) => setTimeout(() => resolve2(null), foreground_ms ?? 2000))
+    ]);
+    if (result !== null) {
       return {
-        workdir: workspace.root,
-        mode: "backgrounded",
-        task_id: taskId,
-        status: "running",
-        progress: running.progress(),
-        ...watcher ? {
-          watching: notify?.pattern,
-          note: "Command is still running in the background; matching output will be delivered to you as a message while you're idle. Continue independent work, or call await_task if your next step needs the result."
-        } : {
-          note: "Command is still running in the background. Continue independent work, then call check_tasks for live output or await_task when you need the final result."
-        }
+        workdir,
+        mode: "completed",
+        exitCode: result.exitCode,
+        timedOut: result.timedOut,
+        stdout: result.stdout,
+        stderr: result.stderr
       };
     }
+    const taskId = registry.spawnTask("bash", command, running.result, ctx?.session?.id);
+    registry.updateTaskProgress(taskId, running.progress());
+    const interval = setInterval(() => registry.updateTaskProgress(taskId, running.progress()), 500);
+    running.result.finally(() => clearInterval(interval)).catch(() => {
+      return;
+    });
+    if (watcher && notify) {
+      const sessionId = ctx?.session?.id;
+      let matchCount = 0;
+      const post = (lines) => {
+        if (!lines || !sessionId)
+          return;
+        matchCount += 1;
+        postParkNotification(sessionId, {
+          key: `${taskId}#watch${matchCount}`,
+          text: formatWatchNotification({ taskId, label: command, reason: notify.reason, lines })
+        });
+      };
+      feedLive = (chunk) => post(watcher.feed(chunk));
+      for (const chunk of buffered.splice(0))
+        feedLive(chunk);
+      running.result.finally(() => post(watcher.flush())).catch(() => {
+        return;
+      });
+    }
+    return {
+      workdir,
+      mode: "backgrounded",
+      task_id: taskId,
+      status: "running",
+      progress: running.progress(),
+      ...watcher ? {
+        watching: notify?.pattern,
+        note: "Command is still running in the background; matching output will be delivered to you as a message while you're idle. Continue independent work, or call await_task if your next step needs the result."
+      } : {
+        note: "Command is still running in the background. Continue independent work, then call check_tasks for live output or await_task when you need the final result."
+      }
+    };
+  }
+  if (!notifications) {
+    return defineTool2({
+      description,
+      inputSchema: z2.object(baseParams),
+      execute: (args, ctx) => runBash(args, ctx)
+    });
+  }
+  return defineTool2({
+    description,
+    inputSchema: z2.object({ ...baseParams, notify: notifyParam }),
+    execute: (args, ctx) => runBash(args, ctx)
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/tools/edit.ts
+// ../../../../../tmp/agent-sdk-mirror-cS9o0B/repo/src/tools/edit.ts
 import { defineTool as defineTool3 } from "eve/tools";
 import { z as z3 } from "zod";
 
-// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/edit-match.ts
+// ../../../../../tmp/agent-sdk-mirror-cS9o0B/repo/src/edit-match.ts
 class EditNotFoundError extends Error {
   constructor() {
     super("old_string not found. It must match the file contents exactly, including whitespace and indentation.");
@@ -1862,7 +1920,7 @@ function joinBom(text, bom) {
   return bom ? BOM + stripped : stripped;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/path-locks.ts
+// ../../../../../tmp/agent-sdk-mirror-cS9o0B/repo/src/path-locks.ts
 var LOCKS_KEY = Symbol.for("zocomputer.agent-sdk.path-locks");
 function lockChains() {
   const holder = globalThis;
@@ -1888,18 +1946,18 @@ async function withPathLock(path, fn) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/workspace-io.ts
+// ../../../../../tmp/agent-sdk-mirror-cS9o0B/repo/src/workspace-io.ts
 import { mkdirSync as mkdirSync4, readFileSync as readFileSync7, statSync as statSync2, writeFileSync as writeFileSync3 } from "node:fs";
 import { dirname as dirname3, join as join5 } from "node:path";
 
-// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/glob-match.ts
+// ../../../../../tmp/agent-sdk-mirror-cS9o0B/repo/src/glob-match.ts
 function globToRegExp(glob) {
   const escaped = glob.replace(/[.+^${}()|[\]\\]/g, "\\$&");
   const body = escaped.replace(/\*\*\/?/g, "\x00").replace(/\*/g, "[^/]*").replace(/\?/g, "[^/]").replace(/\u0000/g, "(?:.*/)?");
   return new RegExp(`^${body}$`);
 }
 
-// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/list-files.ts
+// ../../../../../tmp/agent-sdk-mirror-cS9o0B/repo/src/list-files.ts
 import { spawnSync } from "node:child_process";
 var MAX_BUFFER = 64 * 1024 * 1024;
 function gitPaths(root, args) {
@@ -1927,7 +1985,7 @@ function listGitFiles(root, scope) {
   return files.filter((path) => !gone.has(path));
 }
 
-// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/read-text.ts
+// ../../../../../tmp/agent-sdk-mirror-cS9o0B/repo/src/read-text.ts
 import { readFileSync as readFileSync5, statSync } from "node:fs";
 var MAX_SEARCH_FILE_BYTES = 1500000;
 var BINARY_SNIFF_BYTES = 8192;
@@ -1954,7 +2012,7 @@ function readTextForSearch(abs, maxBytes = MAX_SEARCH_FILE_BYTES) {
   return { kind: "text", content: buf.toString("utf8") };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/walk.ts
+// ../../../../../tmp/agent-sdk-mirror-cS9o0B/repo/src/walk.ts
 import { readFileSync as readFileSync6, readdirSync } from "node:fs";
 import { join as join4, relative, sep } from "node:path";
 import ignore from "ignore";
@@ -2036,7 +2094,7 @@ function* walkFiles(root, base = root) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/workspace.ts
+// ../../../../../tmp/agent-sdk-mirror-cS9o0B/repo/src/workspace.ts
 import { isAbsolute, relative as relative2, resolve as resolve2, sep as sep2 } from "node:path";
 function resolveWithin(root, path) {
   const abs = isAbsolute(path) ? resolve2(path) : resolve2(root, path);
@@ -2058,7 +2116,7 @@ function createWorkspace(root) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/workspace-io.ts
+// ../../../../../tmp/agent-sdk-mirror-cS9o0B/repo/src/workspace-io.ts
 function createLocalIo(root) {
   return {
     async stat(abs) {
@@ -2146,7 +2204,7 @@ async function searchLocal(root, options) {
   return { matches, stopped, skippedLargeFiles };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/tools/edit.ts
+// ../../../../../tmp/agent-sdk-mirror-cS9o0B/repo/src/tools/edit.ts
 function createEditTool(opts) {
   const { workspace, noun } = opts;
   const io = opts.io ?? localIoProvider(workspace.root);
@@ -2200,7 +2258,7 @@ ${hint.preview}`;
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/tools/glob.ts
+// ../../../../../tmp/agent-sdk-mirror-cS9o0B/repo/src/tools/glob.ts
 import { defineTool as defineTool4 } from "eve/tools";
 import { z as z4 } from "zod";
 function createGlobTool(opts) {
@@ -2239,7 +2297,7 @@ function createGlobTool(opts) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/tools/grep.ts
+// ../../../../../tmp/agent-sdk-mirror-cS9o0B/repo/src/tools/grep.ts
 import { defineTool as defineTool5 } from "eve/tools";
 import { z as z5 } from "zod";
 import { join as join6 } from "node:path";
@@ -2332,12 +2390,12 @@ function createGrepTool(opts) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/tools/look.ts
+// ../../../../../tmp/agent-sdk-mirror-cS9o0B/repo/src/tools/look.ts
 import { defineTool as defineTool6 } from "eve/tools";
 import { basename } from "node:path";
 import { z as z6 } from "zod";
 
-// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/file-kind.ts
+// ../../../../../tmp/agent-sdk-mirror-cS9o0B/repo/src/file-kind.ts
 import { extname } from "node:path";
 function imageMediaType(format) {
   return `image/${format}`;
@@ -2535,7 +2593,7 @@ function detectFileKind(buf, path) {
   return { kind: "text", encoding: "utf8" };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/tools/look.ts
+// ../../../../../tmp/agent-sdk-mirror-cS9o0B/repo/src/tools/look.ts
 var DEFAULT_LOOK_MAX_INPUT_BYTES = 20 * 1024 * 1024;
 var DEFAULT_LOOK_TIMEOUT_MS = 180000;
 var LOOK_MAX_ANSWER_CHARS = 30000;
@@ -2724,12 +2782,12 @@ function lookOversizeHint(oracle, maxInputBytes = DEFAULT_LOOK_MAX_INPUT_BYTES) 
   return `For text, use bash (head, sed -n, rg) to extract the part you need. Only if it is ${article} ${kindList} file up to ${capMb} MB, pass the path and a question to the look tool to have ${oracle.modelName} examine it (look sends files read cannot; over ${capMb} MB, shrink it first, e.g. ffmpeg extraction).`;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/tools/read.ts
+// ../../../../../tmp/agent-sdk-mirror-cS9o0B/repo/src/tools/read.ts
 import { defineTool as defineTool7 } from "eve/tools";
 import { z as z7 } from "zod";
 import { basename as basename2 } from "node:path";
 
-// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/file-view.ts
+// ../../../../../tmp/agent-sdk-mirror-cS9o0B/repo/src/file-view.ts
 var READ_FILE_DEFAULT_LINE_LIMIT = 2000;
 var READ_FILE_MAX_LINE_CHARS = 2000;
 var READ_FILE_MAX_CONTENT_CHARS = 50000;
@@ -2773,10 +2831,10 @@ function buildFileView(text, opts = {}) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/read-file-content.ts
+// ../../../../../tmp/agent-sdk-mirror-cS9o0B/repo/src/read-file-content.ts
 import { imageSize } from "image-size";
 
-// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/extract/cache.ts
+// ../../../../../tmp/agent-sdk-mirror-cS9o0B/repo/src/extract/cache.ts
 function createStatCache(limit) {
   const entries = new Map;
   return {
@@ -2801,7 +2859,7 @@ function createStatCache(limit) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/extract/docx.ts
+// ../../../../../tmp/agent-sdk-mirror-cS9o0B/repo/src/extract/docx.ts
 import mammoth from "mammoth";
 async function extractDocx(buffer) {
   try {
@@ -2813,10 +2871,10 @@ async function extractDocx(buffer) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/extract/epub.ts
+// ../../../../../tmp/agent-sdk-mirror-cS9o0B/repo/src/extract/epub.ts
 import { Parser } from "htmlparser2";
 
-// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/extract/zip.ts
+// ../../../../../tmp/agent-sdk-mirror-cS9o0B/repo/src/extract/zip.ts
 import { inflateRawSync } from "node:zlib";
 var EOCD_SIGNATURE = 101010256;
 var CENTRAL_SIGNATURE = 33639248;
@@ -2904,7 +2962,7 @@ function openZip(buffer) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/extract/epub.ts
+// ../../../../../tmp/agent-sdk-mirror-cS9o0B/repo/src/extract/epub.ts
 var EPUB_SECTION_CAP = 200;
 var BLOCK_TAGS = new Set([
   "p",
@@ -3040,7 +3098,7 @@ function extractEpub(bytes, options = {}) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/extract/ipynb.ts
+// ../../../../../tmp/agent-sdk-mirror-cS9o0B/repo/src/extract/ipynb.ts
 function joinSource(value) {
   if (typeof value === "string")
     return value;
@@ -3151,7 +3209,7 @@ function extractNotebook(bytes) {
 `), cells: cells.length };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/extract/odf.ts
+// ../../../../../tmp/agent-sdk-mirror-cS9o0B/repo/src/extract/odf.ts
 import { Parser as Parser2 } from "htmlparser2";
 var ODP_EMPTY_SLIDE_NOTE = "[no text on this slide — likely image-only; images cannot be extracted]";
 function parseContentXml(xml) {
@@ -3238,7 +3296,7 @@ function extractOdp(bytes) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/extract/pdf.ts
+// ../../../../../tmp/agent-sdk-mirror-cS9o0B/repo/src/extract/pdf.ts
 import { openPdf } from "clawpdf";
 var PDF_EMPTY_PAGE_NOTE = "[no text on this page — likely scanned or image-only; rendered pages cannot be attached]";
 var PDF_PAGE_CAP = 200;
@@ -3273,7 +3331,7 @@ async function extractPdf(bytes, options = {}) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/extract/pptx.ts
+// ../../../../../tmp/agent-sdk-mirror-cS9o0B/repo/src/extract/pptx.ts
 import { Parser as Parser3 } from "htmlparser2";
 var PPTX_EMPTY_SLIDE_NOTE = "[no text on this slide — likely image-only; images cannot be extracted]";
 var PPTX_SLIDE_CAP = 200;
@@ -3429,7 +3487,7 @@ function extractPptx(bytes, options = {}) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/extract/rtf.ts
+// ../../../../../tmp/agent-sdk-mirror-cS9o0B/repo/src/extract/rtf.ts
 var SKIP_DESTINATIONS = new Set([
   "fonttbl",
   "colortbl",
@@ -3627,7 +3685,7 @@ function extractRtf(bytes) {
   return { ok: true, text: text.replace(/\n+$/, "") };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/extract/sheet.ts
+// ../../../../../tmp/agent-sdk-mirror-cS9o0B/repo/src/extract/sheet.ts
 import { read, utils } from "xlsx";
 var SHEET_ROW_CAP = 5000;
 function extractSheets(buffer, rowCap = SHEET_ROW_CAP) {
@@ -3668,7 +3726,7 @@ function extractSheets(buffer, rowCap = SHEET_ROW_CAP) {
 `), sheets };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/read-file-content.ts
+// ../../../../../tmp/agent-sdk-mirror-cS9o0B/repo/src/read-file-content.ts
 var EXTRACTION_CACHE_LIMIT = 20;
 var extractionCache = createStatCache(EXTRACTION_CACHE_LIMIT);
 function decodeText(buffer, encoding) {
@@ -3787,7 +3845,7 @@ async function loadFileContent(buffer, path, id) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/tools/read.ts
+// ../../../../../tmp/agent-sdk-mirror-cS9o0B/repo/src/tools/read.ts
 function buildMediaHint(attach, verb) {
   const kinds = ["image", "video", "audio"];
   const on = kinds.filter((kind) => attach[kind]);
@@ -3991,7 +4049,7 @@ function createReadTool(opts) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/tools/tasks.ts
+// ../../../../../tmp/agent-sdk-mirror-cS9o0B/repo/src/tools/tasks.ts
 import { defineDynamic as defineDynamic2, defineTool as defineTool8 } from "eve/tools";
 import { z as z8 } from "zod";
 var DEFAULT_WAIT_MS = 120000;
@@ -4026,6 +4084,7 @@ function full(task) {
 }
 function buildTasksToolset(opts) {
   const { registry, backgroundables } = opts;
+  const notifications = opts.notifications ?? true;
   const [firstOp, ...restOps] = backgroundables;
   if (!firstOp)
     return null;
@@ -4034,94 +4093,109 @@ function buildTasksToolset(opts) {
   input: ${JSON.stringify(o.inputJsonSchema)}`).join(`
 `);
   const wrap = createSteerWrapper(opts.steerInbox ?? null);
-  return {
-    run_async: wrap(defineTool8({
-      description: `Start a tool running in the BACKGROUND and return immediately with a task id, instead of blocking until it finishes. Use it for long work whose result your next step doesn't need yet (tests, builds, installs) so you can keep working in parallel; poll with check_tasks and collect the result with await_task. If your very next step needs the output, just call the tool directly instead. For work where you only care about a specific output signal, pass notify — matching lines are delivered to you as a message while you're idle, instead of you polling.
+  const runAsyncDescription = "Start a tool running in the BACKGROUND and return immediately with a task id, instead of blocking until it finishes. Use it for long work whose result your next step doesn't need yet (tests, builds, installs) so you can keep working in parallel; poll with check_tasks and collect the result with await_task. If your very next step needs the output, just call the tool directly instead." + (notifications ? " For work where you only care about a specific output signal, pass notify — matching lines are delivered to you as a message while you're idle, instead of you polling." : "") + `
 
 Backgroundable tools (pass \`input\` matching the tool's own schema):
-` + catalog,
-      inputSchema: z8.object({
-        tool: z8.enum(toolNames).describe("Which backgroundable tool to run."),
-        input: z8.record(z8.string(), z8.unknown()).describe("Arguments for that tool — the same object you'd pass calling it directly."),
-        notify: z8.object({
-          pattern: z8.string().min(1).describe("Regex matched against complete output lines."),
-          reason: z8.string().min(1).describe("Short phrase naming what you're watching for, e.g. 'build errors'."),
-          debounce_ms: z8.number().int().positive().optional().describe("Minimum ms between match notifications (default 5000).")
-        }).optional().describe("Watch the task's output: matching lines are delivered to you as a message while you're idle."),
-        notify_on_complete: z8.boolean().optional().describe("Also deliver a message when the task settles (default false; await_task remains the primary way to collect results).")
-      }),
-      execute({ tool, input, notify, notify_on_complete }, ctx) {
-        const op = backgroundables.find((o) => o.name === tool);
-        if (!op)
-          throw new Error(`Unknown backgroundable tool: ${tool}`);
-        const sessionId = ctx?.session?.id;
-        const watcher = notify ? createOutputWatcher({ pattern: notify.pattern, debounceMs: notify.debounce_ms }) : null;
-        let post = null;
-        const early = [];
-        const { label, work, progress } = op.start(input, watcher ? {
-          onOutput: (chunk) => {
-            const matches = watcher.feed(chunk);
-            if (!matches)
-              return;
-            if (post)
-              post(matches);
-            else
-              early.push(matches);
-          }
-        } : undefined);
-        const taskId = registry.spawnTask(tool, label, work);
-        if (watcher && notify && sessionId) {
-          let matchCount = 0;
-          post = (lines) => {
-            if (!lines || lines.length === 0)
-              return;
-            matchCount += 1;
-            postParkNotification(sessionId, {
-              key: `${taskId}#watch${matchCount}`,
-              text: formatWatchNotification({ taskId, label, reason: notify.reason, lines })
-            });
-          };
-          for (const batch of early.splice(0))
-            post(batch);
-          work.finally(() => post?.(watcher.flush())).catch(() => {
+` + catalog;
+  const runAsyncBaseParams = {
+    tool: z8.enum(toolNames).describe("Which backgroundable tool to run."),
+    input: z8.record(z8.string(), z8.unknown()).describe("Arguments for that tool — the same object you'd pass calling it directly.")
+  };
+  const notifyParam2 = z8.object({
+    pattern: z8.string().min(1).describe("Regex matched against complete output lines."),
+    reason: z8.string().min(1).describe("Short phrase naming what you're watching for, e.g. 'build errors'."),
+    debounce_ms: z8.number().int().positive().optional().describe("Minimum ms between match notifications (default 5000).")
+  }).optional().describe("Watch the task's output: matching lines are delivered to you as a message while you're idle.");
+  function startAsync(args, ctx) {
+    const { tool, input, notify, notify_on_complete } = args;
+    const op = backgroundables.find((o) => o.name === tool);
+    if (!op)
+      throw new Error(`Unknown backgroundable tool: ${tool}`);
+    const sessionId = ctx?.session?.id;
+    const watcher = notify ? createOutputWatcher({ pattern: notify.pattern, debounceMs: notify.debounce_ms }) : null;
+    let post = null;
+    const early = [];
+    const { label, work, progress } = op.start(input, {
+      ctx,
+      ...watcher ? {
+        onOutput: (chunk) => {
+          const matches = watcher.feed(chunk);
+          if (!matches)
             return;
-          });
+          if (post)
+            post(matches);
+          else
+            early.push(matches);
         }
-        if (notify_on_complete && sessionId) {
-          work.then(() => postParkNotification(sessionId, {
-            key: `${taskId}#done`,
-            text: formatCompletionNotification({ taskId, label, status: "done" })
-          }), (err) => postParkNotification(sessionId, {
-            key: `${taskId}#done`,
-            text: formatCompletionNotification({
-              taskId,
-              label,
-              status: "error",
-              error: err instanceof Error ? err.message : String(err)
-            })
-          }));
-        }
-        if (progress) {
-          registry.updateTaskProgress(taskId, progress());
-          const interval = setInterval(() => registry.updateTaskProgress(taskId, progress()), 500);
-          work.finally(() => clearInterval(interval)).catch(() => {
-            return;
-          });
-        }
-        return {
-          task_id: taskId,
-          tool,
-          status: "running",
-          ...watcher ? { watching: notify?.pattern } : {},
-          note: "Started in the background. If your next actions don't depend on this, keep working and call check_tasks / await_task later; otherwise call await_task now."
-        };
-      }
-    })),
+      } : {}
+    });
+    const taskId = registry.spawnTask(tool, label, work, sessionId);
+    if (watcher && notify && sessionId) {
+      let matchCount = 0;
+      post = (lines) => {
+        if (!lines || lines.length === 0)
+          return;
+        matchCount += 1;
+        postParkNotification(sessionId, {
+          key: `${taskId}#watch${matchCount}`,
+          text: formatWatchNotification({ taskId, label, reason: notify.reason, lines })
+        });
+      };
+      for (const batch of early.splice(0))
+        post(batch);
+      work.finally(() => post?.(watcher.flush())).catch(() => {
+        return;
+      });
+    }
+    if (notify_on_complete && sessionId) {
+      work.then(() => postParkNotification(sessionId, {
+        key: `${taskId}#done`,
+        text: formatCompletionNotification({ taskId, label, status: "done" })
+      }), (err) => postParkNotification(sessionId, {
+        key: `${taskId}#done`,
+        text: formatCompletionNotification({
+          taskId,
+          label,
+          status: "error",
+          error: err instanceof Error ? err.message : String(err)
+        })
+      }));
+    }
+    if (progress) {
+      registry.updateTaskProgress(taskId, progress());
+      const interval = setInterval(() => registry.updateTaskProgress(taskId, progress()), 500);
+      work.finally(() => clearInterval(interval)).catch(() => {
+        return;
+      });
+    }
+    return {
+      task_id: taskId,
+      tool,
+      status: "running",
+      ...watcher ? { watching: notify?.pattern } : {},
+      note: "Started in the background. If your next actions don't depend on this, keep working and call check_tasks / await_task later; otherwise call await_task now."
+    };
+  }
+  const runAsync = notifications ? defineTool8({
+    description: runAsyncDescription,
+    inputSchema: z8.object({
+      ...runAsyncBaseParams,
+      notify: notifyParam2,
+      notify_on_complete: z8.boolean().optional().describe("Also deliver a message when the task settles (default false; await_task remains the primary way to collect results).")
+    }),
+    execute: (args, ctx) => startAsync(args, ctx)
+  }) : defineTool8({
+    description: runAsyncDescription,
+    inputSchema: z8.object(runAsyncBaseParams),
+    execute: (args, ctx) => startAsync(args, ctx)
+  });
+  return {
+    run_async: wrap(runAsync),
     check_tasks: wrap(defineTool8({
       description: "List background tasks and their status without blocking; returns `runningCount` plus the task list. For tasks that support progress (notably bash), includes a live stdout/stderr preview. Call await_task to collect a task's final result.",
       inputSchema: z8.object({}),
-      execute() {
-        const tasks = registry.listTasks().map(peek);
+      execute(_args, ctx) {
+        const tasks = registry.listTasks(ctx?.session?.id).map(peek);
         return { runningCount: tasks.filter((t) => t.status === "running").length, tasks };
       }
     })),
@@ -4149,11 +4223,11 @@ function createTasksTools(opts) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/tools/todo.ts
+// ../../../../../tmp/agent-sdk-mirror-cS9o0B/repo/src/tools/todo.ts
 import { defineTool as defineTool9 } from "eve/tools";
 import { todo as eveTodo } from "eve/tools/defaults";
 
-// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/todo-discipline.ts
+// ../../../../../tmp/agent-sdk-mirror-cS9o0B/repo/src/todo-discipline.ts
 function isRecord6(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
@@ -4261,7 +4335,7 @@ var TODO_DISCIPLINE_RIDER = [
 ].join(`
 `);
 
-// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/tools/todo.ts
+// ../../../../../tmp/agent-sdk-mirror-cS9o0B/repo/src/tools/todo.ts
 function isRecord7(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
@@ -4288,17 +4362,17 @@ ${TODO_DISCIPLINE_RIDER}`,
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/tools/webfetch.ts
+// ../../../../../tmp/agent-sdk-mirror-cS9o0B/repo/src/tools/webfetch.ts
 import { defineTool as defineTool10 } from "eve/tools";
 import { z as z9 } from "zod";
 import { basename as basename3, join as join7 } from "node:path";
 
-// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/web-fetch.ts
+// ../../../../../tmp/agent-sdk-mirror-cS9o0B/repo/src/web-fetch.ts
 import { Parser as Parser4 } from "htmlparser2";
 import { parseHTML as parseHTML2 } from "linkedom";
 import TurndownService from "turndown";
 
-// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/web-page.ts
+// ../../../../../tmp/agent-sdk-mirror-cS9o0B/repo/src/web-page.ts
 import Defuddle from "defuddle";
 import { parseHTML } from "linkedom";
 var asField = (value) => {
@@ -4409,7 +4483,7 @@ function looksLikeRawHtmlOutput(rendered) {
   return tagChars / rendered.length > 0.1;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/web-fetch.ts
+// ../../../../../tmp/agent-sdk-mirror-cS9o0B/repo/src/web-fetch.ts
 var WEB_FETCH_MAX_RESPONSE_BYTES = 5 * 1024 * 1024;
 var WEB_FETCH_DEFAULT_TIMEOUT_SECONDS = 30;
 var WEB_FETCH_PDF_DEFAULT_TIMEOUT_SECONDS = 60;
@@ -4599,7 +4673,7 @@ function urlLooksLikePdf(url) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/tools/webfetch.ts
+// ../../../../../tmp/agent-sdk-mirror-cS9o0B/repo/src/tools/webfetch.ts
 var SPILL_EXTENSION = {
   markdown: "md",
   text: "txt",
@@ -4880,7 +4954,7 @@ function createWebFetchTool(opts) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/tools/write.ts
+// ../../../../../tmp/agent-sdk-mirror-cS9o0B/repo/src/tools/write.ts
 import { defineTool as defineTool11 } from "eve/tools";
 import { z as z10 } from "zod";
 function createWriteTool(opts) {
@@ -4916,7 +4990,7 @@ function createWriteTool(opts) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/sandbox-io.ts
+// ../../../../../tmp/agent-sdk-mirror-cS9o0B/repo/src/sandbox-io.ts
 import ignore2 from "ignore";
 function shellSingleQuote(value) {
   return `'${value.replaceAll("'", `'\\''`)}'`;
@@ -5131,11 +5205,227 @@ function parseSearchOutput(stdout, maxMatches, flooded = false) {
   }
   return { matches, stopped, skippedLargeFiles: null };
 }
-// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/hooks.ts
+
+// ../../../../../tmp/agent-sdk-mirror-cS9o0B/repo/src/sandbox-run.ts
+var MAX_SPILL_RETAIN_CHARS = 5 * 1024 * 1024;
+var STREAM_DRAIN_GRACE_MS = 1000;
+function defaultResolveSession2(ctx) {
+  if (ctx === undefined) {
+    throw new Error("The sandbox bash tool needs an eve tool context (ctx.getSandbox); none was provided.");
+  }
+  return ctx.getSandbox();
+}
+function requireExecSession(session) {
+  const spawn2 = session.spawn;
+  if (typeof spawn2 !== "function") {
+    throw new Error("This sandbox session does not support spawn(); the sandbox bash tool needs a spawn-capable session.");
+  }
+  return session;
+}
+function sandboxRunnerProvider(options) {
+  const resolve3 = options.resolveSession ?? defaultResolveSession2;
+  return (ctx) => createSandboxRunner({
+    root: options.root,
+    session: () => resolve3(ctx),
+    spillDir: options.spillDir
+  });
+}
+function createSandboxRunner(opts) {
+  const { root, spillDir } = opts;
+  let resolved = null;
+  const session = () => {
+    resolved ??= Promise.resolve(opts.session()).then(requireExecSession);
+    return resolved;
+  };
+  function startCommand(command, runOpts = {}) {
+    const cwd = runOpts.cwd ? resolveWithin(root, runOpts.cwd) : root;
+    const timeoutMs = runOpts.timeoutMs ?? 120000;
+    const runId = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+    const retaining = spillDir !== undefined;
+    const newStream = () => ({
+      capture: createBoundedCapture({}),
+      retained: [],
+      retainedChars: 0,
+      overCap: !retaining,
+      bytes: 0
+    });
+    const stdoutState = newStream();
+    const stderrState = newStream();
+    const emit = (state, text) => {
+      if (text.length === 0)
+        return;
+      state.capture.append(text);
+      if (!state.overCap) {
+        state.retainedChars += text.length;
+        if (state.retainedChars > MAX_SPILL_RETAIN_CHARS) {
+          state.overCap = true;
+          state.retained.length = 0;
+        } else {
+          state.retained.push(text);
+        }
+      }
+      runOpts.onOutput?.(text);
+    };
+    const readers = [];
+    const pump = async (stream, state) => {
+      const decoder = new TextDecoder;
+      const reader = stream.getReader();
+      readers.push(reader);
+      for (;; ) {
+        const { done, value } = await reader.read();
+        if (done)
+          break;
+        state.bytes += value.byteLength;
+        emit(state, decoder.decode(value, { stream: true }));
+      }
+      emit(state, decoder.decode());
+    };
+    const settleText = async (state, stream, sb) => {
+      const snap = state.capture.snapshot();
+      if (!snap.truncated)
+        return snap.text;
+      if (spillDir === undefined || state.overCap || sb === null)
+        return snap.text;
+      const path = `${spillDir}/bash-${runId}-${stream}.log`;
+      try {
+        await sb.writeBinaryFile({
+          path,
+          content: new TextEncoder().encode(state.retained.join(""))
+        });
+      } catch {
+        return snap.text;
+      }
+      const marker = renderTruncationMarker({
+        headChars: snap.head.length,
+        tailChars: snap.tail.length,
+        totalChars: snap.totalChars,
+        label: relativizeWithin(root, path)
+      });
+      return `${snap.head}${marker}${snap.tail}`;
+    };
+    let timedOut = false;
+    let settled = false;
+    let killRequested = false;
+    let procRef = null;
+    const killProc = () => {
+      const proc = procRef;
+      if (proc === null)
+        return;
+      Promise.resolve(proc.kill()).then(() => {
+        return;
+      }, () => {
+        return;
+      });
+    };
+    let abortConnect = () => {
+      return;
+    };
+    const connectAborted = new Promise((resolve3) => {
+      abortConnect = () => resolve3(null);
+    });
+    const result = (async () => {
+      let sb = null;
+      const timer = setTimeout(() => {
+        timedOut = true;
+        killProc();
+        abortConnect();
+      }, timeoutMs);
+      try {
+        const connect = (async () => {
+          const s = await session();
+          const proc2 = await s.spawn({ command, workingDirectory: cwd });
+          return { s, proc: proc2 };
+        })();
+        connect.then(({ proc: proc2 }) => {
+          procRef = proc2;
+          if (killRequested || timedOut)
+            killProc();
+        }, () => {
+          return;
+        });
+        const connected = await Promise.race([connect, connectAborted]);
+        if (connected === null) {
+          return {
+            stdout: "",
+            stderr: timedOut ? "" : "killed before the sandbox process started",
+            exitCode: null,
+            timedOut
+          };
+        }
+        sb = connected.s;
+        const proc = connected.proc;
+        const pumps = [pump(proc.stdout, stdoutState), pump(proc.stderr, stderrState)];
+        for (const p of pumps)
+          p.catch(() => {
+            return;
+          });
+        const exit = await Promise.resolve(proc.wait());
+        const drained = Promise.allSettled(pumps);
+        const graceTimer = setTimeout(() => {
+          for (const r of readers) {
+            Promise.resolve(r.cancel()).then(() => {
+              return;
+            }, () => {
+              return;
+            });
+          }
+        }, STREAM_DRAIN_GRACE_MS);
+        try {
+          await drained;
+        } finally {
+          clearTimeout(graceTimer);
+        }
+        return {
+          stdout: await settleText(stdoutState, "stdout", sb),
+          stderr: await settleText(stderrState, "stderr", sb),
+          exitCode: exit.exitCode,
+          timedOut
+        };
+      } catch (err) {
+        killProc();
+        const message = timedOut ? "" : err instanceof Error ? err.message : String(err);
+        return {
+          stdout: await settleText(stdoutState, "stdout", sb),
+          stderr: `${await settleText(stderrState, "stderr", sb)}${message}`,
+          exitCode: null,
+          timedOut
+        };
+      } finally {
+        clearTimeout(timer);
+        settled = true;
+      }
+    })();
+    return {
+      result,
+      progress() {
+        return {
+          stdout: capturePreview(stdoutState.capture),
+          stderr: capturePreview(stderrState.capture),
+          stdoutBytes: stdoutState.bytes,
+          stderrBytes: stderrState.bytes,
+          stdoutTruncated: stdoutState.capture.totalChars() > MAX_PREVIEW,
+          stderrTruncated: stderrState.capture.totalChars() > MAX_PREVIEW
+        };
+      },
+      kill() {
+        if (settled)
+          return;
+        killRequested = true;
+        killProc();
+        abortConnect();
+      }
+    };
+  }
+  return {
+    startCommand,
+    runCommand: (command, runOpts) => startCommand(command, runOpts).result
+  };
+}
+// ../../../../../tmp/agent-sdk-mirror-cS9o0B/repo/src/hooks.ts
 import { Client } from "eve/client";
 import { defineHook } from "eve/hooks";
 
-// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/redeliver.ts
+// ../../../../../tmp/agent-sdk-mirror-cS9o0B/repo/src/redeliver.ts
 function isRecord8(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
@@ -5205,7 +5495,7 @@ function createRedeliveryState() {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/hooks.ts
+// ../../../../../tmp/agent-sdk-mirror-cS9o0B/repo/src/hooks.ts
 var RETRY_DELAYS_MS = [500, 2000, 5000];
 function buildDeliveryMessage(request) {
   const media = request.items.flatMap((item) => item.payload.kind === "media" ? [{ toolCallId: item.key, attachment: item.payload.attachment }] : []);
@@ -5304,7 +5594,7 @@ function createParkDeliveryHook(options = {}) {
     }
   });
 }
-// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/build-externals.ts
+// ../../../../../tmp/agent-sdk-mirror-cS9o0B/repo/src/build-externals.ts
 var STDLIB_EXTERNAL_DEPENDENCIES = [
   "ai",
   "clawpdf",
@@ -5318,11 +5608,11 @@ var STDLIB_EXTERNAL_DEPENDENCIES = [
   "xlsx",
   "zod"
 ];
-// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/task.ts
+// ../../../../../tmp/agent-sdk-mirror-cS9o0B/repo/src/task.ts
 import { defineAgent } from "eve";
 import { defineDynamic as defineDynamic3, defineInstructions as defineInstructions2 } from "eve/instructions";
 
-// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/visible-reasoning.ts
+// ../../../../../tmp/agent-sdk-mirror-cS9o0B/repo/src/visible-reasoning.ts
 var ANTHROPIC_ADAPTIVE_THINKING_MODELS = [
   /^anthropic\/claude-fable-/,
   /^anthropic\/claude-mythos-/,
@@ -5348,7 +5638,7 @@ function visibleReasoningModelOptions(modelId) {
   return;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/task.ts
+// ../../../../../tmp/agent-sdk-mirror-cS9o0B/repo/src/task.ts
 var TASK_DISABLED_BUILTINS = ["ask_question"];
 function expectedTaskToolNames(options) {
   const parent = new Set(options.parentToolNames);
@@ -5489,7 +5779,7 @@ async function fetchGatewayModelCatalog(options) {
   }
   return parsed;
 }
-// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/validated-compaction.ts
+// ../../../../../tmp/agent-sdk-mirror-cS9o0B/repo/src/validated-compaction.ts
 var COMPACTION_SENTINEL = "You are a conversation summarizer.";
 var RECOVERED_CONTEXT_HEADER = "## Recovered context (compaction audit)";
 var DEFAULT_MAX_RECOVERED_CHARS = 2000;
@@ -5673,7 +5963,7 @@ ${section.text}`;
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/mock-model.ts
+// ../../../../../tmp/agent-sdk-mirror-cS9o0B/repo/src/mock-model.ts
 var STORY_SENTENCES = [
   "The lighthouse keeper counted the waves as they broke against the rocks.",
   "Every seventh wave carried a whisper from the old town beneath the sea.",
@@ -6205,7 +6495,7 @@ That changes the plan.`
     }
   };
 }
-// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/orphaned-turns.ts
+// ../../../../../tmp/agent-sdk-mirror-cS9o0B/repo/src/orphaned-turns.ts
 function isOrphanedTurn(input) {
   if (!input.reconciled || !input.inFlightAfter)
     return false;
@@ -6220,7 +6510,7 @@ function workerEpochMs(now = Date.now) {
   return holder[WORKER_EPOCH_KEY];
 }
 
-// ../../../../../tmp/agent-sdk-mirror-Kdml0G/repo/src/index.ts
+// ../../../../../tmp/agent-sdk-mirror-cS9o0B/repo/src/index.ts
 function createStdlib(options) {
   const noun = options.workspaceNoun ?? "workspace";
   const workspace2 = createWorkspace(options.workspaceRoot);
@@ -6277,7 +6567,7 @@ function createStdlib(options) {
       glob: steer2(createGlobTool({ workspace: workspace2, noun })),
       grep: steer2(createGrepTool({ workspace: workspace2, noun, spillDir })),
       bash: steer2(createBashTool({
-        workspace: workspace2,
+        workdir: workspace2.root,
         runner,
         registry,
         noun,
@@ -6346,6 +6636,16 @@ function createSandboxFileTools(options) {
     root: workspace2.root,
     ...options.resolveSession !== undefined ? { resolveSession: options.resolveSession } : {}
   });
+  const notifications = options.notifications ?? false;
+  const runner = sandboxRunnerProvider({
+    root: workspace2.root,
+    ...options.resolveSession !== undefined ? { resolveSession: options.resolveSession } : {},
+    spillDir: options.spillDir
+  });
+  const registry = createTaskRegistry({
+    storePath: options.taskStorePath ?? join8(tmpdir(), "agent-sdk", `sandbox-tasks-${process.pid}.json`)
+  });
+  const backgroundables = [createBashOp(runner)];
   const conventionsFileName = options.conventionsFileName ?? "AGENTS.md";
   const dirConventions = options.injectDirConventions ?? true ? {
     tracker: createDirConventionsTracker({
@@ -6361,6 +6661,9 @@ function createSandboxFileTools(options) {
   return {
     workspace: workspace2,
     io,
+    runner,
+    registry,
+    backgroundables,
     mediaOracle: oracle,
     tools: {
       read: createReadTool({
@@ -6386,6 +6689,16 @@ function createSandboxFileTools(options) {
         io,
         ...options.spillDir !== undefined ? { spillDir: options.spillDir } : {}
       }),
+      bash: createBashTool({
+        workdir: workspace2.root,
+        runner,
+        registry,
+        noun,
+        interactiveHint: options.bashInteractiveHint,
+        execEnv: "sandbox",
+        notifications
+      }),
+      tasks: createTasksTools({ registry, backgroundables, notifications }),
       ...oracle !== null ? { look: createLookTool({ workspace: workspace2, noun, oracle, io }) } : {}
     },
     instructions: {
@@ -6394,15 +6707,13 @@ function createSandboxFileTools(options) {
         workspaceNoun: noun,
         verifyCommandHint: options.verifyCommandHint,
         subagentRoster: options.subagentRoster,
+        notifications,
         media: oracle ? {
           modelName: oracle.modelName,
           capabilities: oracle.capabilities,
           parentCapabilities: options.parentCapabilities
         } : undefined,
-        omitSections: [
-          "parallel-tools",
-          ...options.omitInstructionSections ?? []
-        ],
+        omitSections: options.omitInstructionSections,
         extraSections: options.extraInstructionSections
       })
     }
@@ -6429,6 +6740,7 @@ export {
   searchLocal,
   scriptStepFrom,
   scriptActionFor,
+  sandboxRunnerProvider,
   sandboxIoProvider,
   resolveWithin,
   resolveWebFetchTimeoutMs,
@@ -6436,6 +6748,7 @@ export {
   repoConventionsSection,
   replaceForgiving,
   renderWebText,
+  renderTruncationMarker,
   renderPromptSections,
   renderPromptSection,
   relativizeWithin,
@@ -6513,6 +6826,7 @@ export {
   createSteerInbox,
   createStdlib,
   createStatCache,
+  createSandboxRunner,
   createSandboxIo,
   createSandboxFileTools,
   createRepoConventionsInstruction,
@@ -6542,6 +6856,7 @@ export {
   composePromptSections,
   communicationSection,
   clientContinuationToken,
+  capturePreview,
   capabilitiesFromCatalogEntry,
   capabilitiesForModel,
   buildWorkflowMarkdown,
@@ -6603,6 +6918,7 @@ export {
   MultiOccurrenceReplacer,
   MOCK_SCENARIOS,
   MEDIA_CAPABILITY_OVERLAY,
+  MAX_SPILL_RETAIN_CHARS,
   MAX_SEARCH_FILE_BYTES,
   MAX_PREVIEW,
   LineTrimmedReplacer,

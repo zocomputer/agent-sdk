@@ -2,6 +2,7 @@ import { spawn } from "node:child_process";
 import { join } from "node:path";
 import { createBoundedCapture, type BoundedCapture } from "./bounded-output";
 import type { Workspace } from "./workspace";
+import type { IoToolContext } from "./workspace-io";
 
 /**
  * Character cap for live progress previews; the tail alone when output exceeds
@@ -70,7 +71,22 @@ export interface CommandRunner {
   runCommand(command: string, opts?: StartCommandOptions): Promise<RunResult>;
 }
 
-function previewOf(capture: BoundedCapture): string {
+/**
+ * Resolves the runner for one tool call — the exec twin of
+ * `WorkspaceIoProvider`. A sandbox arrives per tool call (`ctx.getSandbox()`),
+ * not per factory build, so exec tools that run against a remote backend hold
+ * a provider and resolve it at the top of each execute. A plain
+ * `CommandRunner` still works everywhere one is accepted (the local backend
+ * has no per-call state).
+ */
+export type CommandRunnerProvider = (ctx: IoToolContext | undefined) => CommandRunner;
+
+/**
+ * Preview text for a live capture: the whole text within `MAX_PREVIEW`,
+ * tail-only (with a leading marker) beyond it. Shared by every runner's
+ * `progress()`.
+ */
+export function capturePreview(capture: BoundedCapture): string {
   const latest = capture.latest();
   if (capture.totalChars() <= MAX_PREVIEW) return latest;
   return `… [earlier output truncated]\n${latest.slice(-MAX_PREVIEW)}`;
@@ -160,8 +176,8 @@ export function createCommandRunner(opts: {
       result,
       progress() {
         return {
-          stdout: previewOf(stdoutCapture),
-          stderr: previewOf(stderrCapture),
+          stdout: capturePreview(stdoutCapture),
+          stderr: capturePreview(stderrCapture),
           stdoutBytes,
           stderrBytes,
           stdoutTruncated: stdoutCapture.totalChars() > MAX_PREVIEW,

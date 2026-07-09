@@ -8,7 +8,7 @@
 
 > **parseConsentEnvelope**(`value`): \{ `bindingId`: `string`; `declarationName`: `string`; `party`: \{ `external`: `boolean`; `handle`: `string`; `intentDivergenceNote?`: `string`; \}; `resourceName`: `string`; \} \| `null`
 
-Defined in: [packages/agent-sdk/src/state-consent-envelope.ts:54](https://github.com/zocomputer/zov2-code/blob/58f42fa9905e1eaf108a953f694006c436ab7598/packages/agent-sdk/src/state-consent-envelope.ts#L54)
+Defined in: [packages/agent-sdk/src/state-consent-envelope.ts:54](https://github.com/zocomputer/zov2-code/blob/c013587aa4ecd77d27b6774cf5b1fead3e0418d5/packages/agent-sdk/src/state-consent-envelope.ts#L54)
 
 Parse an untrusted value (a broker 409 body's consent fields) into a typed
 envelope, or `null` if malformed — parse-don't-validate at the wire boundary,

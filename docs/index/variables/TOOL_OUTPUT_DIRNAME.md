@@ -8,7 +8,7 @@
 
 > `const` **TOOL\_OUTPUT\_DIRNAME**: `"tool-outputs"` = `"tool-outputs"`
 
-Defined in: [packages/agent-sdk/src/bounded-output.ts:20](https://github.com/zocomputer/zov2-code/blob/58f42fa9905e1eaf108a953f694006c436ab7598/packages/agent-sdk/src/bounded-output.ts#L20)
+Defined in: [packages/agent-sdk/src/bounded-output.ts:20](https://github.com/zocomputer/zov2-code/blob/c013587aa4ecd77d27b6774cf5b1fead3e0418d5/packages/agent-sdk/src/bounded-output.ts#L20)
 
 Directory name for spilled tool outputs under the agent's state dir.
 Retention sweeps (e.g. rib's) can locate and prune old spills via this.

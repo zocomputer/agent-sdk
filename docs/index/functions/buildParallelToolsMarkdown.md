@@ -8,13 +8,19 @@
 
 > **buildParallelToolsMarkdown**(`opts?`): `string`
 
-Defined in: [packages/agent-sdk/src/instructions.ts:261](https://github.com/zocomputer/zov2-code/blob/58f42fa9905e1eaf108a953f694006c436ab7598/packages/agent-sdk/src/instructions.ts#L261)
+Defined in: [packages/agent-sdk/src/instructions.ts:280](https://github.com/zocomputer/zov2-code/blob/c013587aa4ecd77d27b6774cf5b1fead3e0418d5/packages/agent-sdk/src/instructions.ts#L280)
 
 Pure markdown for the background-work playbook; see createParallelToolsInstruction.
 
 ## Parameters
 
 ### opts?
+
+#### notifications?
+
+`boolean`
+
+Whether the async tools advertise `notify` watchers; see parallelToolsSection.
 
 #### tier?
 

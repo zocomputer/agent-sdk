@@ -11,6 +11,7 @@ import {
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import type { ToolContext } from "eve/tools";
+import { z } from "zod";
 import { readChatAttachment } from "./attachments";
 import { createSandboxFileTools, createStdlib } from "./index";
 import {
@@ -19,6 +20,7 @@ import {
   type ParkNotification,
 } from "./park-delivery";
 import { buildTasksToolset } from "./tools/tasks";
+import { createFakeSandboxSession } from "./workspace-io.test-helpers";
 
 // One temp workspace shared by the suite: not a git repo, so glob/grep also
 // exercise the walkFiles fallback. realpath because macOS's tmpdir is a
@@ -122,19 +124,23 @@ describe("createSandboxFileTools instructions", () => {
     return markdown;
   }
 
-  test("the sandbox stack drops repo-conventions and parallel-tools, keeps the rest", async () => {
+  test("the sandbox stack drops repo-conventions, keeps parallel-tools without notify guidance", async () => {
     const sandbox = createSandboxFileTools({
       workspaceRoot: "/workspace",
       mediaOracle: true,
     });
     const markdown = await renderStack(sandbox);
-    // The workspace isn't on this process's disk and this toolset ships no
-    // bash/tasks machinery — those two sections must never render.
+    // The workspace isn't on this process's disk — repo-conventions must
+    // never render. Parallel-tools does render now (the toolset ships
+    // bash/tasks), but with notifications off by default its notify
+    // guidance must not appear.
     expect(markdown).not.toContain("## Repository conventions");
-    expect(markdown).not.toContain("## Parallel tool calls");
+    expect(markdown).not.toContain("`notify`");
+    expect(markdown).not.toContain("notify_on_complete");
     for (const heading of [
       "## How to work",
       "## Planning your work (todo)",
+      "## Parallel tool calls",
       "## Delegating with the agent tool",
       "## Media you can't view (look)",
       "## Asking the user (ask_question)",
@@ -142,6 +148,16 @@ describe("createSandboxFileTools instructions", () => {
     ]) {
       expect(markdown).toContain(heading);
     }
+  });
+
+  test("notifications: true restores the notify guidance in the sandbox stack", async () => {
+    const sandbox = createSandboxFileTools({
+      workspaceRoot: "/workspace",
+      notifications: true,
+    });
+    const markdown = await renderStack(sandbox);
+    expect(markdown).toContain("`notify`");
+    expect(markdown).toContain("notify_on_complete");
   });
 
   test("no oracle → no media section in the sandbox stack", async () => {
@@ -170,6 +186,91 @@ describe("createSandboxFileTools instructions", () => {
     // Compact tier renders shorter than the default full tier.
     const full = await renderStack(createSandboxFileTools({ workspaceRoot: "/workspace" }));
     expect(markdown.length).toBeLessThan(full.length);
+  });
+});
+
+describe("createSandboxFileTools bash + tasks", () => {
+  // The fake session executes against a local temp dir with a real /bin/sh,
+  // so the sandbox bash path runs end to end with only the transport faked.
+  const sandboxRoot = realpathSync(mkdtempSync(join(tmpdir(), "agent-sdk-sbx-")));
+  afterAll(() => rmSync(sandboxRoot, { recursive: true, force: true }));
+
+  function makeSandbox(options: { notifications?: boolean } = {}) {
+    return createSandboxFileTools({
+      workspaceRoot: sandboxRoot,
+      resolveSession: async () => createFakeSandboxSession(sandboxRoot),
+      spillDir: join(sandboxRoot, ".agent", "tool-outputs"),
+      taskStorePath: join(sandboxRoot, ".agent", "tasks.json"),
+      ...(options.notifications !== undefined
+        ? { notifications: options.notifications }
+        : {}),
+    });
+  }
+
+  test("bash runs a command through the sandbox session", async () => {
+    const sandbox = makeSandbox();
+    const result = await sandbox.tools.bash.execute({ command: "echo sandbox-hi" }, ctx);
+    expect(result).toMatchObject({
+      workdir: sandboxRoot,
+      mode: "completed",
+      exitCode: 0,
+      stdout: "sandbox-hi\n",
+    });
+  });
+
+  test("a slow sandbox command backgrounds and settles via await_task", async () => {
+    const sandbox = makeSandbox();
+    const built = buildTasksToolset({
+      registry: sandbox.registry,
+      backgroundables: sandbox.backgroundables,
+      notifications: false,
+    });
+    if (!built) throw new Error("expected the tasks toolset to build");
+    const started = await sandbox.tools.bash.execute(
+      { command: "sleep 0.3 && echo done", foreground_ms: 20 },
+      ctx,
+    );
+    expect(started).toMatchObject({ mode: "backgrounded", status: "running" });
+    if (started.mode !== "backgrounded") throw new Error("expected a task handle");
+    const awaited = await built.await_task.execute(
+      { task_id: started.task_id, wait_ms: 5_000 },
+      ctx,
+    );
+    expect(awaited).toMatchObject({
+      status: "done",
+      result: { stdout: "done\n", exitCode: 0 },
+    });
+  });
+
+  /** Wire-schema param names, through the same JSON-schema view the model sees. */
+  function wireParams(schema: unknown): string[] {
+    if (typeof schema !== "object" || schema === null || !("_zod" in schema)) {
+      throw new Error("expected a zod inputSchema");
+    }
+    const json: unknown = z.toJSONSchema(schema as z.ZodType, { io: "input" });
+    if (typeof json !== "object" || json === null || !("properties" in json)) return [];
+    const { properties } = json;
+    if (typeof properties !== "object" || properties === null) return [];
+    return Object.keys(properties);
+  }
+
+  test("notifications default off: no notify params on the wire schemas", () => {
+    const sandbox = makeSandbox();
+    expect(wireParams(sandbox.tools.bash.inputSchema)).not.toContain("notify");
+    const built = buildTasksToolset({
+      registry: sandbox.registry,
+      backgroundables: sandbox.backgroundables,
+      notifications: false,
+    });
+    if (!built) throw new Error("expected the tasks toolset to build");
+    const runParams = wireParams(built.run_async.inputSchema);
+    expect(runParams).not.toContain("notify");
+    expect(runParams).not.toContain("notify_on_complete");
+  });
+
+  test("notifications: true restores notify on the sandbox bash schema", () => {
+    const sandbox = makeSandbox({ notifications: true });
+    expect(wireParams(sandbox.tools.bash.inputSchema)).toContain("notify");
   });
 });
 
@@ -489,14 +590,14 @@ describe("notify watchers", () => {
 
   test("a backgrounded bash command posts a notification when output matches", async () => {
     await withCapturedPosts(async (posts) => {
-      const started = await stdlib.tools.bash.execute(
-        {
-          command: "sleep 0.15; echo 'ERROR: kaboom'",
-          foreground_ms: 20,
-          notify: { pattern: "ERROR", reason: "failure lines" },
-        },
-        ctx,
-      );
+      // Hoisted: the bash tool's type is a union (with/without notify), and a
+      // fresh literal would trip excess-property checks on the notify-less arm.
+      const bashArgs = {
+        command: "sleep 0.15; echo 'ERROR: kaboom'",
+        foreground_ms: 20,
+        notify: { pattern: "ERROR", reason: "failure lines" },
+      };
+      const started = await stdlib.tools.bash.execute(bashArgs, ctx);
       expect(started).toMatchObject({ mode: "backgrounded", watching: "ERROR" });
       if (started.mode !== "backgrounded") throw new Error("expected a task handle");
 
@@ -516,10 +617,11 @@ describe("notify watchers", () => {
 
   test("a foreground bash completion posts nothing", async () => {
     await withCapturedPosts(async (posts) => {
-      const result = await stdlib.tools.bash.execute(
-        { command: "echo 'ERROR: seen in foreground'", notify: { pattern: "ERROR", reason: "errors" } },
-        ctx,
-      );
+      const bashArgs = {
+        command: "echo 'ERROR: seen in foreground'",
+        notify: { pattern: "ERROR", reason: "errors" },
+      };
+      const result = await stdlib.tools.bash.execute(bashArgs, ctx);
       expect(result).toMatchObject({ mode: "completed" });
       await new Promise((resolve) => setTimeout(resolve, 50));
       expect(posts).toHaveLength(0);
@@ -528,15 +630,13 @@ describe("notify watchers", () => {
 
   test("run_async notify + notify_on_complete post match and settle notices", async () => {
     await withCapturedPosts(async (posts) => {
-      const started = await built.run_async.execute(
-        {
-          tool: "bash",
-          input: { command: "echo 'WARN: hot path'" },
-          notify: { pattern: "WARN", reason: "warnings" },
-          notify_on_complete: true,
-        },
-        ctx,
-      );
+      const runArgs = {
+        tool: "bash",
+        input: { command: "echo 'WARN: hot path'" },
+        notify: { pattern: "WARN", reason: "warnings" },
+        notify_on_complete: true,
+      };
+      const started = await built.run_async.execute(runArgs, ctx);
       expect(started).toMatchObject({ status: "running", watching: "WARN" });
       await built.await_task.execute({ task_id: started.task_id, wait_ms: 5_000 }, ctx);
       await new Promise((resolve) => setTimeout(resolve, 50));
@@ -550,11 +650,7 @@ describe("notify watchers", () => {
   });
 
   test("an invalid notify regex fails as a normal tool error before any work starts", () => {
-    expect(
-      stdlib.tools.bash.execute(
-        { command: "echo hi", notify: { pattern: "(", reason: "broken" } },
-        ctx,
-      ),
-    ).rejects.toThrow();
+    const bashArgs = { command: "echo hi", notify: { pattern: "(", reason: "broken" } };
+    expect(stdlib.tools.bash.execute(bashArgs, ctx)).rejects.toThrow();
   });
 });

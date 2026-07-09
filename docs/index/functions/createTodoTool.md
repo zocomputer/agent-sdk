@@ -8,7 +8,7 @@
 
 > **createTodoTool**(`opts?`): `ToolDefinition`
 
-Defined in: [packages/agent-sdk/src/tools/todo.ts:38](https://github.com/zocomputer/zov2-code/blob/58f42fa9905e1eaf108a953f694006c436ab7598/packages/agent-sdk/src/tools/todo.ts#L38)
+Defined in: [packages/agent-sdk/src/tools/todo.ts:38](https://github.com/zocomputer/zov2-code/blob/c013587aa4ecd77d27b6774cf5b1fead3e0418d5/packages/agent-sdk/src/tools/todo.ts#L38)
 
 Build the discipline-enforcing `todo` tool: eve's framework todo (durable
 state, schemas, and result shape untouched) with write validation in front —

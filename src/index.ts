@@ -1,3 +1,4 @@
+import { tmpdir } from "node:os";
 import { join } from "node:path";
 import {
   DEFAULT_MAX_INLINE_IMAGE_BYTES,
@@ -47,6 +48,7 @@ import { createWebFetchTool } from "./tools/webfetch";
 import { createWriteTool } from "./tools/write";
 import { createWorkspace, type Workspace } from "./workspace";
 import { sandboxIoProvider, type SandboxIoOptions } from "./sandbox-io";
+import { sandboxRunnerProvider } from "./sandbox-run";
 
 // One call wires the whole standard library for a real-filesystem eve agent:
 // a workspace-scoped toolset (read/edit/write/glob/grep + host bash + webfetch
@@ -296,7 +298,7 @@ export function createStdlib(options: StdlibOptions) {
       grep: steer(createGrepTool({ workspace, noun, spillDir })),
       bash: steer(
         createBashTool({
-          workspace,
+          workdir: workspace.root,
           runner,
           registry,
           noun,
@@ -388,19 +390,19 @@ export function createStdlib(options: StdlibOptions) {
  */
 export type Stdlib = ReturnType<typeof createStdlib>;
 
-// The sandbox-backed counterpart to the stdlib's file tools, for the hosted
+// The sandbox-backed counterpart to the stdlib's toolset, for the hosted
 // topology: the eve process runs on one machine (a Vercel Function) and the
 // workspace lives in the session's sandbox (`ctx.getSandbox()`) on another.
 // The stdlib's `node:fs` tools would read the harness's own disk there — the
 // wrong filesystem entirely — so these route every effect through the
-// sandbox session instead (see ./sandbox-io.ts). Consumers wire them exactly
-// like stdlib tools (one `agent/tools/<name>.ts` re-export each) and vacate
-// eve's built-in `read_file`/`write_file`/`glob`/`grep` with disable shims;
-// `bash` stays eve's built-in — it is already sandbox-native.
+// sandbox session instead: file tools over its file API (see ./sandbox-io.ts),
+// bash over its `spawn` (see ./sandbox-run.ts), with the same auto-
+// backgrounding and run_async/check_tasks/await_task machinery as the stdlib.
+// Consumers wire them exactly like stdlib tools (one `agent/tools/<name>.ts`
+// re-export each) and vacate eve's built-ins with disable shims.
 //
-// Host-process machinery that needs a local disk or shell (bash, the task
-// registry, steering) is deliberately absent: on a hosted agent those either
-// stay eve built-ins or don't apply.
+// Steering is absent (it tails a host-filesystem inbox), and notify watchers
+// default off — see SandboxFileToolsOptions.notifications.
 
 /**
  * Options for the sandbox file tools: workspace root (inside the sandbox),
@@ -422,11 +424,31 @@ export interface SandboxFileToolsOptions {
    */
   resolveSession?: SandboxIoOptions["resolveSession"];
   /**
-   * Sandbox directory for grep's overflow match lists (spilled through the
-   * sandbox, so the model's follow-up `read` can reach them). Omit to keep
-   * the stop-at-cap behavior.
+   * Sandbox directory for oversized tool output: grep's overflow match lists
+   * and bash's truncated command output (both spilled through the sandbox, so
+   * the model's follow-up `read` can reach them). Omit to keep grep's
+   * stop-at-cap behavior and bash's label-less truncation markers.
    */
   spillDir?: string;
+  /**
+   * Path **on the harness's local disk** for the background-task store
+   * (task metadata + completed results, surviving an agent restart).
+   * Defaults to a per-process path under the OS temp dir — fine for
+   * serverless, where the store's lifetime matches the instance anyway;
+   * agents on durable hosts pass a real state path.
+   */
+  taskStorePath?: string;
+  /** See {@link StdlibOptions.bashInteractiveHint}. */
+  bashInteractiveHint?: string;
+  /**
+   * Advertise + wire `notify` watchers on bash/run_async (default `false`
+   * here, unlike the stdlib's `true`): watcher notifications ride
+   * `createParkDeliveryHook`, and without that hook registered they queue
+   * but never deliver — a promise the model would plan around. An agent
+   * that wires park delivery flips this on. Same honesty precedent as
+   * {@link SandboxFileToolsOptions.attachImagesToChat}.
+   */
+  notifications?: boolean;
   /**
    * See {@link StdlibOptions.attachImagesToChat}. Defaults to `false` here —
    * the attachment path only works when the agent registers
@@ -482,11 +504,13 @@ export interface SandboxFileToolsOptions {
 }
 
 /**
- * Create sandbox-backed file tools for hosted agents: read/edit/write/glob/grep
- * route through the sandbox session instead of the harness's local disk. Returns
- * the workspace, IO provider, the tools, and a pre-configured
- * `instructions.stack` (the composed baseline prompt, minus the sections that
- * don't apply to this topology — see its doc).
+ * Create the sandbox-backed toolset for hosted agents:
+ * read/edit/write/glob/grep route through the sandbox session's file API and
+ * bash through its `spawn` — instead of the harness's local disk and shell —
+ * plus the stdlib's background-task tools (run_async/check_tasks/await_task)
+ * over the same registry machinery. Returns the workspace, IO provider, the
+ * tools, and a pre-configured `instructions.stack` (the composed baseline
+ * prompt, minus the sections that don't apply to this topology — see its doc).
  */
 export function createSandboxFileTools(options: SandboxFileToolsOptions) {
   const noun = options.workspaceNoun ?? "workspace";
@@ -497,6 +521,20 @@ export function createSandboxFileTools(options: SandboxFileToolsOptions) {
       ? { resolveSession: options.resolveSession }
       : {}),
   });
+  const notifications = options.notifications ?? false;
+  const runner = sandboxRunnerProvider({
+    root: workspace.root,
+    ...(options.resolveSession !== undefined
+      ? { resolveSession: options.resolveSession }
+      : {}),
+    spillDir: options.spillDir,
+  });
+  const registry: TaskRegistry = createTaskRegistry({
+    storePath:
+      options.taskStorePath ??
+      join(tmpdir(), "agent-sdk", `sandbox-tasks-${process.pid}.json`),
+  });
+  const backgroundables: readonly BackgroundableOp[] = [createBashOp(runner)];
   const conventionsFileName = options.conventionsFileName ?? "AGENTS.md";
   const dirConventions =
     (options.injectDirConventions ?? true)
@@ -516,6 +554,12 @@ export function createSandboxFileTools(options: SandboxFileToolsOptions) {
   return {
     workspace,
     io,
+    /** The sandbox-backed command runner provider behind `bash`/`run_async`. */
+    runner,
+    /** The background-task registry behind `bash` auto-backgrounding and the task tools. */
+    registry,
+    /** The run_async-able ops (bash). */
+    backgroundables,
     /** The resolved look oracle (`null` when `mediaOracle` wasn't set) — same contract as `Stdlib.mediaOracle`. */
     mediaOracle: oracle,
     tools: {
@@ -548,6 +592,16 @@ export function createSandboxFileTools(options: SandboxFileToolsOptions) {
         io,
         ...(options.spillDir !== undefined ? { spillDir: options.spillDir } : {}),
       }),
+      bash: createBashTool({
+        workdir: workspace.root,
+        runner,
+        registry,
+        noun,
+        interactiveHint: options.bashInteractiveHint,
+        execEnv: "sandbox",
+        notifications,
+      }),
+      tasks: createTasksTools({ registry, backgroundables, notifications }),
       ...(oracle !== null ? { look: createLookTool({ workspace, noun, oracle, io }) } : {}),
     },
     instructions: {
@@ -557,18 +611,19 @@ export function createSandboxFileTools(options: SandboxFileToolsOptions) {
        * topology: no repo-conventions section (the workspace isn't on this
        * process's disk and instruction resolvers have no sandbox access —
        * nested conventions ride the read tool's dir-conventions riders
-       * instead) and no parallel-tools section (the SDK's bash/task machinery
-       * isn't in this toolset; hosted agents keep eve's built-in `bash`).
-       * The remaining baseline — workflow, planning, subagents, media (when
-       * the oracle is wired), hitl, communication — targets eve's framework
-       * tools plus this toolset. Honors `instructionTier`,
-       * `omitInstructionSections`, and `extraInstructionSections`.
+       * instead), and the parallel-tools section matches this toolset's
+       * `notifications` setting. The rest of the baseline — workflow,
+       * planning, subagents, media (when the oracle is wired), hitl,
+       * communication — targets eve's framework tools plus this toolset.
+       * Honors `instructionTier`, `omitInstructionSections`, and
+       * `extraInstructionSections`.
        */
       stack: createInstructionStackInstruction({
         tier: options.instructionTier,
         workspaceNoun: noun,
         verifyCommandHint: options.verifyCommandHint,
         subagentRoster: options.subagentRoster,
+        notifications,
         media: oracle
           ? {
               modelName: oracle.modelName,
@@ -576,10 +631,7 @@ export function createSandboxFileTools(options: SandboxFileToolsOptions) {
               parentCapabilities: options.parentCapabilities,
             }
           : undefined,
-        omitSections: [
-          "parallel-tools",
-          ...(options.omitInstructionSections ?? []),
-        ],
+        omitSections: options.omitInstructionSections,
         extraSections: options.extraInstructionSections,
       }),
     },
@@ -587,15 +639,16 @@ export function createSandboxFileTools(options: SandboxFileToolsOptions) {
 }
 
 /**
- * The sandbox file tools return type: workspace, IO provider, tools
- * (read/edit/write/glob/grep + `look` when the oracle is wired), and the
- * pre-configured `instructions.stack`.
+ * The sandbox file tools return type: workspace, IO provider, runner,
+ * registry, backgroundables, tools (read/edit/write/glob/grep + bash + the
+ * task tools + `look` when the oracle is wired), and the pre-configured
+ * `instructions.stack`.
  */
 export type SandboxFileTools = ReturnType<typeof createSandboxFileTools>;
 
 // À la carte surface: the tool/instruction factories and every lib module the
 // tools are built from, for agents that compose their own set.
-export { createBashTool } from "./tools/bash";
+export { createBashTool, type BashExecEnv } from "./tools/bash";
 export { createEditTool } from "./tools/edit";
 export { createGlobTool } from "./tools/glob";
 export { createGrepTool, type GrepResult } from "./tools/grep";
@@ -710,6 +763,7 @@ export {
   workerEpochMs,
 } from "./orphaned-turns";
 export * from "./sandbox-io";
+export * from "./sandbox-run";
 export * from "./validated-compaction";
 export * from "./visible-reasoning";
 export * from "./walk";

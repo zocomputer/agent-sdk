@@ -47,10 +47,12 @@ const sandbox = createSandboxFileTools({ workspaceRoot: "/workspace", mediaOracl
 // it would drift the wrapper from the state contract eve validates against.
 // The dedicated pass-through pin below keeps the exemption honest.
 const { tasks: _tasksDynamic, todo: todoTool, ...stdlibStatic } = stdlib.tools;
+// The sandbox toolset ships its own dynamic tasks toolset now; same exemption.
+const { tasks: _sandboxTasksDynamic, ...sandboxStatic } = sandbox.tools;
 const allTools: Record<string, { inputSchema: unknown }> = {
   ...prefixed("stdlib", stdlibStatic),
   ...prefixed("tasks", tasks),
-  ...prefixed("sandbox", sandbox.tools),
+  ...prefixed("sandbox", sandboxStatic),
 };
 
 function prefixed(
@@ -103,6 +105,7 @@ describe("model-facing schema shape", () => {
     expect(todoTool).toBeDefined();
     expect(Object.keys(allTools).sort()).toEqual(
       [
+        "sandbox.bash",
         "sandbox.edit",
         "sandbox.glob",
         "sandbox.grep",

@@ -27,7 +27,14 @@ describe("createBoundedCapture", () => {
     cap.append("hell");
     cap.append("o!");
     const snap = cap.snapshot();
-    expect(snap).toEqual({ text: "hello!", totalChars: 6, truncated: false, spillPath: null });
+    expect(snap).toEqual({
+      text: "hello!",
+      head: "hello!",
+      tail: "",
+      totalChars: 6,
+      truncated: false,
+      spillPath: null,
+    });
     expect(() => readFileSync(join(dir, "spill.log"))).toThrow();
   });
 
@@ -36,6 +43,8 @@ describe("createBoundedCapture", () => {
     cap.append("a".repeat(10));
     expect(cap.snapshot()).toEqual({
       text: "a".repeat(10),
+      head: "a".repeat(10),
+      tail: "",
       totalChars: 10,
       truncated: false,
       spillPath: null,

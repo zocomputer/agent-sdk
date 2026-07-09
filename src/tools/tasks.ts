@@ -9,6 +9,7 @@ import {
   formatCompletionNotification,
   formatWatchNotification,
 } from "../watch-output";
+import type { IoToolContext } from "../workspace-io";
 
 // Async tools over the task registry. eve blocks a step until every tool call
 // resolves, so run_async launches backgroundable work and returns a task id
@@ -61,8 +62,15 @@ export function buildTasksToolset(opts: {
   backgroundables: readonly BackgroundableOp[];
   /** When set, steered messages ride these tools' results (see ../steer-tool). */
   steerInbox?: SteerSource | null;
+  /**
+   * Advertise + wire `notify`/`notify_on_complete` (default true). Set false
+   * for agents with no park-delivery handler registered, where a watcher
+   * would be a false promise: notifications would queue but never deliver.
+   */
+  notifications?: boolean | undefined;
 }) {
   const { registry, backgroundables } = opts;
+  const notifications = opts.notifications ?? true;
   const [firstOp, ...restOps] = backgroundables;
   if (!firstOp) return null;
   const toolNames: [string, ...string[]] = [firstOp.name, ...restOps.map((o) => o.name)];
@@ -73,126 +81,161 @@ export function buildTasksToolset(opts: {
   // on long work, exactly when a user most wants to redirect.
   const wrap = createSteerWrapper(opts.steerInbox ?? null);
 
+  const runAsyncDescription =
+    "Start a tool running in the BACKGROUND and return immediately with a task id, instead of blocking until it finishes. Use it for long work whose result your next step doesn't need yet (tests, builds, installs) so you can keep working in parallel; poll with check_tasks and collect the result with await_task. If your very next step needs the output, just call the tool directly instead." +
+    (notifications
+      ? " For work where you only care about a specific output signal, pass notify — matching lines are delivered to you as a message while you're idle, instead of you polling."
+      : "") +
+    "\n\nBackgroundable tools (pass `input` matching the tool's own schema):\n" +
+    catalog;
+
+  const runAsyncBaseParams = {
+    tool: z.enum(toolNames).describe("Which backgroundable tool to run."),
+    input: z
+      .record(z.string(), z.unknown())
+      .describe("Arguments for that tool — the same object you'd pass calling it directly."),
+  };
+  const notifyParam = z
+    .object({
+      pattern: z
+        .string()
+        .min(1)
+        .describe("Regex matched against complete output lines."),
+      reason: z
+        .string()
+        .min(1)
+        .describe("Short phrase naming what you're watching for, e.g. 'build errors'."),
+      debounce_ms: z
+        .number()
+        .int()
+        .positive()
+        .optional()
+        .describe("Minimum ms between match notifications (default 5000)."),
+    })
+    .optional()
+    .describe(
+      "Watch the task's output: matching lines are delivered to you as a message while you're idle.",
+    );
+
+  function startAsync(
+    args: {
+      tool: string;
+      input: Record<string, unknown>;
+      notify?: z.infer<typeof notifyParam>;
+      notify_on_complete?: boolean | undefined;
+    },
+    ctx: IoToolContext | undefined,
+  ) {
+    const { tool, input, notify, notify_on_complete } = args;
+    const op = backgroundables.find((o) => o.name === tool);
+    if (!op) throw new Error(`Unknown backgroundable tool: ${tool}`);
+    const sessionId = ctx?.session?.id;
+    // Built before start() so an invalid regex fails as a normal tool
+    // error instead of after the work is already running.
+    const watcher = notify
+      ? createOutputWatcher({ pattern: notify.pattern, debounceMs: notify.debounce_ms })
+      : null;
+    // The task id doesn't exist until after start(), so watcher posts
+    // buffer through this indirection until it's known.
+    let post: ((lines: readonly string[] | null) => void) | null = null;
+    const early: (readonly string[])[] = [];
+    // start() parses input against the op's schema and throws on bad input,
+    // so we validate before registering a task.
+    const { label, work, progress } = op.start(input, {
+      ctx,
+      ...(watcher
+        ? {
+            onOutput: (chunk: string) => {
+              const matches = watcher.feed(chunk);
+              if (!matches) return;
+              if (post) post(matches);
+              else early.push(matches);
+            },
+          }
+        : {}),
+    });
+    const taskId = registry.spawnTask(tool, label, work, sessionId);
+    if (watcher && notify && sessionId) {
+      let matchCount = 0;
+      post = (lines) => {
+        if (!lines || lines.length === 0) return;
+        matchCount += 1;
+        postParkNotification(sessionId, {
+          key: `${taskId}#watch${matchCount}`,
+          text: formatWatchNotification({ taskId, label, reason: notify.reason, lines }),
+        });
+      };
+      for (const batch of early.splice(0)) post(batch);
+      void work.finally(() => post?.(watcher.flush())).catch(() => undefined);
+    }
+    if (notify_on_complete && sessionId) {
+      void work.then(
+        () =>
+          postParkNotification(sessionId, {
+            key: `${taskId}#done`,
+            text: formatCompletionNotification({ taskId, label, status: "done" }),
+          }),
+        (err: unknown) =>
+          postParkNotification(sessionId, {
+            key: `${taskId}#done`,
+            text: formatCompletionNotification({
+              taskId,
+              label,
+              status: "error",
+              error: err instanceof Error ? err.message : String(err),
+            }),
+          }),
+      );
+    }
+    if (progress) {
+      registry.updateTaskProgress(taskId, progress());
+      const interval = setInterval(() => registry.updateTaskProgress(taskId, progress()), 500);
+      void work.finally(() => clearInterval(interval)).catch(() => undefined);
+    }
+    return {
+      task_id: taskId,
+      tool,
+      status: "running" as const,
+      ...(watcher ? { watching: notify?.pattern } : {}),
+      note: "Started in the background. If your next actions don't depend on this, keep working and call check_tasks / await_task later; otherwise call await_task now.",
+    };
+  }
+
+  // Two run_async variants so the wire schema stays honest: with
+  // notifications off, notify/notify_on_complete aren't parameters at all —
+  // not accepted-and-ignored ones.
+  const runAsync = notifications
+    ? defineTool({
+        description: runAsyncDescription,
+        inputSchema: z.object({
+          ...runAsyncBaseParams,
+          notify: notifyParam,
+          notify_on_complete: z
+            .boolean()
+            .optional()
+            .describe(
+              "Also deliver a message when the task settles (default false; await_task remains the primary way to collect results).",
+            ),
+        }),
+        execute: (args, ctx) => startAsync(args, ctx),
+      })
+    : defineTool({
+        description: runAsyncDescription,
+        inputSchema: z.object(runAsyncBaseParams),
+        execute: (args, ctx) => startAsync(args, ctx),
+      });
+
   return {
-    run_async: wrap(defineTool({
-      description:
-        "Start a tool running in the BACKGROUND and return immediately with a task id, instead of blocking until it finishes. Use it for long work whose result your next step doesn't need yet (tests, builds, installs) so you can keep working in parallel; poll with check_tasks and collect the result with await_task. If your very next step needs the output, just call the tool directly instead. For work where you only care about a specific output signal, pass notify — matching lines are delivered to you as a message while you're idle, instead of you polling.\n\nBackgroundable tools (pass `input` matching the tool's own schema):\n" +
-        catalog,
-      inputSchema: z.object({
-        tool: z.enum(toolNames).describe("Which backgroundable tool to run."),
-        input: z
-          .record(z.string(), z.unknown())
-          .describe("Arguments for that tool — the same object you'd pass calling it directly."),
-        notify: z
-          .object({
-            pattern: z
-              .string()
-              .min(1)
-              .describe("Regex matched against complete output lines."),
-            reason: z
-              .string()
-              .min(1)
-              .describe("Short phrase naming what you're watching for, e.g. 'build errors'."),
-            debounce_ms: z
-              .number()
-              .int()
-              .positive()
-              .optional()
-              .describe("Minimum ms between match notifications (default 5000)."),
-          })
-          .optional()
-          .describe(
-            "Watch the task's output: matching lines are delivered to you as a message while you're idle.",
-          ),
-        notify_on_complete: z
-          .boolean()
-          .optional()
-          .describe(
-            "Also deliver a message when the task settles (default false; await_task remains the primary way to collect results).",
-          ),
-      }),
-      execute({ tool, input, notify, notify_on_complete }, ctx) {
-        const op = backgroundables.find((o) => o.name === tool);
-        if (!op) throw new Error(`Unknown backgroundable tool: ${tool}`);
-        const sessionId = ctx?.session?.id;
-        // Built before start() so an invalid regex fails as a normal tool
-        // error instead of after the work is already running.
-        const watcher = notify
-          ? createOutputWatcher({ pattern: notify.pattern, debounceMs: notify.debounce_ms })
-          : null;
-        // The task id doesn't exist until after start(), so watcher posts
-        // buffer through this indirection until it's known.
-        let post: ((lines: readonly string[] | null) => void) | null = null;
-        const early: (readonly string[])[] = [];
-        // start() parses input against the op's schema and throws on bad input,
-        // so we validate before registering a task.
-        const { label, work, progress } = op.start(
-          input,
-          watcher
-            ? {
-                onOutput: (chunk) => {
-                  const matches = watcher.feed(chunk);
-                  if (!matches) return;
-                  if (post) post(matches);
-                  else early.push(matches);
-                },
-              }
-            : undefined,
-        );
-        const taskId = registry.spawnTask(tool, label, work);
-        if (watcher && notify && sessionId) {
-          let matchCount = 0;
-          post = (lines) => {
-            if (!lines || lines.length === 0) return;
-            matchCount += 1;
-            postParkNotification(sessionId, {
-              key: `${taskId}#watch${matchCount}`,
-              text: formatWatchNotification({ taskId, label, reason: notify.reason, lines }),
-            });
-          };
-          for (const batch of early.splice(0)) post(batch);
-          void work.finally(() => post?.(watcher.flush())).catch(() => undefined);
-        }
-        if (notify_on_complete && sessionId) {
-          void work.then(
-            () =>
-              postParkNotification(sessionId, {
-                key: `${taskId}#done`,
-                text: formatCompletionNotification({ taskId, label, status: "done" }),
-              }),
-            (err: unknown) =>
-              postParkNotification(sessionId, {
-                key: `${taskId}#done`,
-                text: formatCompletionNotification({
-                  taskId,
-                  label,
-                  status: "error",
-                  error: err instanceof Error ? err.message : String(err),
-                }),
-              }),
-          );
-        }
-        if (progress) {
-          registry.updateTaskProgress(taskId, progress());
-          const interval = setInterval(() => registry.updateTaskProgress(taskId, progress()), 500);
-          void work.finally(() => clearInterval(interval)).catch(() => undefined);
-        }
-        return {
-          task_id: taskId,
-          tool,
-          status: "running" as const,
-          ...(watcher ? { watching: notify?.pattern } : {}),
-          note: "Started in the background. If your next actions don't depend on this, keep working and call check_tasks / await_task later; otherwise call await_task now.",
-        };
-      },
-    })),
+    run_async: wrap(runAsync),
 
     check_tasks: wrap(defineTool({
       description:
         "List background tasks and their status without blocking; returns `runningCount` plus the task list. For tasks that support progress (notably bash), includes a live stdout/stderr preview. Call await_task to collect a task's final result.",
       inputSchema: z.object({}),
-      execute() {
-        const tasks = registry.listTasks().map(peek);
+      // Scoped to the calling session: on a shared warm instance another
+      // session's tasks (labels carry full command lines) must not list here.
+      execute(_args, ctx) {
+        const tasks = registry.listTasks(ctx?.session?.id).map(peek);
         return { runningCount: tasks.filter((t) => t.status === "running").length, tasks };
       },
     })),
@@ -236,6 +279,8 @@ export function createTasksTools(opts: {
   backgroundables: readonly BackgroundableOp[];
   /** When set, steered messages ride these tools' results (see ../steer-tool). */
   steerInbox?: SteerSource | null;
+  /** Advertise + wire notify watchers (default true); see buildTasksToolset. */
+  notifications?: boolean | undefined;
 }) {
   return defineDynamic({
     events: {

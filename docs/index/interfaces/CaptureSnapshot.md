@@ -6,20 +6,41 @@
 
 # Interface: CaptureSnapshot
 
-Defined in: [packages/agent-sdk/src/bounded-output.ts:26](https://github.com/zocomputer/zov2-code/blob/58f42fa9905e1eaf108a953f694006c436ab7598/packages/agent-sdk/src/bounded-output.ts#L26)
+Defined in: [packages/agent-sdk/src/bounded-output.ts:27](https://github.com/zocomputer/zov2-code/blob/c013587aa4ecd77d27b6774cf5b1fead3e0418d5/packages/agent-sdk/src/bounded-output.ts#L27)
 
 Point-in-time capture snapshot: bounded text (head + marker + tail when
-truncated), total character count, truncation flag, and the spill file path.
+truncated), the raw head/tail slices, total character count, truncation
+flag, and the spill file path.
 
 ## Properties
+
+### head
+
+> `readonly` **head**: `string`
+
+Defined in: [packages/agent-sdk/src/bounded-output.ts:31](https://github.com/zocomputer/zov2-code/blob/c013587aa4ecd77d27b6774cf5b1fead3e0418d5/packages/agent-sdk/src/bounded-output.ts#L31)
+
+The head slice alone (the complete text when not truncated).
+
+***
 
 ### spillPath
 
 > `readonly` **spillPath**: `string` \| `null`
 
-Defined in: [packages/agent-sdk/src/bounded-output.ts:32](https://github.com/zocomputer/zov2-code/blob/58f42fa9905e1eaf108a953f694006c436ab7598/packages/agent-sdk/src/bounded-output.ts#L32)
+Defined in: [packages/agent-sdk/src/bounded-output.ts:37](https://github.com/zocomputer/zov2-code/blob/c013587aa4ecd77d27b6774cf5b1fead3e0418d5/packages/agent-sdk/src/bounded-output.ts#L37)
 
 Absolute path of the complete output, when spilled successfully.
+
+***
+
+### tail
+
+> `readonly` **tail**: `string`
+
+Defined in: [packages/agent-sdk/src/bounded-output.ts:33](https://github.com/zocomputer/zov2-code/blob/c013587aa4ecd77d27b6774cf5b1fead3e0418d5/packages/agent-sdk/src/bounded-output.ts#L33)
+
+The tail slice alone; empty until the capture overflows.
 
 ***
 
@@ -27,7 +48,7 @@ Absolute path of the complete output, when spilled successfully.
 
 > `readonly` **text**: `string`
 
-Defined in: [packages/agent-sdk/src/bounded-output.ts:28](https://github.com/zocomputer/zov2-code/blob/58f42fa9905e1eaf108a953f694006c436ab7598/packages/agent-sdk/src/bounded-output.ts#L28)
+Defined in: [packages/agent-sdk/src/bounded-output.ts:29](https://github.com/zocomputer/zov2-code/blob/c013587aa4ecd77d27b6774cf5b1fead3e0418d5/packages/agent-sdk/src/bounded-output.ts#L29)
 
 Bounded text; when truncated, head + a marker naming the spill file + tail.
 
@@ -37,7 +58,7 @@ Bounded text; when truncated, head + a marker naming the spill file + tail.
 
 > `readonly` **totalChars**: `number`
 
-Defined in: [packages/agent-sdk/src/bounded-output.ts:29](https://github.com/zocomputer/zov2-code/blob/58f42fa9905e1eaf108a953f694006c436ab7598/packages/agent-sdk/src/bounded-output.ts#L29)
+Defined in: [packages/agent-sdk/src/bounded-output.ts:34](https://github.com/zocomputer/zov2-code/blob/c013587aa4ecd77d27b6774cf5b1fead3e0418d5/packages/agent-sdk/src/bounded-output.ts#L34)
 
 ***
 
@@ -45,4 +66,4 @@ Defined in: [packages/agent-sdk/src/bounded-output.ts:29](https://github.com/zoc
 
 > `readonly` **truncated**: `boolean`
 
-Defined in: [packages/agent-sdk/src/bounded-output.ts:30](https://github.com/zocomputer/zov2-code/blob/58f42fa9905e1eaf108a953f694006c436ab7598/packages/agent-sdk/src/bounded-output.ts#L30)
+Defined in: [packages/agent-sdk/src/bounded-output.ts:35](https://github.com/zocomputer/zov2-code/blob/c013587aa4ecd77d27b6774cf5b1fead3e0418d5/packages/agent-sdk/src/bounded-output.ts#L35)

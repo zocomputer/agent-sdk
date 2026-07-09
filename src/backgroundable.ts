@@ -1,5 +1,6 @@
 import { z } from "zod";
-import type { CommandRunner } from "./run";
+import type { CommandRunner, CommandRunnerProvider } from "./run";
+import type { IoToolContext } from "./workspace-io";
 
 // The set of operations run_async can launch in the background. This is the
 // generic mechanism: run_async dispatches by name into this registry, so
@@ -12,6 +13,12 @@ import type { CommandRunner } from "./run";
 export interface OpStartExtras {
   /** Raw output tap; an op that produces no stream just ignores it. */
   onOutput?: (chunk: string) => void;
+  /**
+   * The calling tool's context, for ops whose backend resolves per call
+   * (the sandbox command runner reads `ctx.getSandbox()`). Ops with a fixed
+   * backend ignore it.
+   */
+  ctx?: IoToolContext | undefined;
 }
 
 /**
@@ -86,7 +93,7 @@ function truncate(s: string, max = 80): string {
  * runner. The one op every agent wants backgroundable; agents with their own
  * long-running ops append to the array this feeds.
  */
-export function createBashOp(runner: CommandRunner): BackgroundableOp {
+export function createBashOp(runner: CommandRunner | CommandRunnerProvider): BackgroundableOp {
   return defineOp({
     name: "bash",
     description:
@@ -100,7 +107,8 @@ export function createBashOp(runner: CommandRunner): BackgroundableOp {
     }),
     label: ({ command }) => truncate(command),
     run: ({ command, cwd, timeout_ms }, extras) => {
-      const running = runner.startCommand(command, {
+      const resolved = typeof runner === "function" ? runner(extras?.ctx) : runner;
+      const running = resolved.startCommand(command, {
         cwd,
         timeoutMs: timeout_ms ?? 600_000,
         onOutput: extras?.onOutput,

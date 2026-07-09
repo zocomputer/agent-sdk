@@ -21,15 +21,40 @@ export const TOOL_OUTPUT_DIRNAME = "tool-outputs";
 
 /**
  * Point-in-time capture snapshot: bounded text (head + marker + tail when
- * truncated), total character count, truncation flag, and the spill file path.
+ * truncated), the raw head/tail slices, total character count, truncation
+ * flag, and the spill file path.
  */
 export interface CaptureSnapshot {
   /** Bounded text; when truncated, head + a marker naming the spill file + tail. */
   readonly text: string;
+  /** The head slice alone (the complete text when not truncated). */
+  readonly head: string;
+  /** The tail slice alone; empty until the capture overflows. */
+  readonly tail: string;
   readonly totalChars: number;
   readonly truncated: boolean;
   /** Absolute path of the complete output, when spilled successfully. */
   readonly spillPath: string | null;
+}
+
+/**
+ * Render the in-text truncation marker for a bounded capture. Exported so
+ * runners that assemble `head + marker + tail` themselves (the sandbox
+ * runner, which learns its spill label only after the command settles) emit
+ * the exact marker the local capture does.
+ */
+export function renderTruncationMarker(opts: {
+  /** Characters actually shown in the head slice. */
+  headChars: number;
+  /** Characters actually shown in the tail slice. */
+  tailChars: number;
+  /** Total characters the command produced. */
+  totalChars: number;
+  /** Where the complete output lives (e.g. a workspace-relative path); omit when it wasn't kept. */
+  label?: string | undefined;
+}): string {
+  const where = opts.label === undefined ? "" : `; full output: ${opts.label}`;
+  return `\n… [output truncated: showing first ${opts.headChars} and last ${opts.tailChars} of ${opts.totalChars} chars${where}]\n`;
 }
 
 /**
@@ -149,21 +174,26 @@ export function createBoundedCapture(
     },
     snapshot() {
       if (!overflowed) {
-        return { text: head, totalChars: total, truncated: false, spillPath: null };
+        return { text: head, head, tail: "", totalChars: total, truncated: false, spillPath: null };
       }
       if (head.length + tail.length === total) {
         // Head overflowed but the tail still holds the rest — contiguous,
         // complete. Checked by length (not caps): a surrogate nudge can move a
         // char from head into a tail that then trims, and that loss must
         // surface as truncation.
-        return { text: head + tail, totalChars: total, truncated: false, spillPath: null };
+        return { text: head + tail, head, tail, totalChars: total, truncated: false, spillPath: null };
       }
-      const where =
-        spill === "live" ? `; full output: ${opts.spillLabel ?? opts.spillPath}` : "";
       // Actual lengths, not the caps — surrogate nudges can run a char short.
-      const marker = `\n… [output truncated: showing first ${head.length} and last ${tail.length} of ${total} chars${where}]\n`;
+      const marker = renderTruncationMarker({
+        headChars: head.length,
+        tailChars: tail.length,
+        totalChars: total,
+        label: spill === "live" ? (opts.spillLabel ?? opts.spillPath) : undefined,
+      });
       return {
         text: `${head}${marker}${tail}`,
+        head,
+        tail,
         totalChars: total,
         truncated: true,
         spillPath: spill === "live" && opts.spillPath !== undefined ? opts.spillPath : null,

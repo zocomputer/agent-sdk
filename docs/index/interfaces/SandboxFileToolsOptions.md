@@ -6,7 +6,7 @@
 
 # Interface: SandboxFileToolsOptions
 
-Defined in: [packages/agent-sdk/src/index.ts:411](https://github.com/zocomputer/zov2-code/blob/58f42fa9905e1eaf108a953f694006c436ab7598/packages/agent-sdk/src/index.ts#L411)
+Defined in: [packages/agent-sdk/src/index.ts:413](https://github.com/zocomputer/zov2-code/blob/c013587aa4ecd77d27b6774cf5b1fead3e0418d5/packages/agent-sdk/src/index.ts#L413)
 
 Options for the sandbox file tools: workspace root (inside the sandbox),
 display noun, session resolver, spill dir, attachment/media settings, and
@@ -19,7 +19,7 @@ subagent roster).
 
 > `optional` **attachAudioToChat?**: `boolean`
 
-Defined in: [packages/agent-sdk/src/index.ts:445](https://github.com/zocomputer/zov2-code/blob/58f42fa9905e1eaf108a953f694006c436ab7598/packages/agent-sdk/src/index.ts#L445)
+Defined in: [packages/agent-sdk/src/index.ts:467](https://github.com/zocomputer/zov2-code/blob/c013587aa4ecd77d27b6774cf5b1fead3e0418d5/packages/agent-sdk/src/index.ts#L467)
 
 See [StdlibOptions.attachAudioToChat](StdlibOptions.md#attachaudiotochat). Defaults to `false`.
 
@@ -29,7 +29,7 @@ See [StdlibOptions.attachAudioToChat](StdlibOptions.md#attachaudiotochat). Defau
 
 > `optional` **attachImagesToChat?**: `boolean`
 
-Defined in: [packages/agent-sdk/src/index.ts:439](https://github.com/zocomputer/zov2-code/blob/58f42fa9905e1eaf108a953f694006c436ab7598/packages/agent-sdk/src/index.ts#L439)
+Defined in: [packages/agent-sdk/src/index.ts:461](https://github.com/zocomputer/zov2-code/blob/c013587aa4ecd77d27b6774cf5b1fead3e0418d5/packages/agent-sdk/src/index.ts#L461)
 
 See [StdlibOptions.attachImagesToChat](StdlibOptions.md#attachimagestochat). Defaults to `false` here —
 the attachment path only works when the agent registers
@@ -45,9 +45,19 @@ delivers is the silent failure the attachment contract exists to avoid).
 
 > `optional` **attachVideoToChat?**: `boolean`
 
-Defined in: [packages/agent-sdk/src/index.ts:443](https://github.com/zocomputer/zov2-code/blob/58f42fa9905e1eaf108a953f694006c436ab7598/packages/agent-sdk/src/index.ts#L443)
+Defined in: [packages/agent-sdk/src/index.ts:465](https://github.com/zocomputer/zov2-code/blob/c013587aa4ecd77d27b6774cf5b1fead3e0418d5/packages/agent-sdk/src/index.ts#L465)
 
 See [StdlibOptions.attachVideoToChat](StdlibOptions.md#attachvideotochat). Defaults to `false`.
+
+***
+
+### bashInteractiveHint?
+
+> `optional` **bashInteractiveHint?**: `string`
+
+Defined in: [packages/agent-sdk/src/index.ts:442](https://github.com/zocomputer/zov2-code/blob/c013587aa4ecd77d27b6774cf5b1fead3e0418d5/packages/agent-sdk/src/index.ts#L442)
+
+See [StdlibOptions.bashInteractiveHint](StdlibOptions.md#bashinteractivehint).
 
 ***
 
@@ -55,7 +65,7 @@ See [StdlibOptions.attachVideoToChat](StdlibOptions.md#attachvideotochat). Defau
 
 > `optional` **conventionsFileName?**: `string`
 
-Defined in: [packages/agent-sdk/src/index.ts:451](https://github.com/zocomputer/zov2-code/blob/58f42fa9905e1eaf108a953f694006c436ab7598/packages/agent-sdk/src/index.ts#L451)
+Defined in: [packages/agent-sdk/src/index.ts:473](https://github.com/zocomputer/zov2-code/blob/c013587aa4ecd77d27b6774cf5b1fead3e0418d5/packages/agent-sdk/src/index.ts#L473)
 
 See [StdlibOptions.conventionsFileName](StdlibOptions.md#conventionsfilename). Defaults to "AGENTS.md".
 
@@ -65,7 +75,7 @@ See [StdlibOptions.conventionsFileName](StdlibOptions.md#conventionsfilename). D
 
 > `optional` **extraInstructionSections?**: readonly [`PlacedPromptSection`](PlacedPromptSection.md)[] \| (() => readonly [`PlacedPromptSection`](PlacedPromptSection.md)[])
 
-Defined in: [packages/agent-sdk/src/index.ts:479](https://github.com/zocomputer/zov2-code/blob/58f42fa9905e1eaf108a953f694006c436ab7598/packages/agent-sdk/src/index.ts#L479)
+Defined in: [packages/agent-sdk/src/index.ts:501](https://github.com/zocomputer/zov2-code/blob/c013587aa4ecd77d27b6774cf5b1fead3e0418d5/packages/agent-sdk/src/index.ts#L501)
 
 See [StdlibOptions.extraInstructionSections](StdlibOptions.md#extrainstructionsections).
 
@@ -75,7 +85,7 @@ See [StdlibOptions.extraInstructionSections](StdlibOptions.md#extrainstructionse
 
 > `optional` **injectDirConventions?**: `boolean`
 
-Defined in: [packages/agent-sdk/src/index.ts:449](https://github.com/zocomputer/zov2-code/blob/58f42fa9905e1eaf108a953f694006c436ab7598/packages/agent-sdk/src/index.ts#L449)
+Defined in: [packages/agent-sdk/src/index.ts:471](https://github.com/zocomputer/zov2-code/blob/c013587aa4ecd77d27b6774cf5b1fead3e0418d5/packages/agent-sdk/src/index.ts#L471)
 
 See [StdlibOptions.injectDirConventions](StdlibOptions.md#injectdirconventions). Defaults to `true`.
 
@@ -85,7 +95,7 @@ See [StdlibOptions.injectDirConventions](StdlibOptions.md#injectdirconventions).
 
 > `optional` **instructionTier?**: [`InstructionTier`](../type-aliases/InstructionTier.md)
 
-Defined in: [packages/agent-sdk/src/index.ts:471](https://github.com/zocomputer/zov2-code/blob/58f42fa9905e1eaf108a953f694006c436ab7598/packages/agent-sdk/src/index.ts#L471)
+Defined in: [packages/agent-sdk/src/index.ts:493](https://github.com/zocomputer/zov2-code/blob/c013587aa4ecd77d27b6774cf5b1fead3e0418d5/packages/agent-sdk/src/index.ts#L493)
 
 See [StdlibOptions.instructionTier](StdlibOptions.md#instructiontier).
 
@@ -95,7 +105,7 @@ See [StdlibOptions.instructionTier](StdlibOptions.md#instructiontier).
 
 > `optional` **maxInlineImageBytes?**: `number`
 
-Defined in: [packages/agent-sdk/src/index.ts:441](https://github.com/zocomputer/zov2-code/blob/58f42fa9905e1eaf108a953f694006c436ab7598/packages/agent-sdk/src/index.ts#L441)
+Defined in: [packages/agent-sdk/src/index.ts:463](https://github.com/zocomputer/zov2-code/blob/c013587aa4ecd77d27b6774cf5b1fead3e0418d5/packages/agent-sdk/src/index.ts#L463)
 
 See [StdlibOptions.maxInlineImageBytes](StdlibOptions.md#maxinlineimagebytes).
 
@@ -105,7 +115,7 @@ See [StdlibOptions.maxInlineImageBytes](StdlibOptions.md#maxinlineimagebytes).
 
 > `optional` **maxInlineMediaBytes?**: `number`
 
-Defined in: [packages/agent-sdk/src/index.ts:447](https://github.com/zocomputer/zov2-code/blob/58f42fa9905e1eaf108a953f694006c436ab7598/packages/agent-sdk/src/index.ts#L447)
+Defined in: [packages/agent-sdk/src/index.ts:469](https://github.com/zocomputer/zov2-code/blob/c013587aa4ecd77d27b6774cf5b1fead3e0418d5/packages/agent-sdk/src/index.ts#L469)
 
 See [StdlibOptions.maxInlineMediaBytes](StdlibOptions.md#maxinlinemediabytes).
 
@@ -115,7 +125,7 @@ See [StdlibOptions.maxInlineMediaBytes](StdlibOptions.md#maxinlinemediabytes).
 
 > `optional` **mediaOracle?**: [`MediaOracleOption`](../type-aliases/MediaOracleOption.md)
 
-Defined in: [packages/agent-sdk/src/index.ts:458](https://github.com/zocomputer/zov2-code/blob/58f42fa9905e1eaf108a953f694006c436ab7598/packages/agent-sdk/src/index.ts#L458)
+Defined in: [packages/agent-sdk/src/index.ts:480](https://github.com/zocomputer/zov2-code/blob/c013587aa4ecd77d27b6774cf5b1fead3e0418d5/packages/agent-sdk/src/index.ts#L480)
 
 See [StdlibOptions.mediaOracle](StdlibOptions.md#mediaoracle). The sandbox `look` reads bytes
 through the sandbox session, so the oracle sees the session workspace's
@@ -124,11 +134,26 @@ the config so the runtime proxy labels the tool's own model traffic.
 
 ***
 
+### notifications?
+
+> `optional` **notifications?**: `boolean`
+
+Defined in: [packages/agent-sdk/src/index.ts:451](https://github.com/zocomputer/zov2-code/blob/c013587aa4ecd77d27b6774cf5b1fead3e0418d5/packages/agent-sdk/src/index.ts#L451)
+
+Advertise + wire `notify` watchers on bash/run_async (default `false`
+here, unlike the stdlib's `true`): watcher notifications ride
+`createParkDeliveryHook`, and without that hook registered they queue
+but never deliver — a promise the model would plan around. An agent
+that wires park delivery flips this on. Same honesty precedent as
+[SandboxFileToolsOptions.attachImagesToChat](#attachimagestochat).
+
+***
+
 ### omitInstructionSections?
 
 > `optional` **omitInstructionSections?**: readonly (`"subagents"` \| `"media"` \| `"repo-conventions"` \| `"workflow"` \| `"planning"` \| `"parallel-tools"` \| `"communication"` \| `"hitl"`)[]
 
-Defined in: [packages/agent-sdk/src/index.ts:477](https://github.com/zocomputer/zov2-code/blob/58f42fa9905e1eaf108a953f694006c436ab7598/packages/agent-sdk/src/index.ts#L477)
+Defined in: [packages/agent-sdk/src/index.ts:499](https://github.com/zocomputer/zov2-code/blob/c013587aa4ecd77d27b6774cf5b1fead3e0418d5/packages/agent-sdk/src/index.ts#L499)
 
 Further baseline sections `instructions.stack` should drop, by id — on
 top of the sandbox topology's own omissions (see the `stack` doc on the
@@ -140,7 +165,7 @@ return value).
 
 > `optional` **parentCapabilities?**: [`ModelInputCapabilities`](ModelInputCapabilities.md)
 
-Defined in: [packages/agent-sdk/src/index.ts:465](https://github.com/zocomputer/zov2-code/blob/58f42fa9905e1eaf108a953f694006c436ab7598/packages/agent-sdk/src/index.ts#L465)
+Defined in: [packages/agent-sdk/src/index.ts:487](https://github.com/zocomputer/zov2-code/blob/c013587aa4ecd77d27b6774cf5b1fead3e0418d5/packages/agent-sdk/src/index.ts#L487)
 
 See [StdlibOptions.parentCapabilities](StdlibOptions.md#parentcapabilities). Here it only informs the
 stack's media section (which kinds to view natively vs delegate) — it
@@ -153,7 +178,7 @@ explicitly off (see [SandboxFileToolsOptions.attachImagesToChat](#attachimagesto
 
 > `optional` **resolveSession?**: (`ctx`) => `PromiseLike`\<[`SandboxSessionLike`](SandboxSessionLike.md)\>
 
-Defined in: [packages/agent-sdk/src/index.ts:423](https://github.com/zocomputer/zov2-code/blob/58f42fa9905e1eaf108a953f694006c436ab7598/packages/agent-sdk/src/index.ts#L423)
+Defined in: [packages/agent-sdk/src/index.ts:425](https://github.com/zocomputer/zov2-code/blob/c013587aa4ecd77d27b6774cf5b1fead3e0418d5/packages/agent-sdk/src/index.ts#L425)
 
 Resolves the sandbox session for one tool call. Defaults to
 `ctx.getSandbox()`; injectable for tests.
@@ -174,11 +199,12 @@ Resolves the sandbox session for one tool call. Defaults to
 
 > `optional` **spillDir?**: `string`
 
-Defined in: [packages/agent-sdk/src/index.ts:429](https://github.com/zocomputer/zov2-code/blob/58f42fa9905e1eaf108a953f694006c436ab7598/packages/agent-sdk/src/index.ts#L429)
+Defined in: [packages/agent-sdk/src/index.ts:432](https://github.com/zocomputer/zov2-code/blob/c013587aa4ecd77d27b6774cf5b1fead3e0418d5/packages/agent-sdk/src/index.ts#L432)
 
-Sandbox directory for grep's overflow match lists (spilled through the
-sandbox, so the model's follow-up `read` can reach them). Omit to keep
-the stop-at-cap behavior.
+Sandbox directory for oversized tool output: grep's overflow match lists
+and bash's truncated command output (both spilled through the sandbox, so
+the model's follow-up `read` can reach them). Omit to keep grep's
+stop-at-cap behavior and bash's label-less truncation markers.
 
 ***
 
@@ -186,9 +212,23 @@ the stop-at-cap behavior.
 
 > `optional` **subagentRoster?**: readonly [`SubagentRosterEntry`](SubagentRosterEntry.md)[]
 
-Defined in: [packages/agent-sdk/src/index.ts:469](https://github.com/zocomputer/zov2-code/blob/58f42fa9905e1eaf108a953f694006c436ab7598/packages/agent-sdk/src/index.ts#L469)
+Defined in: [packages/agent-sdk/src/index.ts:491](https://github.com/zocomputer/zov2-code/blob/c013587aa4ecd77d27b6774cf5b1fead3e0418d5/packages/agent-sdk/src/index.ts#L491)
 
 See [StdlibOptions.subagentRoster](StdlibOptions.md#subagentroster).
+
+***
+
+### taskStorePath?
+
+> `optional` **taskStorePath?**: `string`
+
+Defined in: [packages/agent-sdk/src/index.ts:440](https://github.com/zocomputer/zov2-code/blob/c013587aa4ecd77d27b6774cf5b1fead3e0418d5/packages/agent-sdk/src/index.ts#L440)
+
+Path **on the harness's local disk** for the background-task store
+(task metadata + completed results, surviving an agent restart).
+Defaults to a per-process path under the OS temp dir — fine for
+serverless, where the store's lifetime matches the instance anyway;
+agents on durable hosts pass a real state path.
 
 ***
 
@@ -196,7 +236,7 @@ See [StdlibOptions.subagentRoster](StdlibOptions.md#subagentroster).
 
 > `optional` **verifyCommandHint?**: `string`
 
-Defined in: [packages/agent-sdk/src/index.ts:467](https://github.com/zocomputer/zov2-code/blob/58f42fa9905e1eaf108a953f694006c436ab7598/packages/agent-sdk/src/index.ts#L467)
+Defined in: [packages/agent-sdk/src/index.ts:489](https://github.com/zocomputer/zov2-code/blob/c013587aa4ecd77d27b6774cf5b1fead3e0418d5/packages/agent-sdk/src/index.ts#L489)
 
 See [StdlibOptions.verifyCommandHint](StdlibOptions.md#verifycommandhint).
 
@@ -206,7 +246,7 @@ See [StdlibOptions.verifyCommandHint](StdlibOptions.md#verifycommandhint).
 
 > `optional` **workspaceNoun?**: `string`
 
-Defined in: [packages/agent-sdk/src/index.ts:418](https://github.com/zocomputer/zov2-code/blob/58f42fa9905e1eaf108a953f694006c436ab7598/packages/agent-sdk/src/index.ts#L418)
+Defined in: [packages/agent-sdk/src/index.ts:420](https://github.com/zocomputer/zov2-code/blob/c013587aa4ecd77d27b6774cf5b1fead3e0418d5/packages/agent-sdk/src/index.ts#L420)
 
 What tool descriptions call the workspace. Defaults to "workspace".
 
@@ -216,7 +256,7 @@ What tool descriptions call the workspace. Defaults to "workspace".
 
 > **workspaceRoot**: `string`
 
-Defined in: [packages/agent-sdk/src/index.ts:416](https://github.com/zocomputer/zov2-code/blob/58f42fa9905e1eaf108a953f694006c436ab7598/packages/agent-sdk/src/index.ts#L416)
+Defined in: [packages/agent-sdk/src/index.ts:418](https://github.com/zocomputer/zov2-code/blob/c013587aa4ecd77d27b6774cf5b1fead3e0418d5/packages/agent-sdk/src/index.ts#L418)
 
 Absolute workspace root **inside the sandbox** (e.g. "/workspace").
 File tools refuse paths that escape it.

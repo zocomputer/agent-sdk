@@ -230,36 +230,57 @@ export function createPlanningInstruction(opts?: {
 export function parallelToolsSection(opts?: {
   /** Prose depth; defaults to "full". */
   tier?: InstructionTier | undefined;
+  /**
+   * Whether the async tools advertise `notify` watchers (default true). Set
+   * false for agents wired with `notifications: false` — the tools don't
+   * carry the parameters there, so the prose must not teach them.
+   */
+  notifications?: boolean | undefined;
 }): PromptSection {
+  const notifications = opts?.notifications ?? true;
   const body =
     (opts?.tier ?? "full") === "compact"
-      ? `Long-running work continues in the **background**: \`bash\` auto-returns a \`task_id\` when a command outlives its short foreground wait; \`run_async\` starts there directly.
-
-- Next action independent of the result? Keep working, then \`check_tasks\` (non-blocking status) or \`await_task\` (blocks for the result). Dependent? \`await_task\` right away.
-- Several tasks can run at once — track their \`task_id\`s.
-- Watching for one signal in the output? Pass \`notify\` (\`{ pattern, reason }\`) to \`bash\`/\`run_async\`, or \`run_async\`'s \`notify_on_complete\`, instead of polling.
-- When you do poll on wall-clock time, keep each blocking call under ~4 minutes — one long silent call lets the provider prompt cache expire and re-prices your whole context.
-- Completed results survive restarts; a task running through a restart reports \`lost\` — start it again if it still matters.
-- Before ending your turn, await every task whose result matters (\`check_tasks\` if unsure what's in flight).`
-      : `Long-running work can continue in the **background** instead of blocking the turn. The \`bash\` tool does this automatically: if a command is still running after its short foreground wait, it returns a \`task_id\` and keeps the process alive. You can also use \`run_async\` when you already know the work should start in the background. After you start background work, decide whether your *next* action depends on its output:
-
-- **Independent?** Keep working — read files, make edits, start other tasks — then \`check_tasks\` (non-blocking status + live output preview) or \`await_task\` (blocks for the result) when it's convenient.
-- **Dependent?** Call \`await_task\` right away; treat it like a normal blocking call.
-
-Guidance:
-- Prefer plain \`bash\` for shell commands even when they might run long; it auto-returns a task handle if needed. Use \`run_async\` when you already know a command should start in the background and want to skip the foreground wait.
-- You can have several tasks in flight at once. Each \`run_async\` returns a \`task_id\`; keep track of them.
-- \`check_tasks\` shows status and live output previews for tasks that support progress. \`await_task\` returns the final output.
-- For a long job where you only care about a specific signal — a failure line, a "listening on" banner — pass \`notify\` (\`{ pattern, reason }\`) to \`bash\` or \`run_async\` instead of polling: matching output is delivered to you as a message while you're idle. \`run_async\`'s \`notify_on_complete\` does the same when the task settles.
-- When you do poll on wall-clock time (waiting on CI, a review, a deploy), keep any single blocking call under ~4 minutes — one sleep+check per call, not a whole retry loop in one call. Provider prompt caches expire after ~5 minutes of model inactivity, so one long silent call re-prices your entire context on the next step; returning between polls keeps it warm.
-- Background task metadata and completed results persist across agent restarts. A task still running during a restart is reported as \`lost\`; start it again if its result still matters.
-- Before finishing your turn, make sure any background task whose result matters has been awaited — don't end while relevant work is still running. If you're unsure what's still in flight, call \`check_tasks\`. A task you set a \`notify\` watcher on may keep running — its matches will reach you as messages.`;
+      ? [
+          `Long-running work continues in the **background**: \`bash\` auto-returns a \`task_id\` when a command outlives its short foreground wait; \`run_async\` starts there directly.`,
+          ``,
+          `- Next action independent of the result? Keep working, then \`check_tasks\` (non-blocking status) or \`await_task\` (blocks for the result). Dependent? \`await_task\` right away.`,
+          `- Several tasks can run at once — track their \`task_id\`s.`,
+          ...(notifications
+            ? [
+                `- Watching for one signal in the output? Pass \`notify\` (\`{ pattern, reason }\`) to \`bash\`/\`run_async\`, or \`run_async\`'s \`notify_on_complete\`, instead of polling.`,
+              ]
+            : []),
+          `- When you do poll on wall-clock time, keep each blocking call under ~4 minutes — one long silent call lets the provider prompt cache expire and re-prices your whole context.`,
+          `- Completed results survive restarts; a task running through a restart reports \`lost\` — start it again if it still matters.`,
+          `- Before ending your turn, await every task whose result matters (\`check_tasks\` if unsure what's in flight).`,
+        ].join("\n")
+      : [
+          `Long-running work can continue in the **background** instead of blocking the turn. The \`bash\` tool does this automatically: if a command is still running after its short foreground wait, it returns a \`task_id\` and keeps the process alive. You can also use \`run_async\` when you already know the work should start in the background. After you start background work, decide whether your *next* action depends on its output:`,
+          ``,
+          `- **Independent?** Keep working — read files, make edits, start other tasks — then \`check_tasks\` (non-blocking status + live output preview) or \`await_task\` (blocks for the result) when it's convenient.`,
+          `- **Dependent?** Call \`await_task\` right away; treat it like a normal blocking call.`,
+          ``,
+          `Guidance:`,
+          `- Prefer plain \`bash\` for shell commands even when they might run long; it auto-returns a task handle if needed. Use \`run_async\` when you already know a command should start in the background and want to skip the foreground wait.`,
+          `- You can have several tasks in flight at once. Each \`run_async\` returns a \`task_id\`; keep track of them.`,
+          `- \`check_tasks\` shows status and live output previews for tasks that support progress. \`await_task\` returns the final output.`,
+          ...(notifications
+            ? [
+                `- For a long job where you only care about a specific signal — a failure line, a "listening on" banner — pass \`notify\` (\`{ pattern, reason }\`) to \`bash\` or \`run_async\` instead of polling: matching output is delivered to you as a message while you're idle. \`run_async\`'s \`notify_on_complete\` does the same when the task settles.`,
+              ]
+            : []),
+          `- When you do poll on wall-clock time (waiting on CI, a review, a deploy), keep any single blocking call under ~4 minutes — one sleep+check per call, not a whole retry loop in one call. Provider prompt caches expire after ~5 minutes of model inactivity, so one long silent call re-prices your entire context on the next step; returning between polls keeps it warm.`,
+          `- Background task metadata and completed results persist across agent restarts. A task still running during a restart is reported as \`lost\`; start it again if its result still matters.`,
+          `- Before finishing your turn, make sure any background task whose result matters has been awaited — don't end while relevant work is still running. If you're unsure what's still in flight, call \`check_tasks\`.${notifications ? " A task you set a `notify` watcher on may keep running — its matches will reach you as messages." : ""}`,
+        ].join("\n");
   return { id: "parallel-tools", heading: "Parallel tool calls", body };
 }
 
 /** Pure markdown for the background-work playbook; see createParallelToolsInstruction. */
 export function buildParallelToolsMarkdown(opts?: {
   tier?: InstructionTier | undefined;
+  /** Whether the async tools advertise `notify` watchers; see parallelToolsSection. */
+  notifications?: boolean | undefined;
 }): string {
   return renderPromptSection(parallelToolsSection(opts));
 }
@@ -272,6 +293,8 @@ export function buildParallelToolsMarkdown(opts?: {
  */
 export function createParallelToolsInstruction(opts?: {
   tier?: InstructionTier | undefined;
+  /** Whether the async tools advertise `notify` watchers; see parallelToolsSection. */
+  notifications?: boolean | undefined;
 }) {
   const instruction = defineInstructions({
     markdown: buildParallelToolsMarkdown(opts),
@@ -618,6 +641,12 @@ export interface InstructionStackOptions {
   /** Declared subagents for the delegation section's routing guidance. */
   subagentRoster?: readonly SubagentRosterEntry[] | undefined;
   /**
+   * Whether the async tools advertise `notify` watchers (default true). Set
+   * false for agents wired with `notifications: false` — the parallel-tools
+   * section then skips the notify guidance, matching the tools' schemas.
+   */
+  notifications?: boolean | undefined;
+  /**
    * The look oracle's identity, when wired — includes the media section.
    * Omitted → no media section (and extras anchored to `"media"` append at
    * the end).
@@ -668,7 +697,7 @@ export function buildInstructionStackSections(
       tier,
     }),
     planningSection({ tier }),
-    parallelToolsSection({ tier }),
+    parallelToolsSection({ tier, notifications: opts.notifications }),
     subagentSection({ workspaceNoun, roster: opts.subagentRoster, tier }),
     ...(opts.media ? [lookSection({ ...opts.media, tier })] : []),
     hitlSection({ tier }),

@@ -8,7 +8,7 @@
 
 > **loadFileContent**(`buffer`, `path`, `id`): `Promise`\<[`FileContent`](../type-aliases/FileContent.md)\>
 
-Defined in: [packages/agent-sdk/src/read-file-content.ts:154](https://github.com/zocomputer/zov2-code/blob/58f42fa9905e1eaf108a953f694006c436ab7598/packages/agent-sdk/src/read-file-content.ts#L154)
+Defined in: [packages/agent-sdk/src/read-file-content.ts:154](https://github.com/zocomputer/zov2-code/blob/c013587aa4ecd77d27b6774cf5b1fead3e0418d5/packages/agent-sdk/src/read-file-content.ts#L154)
 
 Route a file's bytes to renderable content. `path` labels error messages,
 disambiguates container formats by extension, and keys the extraction cache.

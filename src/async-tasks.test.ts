@@ -60,6 +60,39 @@ test("settled tasks persist across registries; running ones reload as lost", asy
   expect(nextId).toBe(`task_${Number(runningId.slice("task_".length)) + 1}`);
 });
 
+test("listTasks scopes by session; session-less tasks stay visible everywhere", async () => {
+  const registry = createTaskRegistry({ storePath: freshStore() });
+  const mineId = registry.spawnTask("bash", "mine", Promise.resolve("ok"), "session-a");
+  const theirsId = registry.spawnTask("bash", "theirs", Promise.resolve("ok"), "session-b");
+  const sharedId = registry.spawnTask("bash", "shared", Promise.resolve("ok"));
+
+  const forA = registry.listTasks("session-a").map((t) => t.id);
+  expect(forA).toContain(mineId);
+  expect(forA).toContain(sharedId);
+  expect(forA).not.toContain(theirsId);
+
+  // No session filter → everything (the stdlib's single-tenant behavior).
+  const all = registry.listTasks().map((t) => t.id);
+  expect(all).toEqual(expect.arrayContaining([mineId, theirsId, sharedId]));
+
+  // Id lookups stay unscoped: a task id is an unguessable capability.
+  expect(registry.getTask(theirsId)?.label).toBe("theirs");
+  const awaited = await registry.awaitTask(theirsId, 1_000);
+  expect(awaited?.status).toBe("done");
+});
+
+test("a task's sessionId survives the store round-trip", async () => {
+  const storePath = freshStore();
+  const first = createTaskRegistry({ storePath });
+  const id = first.spawnTask("bash", "scoped", Promise.resolve("ok"), "session-a");
+  await first.awaitTask(id, 1_000);
+
+  __resetTaskRegistryCacheForTests();
+  const second = createTaskRegistry({ storePath });
+  expect(second.getTask(id)?.sessionId).toBe("session-a");
+  expect(second.listTasks("session-b").map((t) => t.id)).not.toContain(id);
+});
+
 test("createTaskRegistry dedupes per store path — module-graph copies share one registry", async () => {
   const storePath = freshStore();
   // The mid-session-rebuild regression: `bash` (fresh module graph) spawns into

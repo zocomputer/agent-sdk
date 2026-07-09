@@ -8,7 +8,7 @@
 
 > **isDisproportionateMatch**(`search`, `oldString`): `boolean`
 
-Defined in: [packages/agent-sdk/src/edit-match.ts:472](https://github.com/zocomputer/zov2-code/blob/58f42fa9905e1eaf108a953f694006c436ab7598/packages/agent-sdk/src/edit-match.ts#L472)
+Defined in: [packages/agent-sdk/src/edit-match.ts:472](https://github.com/zocomputer/zov2-code/blob/c013587aa4ecd77d27b6774cf5b1fead3e0418d5/packages/agent-sdk/src/edit-match.ts#L472)
 
 The safety valve that makes an aggressive cascade shippable: a fuzzy
 strategy that "matches" a span wildly larger than what the model asked to

@@ -24,21 +24,49 @@ const toolset = buildTasksToolset({
 });
 if (!toolset) throw new Error("toolset should exist with one backgroundable");
 
-const ctx: ToolContext = {
-  session: {
-    id: "tasks-test-session",
-    auth: { current: null, initiator: null },
-    turn: { id: "turn-1", sequence: 1 },
-  },
-  getSandbox: () => Promise.reject(new Error("no sandbox in tests")),
-  getSkill: () => {
-    throw new Error("no skills in tests");
-  },
-  getToken: () => Promise.reject(new Error("no auth in tests")),
-  requireAuth: () => {
-    throw new Error("no auth in tests");
-  },
-};
+function ctxWith(sessionId: string): ToolContext {
+  return {
+    session: {
+      id: sessionId,
+      auth: { current: null, initiator: null },
+      turn: { id: "turn-1", sequence: 1 },
+    },
+    getSandbox: () => Promise.reject(new Error("no sandbox in tests")),
+    getSkill: () => {
+      throw new Error("no skills in tests");
+    },
+    getToken: () => Promise.reject(new Error("no auth in tests")),
+    requireAuth: () => {
+      throw new Error("no auth in tests");
+    },
+  };
+}
+const ctx = ctxWith("tasks-test-session");
+
+describe("check_tasks session scoping", () => {
+  test("lists only the calling session's tasks; await_task stays id-scoped", async () => {
+    const mine = await toolset.run_async.execute(
+      { tool: "bash", input: { command: "echo mine" } },
+      ctxWith("session-one"),
+    );
+    const theirs = await toolset.run_async.execute(
+      { tool: "bash", input: { command: "echo theirs" } },
+      ctxWith("session-two"),
+    );
+
+    const listed = await toolset.check_tasks.execute({}, ctxWith("session-one"));
+    const ids = listed.tasks.map((t) => t.task_id);
+    expect(ids).toContain(mine.task_id);
+    expect(ids).not.toContain(theirs.task_id);
+
+    // A task id is an unguessable capability — lookups by id stay unscoped.
+    const awaited = await toolset.await_task.execute(
+      { task_id: theirs.task_id, wait_ms: 5_000 },
+      ctxWith("session-one"),
+    );
+    expect(awaited).toMatchObject({ task_id: theirs.task_id, status: "done" });
+  });
+});
 
 describe("await_task failure hygiene", () => {
   test("an unknown task id names the recovery path (check_tasks)", async () => {
@@ -52,16 +80,16 @@ describe("run_async failure hygiene", () => {
   test("an invalid notify.pattern fails before any work starts", () => {
     const before = registry.listTasks().length;
     // run_async throws synchronously — the watcher is built before start().
-    expect(() =>
-      toolset.run_async.execute(
-        {
-          tool: "bash",
-          input: { command: "sleep 5" },
-          notify: { pattern: "(", reason: "unterminated group" },
-        },
-        ctx,
-      ),
-    ).toThrow(/Invalid notify\.pattern — nothing was started/);
+    // Hoisted: run_async's type is a union (with/without notify), and a fresh
+    // literal would trip excess-property checks on the notify-less arm.
+    const runArgs = {
+      tool: "bash",
+      input: { command: "sleep 5" },
+      notify: { pattern: "(", reason: "unterminated group" },
+    };
+    expect(() => toolset.run_async.execute(runArgs, ctx)).toThrow(
+      /Invalid notify\.pattern — nothing was started/,
+    );
     // Nothing was registered: the rejection really did precede the spawn.
     expect(registry.listTasks().length).toBe(before);
   });

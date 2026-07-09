@@ -8,7 +8,7 @@
 
 > **parallelToolsSection**(`opts?`): [`PromptSection`](../interfaces/PromptSection.md)
 
-Defined in: [packages/agent-sdk/src/instructions.ts:230](https://github.com/zocomputer/zov2-code/blob/58f42fa9905e1eaf108a953f694006c436ab7598/packages/agent-sdk/src/instructions.ts#L230)
+Defined in: [packages/agent-sdk/src/instructions.ts:230](https://github.com/zocomputer/zov2-code/blob/c013587aa4ecd77d27b6774cf5b1fead3e0418d5/packages/agent-sdk/src/instructions.ts#L230)
 
 The background-work section for the stdlib's async tools (bash
 auto-backgrounding, run_async/check_tasks/await_task, notify watchers, the
@@ -19,6 +19,14 @@ journal/team/harness-research/2026-07-01-prompt-cache-as-economic-constraint.md.
 ## Parameters
 
 ### opts?
+
+#### notifications?
+
+`boolean`
+
+Whether the async tools advertise `notify` watchers (default true). Set
+false for agents wired with `notifications: false` — the tools don't
+carry the parameters there, so the prose must not teach them.
 
 #### tier?
 
