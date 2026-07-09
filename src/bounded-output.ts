@@ -6,7 +6,7 @@ import { dirname } from "node:path";
 // failure summary) was gone forever. This keeps head AND tail within a fixed
 // in-context budget and, on first overflow, spills the *complete* output to a
 // file the model can grep/read instead of re-running the command (opencode's
-// truncate-with-spill design). See plans/ben/rib-speed-opencode-lessons.md.
+// truncate-with-spill design). See journal/team/harness-research/rib-speed-opencode-lessons.md.
 
 /** Default head character cap for bounded captures. */
 export const HEAD_CHARS = 25_000;

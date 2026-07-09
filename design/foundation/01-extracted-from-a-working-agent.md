@@ -52,5 +52,5 @@ stayed behind.
 - `rib/learnings/18-agent-sdk-extraction.md` — the extraction mechanics.
 - `rib/learnings/10-portable-agent-helpers.md` — the pure-helper discipline
   that made lifting cheap.
-- `journal/ben/rib/2026-07-01-pi-and-the-malleable-harness.md` — the
+- `journal/team/harness-research/2026-07-01-pi-and-the-malleable-harness.md` — the
   malleability study behind the à la carte surface.

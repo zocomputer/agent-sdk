@@ -8,6 +8,6 @@
 
 > `const` **STEER\_WRAPPED\_OUTPUT\_FIELD**: `"steer_wrapped_output"` = `"steer_wrapped_output"`
 
-Defined in: [packages/agent-sdk/src/steer.ts:16](https://github.com/zocomputer/zov2-code/blob/3f2b99c534a9f8d96ad85214e02d7c759a75762c/packages/agent-sdk/src/steer.ts#L16)
+Defined in: [packages/agent-sdk/src/steer.ts:16](https://github.com/zocomputer/zov2-code/blob/d22a2863f30f9fa1a7f8dbb051f97b4846076bf1/packages/agent-sdk/src/steer.ts#L16)
 
 Key the original output hides under when it isn't a record.

@@ -6,7 +6,7 @@
 
 # Interface: RedeliveryRequest
 
-Defined in: [packages/agent-sdk/src/redeliver.ts:83](https://github.com/zocomputer/zov2-code/blob/3f2b99c534a9f8d96ad85214e02d7c759a75762c/packages/agent-sdk/src/redeliver.ts#L83)
+Defined in: [packages/agent-sdk/src/redeliver.ts:83](https://github.com/zocomputer/zov2-code/blob/d22a2863f30f9fa1a7f8dbb051f97b4846076bf1/packages/agent-sdk/src/redeliver.ts#L83)
 
 A park-triggered delivery of read-media attachments to a session.
 
@@ -16,7 +16,7 @@ A park-triggered delivery of read-media attachments to a session.
 
 > `readonly` **continuationToken**: `string`
 
-Defined in: [packages/agent-sdk/src/redeliver.ts:85](https://github.com/zocomputer/zov2-code/blob/3f2b99c534a9f8d96ad85214e02d7c759a75762c/packages/agent-sdk/src/redeliver.ts#L85)
+Defined in: [packages/agent-sdk/src/redeliver.ts:85](https://github.com/zocomputer/zov2-code/blob/d22a2863f30f9fa1a7f8dbb051f97b4846076bf1/packages/agent-sdk/src/redeliver.ts#L85)
 
 ***
 
@@ -24,7 +24,7 @@ Defined in: [packages/agent-sdk/src/redeliver.ts:85](https://github.com/zocomput
 
 > `readonly` **pending**: readonly [`PendingRedelivery`](PendingRedelivery.md)[]
 
-Defined in: [packages/agent-sdk/src/redeliver.ts:86](https://github.com/zocomputer/zov2-code/blob/3f2b99c534a9f8d96ad85214e02d7c759a75762c/packages/agent-sdk/src/redeliver.ts#L86)
+Defined in: [packages/agent-sdk/src/redeliver.ts:86](https://github.com/zocomputer/zov2-code/blob/d22a2863f30f9fa1a7f8dbb051f97b4846076bf1/packages/agent-sdk/src/redeliver.ts#L86)
 
 ***
 
@@ -32,4 +32,4 @@ Defined in: [packages/agent-sdk/src/redeliver.ts:86](https://github.com/zocomput
 
 > `readonly` **sessionId**: `string`
 
-Defined in: [packages/agent-sdk/src/redeliver.ts:84](https://github.com/zocomputer/zov2-code/blob/3f2b99c534a9f8d96ad85214e02d7c759a75762c/packages/agent-sdk/src/redeliver.ts#L84)
+Defined in: [packages/agent-sdk/src/redeliver.ts:84](https://github.com/zocomputer/zov2-code/blob/d22a2863f30f9fa1a7f8dbb051f97b4846076bf1/packages/agent-sdk/src/redeliver.ts#L84)

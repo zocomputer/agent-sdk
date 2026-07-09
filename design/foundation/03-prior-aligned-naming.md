@@ -92,5 +92,5 @@ flag), alias tables — live in the learning note below.
   half: the Ronacher evidence, the audit of where the stack stands
   (strip-mode leniency, the eve stream's invisible invalid calls, the dropped
   `strict` flag), and the measurement-first plan.
-- `journal/ben/rib/2026-07-01-opencode-default-tools.md` — the per-harness
+- `journal/team/harness-research/2026-07-01-opencode-default-tools.md` — the per-harness
   naming table and opencode's model-conditional toolset swap.

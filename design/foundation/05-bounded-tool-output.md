@@ -54,6 +54,6 @@ surrogate-pair reason).
 
 - `rib/learnings/15-context-budget-and-pruning.md` — the cost model and the
   landed budgets.
-- `plans/ben/rib-speed-opencode-lessons.md` — the opencode truncation pass.
+- `journal/team/harness-research/rib-speed-opencode-lessons.md` — the opencode truncation pass.
 - `plans/ben/agent-sdk-hostagent-lessons.md` — the hostagent gap analysis
   (grep spill P1-B, code-point safety P2).

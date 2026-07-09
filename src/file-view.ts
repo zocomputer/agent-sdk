@@ -3,7 +3,7 @@
 // token source once the prompt prefix is stable — so every read gets a
 // default line limit, a per-line cap, and a total character budget
 // (opencode's 2000-line / 50 KB tool-output budget, adapted). See
-// plans/ben/rib-speed-opencode-lessons.md.
+// journal/team/harness-research/rib-speed-opencode-lessons.md.
 
 /** Default window when the caller passes no limit. */
 export const READ_FILE_DEFAULT_LINE_LIMIT = 2_000;

@@ -8,7 +8,7 @@
 
 > **createRefreshingStateFilesClient**(`options`): [`StateFilesClient`](../interfaces/StateFilesClient.md)
 
-Defined in: [packages/agent-sdk/src/state-files.ts:300](https://github.com/zocomputer/zov2-code/blob/3f2b99c534a9f8d96ad85214e02d7c759a75762c/packages/agent-sdk/src/state-files.ts#L300)
+Defined in: [packages/agent-sdk/src/state-files.ts:300](https://github.com/zocomputer/zov2-code/blob/d22a2863f30f9fa1a7f8dbb051f97b4846076bf1/packages/agent-sdk/src/state-files.ts#L300)
 
 Creates a state-files client that reloads the handle when it nears expiration.
 Checks before each operation; if the handle expires within `refreshWindowMs`, calls `loadHandle`.

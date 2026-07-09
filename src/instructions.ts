@@ -51,7 +51,7 @@ export function createRepoConventionsInstruction(opts: { workspaceRoot: string }
  * run_async/check_tasks/await_task). Static by design: dynamic instructions
  * are system messages — part of the cached prompt prefix — so live task state
  * belongs in tool results (check_tasks), never re-rendered here. See
- * journal/ben/rib/2026-07-01-prompt-cache-as-economic-constraint.md.
+ * journal/team/harness-research/2026-07-01-prompt-cache-as-economic-constraint.md.
  */
 export function createParallelToolsInstruction() {
   const instruction = defineInstructions({

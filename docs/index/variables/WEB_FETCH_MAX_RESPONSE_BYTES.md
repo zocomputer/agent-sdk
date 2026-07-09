@@ -8,6 +8,6 @@
 
 > `const` **WEB\_FETCH\_MAX\_RESPONSE\_BYTES**: `number`
 
-Defined in: [packages/agent-sdk/src/web-fetch.ts:23](https://github.com/zocomputer/zov2-code/blob/3f2b99c534a9f8d96ad85214e02d7c759a75762c/packages/agent-sdk/src/web-fetch.ts#L23)
+Defined in: [packages/agent-sdk/src/web-fetch.ts:23](https://github.com/zocomputer/zov2-code/blob/d22a2863f30f9fa1a7f8dbb051f97b4846076bf1/packages/agent-sdk/src/web-fetch.ts#L23)
 
 Hard cap on the fetched body; larger responses error rather than truncate.

@@ -64,5 +64,5 @@ forced by a real split-brain (`await_task` failing "No such task" on a task
   lesson.
 - `rib/learnings/22-rebuild-splits-module-state.md` — the registry split-brain
   and fix.
-- `journal/ben/rib/2026-07-02-learning-from-cursor.md` §4 — the watcher
+- `journal/team/harness-research/2026-07-02-learning-from-cursor.md` §4 — the watcher
   design.

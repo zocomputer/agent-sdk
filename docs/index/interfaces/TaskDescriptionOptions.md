@@ -6,7 +6,7 @@
 
 # Interface: TaskDescriptionOptions
 
-Defined in: [packages/agent-sdk/src/task.ts:250](https://github.com/zocomputer/zov2-code/blob/3f2b99c534a9f8d96ad85214e02d7c759a75762c/packages/agent-sdk/src/task.ts#L250)
+Defined in: [packages/agent-sdk/src/task.ts:250](https://github.com/zocomputer/zov2-code/blob/d22a2863f30f9fa1a7f8dbb051f97b4846076bf1/packages/agent-sdk/src/task.ts#L250)
 
 Options for `buildTaskDescription`: the pinned model's display name and
 catalog blurb, when to pick this tier over its siblings, capability notes
@@ -22,7 +22,7 @@ for excluded tools, and what the description calls the workspace.
 
 > `optional` **capabilityNote?**: `string`
 
-Defined in: [packages/agent-sdk/src/task.ts:278](https://github.com/zocomputer/zov2-code/blob/3f2b99c534a9f8d96ad85214e02d7c759a75762c/packages/agent-sdk/src/task.ts#L278)
+Defined in: [packages/agent-sdk/src/task.ts:278](https://github.com/zocomputer/zov2-code/blob/d22a2863f30f9fa1a7f8dbb051f97b4846076bf1/packages/agent-sdk/src/task.ts#L278)
 
 What the child CANNOT do relative to the parent, as one complete
 sentence — name the excluded tools when the consumer excludes any
@@ -36,7 +36,7 @@ authored toolset.
 
 > `optional` **modelBlurb?**: `string`
 
-Defined in: [packages/agent-sdk/src/task.ts:270](https://github.com/zocomputer/zov2-code/blob/3f2b99c534a9f8d96ad85214e02d7c759a75762c/packages/agent-sdk/src/task.ts#L270)
+Defined in: [packages/agent-sdk/src/task.ts:270](https://github.com/zocomputer/zov2-code/blob/d22a2863f30f9fa1a7f8dbb051f97b4846076bf1/packages/agent-sdk/src/task.ts#L270)
 
 The model's own catalog description (from the AI Gateway model catalog —
 see [fetchGatewayModelCatalog](../functions/fetchGatewayModelCatalog.md)). Checked in by the consumer, never
@@ -53,7 +53,7 @@ explicit `undefined` reads the same as omitting the blurb.
 
 > **modelName**: `string`
 
-Defined in: [packages/agent-sdk/src/task.ts:252](https://github.com/zocomputer/zov2-code/blob/3f2b99c534a9f8d96ad85214e02d7c759a75762c/packages/agent-sdk/src/task.ts#L252)
+Defined in: [packages/agent-sdk/src/task.ts:252](https://github.com/zocomputer/zov2-code/blob/d22a2863f30f9fa1a7f8dbb051f97b4846076bf1/packages/agent-sdk/src/task.ts#L252)
 
 Display name of the pinned model (e.g. "Claude Sonnet 5").
 
@@ -63,7 +63,7 @@ Display name of the pinned model (e.g. "Claude Sonnet 5").
 
 > **use**: `string`
 
-Defined in: [packages/agent-sdk/src/task.ts:259](https://github.com/zocomputer/zov2-code/blob/3f2b99c534a9f8d96ad85214e02d7c759a75762c/packages/agent-sdk/src/task.ts#L259)
+Defined in: [packages/agent-sdk/src/task.ts:259](https://github.com/zocomputer/zov2-code/blob/d22a2863f30f9fa1a7f8dbb051f97b4846076bf1/packages/agent-sdk/src/task.ts#L259)
 
 When the parent should pick this tier over its siblings, as one complete
 sentence (e.g. "Prefer it for quick, well-scoped subtasks — exploration,
@@ -76,6 +76,6 @@ enough.").
 
 > `optional` **workspaceNoun?**: `string`
 
-Defined in: [packages/agent-sdk/src/task.ts:280](https://github.com/zocomputer/zov2-code/blob/3f2b99c534a9f8d96ad85214e02d7c759a75762c/packages/agent-sdk/src/task.ts#L280)
+Defined in: [packages/agent-sdk/src/task.ts:280](https://github.com/zocomputer/zov2-code/blob/d22a2863f30f9fa1a7f8dbb051f97b4846076bf1/packages/agent-sdk/src/task.ts#L280)
 
 What the description calls the workspace. Defaults to "workspace".

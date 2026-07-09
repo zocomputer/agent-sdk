@@ -8,7 +8,7 @@
 
 > **clientContinuationToken**(`runtimeToken`): `string`
 
-Defined in: [packages/agent-sdk/src/park-delivery.ts:29](https://github.com/zocomputer/zov2-code/blob/3f2b99c534a9f8d96ad85214e02d7c759a75762c/packages/agent-sdk/src/park-delivery.ts#L29)
+Defined in: [packages/agent-sdk/src/park-delivery.ts:29](https://github.com/zocomputer/zov2-code/blob/d22a2863f30f9fa1a7f8dbb051f97b4846076bf1/packages/agent-sdk/src/park-delivery.ts#L29)
 
 Recover the client-facing continuation token from a hook's runtime one.
 eve namespaces the runtime token as `<namespace>:<client token>` (its

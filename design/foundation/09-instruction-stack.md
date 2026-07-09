@@ -56,7 +56,7 @@ its extraction.
 
 ## Sources
 
-- `journal/ben/rib/2026-07-02-learning-from-cursor.md` §2, §3, §5.
+- `journal/team/harness-research/2026-07-02-learning-from-cursor.md` §2, §3, §5.
 - `rib/learnings/05-parallel-tool-orchestration.md` — the prompting half of
   the task machinery.
 - `rib/learnings/23-subagent-stream-topology.md` — the delegation playbook.

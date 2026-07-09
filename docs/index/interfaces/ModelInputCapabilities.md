@@ -6,7 +6,7 @@
 
 # Interface: ModelInputCapabilities
 
-Defined in: [packages/agent-sdk/src/model-capabilities.ts:20](https://github.com/zocomputer/zov2-code/blob/3f2b99c534a9f8d96ad85214e02d7c759a75762c/packages/agent-sdk/src/model-capabilities.ts#L20)
+Defined in: [packages/agent-sdk/src/model-capabilities.ts:20](https://github.com/zocomputer/zov2-code/blob/d22a2863f30f9fa1a7f8dbb051f97b4846076bf1/packages/agent-sdk/src/model-capabilities.ts#L20)
 
 The media kinds a model accepts as input. Input modalities only —
 deliberately scoped (context windows, reasoning, tool support stay out).
@@ -17,7 +17,7 @@ deliberately scoped (context windows, reasoning, tool support stay out).
 
 > `readonly` **audio**: `boolean`
 
-Defined in: [packages/agent-sdk/src/model-capabilities.ts:28](https://github.com/zocomputer/zov2-code/blob/3f2b99c534a9f8d96ad85214e02d7c759a75762c/packages/agent-sdk/src/model-capabilities.ts#L28)
+Defined in: [packages/agent-sdk/src/model-capabilities.ts:28](https://github.com/zocomputer/zov2-code/blob/d22a2863f30f9fa1a7f8dbb051f97b4846076bf1/packages/agent-sdk/src/model-capabilities.ts#L28)
 
 Accepts `audio/*` file parts (overlay-sourced; the catalog can't say).
 
@@ -27,7 +27,7 @@ Accepts `audio/*` file parts (overlay-sourced; the catalog can't say).
 
 > `readonly` **image**: `boolean`
 
-Defined in: [packages/agent-sdk/src/model-capabilities.ts:22](https://github.com/zocomputer/zov2-code/blob/3f2b99c534a9f8d96ad85214e02d7c759a75762c/packages/agent-sdk/src/model-capabilities.ts#L22)
+Defined in: [packages/agent-sdk/src/model-capabilities.ts:22](https://github.com/zocomputer/zov2-code/blob/d22a2863f30f9fa1a7f8dbb051f97b4846076bf1/packages/agent-sdk/src/model-capabilities.ts#L22)
 
 Accepts `image/*` file parts (the catalog's `vision` tag).
 
@@ -37,7 +37,7 @@ Accepts `image/*` file parts (the catalog's `vision` tag).
 
 > `readonly` **pdf**: `boolean`
 
-Defined in: [packages/agent-sdk/src/model-capabilities.ts:24](https://github.com/zocomputer/zov2-code/blob/3f2b99c534a9f8d96ad85214e02d7c759a75762c/packages/agent-sdk/src/model-capabilities.ts#L24)
+Defined in: [packages/agent-sdk/src/model-capabilities.ts:24](https://github.com/zocomputer/zov2-code/blob/d22a2863f30f9fa1a7f8dbb051f97b4846076bf1/packages/agent-sdk/src/model-capabilities.ts#L24)
 
 Accepts `application/pdf` file parts (the catalog's `file-input` tag).
 
@@ -47,6 +47,6 @@ Accepts `application/pdf` file parts (the catalog's `file-input` tag).
 
 > `readonly` **video**: `boolean`
 
-Defined in: [packages/agent-sdk/src/model-capabilities.ts:26](https://github.com/zocomputer/zov2-code/blob/3f2b99c534a9f8d96ad85214e02d7c759a75762c/packages/agent-sdk/src/model-capabilities.ts#L26)
+Defined in: [packages/agent-sdk/src/model-capabilities.ts:26](https://github.com/zocomputer/zov2-code/blob/d22a2863f30f9fa1a7f8dbb051f97b4846076bf1/packages/agent-sdk/src/model-capabilities.ts#L26)
 
 Accepts `video/*` file parts (overlay-sourced; the catalog can't say).

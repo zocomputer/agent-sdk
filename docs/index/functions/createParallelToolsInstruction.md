@@ -8,13 +8,13 @@
 
 > **createParallelToolsInstruction**(): `DynamicSentinel`
 
-Defined in: [packages/agent-sdk/src/instructions.ts:56](https://github.com/zocomputer/zov2-code/blob/3f2b99c534a9f8d96ad85214e02d7c759a75762c/packages/agent-sdk/src/instructions.ts#L56)
+Defined in: [packages/agent-sdk/src/instructions.ts:56](https://github.com/zocomputer/zov2-code/blob/d22a2863f30f9fa1a7f8dbb051f97b4846076bf1/packages/agent-sdk/src/instructions.ts#L56)
 
 The workflow guidance for the stdlib's async tools (bash auto-backgrounding,
 run_async/check_tasks/await_task). Static by design: dynamic instructions
 are system messages — part of the cached prompt prefix — so live task state
 belongs in tool results (check_tasks), never re-rendered here. See
-journal/ben/rib/2026-07-01-prompt-cache-as-economic-constraint.md.
+journal/team/harness-research/2026-07-01-prompt-cache-as-economic-constraint.md.
 
 ## Returns
 

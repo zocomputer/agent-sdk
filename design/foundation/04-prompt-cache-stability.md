@@ -54,9 +54,9 @@ both already re-price the session by design.
 
 ## Sources
 
-- `journal/ben/rib/2026-07-01-prompt-cache-as-economic-constraint.md` — the
+- `journal/team/harness-research/2026-07-01-prompt-cache-as-economic-constraint.md` — the
   audit, the two hazards, the measured numbers.
 - `rib/learnings/15-context-budget-and-pruning.md` — the cost model and the
   cache-hit measurement.
-- `journal/ben/rib/2026-07-01-hermes-vs-openclaw.md` — where both comps
+- `journal/team/harness-research/2026-07-01-hermes-vs-openclaw.md` — where both comps
   independently treat caching as architecture.

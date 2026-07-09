@@ -8,7 +8,7 @@
 
 > **createTaskInstruction**(`opts?`): `DynamicSentinel`
 
-Defined in: [packages/agent-sdk/src/task.ts:236](https://github.com/zocomputer/zov2-code/blob/3f2b99c534a9f8d96ad85214e02d7c759a75762c/packages/agent-sdk/src/task.ts#L236)
+Defined in: [packages/agent-sdk/src/task.ts:236](https://github.com/zocomputer/zov2-code/blob/d22a2863f30f9fa1a7f8dbb051f97b4846076bf1/packages/agent-sdk/src/task.ts#L236)
 
 The task child's operating contract, wired as the subagent's
 `instructions/task.ts` re-export. Static and session-stable

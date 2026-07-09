@@ -7,7 +7,7 @@ import { join } from "node:path";
 // once per directory per session. This makes convention delivery structural
 // instead of hoping the model remembers to read nested AGENTS.md files
 // (Cursor's harness does exactly this; see
-// journal/ben/rib/2026-07-02-learning-from-cursor.md).
+// journal/team/harness-research/2026-07-02-learning-from-cursor.md).
 //
 // The root conventions file is deliberately excluded: agents inject it as a
 // system-prompt section (createRepoConventionsInstruction), and re-delivering

@@ -52,6 +52,6 @@ working in a documented repo needs it, not just ours.
 
 - `rib/learnings/08-repo-context-injection.md` — the gap, the failed prose
   interim, both halves of the fix.
-- `journal/ben/rib/2026-07-02-learning-from-cursor.md` §1 — the rider
+- `journal/team/harness-research/2026-07-02-learning-from-cursor.md` §1 — the rider
   mechanism as observed in Cursor.
 - `plans/ben/agent-sdk-hostagent-lessons.md` — the hostagent confirmation.
