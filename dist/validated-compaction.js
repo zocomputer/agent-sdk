@@ -1,4 +1,4 @@
-// ../../../../../tmp/agent-sdk-mirror-fsGSHY/repo/src/validated-compaction.ts
+// ../../../../../tmp/agent-sdk-mirror-rBdoZe/repo/src/validated-compaction.ts
 var COMPACTION_SENTINEL = "You are a conversation summarizer.";
 var RECOVERED_CONTEXT_HEADER = "## Recovered context (compaction audit)";
 var DEFAULT_MAX_RECOVERED_CHARS = 2000;

@@ -8,7 +8,7 @@
 
 > **serializeSteerLine**(`message`): `string`
 
-Defined in: [packages/agent-sdk/src/steer.ts:133](https://github.com/zocomputer/zov2-code/blob/2c62d8b884523ef65360fa00bdaffe3cdda99189/packages/agent-sdk/src/steer.ts#L133)
+Defined in: [packages/agent-sdk/src/steer.ts:133](https://github.com/zocomputer/zov2-code/blob/edfd579427fbfafd3e21ca75b7f30a50695b254b/packages/agent-sdk/src/steer.ts#L133)
 
 Serialize one message as an NDJSON line (no trailing newline).
 

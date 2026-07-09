@@ -8,6 +8,6 @@
 
 > `const` **consentPartySchema**: `ZodObject`\<\{ `external`: `ZodBoolean`; `handle`: `ZodString`; `intentDivergenceNote`: `ZodOptional`\<`ZodString`\>; \}, `$strip`\>
 
-Defined in: [packages/agent-sdk/src/state-consent-envelope.ts:21](https://github.com/zocomputer/zov2-code/blob/2c62d8b884523ef65360fa00bdaffe3cdda99189/packages/agent-sdk/src/state-consent-envelope.ts#L21)
+Defined in: [packages/agent-sdk/src/state-consent-envelope.ts:21](https://github.com/zocomputer/zov2-code/blob/edfd579427fbfafd3e21ca75b7f30a50695b254b/packages/agent-sdk/src/state-consent-envelope.ts#L21)
 
 The trust attribution rendered on the consent card — server-derived from the agent's author.

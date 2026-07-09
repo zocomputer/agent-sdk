@@ -6,14 +6,14 @@
 
 # Interface: StateSandboxSessionFactory()
 
-Defined in: [packages/agent-sdk/src/state-sandbox.ts:316](https://github.com/zocomputer/zov2-code/blob/2c62d8b884523ef65360fa00bdaffe3cdda99189/packages/agent-sdk/src/state-sandbox.ts#L316)
+Defined in: [packages/agent-sdk/src/state-sandbox.ts:316](https://github.com/zocomputer/zov2-code/blob/edfd579427fbfafd3e21ca75b7f30a50695b254b/packages/agent-sdk/src/state-sandbox.ts#L316)
 
 Factory function that creates a sandbox session from a handle.
 Typically implemented by an SSH client that connects to the sandbox's access credentials.
 
 > **StateSandboxSessionFactory**(`handle`): `PromiseLike`\<[`StateSandboxSessionLike`](StateSandboxSessionLike.md)\>
 
-Defined in: [packages/agent-sdk/src/state-sandbox.ts:317](https://github.com/zocomputer/zov2-code/blob/2c62d8b884523ef65360fa00bdaffe3cdda99189/packages/agent-sdk/src/state-sandbox.ts#L317)
+Defined in: [packages/agent-sdk/src/state-sandbox.ts:317](https://github.com/zocomputer/zov2-code/blob/edfd579427fbfafd3e21ca75b7f30a50695b254b/packages/agent-sdk/src/state-sandbox.ts#L317)
 
 Factory function that creates a sandbox session from a handle.
 Typically implemented by an SSH client that connects to the sandbox's access credentials.

@@ -8,6 +8,6 @@
 
 > `const` **GATEWAY\_MODELS\_URL**: `"https://ai-gateway.vercel.sh/v1/models"` = `"https://ai-gateway.vercel.sh/v1/models"`
 
-Defined in: [packages/agent-sdk/src/task.ts:392](https://github.com/zocomputer/zov2-code/blob/2c62d8b884523ef65360fa00bdaffe3cdda99189/packages/agent-sdk/src/task.ts#L392)
+Defined in: [packages/agent-sdk/src/task.ts:392](https://github.com/zocomputer/zov2-code/blob/edfd579427fbfafd3e21ca75b7f30a50695b254b/packages/agent-sdk/src/task.ts#L392)
 
 The AI Gateway's public model-catalog endpoint (no API key required).

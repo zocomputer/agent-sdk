@@ -8,6 +8,6 @@
 
 > `const` **DEFAULT\_JUDGE\_MAX\_OUTPUT\_TOKENS**: `1024` = `1024`
 
-Defined in: [packages/agent-sdk/src/validated-compaction.ts:58](https://github.com/zocomputer/zov2-code/blob/2c62d8b884523ef65360fa00bdaffe3cdda99189/packages/agent-sdk/src/validated-compaction.ts#L58)
+Defined in: [packages/agent-sdk/src/validated-compaction.ts:58](https://github.com/zocomputer/zov2-code/blob/edfd579427fbfafd3e21ca75b7f30a50695b254b/packages/agent-sdk/src/validated-compaction.ts#L58)
 
 Default `maxOutputTokens` for the judge call.
