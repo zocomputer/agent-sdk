@@ -75,6 +75,20 @@ describe("the task instruction", () => {
     // Default noun.
     expect(buildTaskMarkdown()).toContain("task in this workspace");
   });
+
+  test("specifies the return shape — a distilled report is what makes delegation pay", () => {
+    // A subagent's value is measured in context kept OUT of the parent: an
+    // explicit return spec (structured sections, a token target, and the
+    // don't-include list) is what turns "report back" into a bounded return.
+    const markdown = buildTaskMarkdown();
+    expect(markdown).toContain("Structure your final report");
+    expect(markdown).toContain("**Findings**");
+    expect(markdown).toContain("**Recommendation**");
+    expect(markdown).toContain("**Artifacts**");
+    expect(markdown).toContain("full file contents");
+    expect(markdown).toContain("transcript of your exploration");
+    expect(markdown).toContain("500–1500 tokens");
+  });
 });
 
 describe("buildTaskDescription", () => {

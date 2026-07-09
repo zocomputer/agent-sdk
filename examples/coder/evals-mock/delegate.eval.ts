@@ -18,6 +18,19 @@ export default defineEval({
     const turn = await t.send("Delegate the survey [mock:delegate]");
     turn.succeeded();
     t.calledSubagent("task_fast");
+    // The distilled-return contract: what enters the parent's context from a
+    // delegation is the child's FINAL MESSAGE only, bounded — never the child's
+    // transcript. The mock child streams its story (CODER_MOCK_CHUNKS deltas,
+    // ~1 KB at the eval runner's pacing) opening with the mock's message
+    // header, and that message verbatim is the whole return; the cap sits far
+    // above the scripted size but far below a leaked transcript (events, tool
+    // definitions, reasoning).
+    t.calledSubagent("task_fast", {
+      output: (value) =>
+        typeof value === "string" &&
+        value.startsWith("**Story for:") &&
+        value.length < 4_000,
+    });
     turn.messageIncludes("delegation scenario complete");
   },
 });

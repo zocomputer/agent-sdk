@@ -69,7 +69,11 @@ regenerating a generated, checked-in module), never a runtime path.
 
 Instructions don't inherit either: the child gets `createTaskInstruction`
 (final message is the entire deliverable, cite paths + line refs, honor the
-requested thoroughness, stay in the assigned write scope) plus re-exports of
+requested thoroughness, stay in the assigned write scope, and return a
+structured Findings/Recommendation/Artifacts report targeting ~500–1500
+tokens — a delegation pays for itself in context kept out of the parent, so
+the return shape is spelled out rather than left to "report back") plus
+re-exports of
 the stdlib's `repoConventions`, `workflow`, and `parallelTools` — a
 write-capable worker needs the same how-to-work contract as the parent.
 Hooks don't inherit: a session-log hook must be re-exported or child sessions
