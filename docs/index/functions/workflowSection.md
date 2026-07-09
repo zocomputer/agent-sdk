@@ -8,7 +8,7 @@
 
 > **workflowSection**(`opts?`): [`PromptSection`](../interfaces/PromptSection.md)
 
-Defined in: [packages/agent-sdk/src/instructions.ts:103](https://github.com/zocomputer/zov2-code/blob/2004eea2e2488195525555d1ec03711235aadc63/packages/agent-sdk/src/instructions.ts#L103)
+Defined in: [packages/agent-sdk/src/instructions.ts:103](https://github.com/zocomputer/zov2-code/blob/f16d57089a60328b9900d1483bcd363cd844b8b3/packages/agent-sdk/src/instructions.ts#L103)
 
 The how-to-work section: explore→read→edit, follow conventions, reproduce a
 bug before fixing it, verify, track with `todo`, and the end-of-turn

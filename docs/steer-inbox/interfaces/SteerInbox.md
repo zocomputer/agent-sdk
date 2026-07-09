@@ -6,7 +6,7 @@
 
 # Interface: SteerInbox
 
-Defined in: [packages/agent-sdk/src/steer-inbox.ts:32](https://github.com/zocomputer/zov2-code/blob/2004eea2e2488195525555d1ec03711235aadc63/packages/agent-sdk/src/steer-inbox.ts#L32)
+Defined in: [packages/agent-sdk/src/steer-inbox.ts:32](https://github.com/zocomputer/zov2-code/blob/f16d57089a60328b9900d1483bcd363cd844b8b3/packages/agent-sdk/src/steer-inbox.ts#L32)
 
 A per-session NDJSON file queue for steered messages, with race-safe drain.
 
@@ -16,7 +16,7 @@ A per-session NDJSON file queue for steered messages, with race-safe drain.
 
 > **append**(`sessionId`, `text`): [`SteerMessage`](../../steer/interfaces/SteerMessage.md)
 
-Defined in: [packages/agent-sdk/src/steer-inbox.ts:34](https://github.com/zocomputer/zov2-code/blob/2004eea2e2488195525555d1ec03711235aadc63/packages/agent-sdk/src/steer-inbox.ts#L34)
+Defined in: [packages/agent-sdk/src/steer-inbox.ts:34](https://github.com/zocomputer/zov2-code/blob/f16d57089a60328b9900d1483bcd363cd844b8b3/packages/agent-sdk/src/steer-inbox.ts#L34)
 
 Queue a new steered message for a session; returns the stored message.
 
@@ -40,7 +40,7 @@ Queue a new steered message for a session; returns the stored message.
 
 > **appendMessage**(`sessionId`, `message`): `void`
 
-Defined in: [packages/agent-sdk/src/steer-inbox.ts:36](https://github.com/zocomputer/zov2-code/blob/2004eea2e2488195525555d1ec03711235aadc63/packages/agent-sdk/src/steer-inbox.ts#L36)
+Defined in: [packages/agent-sdk/src/steer-inbox.ts:36](https://github.com/zocomputer/zov2-code/blob/f16d57089a60328b9900d1483bcd363cd844b8b3/packages/agent-sdk/src/steer-inbox.ts#L36)
 
 Re-queue an existing message (failed delivery), keeping its id and time.
 
@@ -64,7 +64,7 @@ Re-queue an existing message (failed delivery), keeping its id and time.
 
 > **drain**(`sessionId`): [`SteerMessage`](../../steer/interfaces/SteerMessage.md)[]
 
-Defined in: [packages/agent-sdk/src/steer-inbox.ts:38](https://github.com/zocomputer/zov2-code/blob/2004eea2e2488195525555d1ec03711235aadc63/packages/agent-sdk/src/steer-inbox.ts#L38)
+Defined in: [packages/agent-sdk/src/steer-inbox.ts:38](https://github.com/zocomputer/zov2-code/blob/f16d57089a60328b9900d1483bcd363cd844b8b3/packages/agent-sdk/src/steer-inbox.ts#L38)
 
 Take every queued message for a session; `[]` when none are queued.
 

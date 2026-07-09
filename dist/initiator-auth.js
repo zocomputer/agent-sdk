@@ -1,4 +1,4 @@
-// ../../../../../tmp/agent-sdk-mirror-Y0e1tB/repo/src/initiator-auth.ts
+// ../../../../../tmp/agent-sdk-mirror-mPPfin/repo/src/initiator-auth.ts
 var INITIATOR_HEADER = "x-zo-initiator";
 function parseInitiator(value) {
   if (!value)

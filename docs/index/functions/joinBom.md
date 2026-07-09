@@ -8,7 +8,7 @@
 
 > **joinBom**(`text`, `bom`): `string`
 
-Defined in: [packages/agent-sdk/src/edit-match.ts:656](https://github.com/zocomputer/zov2-code/blob/2004eea2e2488195525555d1ec03711235aadc63/packages/agent-sdk/src/edit-match.ts#L656)
+Defined in: [packages/agent-sdk/src/edit-match.ts:656](https://github.com/zocomputer/zov2-code/blob/f16d57089a60328b9900d1483bcd363cd844b8b3/packages/agent-sdk/src/edit-match.ts#L656)
 
 Re-attach (or keep off) the BOM recorded by [splitBom](splitBom.md).
 
