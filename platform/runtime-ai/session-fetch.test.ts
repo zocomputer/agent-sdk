@@ -4,9 +4,11 @@ import { dirname, join } from "node:path";
 import { pathToFileURL } from "node:url";
 import {
   EVE_SESSION_HEADER,
+  EVE_SUBAGENT_SESSION_HEADER,
   EVE_TURN_HEADER,
   ambientEveSessionId,
   ambientEveTurnId,
+  ambientSessionParent,
   eveSessionFetch,
 } from "./session-fetch";
 
@@ -130,6 +132,81 @@ describe("eveSessionFetch", () => {
     expect(headerOf(call, EVE_TURN_HEADER)).toBeNull();
   });
 
+  test("a root session (no ambient parent) stamps its own id and no subagent header", async () => {
+    const { calls, fetch } = captureFetch();
+    const wrapped = eveSessionFetch(() => "ses-root", fetch, () => undefined, () => null);
+    await wrapped("https://api.example.com/v4/ai");
+    const call = onlyCall(calls);
+    expect(headerOf(call, EVE_SESSION_HEADER)).toBe("ses-root");
+    expect(headerOf(call, EVE_SUBAGENT_SESSION_HEADER)).toBeNull();
+  });
+
+  test("a subagent child bills to the ROOT id and rides its own id on the subagent header", async () => {
+    const { calls, fetch } = captureFetch();
+    const wrapped = eveSessionFetch(
+      () => "ses-child",
+      fetch,
+      () => "turn-child",
+      () => ({ rootSessionId: "ses-root", sessionId: "ses-parent" }),
+    );
+    await wrapped("https://api.example.com/v4/ai");
+    const call = onlyCall(calls);
+    expect(headerOf(call, EVE_SESSION_HEADER)).toBe("ses-root");
+    expect(headerOf(call, EVE_SUBAGENT_SESSION_HEADER)).toBe("ses-child");
+    // The child's own turn keeps riding as-is (descriptive-only, documented).
+    expect(headerOf(call, EVE_TURN_HEADER)).toBe("turn-child");
+  });
+
+  test("a malformed parent (reader → null) falls back to the session's own id", async () => {
+    const { calls, fetch } = captureFetch();
+    // ambientSessionParent's structural guards collapse any malformed slot to null;
+    // the wrapper then bills to the session's own id with no subagent header.
+    const wrapped = eveSessionFetch(() => "ses-child", fetch, () => undefined, () => null);
+    await wrapped("https://api.example.com/v4/ai");
+    const call = onlyCall(calls);
+    expect(headerOf(call, EVE_SESSION_HEADER)).toBe("ses-child");
+    expect(headerOf(call, EVE_SUBAGENT_SESSION_HEADER)).toBeNull();
+  });
+
+  test("a stale pre-existing subagent header is overwritten or removed (ambient lineage is authoritative)", async () => {
+    const { calls, fetch } = captureFetch();
+    // Ambient parent present → stale value overwritten with the child's own id.
+    const asChild = eveSessionFetch(
+      () => "ses-child",
+      fetch,
+      () => undefined,
+      () => ({ rootSessionId: "ses-root", sessionId: "ses-parent" }),
+    );
+    await asChild("https://api.example.com/v4/ai", {
+      headers: { [EVE_SUBAGENT_SESSION_HEADER]: "ses-stale" },
+    });
+    expect(headerOf(onlyCall(calls), EVE_SUBAGENT_SESSION_HEADER)).toBe("ses-child");
+    // Ambient parent absent → stale value removed, never forwarded.
+    calls.length = 0;
+    const asRoot = eveSessionFetch(() => "ses-root", fetch, () => undefined, () => null);
+    await asRoot("https://api.example.com/v4/ai", {
+      headers: { [EVE_SUBAGENT_SESSION_HEADER]: "ses-stale" },
+    });
+    const call = calls[0];
+    if (!call) throw new Error("fetch not called");
+    expect(headerOf(call, EVE_SUBAGENT_SESSION_HEADER)).toBeNull();
+    expect(headerOf(call, EVE_SESSION_HEADER)).toBe("ses-root");
+  });
+
+  test("a parent with no session stamps nothing (the subagent header only rides with a session)", async () => {
+    const { calls, fetch } = captureFetch();
+    const wrapped = eveSessionFetch(
+      () => undefined,
+      fetch,
+      () => undefined,
+      () => ({ rootSessionId: "ses-root", sessionId: "ses-parent" }),
+    );
+    await wrapped("https://api.example.com/v4/ai");
+    const call = onlyCall(calls);
+    expect(headerOf(call, EVE_SESSION_HEADER)).toBeNull();
+    expect(headerOf(call, EVE_SUBAGENT_SESSION_HEADER)).toBeNull();
+  });
+
   test("carries a Request input's headers when no init is given", async () => {
     const { calls, fetch } = captureFetch();
     const wrapped = eveSessionFetch(() => "ses-123", fetch);
@@ -208,6 +285,53 @@ describe("ambientEveSessionId", () => {
     expect(withSlot(storageOf(42), () => ambientEveSessionId())).toBeUndefined();
     expect(withSlot(storageOf("   "), () => ambientEveSessionId())).toBeUndefined();
   });
+
+  test("ambientSessionParent reads eve.parentSession, rejecting malformed shapes", () => {
+    const storageOf = (value: unknown) => ({
+      getStore: () => ({
+        get: (key: { name: string }) =>
+          key.name === "eve.parentSession" ? value : undefined,
+      }),
+    });
+    // The full SessionParent shape as eve seeds it; extra fields pass through unread.
+    expect(
+      withSlot(
+        storageOf({
+          callId: "call-1",
+          rootSessionId: "ses-root",
+          sessionId: "ses-parent",
+          turn: { id: "turn-1", sequence: 0 },
+        }),
+        () => ambientSessionParent(),
+      ),
+    ).toEqual({ rootSessionId: "ses-root", sessionId: "ses-parent" });
+    // Absent (a root session) and every malformed shape → null, never a throw.
+    expect(withSlot(storageOf(undefined), () => ambientSessionParent())).toBeNull();
+    expect(withSlot(storageOf(null), () => ambientSessionParent())).toBeNull();
+    expect(withSlot(storageOf("ses-root"), () => ambientSessionParent())).toBeNull();
+    expect(withSlot(storageOf({ sessionId: "ses-parent" }), () => ambientSessionParent())).toBeNull();
+    expect(withSlot(storageOf({ rootSessionId: "ses-root" }), () => ambientSessionParent())).toBeNull();
+    expect(
+      withSlot(storageOf({ rootSessionId: 42, sessionId: "ses-parent" }), () => ambientSessionParent()),
+    ).toBeNull();
+    expect(
+      withSlot(storageOf({ rootSessionId: "   ", sessionId: "ses-parent" }), () => ambientSessionParent()),
+    ).toBeNull();
+    expect(
+      withSlot(storageOf({ rootSessionId: "ses-root", sessionId: "  " }), () => ambientSessionParent()),
+    ).toBeNull();
+  });
+
+  test("ambientSessionParent with no storage slot → null", () => {
+    const had = Reflect.has(globalThis, SLOT);
+    const prior: unknown = Reflect.get(globalThis, SLOT);
+    Reflect.deleteProperty(globalThis, SLOT);
+    try {
+      expect(ambientSessionParent()).toBeNull();
+    } finally {
+      if (had) Reflect.set(globalThis, SLOT, prior);
+    }
+  });
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -249,6 +373,9 @@ describe("eve contract", () => {
     };
     expect(SessionIdKey.name).toBe("eve.sessionId");
     expect(SessionKey.name).toBe("eve.session");
+    // The lineage key the root-first billing read depends on (ambientSessionParent).
+    const { ParentSessionKey } = keysMod as { ParentSessionKey: { name: string } };
+    expect(ParentSessionKey.name).toBe("eve.parentSession");
     // Importing eve's container module published the storage on the global slot.
     expect(Reflect.get(globalThis, Symbol.for("eve.context-storage"))).toBe(
       contextStorage,
@@ -271,6 +398,53 @@ describe("eve contract", () => {
     const call = onlyCall(calls);
     expect(headerOf(call, EVE_SESSION_HEADER)).toBe("ses-real-eve");
     expect(headerOf(call, EVE_TURN_HEADER)).toBe("turn-real-eve");
+    // A root session (no ParentSessionKey seeded) rides no subagent header.
+    expect(headerOf(call, EVE_SUBAGENT_SESSION_HEADER)).toBeNull();
+  });
+
+  test("subagent lineage seeded via eve's real container bills to the root", async () => {
+    const { containerMod, keysMod } = await eveInternals();
+    const { ContextContainer, contextStorage } = containerMod as {
+      ContextContainer: new () => {
+        set(key: { name: string }, value: unknown): unknown;
+      };
+      contextStorage: {
+        run<T>(store: unknown, fn: () => T): T;
+      };
+    };
+    const { ParentSessionKey, SessionIdKey, SessionKey } = keysMod as {
+      ParentSessionKey: { name: string };
+      SessionIdKey: { name: string };
+      SessionKey: { name: string };
+    };
+
+    const container = new ContextContainer();
+    container.set(SessionIdKey, "ses-child-eve");
+    container.set(SessionKey, {
+      sessionId: "ses-child-eve",
+      auth: { current: null, initiator: null },
+      turn: { id: "turn-child-eve", sequence: 0 },
+    });
+    // The SessionParent lineage as eve seeds it for a subagent dispatch
+    // (execution/runtime-context.js) — the shape ambientSessionParent reads.
+    container.set(ParentSessionKey, {
+      callId: "call-real-eve",
+      rootSessionId: "ses-root-eve",
+      sessionId: "ses-parent-eve",
+      turn: { id: "turn-parent-eve", sequence: 5 },
+    });
+
+    const { calls, fetch } = captureFetch();
+    const wrapped = eveSessionFetch(undefined, fetch);
+    await contextStorage.run(container, () =>
+      wrapped("https://api.example.com/v4/ai", { method: "POST" }),
+    );
+    const call = onlyCall(calls);
+    // Billing session = the ROOT of the dispatch chain; the child's own id rides
+    // the subagent header as descriptive detail.
+    expect(headerOf(call, EVE_SESSION_HEADER)).toBe("ses-root-eve");
+    expect(headerOf(call, EVE_SUBAGENT_SESSION_HEADER)).toBe("ses-child-eve");
+    expect(headerOf(call, EVE_TURN_HEADER)).toBe("turn-child-eve");
   });
 
   test("outside the ALS scope the wrapper stamps nothing", async () => {

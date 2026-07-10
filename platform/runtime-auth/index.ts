@@ -17,7 +17,13 @@ import { SignJWT, jwtVerify, type JWTPayload } from "jose";
 /** The agent token, kept off `Authorization` so it never shadows a WorkOS session. */
 export const AGENT_TOKEN_HEADER = "x-zo-agent-token";
 
-/** The eve session the agent's call is for — carried onto the context as `eveSessionId`. */
+/**
+ * The eve session the agent's call is for — carried onto the context as `eveSessionId`.
+ * Semantically the session the call BILLS TO: a subagent child session (runtime-internal,
+ * no conversation row) stamps its ROOT session's id here, so the session-owner join
+ * lands on the root's conversation; the child's own id rides
+ * {@link EVE_SUBAGENT_SESSION_HEADER} as descriptive detail.
+ */
 export const EVE_SESSION_HEADER = "x-zo-eve-session";
 
 /**
@@ -28,6 +34,15 @@ export const EVE_SESSION_HEADER = "x-zo-eve-session";
  * this header is what pins a `tool_use` row to its exact turn.
  */
 export const EVE_TURN_HEADER = "x-zo-eve-turn";
+
+/**
+ * The subagent child session a call actually ran in, when the billing session
+ * (`EVE_SESSION_HEADER`) is the root of a dispatch chain. Descriptive metering detail
+ * exactly like the turn header (it lands in `UsageEvent.metadata.subagentSessionId`,
+ * never attribution/ownership, never joined) — it keeps per-child spend queryable
+ * while the row's `eveSessionId` column carries the root.
+ */
+export const EVE_SUBAGENT_SESSION_HEADER = "x-zo-eve-subagent-session";
 
 /** Env var a runtime reads its agent token from (injected by its launcher). */
 export const AGENT_TOKEN_ENV = "ZO_AGENT_TOKEN";

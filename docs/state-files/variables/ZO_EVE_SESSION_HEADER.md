@@ -8,6 +8,6 @@
 
 > `const` **ZO\_EVE\_SESSION\_HEADER**: `"x-zo-eve-session"` = `"x-zo-eve-session"`
 
-Defined in: [packages/agent-sdk/src/state-files.ts:24](https://github.com/zocomputer/zov2-code/blob/86e2b5a89599cc09df999181d86a1667b22c1929/packages/agent-sdk/src/state-files.ts#L24)
+Defined in: [packages/agent-sdk/src/state-files.ts:24](https://github.com/zocomputer/zov2-code/blob/b7f06ca2cf0142cf87a67d683e96ae88d6c29abe/packages/agent-sdk/src/state-files.ts#L24)
 
 Header name carrying the eve session key to the runtime broker.

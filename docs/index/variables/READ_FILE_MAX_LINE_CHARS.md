@@ -8,6 +8,6 @@
 
 > `const` **READ\_FILE\_MAX\_LINE\_CHARS**: `2000` = `2_000`
 
-Defined in: [packages/agent-sdk/src/file-view.ts:11](https://github.com/zocomputer/zov2-code/blob/86e2b5a89599cc09df999181d86a1667b22c1929/packages/agent-sdk/src/file-view.ts#L11)
+Defined in: [packages/agent-sdk/src/file-view.ts:11](https://github.com/zocomputer/zov2-code/blob/b7f06ca2cf0142cf87a67d683e96ae88d6c29abe/packages/agent-sdk/src/file-view.ts#L11)
 
 A single line longer than this (minified bundles, data blobs) is clipped.

@@ -8,6 +8,6 @@
 
 > `const` **TEXT\_ONLY\_CAPABILITIES**: [`ModelInputCapabilities`](../interfaces/ModelInputCapabilities.md)
 
-Defined in: [packages/agent-sdk/src/model-capabilities.ts:32](https://github.com/zocomputer/zov2-code/blob/86e2b5a89599cc09df999181d86a1667b22c1929/packages/agent-sdk/src/model-capabilities.ts#L32)
+Defined in: [packages/agent-sdk/src/model-capabilities.ts:32](https://github.com/zocomputer/zov2-code/blob/b7f06ca2cf0142cf87a67d683e96ae88d6c29abe/packages/agent-sdk/src/model-capabilities.ts#L32)
 
 The conservative default for a model the catalog doesn't know: text only.

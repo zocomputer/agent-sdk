@@ -1,8 +1,9 @@
-// ../../../../../tmp/agent-sdk-mirror-Ruqnza/repo/platform/runtime-auth/index.ts
+// ../../../../../tmp/agent-sdk-mirror-Ckt2bA/repo/platform/runtime-auth/index.ts
 import { SignJWT, jwtVerify } from "jose";
 var AGENT_TOKEN_HEADER = "x-zo-agent-token";
 var EVE_SESSION_HEADER = "x-zo-eve-session";
 var EVE_TURN_HEADER = "x-zo-eve-turn";
+var EVE_SUBAGENT_SESSION_HEADER = "x-zo-eve-subagent-session";
 var AGENT_TOKEN_ENV = "ZO_AGENT_TOKEN";
 var ZO_PLATFORM_ORG = {
   id: "org_zo",
@@ -134,6 +135,7 @@ export {
   LOCAL_AGENT_IDENTITY,
   INITIATOR_HEADER,
   EVE_TURN_HEADER,
+  EVE_SUBAGENT_SESSION_HEADER,
   EVE_SESSION_HEADER,
   BUILDER_AGENT_IDENTITY,
   AGENT_TOKEN_HEADER,
