@@ -173,6 +173,148 @@ describe("zoBackend", () => {
     expect(fetchCalls).toBe(0);
   });
 
+  // ── Subagent lineage: the broker key becomes the ROOT session's raw id when
+  // the current session is a subagent child (ambient `ParentSessionKey` read),
+  // else `tags.sessionId` as before. The ambient read is injected (`ambientParent`)
+  // so these stay hermetic; ambient.test.ts pins the real read against eve's dist.
+
+  const CHILD_SESSION_ID = "wrun_child_01KWWCHILD";
+  const ROOT_SESSION_ID = "wrun_root_01KWWROOT";
+  const PARENT = {
+    callId: "call_01ABC",
+    rootSessionId: ROOT_SESSION_ID,
+    sessionId: "wrun_parent_01KWWPARENT",
+  };
+
+  /** Stub the broker to a deterministic error, capturing each request's headers. */
+  function brokerCapture(): Array<{ init: RequestInit | undefined }> {
+    const requests: Array<{ init: RequestInit | undefined }> = [];
+    globalThis.fetch = (async (_url: string, init?: RequestInit) => {
+      requests.push({ init });
+      return new Response(JSON.stringify({ error: "provider_unconfigured" }), {
+        status: 503,
+        headers: { "content-type": "application/json" },
+      });
+    }) as typeof fetch;
+    return requests;
+  }
+
+  test("a child session with ambient lineage at create time brokers with the ROOT id", async () => {
+    const requests = brokerCapture();
+    const handle = await zoBackend({
+      apiBaseUrl: "http://api.test",
+      ambientParent: () => PARENT,
+    }).create(createInput(WRAPPED_KEY, { rawSessionId: CHILD_SESSION_ID }));
+
+    // Create-time resolution → the session label carries the brokered key too.
+    expect(handle.session.id).toBe(ROOT_SESSION_ID);
+    await expect(handle.session.run({ command: "echo hi" })).rejects.toThrow(/provider_unconfigured|503/);
+    const request = requests[0];
+    if (request === undefined) throw new Error("scratch broker request was not captured");
+    expect(header(request.init, EVE_SESSION_HEADER)).toBe(ROOT_SESSION_ID);
+  });
+
+  test("lineage resolving only lazily (inside acquireAccess) still brokers with the ROOT id, and caches it", async () => {
+    const requests = brokerCapture();
+    // Simulates `create` running OUTSIDE eve's ALS scope: the create-time read
+    // misses, the first in-scope read (during the first mint) resolves, and the
+    // resolved key is cached — later reads returning null must NOT flip the key
+    // back to the child id on a re-mint.
+    const ambientReads: Array<typeof PARENT | null> = [null, PARENT, null, null];
+    let reads = 0;
+    const handle = await zoBackend({
+      apiBaseUrl: "http://api.test",
+      ambientParent: () => ambientReads[reads++] ?? null,
+    }).create(createInput(WRAPPED_KEY, { rawSessionId: CHILD_SESSION_ID }));
+
+    // Create-time read missed → the label (best effort) says the child id.
+    expect(handle.session.id).toBe(CHILD_SESSION_ID);
+
+    // Two failed runs → two mints (a broker error leaves no held token), each
+    // resolving the broker key: first read hits, second falls back to the cache.
+    await expect(handle.session.run({ command: "echo hi" })).rejects.toThrow(/provider_unconfigured|503/);
+    await expect(handle.session.run({ command: "echo hi" })).rejects.toThrow(/provider_unconfigured|503/);
+    expect(requests.length).toBe(2);
+    for (const request of requests) {
+      expect(header(request.init, EVE_SESSION_HEADER)).toBe(ROOT_SESSION_ID);
+    }
+
+    // The cached lineage key also lands in captureState's diagnostic metadata.
+    const state = await handle.captureState();
+    expect(state.metadata).toMatchObject({ brokeredSessionKey: ROOT_SESSION_ID });
+  });
+
+  test("a lineage read that first resolves AFTER a fallback-keyed mint does not flip the key", async () => {
+    const requests = brokerCapture();
+    // The hedge case inverted: the FIRST mint misses lineage too (create + mint
+    // both out of scope), so the broker is keyed — and may have provisioned —
+    // on the child id. A later in-scope read resolving the root must NOT hop
+    // the session to a different sandbox mid-run: the first brokered key wins.
+    const ambientReads: Array<typeof PARENT | null> = [null, null, PARENT];
+    let reads = 0;
+    const handle = await zoBackend({
+      apiBaseUrl: "http://api.test",
+      ambientParent: () => ambientReads[reads++] ?? null,
+    }).create(createInput(WRAPPED_KEY, { rawSessionId: CHILD_SESSION_ID }));
+
+    await expect(handle.session.run({ command: "echo hi" })).rejects.toThrow(/provider_unconfigured|503/);
+    await expect(handle.session.run({ command: "echo hi" })).rejects.toThrow(/provider_unconfigured|503/);
+    expect(requests.length).toBe(2);
+    for (const request of requests) {
+      expect(header(request.init, EVE_SESSION_HEADER)).toBe(CHILD_SESSION_ID);
+    }
+    // No lineage key was ever brokered, so the diagnostic metadata omits it.
+    const state = await handle.captureState();
+    expect(state.metadata).toEqual({ daytonaSandboxId: "" });
+  });
+
+  test("ambient lineage absent → falls back to tags.sessionId (a root session is unchanged)", async () => {
+    const requests = brokerCapture();
+    const handle = await zoBackend({
+      apiBaseUrl: "http://api.test",
+      ambientParent: () => null,
+    }).create(createInput(WRAPPED_KEY, { rawSessionId: RAW_SESSION_ID }));
+
+    expect(handle.session.id).toBe(RAW_SESSION_ID);
+    await expect(handle.session.run({ command: "echo hi" })).rejects.toThrow(/provider_unconfigured|503/);
+    const request = requests[0];
+    if (request === undefined) throw new Error("scratch broker request was not captured");
+    expect(header(request.init, EVE_SESSION_HEADER)).toBe(RAW_SESSION_ID);
+  });
+
+  test("lineage does not bypass the blank tags.sessionId guard (the fallback must stay honest)", () => {
+    // Even a child with resolvable lineage keeps the fail-loud construction
+    // error on a blank raw id: the fallback key must never silently be blank.
+    expect(() =>
+      zoBackend({ apiBaseUrl: "http://api.test", ambientParent: () => PARENT }).create(
+        createInput(WRAPPED_KEY, { rawSessionId: "   " }),
+      ),
+    ).toThrow(/tags\.sessionId/);
+  });
+
+  test("captureState keeps eve's WRAPPED sessionKey and records the brokered lineage key as metadata only", async () => {
+    const handle = await zoBackend({
+      apiBaseUrl: "http://api.test",
+      ambientParent: () => PARENT,
+    }).create(createInput(WRAPPED_KEY, { rawSessionId: CHILD_SESSION_ID }));
+    const state = await handle.captureState();
+    // eve's reconnect matching contract: sessionKey stays the wrapped input key.
+    expect(state.sessionKey).toBe(WRAPPED_KEY);
+    expect(state.metadata).toEqual({
+      daytonaSandboxId: "",
+      brokeredSessionKey: ROOT_SESSION_ID,
+    });
+  });
+
+  test("captureState omits brokeredSessionKey when no lineage key was used", async () => {
+    const handle = await zoBackend({
+      apiBaseUrl: "http://api.test",
+      ambientParent: () => null,
+    }).create(createInput(WRAPPED_KEY, { rawSessionId: RAW_SESSION_ID }));
+    const state = await handle.captureState();
+    expect(state.metadata).toEqual({ daytonaSandboxId: "" });
+  });
+
   test("prewarm is a no-op (MVP)", async () => {
     // prewarm ignores its input (MVP no-op); pass an unused placeholder through the
     // double-assertion escape hatch rather than build the full eve prewarm shape.

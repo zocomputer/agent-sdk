@@ -8,7 +8,7 @@
 
 > **parseSearchOutput**(`stdout`, `maxMatches`, `flooded?`): [`IoSearchResult`](../interfaces/IoSearchResult.md)
 
-Defined in: [packages/agent-sdk/src/sandbox-io.ts:388](https://github.com/zocomputer/zov2-code/blob/f60be6793ffd6089caaf80014c136f326348f4b1/packages/agent-sdk/src/sandbox-io.ts#L388)
+Defined in: [packages/agent-sdk/src/sandbox-io.ts:388](https://github.com/zocomputer/zov2-code/blob/86e2b5a89599cc09df999181d86a1667b22c1929/packages/agent-sdk/src/sandbox-io.ts#L388)
 
 Parse `file:line:text` search output into matches, enforcing the total
 bound. Reaching the bound (or a `flooded` byte-capped stream) marks the

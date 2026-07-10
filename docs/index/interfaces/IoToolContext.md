@@ -6,7 +6,7 @@
 
 # Interface: IoToolContext
 
-Defined in: [packages/agent-sdk/src/workspace-io.ts:127](https://github.com/zocomputer/zov2-code/blob/f60be6793ffd6089caaf80014c136f326348f4b1/packages/agent-sdk/src/workspace-io.ts#L127)
+Defined in: [packages/agent-sdk/src/workspace-io.ts:127](https://github.com/zocomputer/zov2-code/blob/86e2b5a89599cc09df999181d86a1667b22c1929/packages/agent-sdk/src/workspace-io.ts#L127)
 
 The slice of eve's `ToolContext` an IO provider may use. Structural, so
 tools can hand their eve context straight through without the lib importing
@@ -19,7 +19,7 @@ per-session setup (the Builder's workspace bootstrap keys on it).
 
 > `readonly` `optional` **session?**: `object`
 
-Defined in: [packages/agent-sdk/src/workspace-io.ts:128](https://github.com/zocomputer/zov2-code/blob/f60be6793ffd6089caaf80014c136f326348f4b1/packages/agent-sdk/src/workspace-io.ts#L128)
+Defined in: [packages/agent-sdk/src/workspace-io.ts:128](https://github.com/zocomputer/zov2-code/blob/86e2b5a89599cc09df999181d86a1667b22c1929/packages/agent-sdk/src/workspace-io.ts#L128)
 
 #### id
 
@@ -31,7 +31,7 @@ Defined in: [packages/agent-sdk/src/workspace-io.ts:128](https://github.com/zoco
 
 > **getSandbox**(): `PromiseLike`\<[`SandboxSessionLike`](SandboxSessionLike.md)\>
 
-Defined in: [packages/agent-sdk/src/workspace-io.ts:130](https://github.com/zocomputer/zov2-code/blob/f60be6793ffd6089caaf80014c136f326348f4b1/packages/agent-sdk/src/workspace-io.ts#L130)
+Defined in: [packages/agent-sdk/src/workspace-io.ts:130](https://github.com/zocomputer/zov2-code/blob/86e2b5a89599cc09df999181d86a1667b22c1929/packages/agent-sdk/src/workspace-io.ts#L130)
 
 Resolve the sandbox session for the current tool call.
 

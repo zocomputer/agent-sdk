@@ -1,7 +1,7 @@
-// ../../../../../tmp/agent-sdk-mirror-izoYR3/repo/platform/runtime-ai/gateway.ts
+// ../../../../../tmp/agent-sdk-mirror-Ruqnza/repo/platform/runtime-ai/gateway.ts
 import { createGateway } from "ai";
 
-// ../../../../../tmp/agent-sdk-mirror-izoYR3/repo/platform/runtime-ai/session-fetch.ts
+// ../../../../../tmp/agent-sdk-mirror-Ruqnza/repo/platform/runtime-ai/session-fetch.ts
 var EVE_SESSION_HEADER = "x-zo-eve-session";
 var EVE_TURN_HEADER = "x-zo-eve-turn";
 var EVE_CONTEXT_STORAGE_KEY = Symbol.for("eve.context-storage");
@@ -49,7 +49,7 @@ function eveSessionFetch(getSessionId = ambientEveSessionId, baseFetch = globalT
   }, baseFetch);
 }
 
-// ../../../../../tmp/agent-sdk-mirror-izoYR3/repo/platform/runtime-ai/gateway.ts
+// ../../../../../tmp/agent-sdk-mirror-Ruqnza/repo/platform/runtime-ai/gateway.ts
 var DEFAULT_ZO_AI_BASE_URL = "http://localhost:4000/runtime/ai/v4/ai";
 var DEFAULT_ZO_AI_KEY = "dev-proxy";
 var AGENT_TOKEN_HEADER = "x-zo-agent-token";
@@ -76,7 +76,7 @@ function zoGateway(options = {}) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-izoYR3/repo/platform/runtime-ai/validated-compaction.ts
+// ../../../../../tmp/agent-sdk-mirror-Ruqnza/repo/platform/runtime-ai/validated-compaction.ts
 var COMPACTION_SENTINEL = "You are a conversation summarizer.";
 var RECOVERED_CONTEXT_HEADER = "## Recovered context (compaction audit)";
 var DEFAULT_MAX_RECOVERED_CHARS = 2000;
@@ -275,7 +275,7 @@ function withValidatedCompactionProvider(provider, options = {}) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-izoYR3/repo/platform/runtime-ai/register.ts
+// ../../../../../tmp/agent-sdk-mirror-Ruqnza/repo/platform/runtime-ai/register.ts
 var SLOT = "AI_SDK_DEFAULT_PROVIDER";
 if (!(SLOT in globalThis)) {
   Object.defineProperty(globalThis, SLOT, {

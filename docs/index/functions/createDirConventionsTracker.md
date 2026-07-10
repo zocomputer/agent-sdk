@@ -8,7 +8,7 @@
 
 > **createDirConventionsTracker**(`options`): [`DirConventionsTracker`](../interfaces/DirConventionsTracker.md)
 
-Defined in: [packages/agent-sdk/src/dir-conventions.ts:140](https://github.com/zocomputer/zov2-code/blob/f60be6793ffd6089caaf80014c136f326348f4b1/packages/agent-sdk/src/dir-conventions.ts#L140)
+Defined in: [packages/agent-sdk/src/dir-conventions.ts:140](https://github.com/zocomputer/zov2-code/blob/86e2b5a89599cc09df999181d86a1667b22c1929/packages/agent-sdk/src/dir-conventions.ts#L140)
 
 Build a conventions tracker that delivers directory-specific convention files once per directory per session.
 

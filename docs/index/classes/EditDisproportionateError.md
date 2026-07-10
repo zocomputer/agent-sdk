@@ -6,7 +6,7 @@
 
 # Class: EditDisproportionateError
 
-Defined in: [packages/agent-sdk/src/edit-match.ts:55](https://github.com/zocomputer/zov2-code/blob/f60be6793ffd6089caaf80014c136f326348f4b1/packages/agent-sdk/src/edit-match.ts#L55)
+Defined in: [packages/agent-sdk/src/edit-match.ts:55](https://github.com/zocomputer/zov2-code/blob/86e2b5a89599cc09df999181d86a1667b22c1929/packages/agent-sdk/src/edit-match.ts#L55)
 
 The closest match is disproportionately larger than `old_string` — refusing to splice it.
 
@@ -20,7 +20,7 @@ The closest match is disproportionately larger than `old_string` — refusing to
 
 > **new EditDisproportionateError**(): `EditDisproportionateError`
 
-Defined in: [packages/agent-sdk/src/edit-match.ts:56](https://github.com/zocomputer/zov2-code/blob/f60be6793ffd6089caaf80014c136f326348f4b1/packages/agent-sdk/src/edit-match.ts#L56)
+Defined in: [packages/agent-sdk/src/edit-match.ts:56](https://github.com/zocomputer/zov2-code/blob/86e2b5a89599cc09df999181d86a1667b22c1929/packages/agent-sdk/src/edit-match.ts#L56)
 
 #### Returns
 

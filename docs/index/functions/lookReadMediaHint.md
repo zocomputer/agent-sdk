@@ -8,7 +8,7 @@
 
 > **lookReadMediaHint**(`oracle`): `string` \| `undefined`
 
-Defined in: [packages/agent-sdk/src/tools/look.ts:380](https://github.com/zocomputer/zov2-code/blob/f60be6793ffd6089caaf80014c136f326348f4b1/packages/agent-sdk/src/tools/look.ts#L380)
+Defined in: [packages/agent-sdk/src/tools/look.ts:380](https://github.com/zocomputer/zov2-code/blob/86e2b5a89599cc09df999181d86a1667b22c1929/packages/agent-sdk/src/tools/look.ts#L380)
 
 `read`'s video/audio-unavailable hint when a look oracle is wired, with
 the look clause scoped to the kinds the oracle actually takes.

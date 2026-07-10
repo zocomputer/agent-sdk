@@ -5,6 +5,7 @@ import type {
   SandboxBackendPrewarmInput,
   SandboxSession,
 } from "eve/sandbox";
+import { type AmbientSessionParent, ambientSessionParent } from "./ambient";
 import { requestScratchSandboxAccess } from "./api-client";
 import { type SshSandboxAccess, sshSandboxSession } from "./ssh-session";
 import { type DaytonaSessionMetadata, readSandboxId } from "./pure";
@@ -17,6 +18,9 @@ import { type DaytonaSessionMetadata, readSandboxId } from "./pure";
 // persists the sandbox id in its per-session metadata and hands it back as
 // `existingMetadata` on a reply; the broker keys the session-partitioned
 // instance off the eve session key, so a reply reattaches the same sandbox.
+// A SUBAGENT CHILD session keys the broker on its ROOT session's id instead
+// (ambient lineage read — see the comment in `create`), so children share the
+// parent conversation's sandbox rather than provisioning fresh ones.
 // `dispose` closes the SSH connection but never destroys the sandbox — Daytona
 // idles it out and the next reply reattaches. See
 // plans/dcosson/external-state-sandbox.md and plans/rc2/sandbox-per-session.md.
@@ -27,6 +31,11 @@ const BACKEND_NAME = "zo";
 export interface ZoBackendOptions {
   /** Control-plane API base URL the runtime calls (e.g. http://api.zo.localhost:4000). */
   readonly apiBaseUrl: string;
+  /**
+   * Injectable subagent-lineage read (tests); defaults to the real
+   * context-storage read (`ambientSessionParent`).
+   */
+  readonly ambientParent?: () => AmbientSessionParent | null;
 }
 
 export function zoBackend(options: ZoBackendOptions): SandboxBackend {
@@ -66,21 +75,57 @@ export function zoBackend(options: ZoBackendOptions): SandboxBackend {
         );
       }
 
+      // SUBAGENT LINEAGE: a subagent child session must share its ROOT
+      // session's sandbox — eve always sets `tags.sessionId` to the CHILD's own
+      // raw id, so keying the broker on it would provision a fresh, empty
+      // sandbox per child (see plans/ben/subagent-shared-sandboxes.md). The
+      // root id comes from eve's ambient context storage (`ParentSessionKey`),
+      // read at TWO points because it's unverified whether `create` runs inside
+      // eve's ALS scope:
+      //   1. here at create time — resolves when eve invokes `create` in scope
+      //      (the lazy `ctx.getSandbox()` inside a tool call);
+      //   2. inside `acquireAccess` on the FIRST mint — `acquireAccess` runs
+      //      lazily on the first `run`/file op, which is always inside a tool
+      //      execute, where the ALS store demonstrably resolves (runtime-ai's
+      //      `ambientEveSessionId` works there today).
+      // The key is LATCHED on the first mint: every re-mint must present the
+      // same broker key or a token refresh would silently hop the session to a
+      // different sandbox — and even a failed mint may have provisioned
+      // server-side (the broker find-or-creates the sandbox before minting SSH
+      // access), so the latch covers the fallback key too, not just a resolved
+      // lineage read. A lineage read that first resolves only AFTER a
+      // fallback-keyed mint therefore does NOT flip the key. Absent both reads
+      // (a root session, or no ALS) → fall back to `tags.sessionId`, today's
+      // behavior, so nothing regresses.
+      const readAmbientParent = options.ambientParent ?? ambientSessionParent;
+      let lineageRootId: string | null = readAmbientParent()?.rootSessionId ?? null;
+      let brokeredKey: string | null = null;
+      const brokerSessionKey = (): string => {
+        if (brokeredKey === null) {
+          lineageRootId ??= readAmbientParent()?.rootSessionId ?? null;
+          brokeredKey = lineageRootId ?? eveSessionKey;
+        }
+        return brokeredKey;
+      };
+
       // Resolve (or re-resolve) scoped SSH access from the control-plane state
-      // broker — the `scratch` sandbox declaration for this eve session. Called
-      // LAZILY on first `run` — so opening a session the agent never uses
-      // provisions nothing — and again when the short-lived token expires or the
-      // connection drops, so a long session keeps working.
+      // broker — the `scratch` sandbox declaration for this eve session (or its
+      // root, when lineage resolves). Called LAZILY on first `run` — so opening
+      // a session the agent never uses provisions nothing — and again when the
+      // short-lived token expires or the connection drops, so a long session
+      // keeps working.
       const acquireAccess = async (): Promise<SshSandboxAccess> =>
         await requestScratchSandboxAccess({
           apiBaseUrl: options.apiBaseUrl,
-          eveSessionKey,
+          eveSessionKey: brokerSessionKey(),
         });
 
-      // `SandboxSession.id` is the raw eve session key too (same string the
-      // flush uses), so the session surface is labelled by the id the broker
-      // and the repo path both key on — not eve's wrapped internal key.
-      const ssh = sshSandboxSession(eveSessionKey, acquireAccess);
+      // `SandboxSession.id` is the raw eve session key the broker is keyed on
+      // (same string the flush + git-remote paths use) — the CREATE-TIME
+      // resolution, best effort: when lineage only resolves lazily (read point
+      // 2 above) this label still says the child's id while the broker keys on
+      // the root's. The broker key is what matters; the label is diagnostic.
+      const ssh = sshSandboxSession(lineageRootId ?? eveSessionKey, acquireAccess);
 
       // No per-session options for MVP, so `use()` just yields the session.
       const useSessionFn = (): Promise<SandboxSession> => Promise.resolve(ssh.session);
@@ -98,8 +143,12 @@ export function zoBackend(options: ZoBackendOptions): SandboxBackend {
             sessionKey: input.sessionKey,
             // The id we've provisioned this session, else the one eve remembered
             // (a session that never ran a command has nothing new to persist).
+            // `brokeredSessionKey` (lineage only) is diagnostic — recorded so a
+            // persisted handle says which root key provisioned it; never read
+            // back on reconnect (lineage re-resolves each create).
             metadata: {
               daytonaSandboxId: ssh.currentSandboxId() ?? rememberedId ?? "",
+              ...(lineageRootId === null ? {} : { brokeredSessionKey: lineageRootId }),
             } satisfies DaytonaSessionMetadata,
           }),
         // Close the local SSH connection; never destroy the sandbox (the next

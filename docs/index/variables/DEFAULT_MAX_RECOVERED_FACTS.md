@@ -8,6 +8,6 @@
 
 > `const` **DEFAULT\_MAX\_RECOVERED\_FACTS**: `12` = `12`
 
-Defined in: [packages/agent-sdk/src/validated-compaction.ts:55](https://github.com/zocomputer/zov2-code/blob/f60be6793ffd6089caaf80014c136f326348f4b1/packages/agent-sdk/src/validated-compaction.ts#L55)
+Defined in: [packages/agent-sdk/src/validated-compaction.ts:55](https://github.com/zocomputer/zov2-code/blob/86e2b5a89599cc09df999181d86a1667b22c1929/packages/agent-sdk/src/validated-compaction.ts#L55)
 
 Default cap on how many judge-reported facts are appended.

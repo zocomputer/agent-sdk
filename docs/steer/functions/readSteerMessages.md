@@ -8,7 +8,7 @@
 
 > **readSteerMessages**(`output`): [`SteerMessage`](../interfaces/SteerMessage.md)[] \| `null`
 
-Defined in: [packages/agent-sdk/src/steer.ts:98](https://github.com/zocomputer/zov2-code/blob/f60be6793ffd6089caaf80014c136f326348f4b1/packages/agent-sdk/src/steer.ts#L98)
+Defined in: [packages/agent-sdk/src/steer.ts:98](https://github.com/zocomputer/zov2-code/blob/86e2b5a89599cc09df999181d86a1667b22c1929/packages/agent-sdk/src/steer.ts#L98)
 
 Read the steered messages off a tool output, structurally validated.
 Returns null when the output isn't a record, carries no steer payload, or

@@ -222,6 +222,22 @@ built, verified patches) graduate to [`proposals/`](./proposals).
   seam — `compaction.validate?: (transcript, summary) => summary` or an
   `onCompaction` variant that can amend the summary before it persists —
   would delete the sentinel sniffing and survive prompt refactors.
+- **Sandbox backends can't see subagent lineage.** `SandboxBackendCreateInput.tags`
+  carries `{ agent, channel, sessionId }` but no root session id, so a custom
+  backend that partitions sandboxes per session provisions a fresh, empty
+  sandbox for every subagent child instead of sharing the root session's — eve
+  itself wants sharing (the built-in `agent` clone propagates
+  `sandboxSessionId` + `parentSandboxState`), but declared subagents get no
+  propagation and `tags.sessionId` is always the child's own id. Our
+  workaround reads `ParentSessionKey` from eve's process-wide context storage
+  (`Symbol.for("eve.context-storage")`) with no eve import
+  (`@zocomputer/agent-sandbox`'s `ambient.ts`, pinned against the installed
+  dist) and keys the broker on `rootSessionId` when present. Surfacing
+  `rootSessionId` in `tags` — the sandbox context provider already has
+  `ParentSessionKey` in reach when it builds the create input — would let
+  custom backends partition on lineage without reading eve's internals and
+  delete the ambient read. See `plans/ben/subagent-shared-sandboxes.md`
+  (zov2-code).
 - **The eval client's HTTP layer flakes with ECONNRESET under fast streams.**
   Running the coder example's eval suites locally, eve's client
   intermittently dies with `socket hang up` (`ECONNRESET`) — on the stream

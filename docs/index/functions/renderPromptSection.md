@@ -8,7 +8,7 @@
 
 > **renderPromptSection**(`section`): `string`
 
-Defined in: [packages/agent-sdk/src/prompt-sections.ts:42](https://github.com/zocomputer/zov2-code/blob/f60be6793ffd6089caaf80014c136f326348f4b1/packages/agent-sdk/src/prompt-sections.ts#L42)
+Defined in: [packages/agent-sdk/src/prompt-sections.ts:42](https://github.com/zocomputer/zov2-code/blob/86e2b5a89599cc09df999181d86a1667b22c1929/packages/agent-sdk/src/prompt-sections.ts#L42)
 
 Render one section as `## {heading}` followed by its body, or `""` when the
 body is blank (an absent section contributes nothing to the prompt).

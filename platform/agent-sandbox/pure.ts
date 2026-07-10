@@ -41,6 +41,14 @@ export function shellSingleQuote(s: string): string {
  */
 export interface DaytonaSessionMetadata {
   readonly daytonaSandboxId: string;
+  /**
+   * Diagnostic only: the lineage-derived root session id the broker was keyed
+   * on, present only when a subagent child shared its root session's sandbox
+   * (see zo-backend.ts). Never read back on reconnect — the broker re-resolves
+   * lineage each time; this exists so a persisted handle records WHICH key
+   * provisioned it.
+   */
+  readonly brokeredSessionKey?: string;
 }
 
 /** Narrow persisted metadata to a non-empty `daytonaSandboxId`, else `null`. */
