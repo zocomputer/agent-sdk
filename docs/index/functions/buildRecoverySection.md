@@ -8,7 +8,7 @@
 
 > **buildRecoverySection**(`facts`, `maxChars`): \{ `kept`: `number`; `text`: `string`; `truncated`: `boolean`; \} \| `null`
 
-Defined in: [packages/agent-sdk/src/validated-compaction.ts:186](https://github.com/zocomputer/zov2-code/blob/4567e46fc689740ed814c3b4b8b1101dff80bfbe/packages/agent-sdk/src/validated-compaction.ts#L186)
+Defined in: [packages/agent-sdk/src/validated-compaction.ts:186](https://github.com/zocomputer/zov2-code/blob/f60be6793ffd6089caaf80014c136f326348f4b1/packages/agent-sdk/src/validated-compaction.ts#L186)
 
 Render recovered facts as the section appended to a repaired summary: the
 [RECOVERED\_CONTEXT\_HEADER](../variables/RECOVERED_CONTEXT_HEADER.md), an intro line, and one `- ` bullet per

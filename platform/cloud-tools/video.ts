@@ -8,6 +8,12 @@ import { ZO_TOOL_HEADER, zoGateway } from "../runtime-ai/index.ts";
 import { assetOutputPath, OutputDirSchema } from "./asset-path";
 import { CLOUD_TOOL_META } from "./tool-meta";
 import {
+  GeneratedAssetOutputSchema,
+  generationFailure,
+  saveFailure,
+  warningText,
+} from "./tool-shared";
+import {
   createRuntimeStateFilesClient,
   DEFAULT_STATE_ASSET_DECLARATION_NAME,
   stateAssetReference,
@@ -25,38 +31,34 @@ export const DEFAULT_VIDEO_MODEL = "bytedance/seedance-2.0-fast";
 // `${number}:${number}`) so the JSON Schema the model sees offers safe choices.
 const AspectRatioSchema = z.enum(["16:9", "9:16", "1:1"]);
 
-export const GenerateVideoInputSchema = z
-  .object({
-    aspectRatio: AspectRatioSchema.optional(),
-    durationSeconds: z.number().int().positive().max(30).optional(),
-    model: z.string().trim().min(1).optional(),
-    outputDir: OutputDirSchema.optional(),
-    prompt: z.string().trim().min(1).max(4000),
-    seed: z.number().int().nonnegative().optional(),
-  })
-  .strict();
+// Flat snake_case scalars, strip mode — the agent-sdk tool-schema contract
+// (packages/agent-sdk/src/tools/AGENTS.md): an invented extra key strips
+// instead of bouncing a dollars-per-call generation back as a Zod error.
+export const GenerateVideoInputSchema = z.object({
+  aspect_ratio: AspectRatioSchema.optional().describe(
+    "Aspect ratio; omit for the model's default.",
+  ),
+  duration_seconds: z
+    .number()
+    .int()
+    .positive()
+    .max(30)
+    .optional()
+    .describe("Clip length in seconds (max 30); omit for the model's short default."),
+  model: z
+    .string()
+    .trim()
+    .min(1)
+    .optional()
+    .describe("Video model id; omit to use the default."),
+  output_dir: OutputDirSchema.optional().describe(
+    "Relative state-file directory for the generated asset; defaults to 'generated'.",
+  ),
+  prompt: z.string().trim().min(1).max(4000).describe("What to generate."),
+  seed: z.number().int().nonnegative().optional().describe("Reproducibility seed."),
+});
 
-const StateAssetReferenceSchema = z
-  .object({
-    bytes: z.number().int().nonnegative().optional(),
-    contentType: z.string().optional(),
-    declarationName: z.string(),
-    path: z.string(),
-    type: z.literal("state_asset"),
-  })
-  .strict();
-
-export const GenerateVideoOutputSchema = z
-  .object({
-    asset: StateAssetReferenceSchema,
-    bytes: z.number().int().nonnegative(),
-    mediaType: z.string(),
-    model: z.string(),
-    path: z.string(),
-    prompt: z.string(),
-    warnings: z.array(z.string()),
-  })
-  .strict();
+export const GenerateVideoOutputSchema = GeneratedAssetOutputSchema;
 
 export type GenerateVideoInput = z.infer<typeof GenerateVideoInputSchema>;
 export type GenerateVideoOutput = z.infer<typeof GenerateVideoOutputSchema>;
@@ -76,20 +78,6 @@ export interface GenerateVideoToolOptions {
   readonly randomId?: () => string;
 }
 
-function warningText(warning: unknown): string {
-  if (warning instanceof Error) {
-    return warning.message;
-  }
-  if (typeof warning === "string") {
-    return warning;
-  }
-
-  // The lib overload says `JSON.stringify` returns `string`, but it really
-  // returns `undefined` for symbols/functions — widen it back.
-  const json = JSON.stringify(warning) as string | undefined;
-  return json ?? String(warning);
-}
-
 function randomVideoId(): string {
   return randomUUID().slice(0, 8);
 }
@@ -107,24 +95,33 @@ export function generateVideoTool(options: GenerateVideoToolOptions = {}) {
     outputSchema: GenerateVideoOutputSchema,
     async execute(input): Promise<GenerateVideoOutput> {
       const model = input.model ?? DEFAULT_VIDEO_MODEL;
-      const result = await generate({
-        headers: { [ZO_TOOL_HEADER]: "generate_video" },
-        model: zoGateway().video(model),
-        prompt: input.prompt,
-        ...(input.aspectRatio === undefined ? {} : { aspectRatio: input.aspectRatio }),
-        ...(input.durationSeconds === undefined ? {} : { duration: input.durationSeconds }),
-        ...(input.seed === undefined ? {} : { seed: input.seed }),
-      });
+      let result: GeneratedVideoResult;
+      try {
+        result = await generate({
+          headers: { [ZO_TOOL_HEADER]: "generate_video" },
+          model: zoGateway().video(model),
+          prompt: input.prompt,
+          ...(input.aspect_ratio === undefined ? {} : { aspectRatio: input.aspect_ratio }),
+          ...(input.duration_seconds === undefined ? {} : { duration: input.duration_seconds }),
+          ...(input.seed === undefined ? {} : { seed: input.seed }),
+        });
+      } catch (error) {
+        throw generationFailure("video", error);
+      }
       const video = result.video;
       const path = assetOutputPath({
         id: randomId(),
         mediaType: video.mediaType,
-        outputDir: input.outputDir,
+        outputDir: input.output_dir,
         prompt: input.prompt,
         fallbackSlug: "video",
       });
 
-      await assetWriter.write(path, video.uint8Array, { contentType: video.mediaType });
+      try {
+        await assetWriter.write(path, video.uint8Array, { contentType: video.mediaType });
+      } catch (error) {
+        throw saveFailure("video", error);
+      }
       const asset: StateAssetReference = stateAssetReference({
         type: "state_asset",
         declarationName,

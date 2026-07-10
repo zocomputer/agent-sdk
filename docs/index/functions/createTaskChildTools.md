@@ -8,7 +8,7 @@
 
 > **createTaskChildTools**(`options`): `object`
 
-Defined in: [packages/agent-sdk/src/task.ts:148](https://github.com/zocomputer/zov2-code/blob/4567e46fc689740ed814c3b4b8b1101dff80bfbe/packages/agent-sdk/src/task.ts#L148)
+Defined in: [packages/agent-sdk/src/task.ts:148](https://github.com/zocomputer/zov2-code/blob/f60be6793ffd6089caaf80014c136f326348f4b1/packages/agent-sdk/src/task.ts#L148)
 
 Child-safe `read` and `webfetch` overrides for a task subagent's `tools/`
 dir. A declared child runs WITHOUT the park-delivery hook (it never parks

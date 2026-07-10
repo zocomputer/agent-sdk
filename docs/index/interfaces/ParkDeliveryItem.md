@@ -6,7 +6,7 @@
 
 # Interface: ParkDeliveryItem\<T\>
 
-Defined in: [packages/agent-sdk/src/park-delivery.ts:49](https://github.com/zocomputer/zov2-code/blob/4567e46fc689740ed814c3b4b8b1101dff80bfbe/packages/agent-sdk/src/park-delivery.ts#L49)
+Defined in: [packages/agent-sdk/src/park-delivery.ts:49](https://github.com/zocomputer/zov2-code/blob/f60be6793ffd6089caaf80014c136f326348f4b1/packages/agent-sdk/src/park-delivery.ts#L49)
 
 One item queued for park delivery: a dedupe key plus its payload. An item
 with a key already delivered (or currently pending) is dropped.
@@ -23,7 +23,7 @@ with a key already delivered (or currently pending) is dropped.
 
 > `readonly` **key**: `string`
 
-Defined in: [packages/agent-sdk/src/park-delivery.ts:51](https://github.com/zocomputer/zov2-code/blob/4567e46fc689740ed814c3b4b8b1101dff80bfbe/packages/agent-sdk/src/park-delivery.ts#L51)
+Defined in: [packages/agent-sdk/src/park-delivery.ts:51](https://github.com/zocomputer/zov2-code/blob/f60be6793ffd6089caaf80014c136f326348f4b1/packages/agent-sdk/src/park-delivery.ts#L51)
 
 Dedupe key: an item delivers at most once per session per process.
 
@@ -33,4 +33,4 @@ Dedupe key: an item delivers at most once per session per process.
 
 > `readonly` **payload**: `T`
 
-Defined in: [packages/agent-sdk/src/park-delivery.ts:52](https://github.com/zocomputer/zov2-code/blob/4567e46fc689740ed814c3b4b8b1101dff80bfbe/packages/agent-sdk/src/park-delivery.ts#L52)
+Defined in: [packages/agent-sdk/src/park-delivery.ts:52](https://github.com/zocomputer/zov2-code/blob/f60be6793ffd6089caaf80014c136f326348f4b1/packages/agent-sdk/src/park-delivery.ts#L52)

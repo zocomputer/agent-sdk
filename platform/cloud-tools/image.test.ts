@@ -38,7 +38,7 @@ describe("generateImageTool", () => {
     });
 
     const output = await tool.execute(
-      { prompt: "Blue robot", outputDir: "generated" } satisfies ExecuteInput,
+      { prompt: "Blue robot", output_dir: "generated" } satisfies ExecuteInput,
       new Proxy({}, {
         get(_, property) {
           if (property === "getSandbox") {
@@ -126,7 +126,7 @@ describe("generateImageTool", () => {
     let error: unknown = null;
     try {
       await tool.execute(
-        { prompt: "Blue robot", outputDir: "generated" } satisfies ExecuteInput,
+        { prompt: "Blue robot", output_dir: "generated" } satisfies ExecuteInput,
         new Proxy({}, {}) as Parameters<Tool["execute"]>[1],
       );
     } catch (caught) {
@@ -137,5 +137,65 @@ describe("generateImageTool", () => {
       expect(error.envelope).toEqual(envelope);
       expect(error.message).toContain("request_state_consent");
     }
+  });
+
+  test("refuses size + aspect_ratio together before generating", async () => {
+    const generated: unknown[] = [];
+    const tool = generateImageTool({
+      assetWriter: recordingWriter(),
+      generate: async (options) => {
+        generated.push(options);
+        return imageResult();
+      },
+    });
+
+    const attempt = tool.execute(
+      {
+        prompt: "Blue robot",
+        size: "1024x1024",
+        aspect_ratio: "16:9",
+      } satisfies ExecuteInput,
+      new Proxy({}, {}) as Parameters<Tool["execute"]>[1],
+    );
+
+    await expect(attempt).rejects.toThrow("no image was generated");
+    expect(generated).toEqual([]);
+  });
+
+  test("maps a failed generation call to model-actionable feedback", async () => {
+    const tool = generateImageTool({
+      assetWriter: recordingWriter(),
+      generate: async () => {
+        throw new Error("model bfl/nope not found (404)");
+      },
+    });
+
+    const attempt = tool.execute(
+      { prompt: "Blue robot" } satisfies ExecuteInput,
+      new Proxy({}, {}) as Parameters<Tool["execute"]>[1],
+    );
+
+    await expect(attempt).rejects.toThrow("No image was generated");
+    await expect(attempt).rejects.toThrow("model bfl/nope not found (404)");
+  });
+
+  test("maps a failed asset write to model-actionable feedback", async () => {
+    const failingWriter: StateFilesAssetWriter = {
+      async write() {
+        throw new Error("the storage write was rejected with HTTP 403");
+      },
+    };
+    const tool = generateImageTool({
+      assetWriter: failingWriter,
+      generate: async () => imageResult(),
+    });
+
+    const attempt = tool.execute(
+      { prompt: "Blue robot" } satisfies ExecuteInput,
+      new Proxy({}, {}) as Parameters<Tool["execute"]>[1],
+    );
+
+    await expect(attempt).rejects.toThrow("no state asset was saved");
+    await expect(attempt).rejects.toThrow("HTTP 403");
   });
 });

@@ -6,13 +6,13 @@
 
 # Interface: StateFilesHandleFetch()
 
-Defined in: [packages/agent-sdk/src/state-files.ts:63](https://github.com/zocomputer/zov2-code/blob/4567e46fc689740ed814c3b4b8b1101dff80bfbe/packages/agent-sdk/src/state-files.ts#L63)
+Defined in: [packages/agent-sdk/src/state-files.ts:63](https://github.com/zocomputer/zov2-code/blob/f60be6793ffd6089caaf80014c136f326348f4b1/packages/agent-sdk/src/state-files.ts#L63)
 
 Fetch-compatible function for issuing HTTP requests. Accepts the standard `fetch` signature.
 
 > **StateFilesHandleFetch**(`input`, `init?`): `Promise`\<`Response`\>
 
-Defined in: [packages/agent-sdk/src/state-files.ts:64](https://github.com/zocomputer/zov2-code/blob/4567e46fc689740ed814c3b4b8b1101dff80bfbe/packages/agent-sdk/src/state-files.ts#L64)
+Defined in: [packages/agent-sdk/src/state-files.ts:64](https://github.com/zocomputer/zov2-code/blob/f60be6793ffd6089caaf80014c136f326348f4b1/packages/agent-sdk/src/state-files.ts#L64)
 
 Fetch-compatible function for issuing HTTP requests. Accepts the standard `fetch` signature.
 

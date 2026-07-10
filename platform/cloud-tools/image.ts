@@ -8,6 +8,12 @@ import { ZO_TOOL_HEADER, zoGateway } from "../runtime-ai/index.ts";
 import { assetOutputPath, OutputDirSchema } from "./asset-path";
 import { CLOUD_TOOL_META } from "./tool-meta";
 import {
+  GeneratedAssetOutputSchema,
+  generationFailure,
+  saveFailure,
+  warningText,
+} from "./tool-shared";
+import {
   createRuntimeStateFilesClient,
   DEFAULT_STATE_ASSET_DECLARATION_NAME,
   stateAssetReference,
@@ -47,50 +53,33 @@ const AspectRatioSchema = z
   .templateLiteral([z.number().int().positive(), ":", z.number().int().positive()])
   .refine(isImageAspectRatio, { message: "Use WIDTH:HEIGHT, for example 1:1 or 16:9." });
 
-const ImageDimensionsSchema = z.discriminatedUnion("kind", [
-  z.object({ kind: z.literal("auto") }).strict(),
-  z.object({ kind: z.literal("size"), size: SizeSchema }).strict(),
-  z
-    .object({
-      aspectRatio: AspectRatioSchema,
-      kind: z.literal("aspectRatio"),
-    })
-    .strict(),
-]);
+// Flat snake_case scalars, strip mode — the agent-sdk tool-schema contract
+// (packages/agent-sdk/src/tools/AGENTS.md): no nested unions the model can
+// garble, and an invented extra key strips instead of bouncing the whole call.
+// `size`/`aspect_ratio` are mutually exclusive; the executor enforces that
+// with corrective prose (a schema-level union would reintroduce the nesting).
+export const GenerateImageInputSchema = z.object({
+  aspect_ratio: AspectRatioSchema.optional().describe(
+    "Aspect ratio as WIDTH:HEIGHT, e.g. '1:1' or '16:9'. Give this or `size`, not both.",
+  ),
+  model: z
+    .string()
+    .trim()
+    .min(1)
+    .optional()
+    .describe("Image model id; omit to use the default."),
+  output_dir: OutputDirSchema.optional().describe(
+    "Relative state-file directory for the generated asset; defaults to 'generated'.",
+  ),
+  prompt: z.string().trim().min(1).max(4000).describe("What to generate."),
+  seed: z.number().int().nonnegative().optional().describe("Reproducibility seed."),
+  size: SizeSchema.optional().describe(
+    "Exact pixel size as WIDTHxHEIGHT, e.g. '1024x1024'. Give this or `aspect_ratio`, not both.",
+  ),
+});
 
-export const GenerateImageInputSchema = z
-  .object({
-    dimensions: ImageDimensionsSchema.optional(),
-    model: z.string().trim().min(1).optional(),
-    outputDir: OutputDirSchema.optional(),
-    prompt: z.string().trim().min(1).max(4000),
-    seed: z.number().int().nonnegative().optional(),
-  })
-  .strict();
+export const GenerateImageOutputSchema = GeneratedAssetOutputSchema;
 
-const StateAssetReferenceSchema = z
-  .object({
-    bytes: z.number().int().nonnegative().optional(),
-    contentType: z.string().optional(),
-    declarationName: z.string(),
-    path: z.string(),
-    type: z.literal("state_asset"),
-  })
-  .strict();
-
-export const GenerateImageOutputSchema = z
-  .object({
-    asset: StateAssetReferenceSchema,
-    bytes: z.number().int().nonnegative(),
-    mediaType: z.string(),
-    model: z.string(),
-    path: z.string(),
-    prompt: z.string(),
-    warnings: z.array(z.string()),
-  })
-  .strict();
-
-export type GenerateImageDimensions = z.infer<typeof ImageDimensionsSchema>;
 export type GenerateImageInput = z.infer<typeof GenerateImageInputSchema>;
 export type GenerateImageOutput = z.infer<typeof GenerateImageOutputSchema>;
 
@@ -109,46 +98,6 @@ export interface GenerateImageToolOptions {
   readonly randomId?: () => string;
 }
 
-interface ImageDimensionSettings {
-  readonly aspectRatio?: ImageAspectRatio;
-  readonly size?: ImageSize;
-}
-
-function assertNever(value: never): never {
-  throw new Error(`Unhandled generate_image dimensions: ${JSON.stringify(value)}`);
-}
-
-function imageDimensionSettings(
-  dimensions: GenerateImageDimensions | undefined,
-): ImageDimensionSettings {
-  if (dimensions === undefined || dimensions.kind === "auto") {
-    return {};
-  }
-
-  switch (dimensions.kind) {
-    case "aspectRatio":
-      return { aspectRatio: dimensions.aspectRatio };
-    case "size":
-      return { size: dimensions.size };
-    default:
-      return assertNever(dimensions);
-  }
-}
-
-function warningText(warning: unknown): string {
-  if (warning instanceof Error) {
-    return warning.message;
-  }
-  if (typeof warning === "string") {
-    return warning;
-  }
-
-  // The lib overload says `JSON.stringify` returns `string`, but it really
-  // returns `undefined` for symbols/functions — widen it back.
-  const json = JSON.stringify(warning) as string | undefined;
-  return json ?? String(warning);
-}
-
 function randomImageId(): string {
   return randomUUID().slice(0, 8);
 }
@@ -165,24 +114,40 @@ export function generateImageTool(options: GenerateImageToolOptions = {}) {
     inputSchema: GenerateImageInputSchema,
     outputSchema: GenerateImageOutputSchema,
     async execute(input): Promise<GenerateImageOutput> {
+      if (input.size !== undefined && input.aspect_ratio !== undefined) {
+        throw new Error(
+          "Give `size` or `aspect_ratio`, not both — no image was generated. " +
+            "Resend with one of them (or neither, for the model's default framing).",
+        );
+      }
       const model = input.model ?? DEFAULT_IMAGE_MODEL;
-      const result = await generate({
-        headers: { [ZO_TOOL_HEADER]: "generate_image" },
-        model: zoGateway().imageModel(model),
-        prompt: input.prompt,
-        ...imageDimensionSettings(input.dimensions),
-        ...(input.seed === undefined ? {} : { seed: input.seed }),
-      });
+      let result: GeneratedImageResult;
+      try {
+        result = await generate({
+          headers: { [ZO_TOOL_HEADER]: "generate_image" },
+          model: zoGateway().imageModel(model),
+          prompt: input.prompt,
+          ...(input.size === undefined ? {} : { size: input.size }),
+          ...(input.aspect_ratio === undefined ? {} : { aspectRatio: input.aspect_ratio }),
+          ...(input.seed === undefined ? {} : { seed: input.seed }),
+        });
+      } catch (error) {
+        throw generationFailure("image", error);
+      }
       const image = result.image;
       const path = assetOutputPath({
         id: randomId(),
         mediaType: image.mediaType,
-        outputDir: input.outputDir,
+        outputDir: input.output_dir,
         prompt: input.prompt,
         fallbackSlug: "image",
       });
 
-      await assetWriter.write(path, image.uint8Array, { contentType: image.mediaType });
+      try {
+        await assetWriter.write(path, image.uint8Array, { contentType: image.mediaType });
+      } catch (error) {
+        throw saveFailure("image", error);
+      }
       const asset: StateAssetReference = stateAssetReference({
         type: "state_asset",
         declarationName,

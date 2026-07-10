@@ -6,7 +6,7 @@
 
 # Interface: InitiatorIdentity
 
-Defined in: [packages/agent-sdk/src/initiator-auth.ts:26](https://github.com/zocomputer/zov2-code/blob/4567e46fc689740ed814c3b4b8b1101dff80bfbe/packages/agent-sdk/src/initiator-auth.ts#L26)
+Defined in: [packages/agent-sdk/src/initiator-auth.ts:26](https://github.com/zocomputer/zov2-code/blob/f60be6793ffd6089caaf80014c136f326348f4b1/packages/agent-sdk/src/initiator-auth.ts#L26)
 
 The initiator identity carried on `INITIATOR_HEADER`.
 
@@ -16,7 +16,7 @@ The initiator identity carried on `INITIATOR_HEADER`.
 
 > `readonly` **agentId**: `string`
 
-Defined in: [packages/agent-sdk/src/initiator-auth.ts:28](https://github.com/zocomputer/zov2-code/blob/4567e46fc689740ed814c3b4b8b1101dff80bfbe/packages/agent-sdk/src/initiator-auth.ts#L28)
+Defined in: [packages/agent-sdk/src/initiator-auth.ts:28](https://github.com/zocomputer/zov2-code/blob/f60be6793ffd6089caaf80014c136f326348f4b1/packages/agent-sdk/src/initiator-auth.ts#L28)
 
 ***
 
@@ -24,4 +24,4 @@ Defined in: [packages/agent-sdk/src/initiator-auth.ts:28](https://github.com/zoc
 
 > `readonly` **userId**: `string`
 
-Defined in: [packages/agent-sdk/src/initiator-auth.ts:27](https://github.com/zocomputer/zov2-code/blob/4567e46fc689740ed814c3b4b8b1101dff80bfbe/packages/agent-sdk/src/initiator-auth.ts#L27)
+Defined in: [packages/agent-sdk/src/initiator-auth.ts:27](https://github.com/zocomputer/zov2-code/blob/f60be6793ffd6089caaf80014c136f326348f4b1/packages/agent-sdk/src/initiator-auth.ts#L27)

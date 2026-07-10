@@ -8,7 +8,7 @@
 
 > **createRedeliveryState**(): `object`
 
-Defined in: [packages/agent-sdk/src/redeliver.ts:99](https://github.com/zocomputer/zov2-code/blob/4567e46fc689740ed814c3b4b8b1101dff80bfbe/packages/agent-sdk/src/redeliver.ts#L99)
+Defined in: [packages/agent-sdk/src/redeliver.ts:99](https://github.com/zocomputer/zov2-code/blob/f60be6793ffd6089caaf80014c136f326348f4b1/packages/agent-sdk/src/redeliver.ts#L99)
 
 Per-process redelivery state across sessions: the generic park-delivery
 state machine specialized to read-media attachments. Feed it every stream

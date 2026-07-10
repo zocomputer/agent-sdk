@@ -15,22 +15,22 @@ describe("generate_video input schema", () => {
     expect(
       GenerateVideoInputSchema.safeParse({
         prompt: "a drone shot over a canyon",
-        aspectRatio: "16:9",
-        durationSeconds: 8,
+        aspect_ratio: "16:9",
+        duration_seconds: 8,
       }).success,
     ).toBe(true);
     expect(GenerateVideoInputSchema.safeParse({ prompt: "just a prompt" }).success).toBe(true);
   });
 
   test("rejects unsupported aspect ratios and out-of-range durations", () => {
-    expect(GenerateVideoInputSchema.safeParse({ prompt: "p", aspectRatio: "21:9" }).success).toBe(false);
-    expect(GenerateVideoInputSchema.safeParse({ prompt: "p", durationSeconds: 0 }).success).toBe(false);
-    expect(GenerateVideoInputSchema.safeParse({ prompt: "p", durationSeconds: 120 }).success).toBe(false);
+    expect(GenerateVideoInputSchema.safeParse({ prompt: "p", aspect_ratio: "21:9" }).success).toBe(false);
+    expect(GenerateVideoInputSchema.safeParse({ prompt: "p", duration_seconds: 0 }).success).toBe(false);
+    expect(GenerateVideoInputSchema.safeParse({ prompt: "p", duration_seconds: 120 }).success).toBe(false);
   });
 
-  test("rejects outputDir values that are not valid state file prefixes", () => {
-    for (const outputDir of ["/generated", "generated/", "generated//videos", ".", "../generated"]) {
-      expect(GenerateVideoInputSchema.safeParse({ prompt: "p", outputDir }).success).toBe(false);
+  test("rejects output_dir values that are not valid state file prefixes", () => {
+    for (const output_dir of ["/generated", "generated/", "generated//videos", ".", "../generated"]) {
+      expect(GenerateVideoInputSchema.safeParse({ prompt: "p", output_dir }).success).toBe(false);
     }
   });
 });

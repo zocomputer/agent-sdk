@@ -1,13 +1,13 @@
-// ../../../../../tmp/agent-sdk-mirror-HcfevK/repo/platform/cloud-tools/image.ts
+// ../../../../../tmp/agent-sdk-mirror-izoYR3/repo/platform/cloud-tools/image.ts
 import { randomUUID } from "node:crypto";
 import { generateImage } from "ai";
 import { defineTool } from "eve/tools";
-import { z as z3 } from "zod";
+import { z as z4 } from "zod";
 
-// ../../../../../tmp/agent-sdk-mirror-HcfevK/repo/platform/runtime-ai/gateway.ts
+// ../../../../../tmp/agent-sdk-mirror-izoYR3/repo/platform/runtime-ai/gateway.ts
 import { createGateway } from "ai";
 
-// ../../../../../tmp/agent-sdk-mirror-HcfevK/repo/platform/runtime-ai/session-fetch.ts
+// ../../../../../tmp/agent-sdk-mirror-izoYR3/repo/platform/runtime-ai/session-fetch.ts
 var EVE_SESSION_HEADER = "x-zo-eve-session";
 var EVE_TURN_HEADER = "x-zo-eve-turn";
 var EVE_CONTEXT_STORAGE_KEY = Symbol.for("eve.context-storage");
@@ -55,7 +55,7 @@ function eveSessionFetch(getSessionId = ambientEveSessionId, baseFetch = globalT
   }, baseFetch);
 }
 
-// ../../../../../tmp/agent-sdk-mirror-HcfevK/repo/platform/runtime-ai/gateway.ts
+// ../../../../../tmp/agent-sdk-mirror-izoYR3/repo/platform/runtime-ai/gateway.ts
 var ZO_TOOL_HEADER = "x-zo-tool";
 var DEFAULT_ZO_AI_BASE_URL = "http://localhost:4000/runtime/ai/v4/ai";
 var DEFAULT_ZO_AI_KEY = "dev-proxy";
@@ -82,7 +82,7 @@ function zoGateway(options = {}) {
     fetch: eveSessionFetch(undefined, options.fetch)
   });
 }
-// ../../../../../tmp/agent-sdk-mirror-HcfevK/repo/platform/cloud-tools/asset-path.ts
+// ../../../../../tmp/agent-sdk-mirror-izoYR3/repo/platform/cloud-tools/asset-path.ts
 import { z } from "zod";
 var DEFAULT_ASSET_OUTPUT_DIR = "generated";
 var OutputDirSchema = z.string().trim().min(1).max(200).regex(/^(?!\/)(?!.*\/$)(?!.*\/\/)(?!.*(?:^|\/)(?:\.|\.\.)(?:\/|$))[A-Za-z0-9._/-]+$/u, "Use a relative state file path without empty, . or .. segments.");
@@ -111,7 +111,7 @@ function assetOutputPath(input) {
   return `${normalizedOutputDir(input.outputDir)}/${slugForPrompt(input.prompt, input.fallbackSlug)}-${input.id}.${extensionForMediaType(input.mediaType)}`;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-HcfevK/repo/platform/cloud-tools/tool-meta.ts
+// ../../../../../tmp/agent-sdk-mirror-izoYR3/repo/platform/cloud-tools/tool-meta.ts
 var CLOUD_TOOL_META = {
   image: {
     description: "Generate an image from a text prompt and save it as an external state asset."
@@ -121,7 +121,10 @@ var CLOUD_TOOL_META = {
   }
 };
 
-// ../../../../../tmp/agent-sdk-mirror-HcfevK/repo/platform/cloud-tools/state-consent.ts
+// ../../../../../tmp/agent-sdk-mirror-izoYR3/repo/platform/cloud-tools/tool-shared.ts
+import { z as z3 } from "zod";
+
+// ../../../../../tmp/agent-sdk-mirror-izoYR3/repo/platform/cloud-tools/state-consent.ts
 import { z as z2 } from "zod";
 var REQUEST_STATE_CONSENT_TOOL_NAME = "request_state_consent";
 var consentPartySchema = z2.object({
@@ -149,7 +152,7 @@ function buildConsentSteer(envelope) {
 `);
 }
 
-// ../../../../../tmp/agent-sdk-mirror-HcfevK/repo/platform/cloud-tools/state-files.ts
+// ../../../../../tmp/agent-sdk-mirror-izoYR3/repo/platform/cloud-tools/state-files.ts
 var DEFAULT_STATE_ASSET_DECLARATION_NAME = "files";
 var STATE_FILES_HANDLE_PATH = "/state/handles";
 var ZO_AGENT_TOKEN_HEADER = "x-zo-agent-token";
@@ -192,7 +195,7 @@ function createRuntimeStateFilesClient(options = {}) {
         ...eveSessionKey === undefined ? {} : { eveSessionKey }
       });
       if (handle.access !== "rw") {
-        throw new StateFilesRuntimeError(`state files handle "${handle.handleId}" is read-only`);
+        throw new StateFilesRuntimeError(`the "${handle.declarationName}" state files handle is read-only, so nothing can be written — the agent's state configuration must allow writes`);
       }
       await putStateFileObject({
         body,
@@ -254,21 +257,21 @@ async function requestRuntimeStateFilesHandle(options) {
   }
   const handle = parseStateFilesHandle(json);
   if (handle === null) {
-    throw new StateFilesRuntimeError("state files broker returned a malformed handle");
+    throw new StateFilesRuntimeError("the state files broker returned a malformed handle; retrying may help");
   }
   return handle;
 }
 function resolveApiBaseUrl(apiBaseUrl) {
   const value = String(apiBaseUrl ?? process.env.ZO_API_URL ?? "").trim();
   if (value.length === 0) {
-    throw new StateFilesRuntimeError("ZO_API_URL is required to write generated state assets");
+    throw new StateFilesRuntimeError("the agent deployment is missing ZO_API_URL, so state assets can't be saved — a configuration problem for the user to fix, not something a retry helps");
   }
   return value;
 }
 function resolveAgentToken(agentToken) {
   const value = (agentToken ?? process.env.ZO_AGENT_TOKEN ?? "").trim();
   if (value.length === 0) {
-    throw new StateFilesRuntimeError("ZO_AGENT_TOKEN is required to write generated state assets");
+    throw new StateFilesRuntimeError("the agent deployment is missing ZO_AGENT_TOKEN, so state assets can't be saved — a configuration problem for the user to fix, not something a retry helps");
   }
   return value;
 }
@@ -334,7 +337,7 @@ async function putStateFileObject(options) {
     body: options.body
   });
   if (!response.ok) {
-    throw new StateFilesRuntimeError(`state asset write failed with ${response.status}`);
+    throw new StateFilesRuntimeError(`the storage write was rejected with HTTP ${response.status}`);
   }
 }
 function stateFileObjectUrl(endpoint, bucketName, key) {
@@ -419,39 +422,15 @@ function readString(record, key) {
   return typeof value === "string" && value.length > 0 ? value : null;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-HcfevK/repo/platform/cloud-tools/image.ts
-var DEFAULT_IMAGE_MODEL = "bfl/flux-2-pro";
-function isImageSize(value) {
-  return typeof value === "string" && /^[1-9]\d{1,4}x[1-9]\d{1,4}$/u.test(value);
-}
-function isImageAspectRatio(value) {
-  return typeof value === "string" && /^[1-9]\d{0,2}:[1-9]\d{0,2}$/u.test(value);
-}
-var SizeSchema = z3.templateLiteral([z3.number().int().positive(), "x", z3.number().int().positive()]).refine(isImageSize, { message: "Use WIDTHxHEIGHT, for example 1024x1024." });
-var AspectRatioSchema = z3.templateLiteral([z3.number().int().positive(), ":", z3.number().int().positive()]).refine(isImageAspectRatio, { message: "Use WIDTH:HEIGHT, for example 1:1 or 16:9." });
-var ImageDimensionsSchema = z3.discriminatedUnion("kind", [
-  z3.object({ kind: z3.literal("auto") }).strict(),
-  z3.object({ kind: z3.literal("size"), size: SizeSchema }).strict(),
-  z3.object({
-    aspectRatio: AspectRatioSchema,
-    kind: z3.literal("aspectRatio")
-  }).strict()
-]);
-var GenerateImageInputSchema = z3.object({
-  dimensions: ImageDimensionsSchema.optional(),
-  model: z3.string().trim().min(1).optional(),
-  outputDir: OutputDirSchema.optional(),
-  prompt: z3.string().trim().min(1).max(4000),
-  seed: z3.number().int().nonnegative().optional()
-}).strict();
+// ../../../../../tmp/agent-sdk-mirror-izoYR3/repo/platform/cloud-tools/tool-shared.ts
 var StateAssetReferenceSchema = z3.object({
   bytes: z3.number().int().nonnegative().optional(),
   contentType: z3.string().optional(),
   declarationName: z3.string(),
   path: z3.string(),
   type: z3.literal("state_asset")
-}).strict();
-var GenerateImageOutputSchema = z3.object({
+});
+var GeneratedAssetOutputSchema = z3.object({
   asset: StateAssetReferenceSchema,
   bytes: z3.number().int().nonnegative(),
   mediaType: z3.string(),
@@ -459,33 +438,45 @@ var GenerateImageOutputSchema = z3.object({
   path: z3.string(),
   prompt: z3.string(),
   warnings: z3.array(z3.string())
-}).strict();
-function assertNever(value) {
-  throw new Error(`Unhandled generate_image dimensions: ${JSON.stringify(value)}`);
-}
-function imageDimensionSettings(dimensions) {
-  if (dimensions === undefined || dimensions.kind === "auto") {
-    return {};
-  }
-  switch (dimensions.kind) {
-    case "aspectRatio":
-      return { aspectRatio: dimensions.aspectRatio };
-    case "size":
-      return { size: dimensions.size };
-    default:
-      return assertNever(dimensions);
-  }
-}
+});
 function warningText(warning) {
-  if (warning instanceof Error) {
-    return warning.message;
-  }
-  if (typeof warning === "string") {
-    return warning;
-  }
-  const json = JSON.stringify(warning);
-  return json ?? String(warning);
+  return errorDetail(warning);
 }
+var ERROR_DETAIL_MAX_CHARS = 2000;
+function errorDetail(error) {
+  const raw = error instanceof Error ? error.message : typeof error === "string" ? error : JSON.stringify(error) ?? String(error);
+  if (raw.length <= ERROR_DETAIL_MAX_CHARS)
+    return raw;
+  return `${raw.slice(0, ERROR_DETAIL_MAX_CHARS)} … [truncated]`;
+}
+function generationFailure(kind, error) {
+  return new Error(`No ${kind} was generated — the generation call failed: ${errorDetail(error)}. ` + `If this looks transient (rate limit, timeout, server error), retry the call; ` + `if it names the model, fix the \`model\` input or omit it to use the default. ` + `If it keeps failing, report the reason to the user instead of retrying further.`);
+}
+function saveFailure(kind, error) {
+  if (error instanceof StateFilesConsentError)
+    return error;
+  return new Error(`The ${kind} was generated but no state asset was saved — ${errorDetail(error)}. ` + `Nothing is available to the chat. If the reason looks transient (a storage ` + `write failure), retry the call once; if it's a configuration problem, report ` + `it to the user instead of retrying.`);
+}
+
+// ../../../../../tmp/agent-sdk-mirror-izoYR3/repo/platform/cloud-tools/image.ts
+var DEFAULT_IMAGE_MODEL = "bfl/flux-2-pro";
+function isImageSize(value) {
+  return typeof value === "string" && /^[1-9]\d{1,4}x[1-9]\d{1,4}$/u.test(value);
+}
+function isImageAspectRatio(value) {
+  return typeof value === "string" && /^[1-9]\d{0,2}:[1-9]\d{0,2}$/u.test(value);
+}
+var SizeSchema = z4.templateLiteral([z4.number().int().positive(), "x", z4.number().int().positive()]).refine(isImageSize, { message: "Use WIDTHxHEIGHT, for example 1024x1024." });
+var AspectRatioSchema = z4.templateLiteral([z4.number().int().positive(), ":", z4.number().int().positive()]).refine(isImageAspectRatio, { message: "Use WIDTH:HEIGHT, for example 1:1 or 16:9." });
+var GenerateImageInputSchema = z4.object({
+  aspect_ratio: AspectRatioSchema.optional().describe("Aspect ratio as WIDTH:HEIGHT, e.g. '1:1' or '16:9'. Give this or `size`, not both."),
+  model: z4.string().trim().min(1).optional().describe("Image model id; omit to use the default."),
+  output_dir: OutputDirSchema.optional().describe("Relative state-file directory for the generated asset; defaults to 'generated'."),
+  prompt: z4.string().trim().min(1).max(4000).describe("What to generate."),
+  seed: z4.number().int().nonnegative().optional().describe("Reproducibility seed."),
+  size: SizeSchema.optional().describe("Exact pixel size as WIDTHxHEIGHT, e.g. '1024x1024'. Give this or `aspect_ratio`, not both.")
+});
+var GenerateImageOutputSchema = GeneratedAssetOutputSchema;
 function randomImageId() {
   return randomUUID().slice(0, 8);
 }
@@ -499,23 +490,36 @@ function generateImageTool(options = {}) {
     inputSchema: GenerateImageInputSchema,
     outputSchema: GenerateImageOutputSchema,
     async execute(input) {
+      if (input.size !== undefined && input.aspect_ratio !== undefined) {
+        throw new Error("Give `size` or `aspect_ratio`, not both — no image was generated. " + "Resend with one of them (or neither, for the model's default framing).");
+      }
       const model = input.model ?? DEFAULT_IMAGE_MODEL;
-      const result = await generate({
-        headers: { [ZO_TOOL_HEADER]: "generate_image" },
-        model: zoGateway().imageModel(model),
-        prompt: input.prompt,
-        ...imageDimensionSettings(input.dimensions),
-        ...input.seed === undefined ? {} : { seed: input.seed }
-      });
+      let result;
+      try {
+        result = await generate({
+          headers: { [ZO_TOOL_HEADER]: "generate_image" },
+          model: zoGateway().imageModel(model),
+          prompt: input.prompt,
+          ...input.size === undefined ? {} : { size: input.size },
+          ...input.aspect_ratio === undefined ? {} : { aspectRatio: input.aspect_ratio },
+          ...input.seed === undefined ? {} : { seed: input.seed }
+        });
+      } catch (error) {
+        throw generationFailure("image", error);
+      }
       const image = result.image;
       const path = assetOutputPath({
         id: randomId(),
         mediaType: image.mediaType,
-        outputDir: input.outputDir,
+        outputDir: input.output_dir,
         prompt: input.prompt,
         fallbackSlug: "image"
       });
-      await assetWriter.write(path, image.uint8Array, { contentType: image.mediaType });
+      try {
+        await assetWriter.write(path, image.uint8Array, { contentType: image.mediaType });
+      } catch (error) {
+        throw saveFailure("image", error);
+      }
       const asset = stateAssetReference({
         type: "state_asset",
         declarationName,

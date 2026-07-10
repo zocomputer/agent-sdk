@@ -11,34 +11,33 @@ describe("generate_image input schema", () => {
     expect(json).toHaveProperty("type", "object");
   });
 
-  test("accepts size and aspectRatio dimension shapes", () => {
+  test("accepts size and aspect_ratio framing params", () => {
     expect(
       GenerateImageInputSchema.safeParse({
         prompt: "a red crane",
-        dimensions: { kind: "size", size: "1024x1024" },
+        size: "1024x1024",
       }).success,
     ).toBe(true);
     expect(
       GenerateImageInputSchema.safeParse({
         prompt: "a red crane",
-        dimensions: { kind: "aspectRatio", aspectRatio: "16:9" },
+        aspect_ratio: "16:9",
       }).success,
     ).toBe(true);
+    expect(GenerateImageInputSchema.safeParse({ prompt: "just a prompt" }).success).toBe(true);
   });
 
-  test("rejects outputDir values that are not valid state file prefixes", () => {
-    for (const outputDir of ["/generated", "generated/", "generated//images", ".", "generated/./images", "../generated", "generated/../images"]) {
-      expect(GenerateImageInputSchema.safeParse({ prompt: "p", outputDir }).success).toBe(false);
+  test("rejects output_dir values that are not valid state file prefixes", () => {
+    for (const output_dir of ["/generated", "generated/", "generated//images", ".", "generated/./images", "../generated", "generated/../images"]) {
+      expect(GenerateImageInputSchema.safeParse({ prompt: "p", output_dir }).success).toBe(false);
     }
   });
 
-  test("rejects malformed dimensions", () => {
-    for (const dimensions of [
-      { kind: "size", size: "axb" },
-      { kind: "size", size: "0x10" },
-      { kind: "aspectRatio", aspectRatio: "16x9" },
-    ]) {
-      expect(GenerateImageInputSchema.safeParse({ prompt: "p", dimensions }).success).toBe(false);
-    }
+  test("rejects malformed size and aspect_ratio values", () => {
+    expect(GenerateImageInputSchema.safeParse({ prompt: "p", size: "axb" }).success).toBe(false);
+    expect(GenerateImageInputSchema.safeParse({ prompt: "p", size: "0x10" }).success).toBe(false);
+    expect(
+      GenerateImageInputSchema.safeParse({ prompt: "p", aspect_ratio: "16x9" }).success,
+    ).toBe(false);
   });
 });

@@ -6,7 +6,7 @@
 
 # Interface: IoStat
 
-Defined in: [packages/agent-sdk/src/workspace-io.ts:24](https://github.com/zocomputer/zov2-code/blob/4567e46fc689740ed814c3b4b8b1101dff80bfbe/packages/agent-sdk/src/workspace-io.ts#L24)
+Defined in: [packages/agent-sdk/src/workspace-io.ts:24](https://github.com/zocomputer/zov2-code/blob/f60be6793ffd6089caaf80014c136f326348f4b1/packages/agent-sdk/src/workspace-io.ts#L24)
 
 Stat result for one path.
 
@@ -16,7 +16,7 @@ Stat result for one path.
 
 > `readonly` **isFile**: `boolean`
 
-Defined in: [packages/agent-sdk/src/workspace-io.ts:25](https://github.com/zocomputer/zov2-code/blob/4567e46fc689740ed814c3b4b8b1101dff80bfbe/packages/agent-sdk/src/workspace-io.ts#L25)
+Defined in: [packages/agent-sdk/src/workspace-io.ts:25](https://github.com/zocomputer/zov2-code/blob/f60be6793ffd6089caaf80014c136f326348f4b1/packages/agent-sdk/src/workspace-io.ts#L25)
 
 ***
 
@@ -24,7 +24,7 @@ Defined in: [packages/agent-sdk/src/workspace-io.ts:25](https://github.com/zocom
 
 > `readonly` **mtimeMs**: `number`
 
-Defined in: [packages/agent-sdk/src/workspace-io.ts:27](https://github.com/zocomputer/zov2-code/blob/4567e46fc689740ed814c3b4b8b1101dff80bfbe/packages/agent-sdk/src/workspace-io.ts#L27)
+Defined in: [packages/agent-sdk/src/workspace-io.ts:27](https://github.com/zocomputer/zov2-code/blob/f60be6793ffd6089caaf80014c136f326348f4b1/packages/agent-sdk/src/workspace-io.ts#L27)
 
 ***
 
@@ -32,4 +32,4 @@ Defined in: [packages/agent-sdk/src/workspace-io.ts:27](https://github.com/zocom
 
 > `readonly` **size**: `number`
 
-Defined in: [packages/agent-sdk/src/workspace-io.ts:26](https://github.com/zocomputer/zov2-code/blob/4567e46fc689740ed814c3b4b8b1101dff80bfbe/packages/agent-sdk/src/workspace-io.ts#L26)
+Defined in: [packages/agent-sdk/src/workspace-io.ts:26](https://github.com/zocomputer/zov2-code/blob/f60be6793ffd6089caaf80014c136f326348f4b1/packages/agent-sdk/src/workspace-io.ts#L26)

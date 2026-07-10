@@ -8,7 +8,7 @@
 
 > **createOutputWatcher**(`options`): [`OutputWatcher`](../interfaces/OutputWatcher.md)
 
-Defined in: [packages/agent-sdk/src/watch-output.ts:49](https://github.com/zocomputer/zov2-code/blob/4567e46fc689740ed814c3b4b8b1101dff80bfbe/packages/agent-sdk/src/watch-output.ts#L49)
+Defined in: [packages/agent-sdk/src/watch-output.ts:49](https://github.com/zocomputer/zov2-code/blob/f60be6793ffd6089caaf80014c136f326348f4b1/packages/agent-sdk/src/watch-output.ts#L49)
 
 Build a watcher. An invalid regex throws here — at tool-input time, where
 the error surfaces as a normal tool failure the model can correct. Both

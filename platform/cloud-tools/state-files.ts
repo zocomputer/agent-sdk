@@ -109,7 +109,9 @@ export function createRuntimeStateFilesClient(
         ...(eveSessionKey === undefined ? {} : { eveSessionKey }),
       });
       if (handle.access !== "rw") {
-        throw new StateFilesRuntimeError(`state files handle "${handle.handleId}" is read-only`);
+        throw new StateFilesRuntimeError(
+          `the "${handle.declarationName}" state files handle is read-only, so nothing can be written — the agent's state configuration must allow writes`,
+        );
       }
       await putStateFileObject({
         body,
@@ -187,7 +189,9 @@ async function requestRuntimeStateFilesHandle(
   }
   const handle = parseStateFilesHandle(json);
   if (handle === null) {
-    throw new StateFilesRuntimeError("state files broker returned a malformed handle");
+    throw new StateFilesRuntimeError(
+      "the state files broker returned a malformed handle; retrying may help",
+    );
   }
   return handle;
 }
@@ -195,7 +199,9 @@ async function requestRuntimeStateFilesHandle(
 function resolveApiBaseUrl(apiBaseUrl: string | URL | null | undefined): string {
   const value = String(apiBaseUrl ?? process.env.ZO_API_URL ?? "").trim();
   if (value.length === 0) {
-    throw new StateFilesRuntimeError("ZO_API_URL is required to write generated state assets");
+    throw new StateFilesRuntimeError(
+      "the agent deployment is missing ZO_API_URL, so state assets can't be saved — a configuration problem for the user to fix, not something a retry helps",
+    );
   }
   return value;
 }
@@ -203,7 +209,9 @@ function resolveApiBaseUrl(apiBaseUrl: string | URL | null | undefined): string 
 function resolveAgentToken(agentToken: string | null | undefined): string {
   const value = (agentToken ?? process.env.ZO_AGENT_TOKEN ?? "").trim();
   if (value.length === 0) {
-    throw new StateFilesRuntimeError("ZO_AGENT_TOKEN is required to write generated state assets");
+    throw new StateFilesRuntimeError(
+      "the agent deployment is missing ZO_AGENT_TOKEN, so state assets can't be saved — a configuration problem for the user to fix, not something a retry helps",
+    );
   }
   return value;
 }
@@ -296,7 +304,9 @@ async function putStateFileObject(options: PutStateFileObjectOptions): Promise<v
     body: options.body,
   });
   if (!response.ok) {
-    throw new StateFilesRuntimeError(`state asset write failed with ${response.status}`);
+    throw new StateFilesRuntimeError(
+      `the storage write was rejected with HTTP ${response.status}`,
+    );
   }
 }
 

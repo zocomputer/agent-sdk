@@ -6,7 +6,6 @@ export {
   generateImageTool,
 } from "./image";
 export type {
-  GenerateImageDimensions,
   GenerateImageInput,
   GenerateImageOutput,
   GenerateImageToolOptions,
@@ -25,6 +24,14 @@ export {
   stateAssetReference,
 } from "./state-files";
 export type { StateAssetReference, StateFilesAssetWriter } from "./state-files";
+
+export {
+  GeneratedAssetOutputSchema,
+  generationFailure,
+  saveFailure,
+  StateAssetReferenceSchema,
+  warningText,
+} from "./tool-shared";
 
 export { webSearch } from "./web-search";
 export type { WebSearchConfig } from "./web-search";

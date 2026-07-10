@@ -8,7 +8,7 @@
 
 > **createSteerInbox**(`options`): [`SteerInbox`](../interfaces/SteerInbox.md)
 
-Defined in: [packages/agent-sdk/src/steer-inbox.ts:45](https://github.com/zocomputer/zov2-code/blob/4567e46fc689740ed814c3b4b8b1101dff80bfbe/packages/agent-sdk/src/steer-inbox.ts#L45)
+Defined in: [packages/agent-sdk/src/steer-inbox.ts:45](https://github.com/zocomputer/zov2-code/blob/f60be6793ffd6089caaf80014c136f326348f4b1/packages/agent-sdk/src/steer-inbox.ts#L45)
 
 Build a steer inbox over a directory holding per-session NDJSON files.
 

@@ -45,7 +45,7 @@ describe("generateVideoTool", () => {
     });
 
     const output = await tool.execute(
-      { prompt: "A calico cat", aspectRatio: "16:9", durationSeconds: 5 } satisfies ExecuteInput,
+      { prompt: "A calico cat", aspect_ratio: "16:9", duration_seconds: 5 } satisfies ExecuteInput,
       toolContext,
     );
 
@@ -86,6 +86,37 @@ describe("generateVideoTool", () => {
     expect(captured[0]).not.toHaveProperty("aspectRatio");
     expect(captured[0]).not.toHaveProperty("duration");
     expect(captured[0]).not.toHaveProperty("seed");
+  });
+
+  test("maps a failed generation call to model-actionable feedback", async () => {
+    const tool = generateVideoTool({
+      assetWriter: recordingWriter(),
+      generate: async () => {
+        throw new Error("rate limited (429)");
+      },
+    });
+
+    const attempt = tool.execute({ prompt: "waves" } satisfies ExecuteInput, toolContext);
+
+    await expect(attempt).rejects.toThrow("No video was generated");
+    await expect(attempt).rejects.toThrow("rate limited (429)");
+  });
+
+  test("maps a failed asset write to model-actionable feedback", async () => {
+    const failingWriter: StateFilesAssetWriter = {
+      async write() {
+        throw new Error("the storage write was rejected with HTTP 500");
+      },
+    };
+    const tool = generateVideoTool({
+      assetWriter: failingWriter,
+      generate: async () => videoResult(),
+    });
+
+    const attempt = tool.execute({ prompt: "waves" } satisfies ExecuteInput, toolContext);
+
+    await expect(attempt).rejects.toThrow("no state asset was saved");
+    await expect(attempt).rejects.toThrow("HTTP 500");
   });
 
   test("toModelOutput names the state asset without inventing a URL", async () => {

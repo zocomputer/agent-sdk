@@ -8,7 +8,7 @@
 
 > **createTasksTools**(`opts`): `DynamicSentinel`
 
-Defined in: [packages/agent-sdk/src/tools/tasks.ts:277](https://github.com/zocomputer/zov2-code/blob/4567e46fc689740ed814c3b4b8b1101dff80bfbe/packages/agent-sdk/src/tools/tasks.ts#L277)
+Defined in: [packages/agent-sdk/src/tools/tasks.ts:277](https://github.com/zocomputer/zov2-code/blob/f60be6793ffd6089caaf80014c136f326348f4b1/packages/agent-sdk/src/tools/tasks.ts#L277)
 
 The toolset as one dynamic definition. Session-scoped on purpose: tool
 definitions sit in the model's cached prompt prefix, so the run_async
