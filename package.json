@@ -1,6 +1,6 @@
 {
   "name": "@zocomputer/agent-sdk",
-  "version": "0.9.0",
+  "version": "0.10.0",
   "description": "A standard library for eve agents: workspace file tools (read/edit/write/glob/grep), a backgroundable bash with bounded output, async task orchestration, and rich-filetype reads (PDF, DOCX/PPTX/ODT/ODP, spreadsheets, EPUB, notebooks, RTF) — one createStdlib call.",
   "license": "MIT",
   "repository": {

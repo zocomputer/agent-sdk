@@ -6,7 +6,7 @@
 
 # Interface: EditNotFoundHint
 
-Defined in: [packages/agent-sdk/src/edit-match.ts:574](https://github.com/zocomputer/zov2-code/blob/b7f06ca2cf0142cf87a67d683e96ae88d6c29abe/packages/agent-sdk/src/edit-match.ts#L574)
+Defined in: [packages/agent-sdk/src/edit-match.ts:574](https://github.com/zocomputer/zov2-code/blob/ef70d86dc0c3cdb95eb7c208e5ea40a4edf9effb/packages/agent-sdk/src/edit-match.ts#L574)
 
 The closest-match hint appended to a not-found edit error.
 
@@ -16,7 +16,7 @@ The closest-match hint appended to a not-found edit error.
 
 > **line**: `number`
 
-Defined in: [packages/agent-sdk/src/edit-match.ts:576](https://github.com/zocomputer/zov2-code/blob/b7f06ca2cf0142cf87a67d683e96ae88d6c29abe/packages/agent-sdk/src/edit-match.ts#L576)
+Defined in: [packages/agent-sdk/src/edit-match.ts:576](https://github.com/zocomputer/zov2-code/blob/ef70d86dc0c3cdb95eb7c208e5ea40a4edf9effb/packages/agent-sdk/src/edit-match.ts#L576)
 
 1-based line number of the closest matching line.
 
@@ -26,6 +26,6 @@ Defined in: [packages/agent-sdk/src/edit-match.ts:576](https://github.com/zocomp
 
 > **preview**: `string`
 
-Defined in: [packages/agent-sdk/src/edit-match.ts:578](https://github.com/zocomputer/zov2-code/blob/b7f06ca2cf0142cf87a67d683e96ae88d6c29abe/packages/agent-sdk/src/edit-match.ts#L578)
+Defined in: [packages/agent-sdk/src/edit-match.ts:578](https://github.com/zocomputer/zov2-code/blob/ef70d86dc0c3cdb95eb7c208e5ea40a4edf9effb/packages/agent-sdk/src/edit-match.ts#L578)
 
 Line-numbered window around the closest match (`read`-style `N|text`).

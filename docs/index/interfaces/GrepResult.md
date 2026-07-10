@@ -6,7 +6,7 @@
 
 # Interface: GrepResult
 
-Defined in: [packages/agent-sdk/src/tools/grep.ts:33](https://github.com/zocomputer/zov2-code/blob/b7f06ca2cf0142cf87a67d683e96ae88d6c29abe/packages/agent-sdk/src/tools/grep.ts#L33)
+Defined in: [packages/agent-sdk/src/tools/grep.ts:33](https://github.com/zocomputer/zov2-code/blob/ef70d86dc0c3cdb95eb7c208e5ea40a4edf9effb/packages/agent-sdk/src/tools/grep.ts#L33)
 
 The tool's result shape, uniform across the complete/capped/spilled paths.
 
@@ -16,7 +16,7 @@ The tool's result shape, uniform across the complete/capped/spilled paths.
 
 > **count**: `number`
 
-Defined in: [packages/agent-sdk/src/tools/grep.ts:35](https://github.com/zocomputer/zov2-code/blob/b7f06ca2cf0142cf87a67d683e96ae88d6c29abe/packages/agent-sdk/src/tools/grep.ts#L35)
+Defined in: [packages/agent-sdk/src/tools/grep.ts:35](https://github.com/zocomputer/zov2-code/blob/ef70d86dc0c3cdb95eb7c208e5ea40a4edf9effb/packages/agent-sdk/src/tools/grep.ts#L35)
 
 ***
 
@@ -24,7 +24,7 @@ Defined in: [packages/agent-sdk/src/tools/grep.ts:35](https://github.com/zocompu
 
 > **matches**: `object`[]
 
-Defined in: [packages/agent-sdk/src/tools/grep.ts:37](https://github.com/zocomputer/zov2-code/blob/b7f06ca2cf0142cf87a67d683e96ae88d6c29abe/packages/agent-sdk/src/tools/grep.ts#L37)
+Defined in: [packages/agent-sdk/src/tools/grep.ts:37](https://github.com/zocomputer/zov2-code/blob/ef70d86dc0c3cdb95eb7c208e5ea40a4edf9effb/packages/agent-sdk/src/tools/grep.ts#L37)
 
 #### file
 
@@ -44,7 +44,7 @@ Defined in: [packages/agent-sdk/src/tools/grep.ts:37](https://github.com/zocompu
 
 > `optional` **note?**: `string`
 
-Defined in: [packages/agent-sdk/src/tools/grep.ts:41](https://github.com/zocomputer/zov2-code/blob/b7f06ca2cf0142cf87a67d683e96ae88d6c29abe/packages/agent-sdk/src/tools/grep.ts#L41)
+Defined in: [packages/agent-sdk/src/tools/grep.ts:41](https://github.com/zocomputer/zov2-code/blob/ef70d86dc0c3cdb95eb7c208e5ea40a4edf9effb/packages/agent-sdk/src/tools/grep.ts#L41)
 
 ***
 
@@ -52,7 +52,7 @@ Defined in: [packages/agent-sdk/src/tools/grep.ts:41](https://github.com/zocompu
 
 > **pattern**: `string`
 
-Defined in: [packages/agent-sdk/src/tools/grep.ts:34](https://github.com/zocomputer/zov2-code/blob/b7f06ca2cf0142cf87a67d683e96ae88d6c29abe/packages/agent-sdk/src/tools/grep.ts#L34)
+Defined in: [packages/agent-sdk/src/tools/grep.ts:34](https://github.com/zocomputer/zov2-code/blob/ef70d86dc0c3cdb95eb7c208e5ea40a4edf9effb/packages/agent-sdk/src/tools/grep.ts#L34)
 
 ***
 
@@ -60,7 +60,7 @@ Defined in: [packages/agent-sdk/src/tools/grep.ts:34](https://github.com/zocompu
 
 > `optional` **skippedLargeFiles?**: `number`
 
-Defined in: [packages/agent-sdk/src/tools/grep.ts:39](https://github.com/zocomputer/zov2-code/blob/b7f06ca2cf0142cf87a67d683e96ae88d6c29abe/packages/agent-sdk/src/tools/grep.ts#L39)
+Defined in: [packages/agent-sdk/src/tools/grep.ts:39](https://github.com/zocomputer/zov2-code/blob/ef70d86dc0c3cdb95eb7c208e5ea40a4edf9effb/packages/agent-sdk/src/tools/grep.ts#L39)
 
 Absent when the backend can't count size-skipped files (remote search).
 
@@ -70,7 +70,7 @@ Absent when the backend can't count size-skipped files (remote search).
 
 > `optional` **totalMatches?**: `number`
 
-Defined in: [packages/agent-sdk/src/tools/grep.ts:40](https://github.com/zocomputer/zov2-code/blob/b7f06ca2cf0142cf87a67d683e96ae88d6c29abe/packages/agent-sdk/src/tools/grep.ts#L40)
+Defined in: [packages/agent-sdk/src/tools/grep.ts:40](https://github.com/zocomputer/zov2-code/blob/ef70d86dc0c3cdb95eb7c208e5ea40a4edf9effb/packages/agent-sdk/src/tools/grep.ts#L40)
 
 ***
 
@@ -78,4 +78,4 @@ Defined in: [packages/agent-sdk/src/tools/grep.ts:40](https://github.com/zocompu
 
 > **truncated**: `boolean`
 
-Defined in: [packages/agent-sdk/src/tools/grep.ts:36](https://github.com/zocomputer/zov2-code/blob/b7f06ca2cf0142cf87a67d683e96ae88d6c29abe/packages/agent-sdk/src/tools/grep.ts#L36)
+Defined in: [packages/agent-sdk/src/tools/grep.ts:36](https://github.com/zocomputer/zov2-code/blob/ef70d86dc0c3cdb95eb7c208e5ea40a4edf9effb/packages/agent-sdk/src/tools/grep.ts#L36)

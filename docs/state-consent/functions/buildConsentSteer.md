@@ -8,7 +8,7 @@
 
 > **buildConsentSteer**(`envelope`): `string`
 
-Defined in: [packages/agent-sdk/src/state-consent-wrapper.ts:43](https://github.com/zocomputer/zov2-code/blob/b7f06ca2cf0142cf87a67d683e96ae88d6c29abe/packages/agent-sdk/src/state-consent-wrapper.ts#L43)
+Defined in: [packages/agent-sdk/src/state-consent-wrapper.ts:43](https://github.com/zocomputer/zov2-code/blob/ef70d86dc0c3cdb95eb7c208e5ea40a4edf9effb/packages/agent-sdk/src/state-consent-wrapper.ts#L43)
 
 The model-facing instruction returned when a capability needs consent. Names
 the tool and embeds the exact args so the model can't fabricate them — the

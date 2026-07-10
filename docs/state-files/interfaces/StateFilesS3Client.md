@@ -6,7 +6,7 @@
 
 # Interface: StateFilesS3Client
 
-Defined in: [packages/agent-sdk/src/state-files.ts:240](https://github.com/zocomputer/zov2-code/blob/b7f06ca2cf0142cf87a67d683e96ae88d6c29abe/packages/agent-sdk/src/state-files.ts#L240)
+Defined in: [packages/agent-sdk/src/state-files.ts:240](https://github.com/zocomputer/zov2-code/blob/ef70d86dc0c3cdb95eb7c208e5ea40a4edf9effb/packages/agent-sdk/src/state-files.ts#L240)
 
 S3-compatible client interface for low-level state-files bucket operations.
 
@@ -16,7 +16,7 @@ S3-compatible client interface for low-level state-files bucket operations.
 
 > **deleteObject**(`input`): `Promise`\<`void`\>
 
-Defined in: [packages/agent-sdk/src/state-files.ts:248](https://github.com/zocomputer/zov2-code/blob/b7f06ca2cf0142cf87a67d683e96ae88d6c29abe/packages/agent-sdk/src/state-files.ts#L248)
+Defined in: [packages/agent-sdk/src/state-files.ts:248](https://github.com/zocomputer/zov2-code/blob/ef70d86dc0c3cdb95eb7c208e5ea40a4edf9effb/packages/agent-sdk/src/state-files.ts#L248)
 
 Deletes an object from the bucket.
 
@@ -36,7 +36,7 @@ Deletes an object from the bucket.
 
 > **listObjects**(`input`): `Promise`\<readonly [`StateFilesObject`](StateFilesObject.md)[]\>
 
-Defined in: [packages/agent-sdk/src/state-files.ts:242](https://github.com/zocomputer/zov2-code/blob/b7f06ca2cf0142cf87a67d683e96ae88d6c29abe/packages/agent-sdk/src/state-files.ts#L242)
+Defined in: [packages/agent-sdk/src/state-files.ts:242](https://github.com/zocomputer/zov2-code/blob/ef70d86dc0c3cdb95eb7c208e5ea40a4edf9effb/packages/agent-sdk/src/state-files.ts#L242)
 
 Lists objects in the bucket, optionally filtered by prefix.
 
@@ -56,7 +56,7 @@ Lists objects in the bucket, optionally filtered by prefix.
 
 > **readObject**(`input`): `Promise`\<`Uint8Array`\<`ArrayBufferLike`\>\>
 
-Defined in: [packages/agent-sdk/src/state-files.ts:244](https://github.com/zocomputer/zov2-code/blob/b7f06ca2cf0142cf87a67d683e96ae88d6c29abe/packages/agent-sdk/src/state-files.ts#L244)
+Defined in: [packages/agent-sdk/src/state-files.ts:244](https://github.com/zocomputer/zov2-code/blob/ef70d86dc0c3cdb95eb7c208e5ea40a4edf9effb/packages/agent-sdk/src/state-files.ts#L244)
 
 Reads an object's body as bytes.
 
@@ -76,7 +76,7 @@ Reads an object's body as bytes.
 
 > **writeObject**(`input`): `Promise`\<`void`\>
 
-Defined in: [packages/agent-sdk/src/state-files.ts:246](https://github.com/zocomputer/zov2-code/blob/b7f06ca2cf0142cf87a67d683e96ae88d6c29abe/packages/agent-sdk/src/state-files.ts#L246)
+Defined in: [packages/agent-sdk/src/state-files.ts:246](https://github.com/zocomputer/zov2-code/blob/ef70d86dc0c3cdb95eb7c208e5ea40a4edf9effb/packages/agent-sdk/src/state-files.ts#L246)
 
 Writes an object to the bucket.
 
