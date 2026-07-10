@@ -10,6 +10,29 @@ built, verified patches) graduate to [`proposals/`](./proposals).
 Last verified against `vercel/eve` main on 2026-07-10; issue and PR states
 below are current to that date.
 
+**Start here — filed and ready for a maintainer decision:**
+
+- [vercel/eve#543](https://github.com/vercel/eve/issues/543) — model-aware
+  video/audio hydration. Tested DCO-signed patch in
+  [`proposals/`](./proposals); PR on go-ahead.
+- [vercel/eve#542](https://github.com/vercel/eve/issues/542) — `action.invalid`
+  stream events. Tested DCO-signed patch in [`proposals/`](./proposals);
+  implementation open as [#665](https://github.com/vercel/eve/pull/665).
+- [vercel/eve#593](https://github.com/vercel/eve/issues/593) — public
+  client-side tools. Implementation open as
+  [#664](https://github.com/vercel/eve/pull/664).
+
+Everything else is tiered by the workaround burden we carry today:
+**Priority** asks each sustain a bespoke app-side layer (state machines, model
+facades, reads of eve internals, recovery code) that the upstream change would
+delete outright; **Next** asks cover reliability and observability gaps whose
+workarounds are bounded; **Later** asks are schema and ergonomics improvements
+that don't drive real machinery.
+
+## Priority — delete active workaround layers
+
+### Media
+
 - **Multimodal tool results.** `ToolModelOutput` is `text | json` only, so
   `read` can't return an image directly — we work around it by smuggling the
   bytes past on the raw result and having a hook send them back as the next
@@ -64,20 +87,9 @@ below are current to that date.
   subagent input contract plus the hydration widening above; a per-call
   `model` field validated against an allowlist would also collapse the
   tool-per-tier encoding (`task_fast`/`task_deep`) into one subagent.
-- **HITL replay.** eve persists `input.requested` but has no durable
-  `input.responded` event, so replaying the server stream reopens answered
-  prompts as pending. The React/Vue/Svelte stores project a
-  `client.input.responded` event locally, and vercel/eve#588 fixed approval
-  results in model history, but neither closes the durable client-replay gap
-  for `ask_question`. Our clients append synthetic responded-events from
-  client-side storage; persisting the response in the stream would fix every
-  client at once.
-- **`ask_question` multi-select.** The input-request contract carries rich
-  options (`id`/`label`/`description`/`style`) but the response carries a
-  single `optionId` — there's no way to ask "pick all that apply."
-  `allowMultiple` on the request plus `optionIds` on the response would
-  complete the surface; clients render checkboxes instead of buttons when
-  it's set.
+
+### Session control
+
 - **Public client-side tools.** Only the framework-owned `ask_question` can
   omit `execute`, turn a call into `input.requested`, and park durably for a
   purpose-built client response. Authored tools must execute, and the
@@ -101,48 +113,9 @@ below are current to that date.
   keyed by session id would delete the event watcher, token normalization, and
   retry state machine even before multimodal tool results remove the media
   use case.
-- **Tool naming + config-level disable.** The built-ins ship off-prior names
-  (`read_file`, `write_file`), and vacating one requires a `disableTool()`
-  shim file per name. Prior-aligned defaults — or a config switch to disable
-  built-ins wholesale — would remove the shims.
-- **No per-tool `strict` / `providerOptions` passthrough.** Anthropic's
-  `strict: true` (grammar-constrained sampling — the documented fix for
-  newer Claude models garbling off-prior tool schemas) is a per-tool flag
-  the AI SDK already forwards to providers, but `buildToolSet` constructs
-  `tool()` without it, so no eve agent can enable it. Accepting `strict`
-  (and per-tool `providerOptions`) on `defineTool` and passing them through
-  would make it a one-line opt-in; the change-list design is
-  [`proposals/eve-strict-tool-passthrough.md`](./proposals/eve-strict-tool-passthrough.md).
-  Same seam: `experimental_repairToolCall` is unwired.
-- **Invalid tool calls never reach the event stream.** When a call fails
-  schema validation the AI SDK marks it `invalid` and feeds the error back
-  to the model, but `emitStreamContent` and `emitStepActions` both skip
-  invalid calls — no event is emitted, so clients can't render the retry
-  and harnesses can't measure schema-misuse rates (the regression newer
-  Anthropic models show on off-prior schemas). An `action.invalid` event
-  with the tool name and error class closes the gap. We built and tested
-  exactly that patch against `vercel/eve` (all suites green): the PR-grade
-  writeup is
-  [`proposals/eve-invalid-tool-call-events.md`](./proposals/eve-invalid-tool-call-events.md)
-  and the DCO-signed patch sits beside it
-  (`eve-invalid-tool-call-events.patch`). Filed by 0thernet as open
-  [vercel/eve#542](https://github.com/vercel/eve/issues/542); implemented in
-  open [vercel/eve#665](https://github.com/vercel/eve/pull/665), currently
-  conflicting with main.
-- **`ask_question`'s options are the off-prior nested shape.** Its `options`
-  array of `.strict()` option objects is exactly the shape newer Claude
-  models garble (invented trailing keys after long strings), and it has no
-  Claude Code analog to ride. Flattening it — or at least dropping
-  `.strict()` so the advertised contract matches the (unvalidated) lenient
-  runtime — would cut the schema-slop surface every HITL agent presents.
-- **The `agent` clone tool can't be disabled.** It's injected after graph
-  resolution by `createNodeHarnessTools`, not registered as a framework tool,
-  so a `disableTool()` shim for it fails runtime agent-graph resolution —
-  every session create 500s. eve now keeps the generic clone root-only and
-  defaults `maxSubagentDepth` to 1, which bounds recursion but doesn't let a
-  read-only root agent vacate the tool. Either registering `agent` as a
-  disableable framework tool or honoring the shim at the harness layer would
-  close the gap.
+
+### Correctness and scale
+
 - **Concurrent tool calls race shared resources.** The AI SDK loop runs a
   step's tool calls with `Promise.all`, so two mutating calls against the same
   file in one step race their read-modify-write sections — both report
@@ -171,12 +144,6 @@ below are current to that date.
   the next `send` silently creates a fresh session — forking the
   conversation. Preserving the session state across aborts (the id was
   known!) would remove a whole class of client-side recovery code.
-- **No public turn-cancellation API.** eve's durable runtime now propagates
-  cancellation through the turn workflow and exposes `ctx.abortSignal` to
-  tools, but the HTTP client has no cancel route/method. Aborting the client
-  stream still only detaches; the server-side turn runs to completion. Stop
-  buttons need a public operation that triggers the cancellation machinery
-  already present underneath.
 - **No first-class mid-turn user-message injection.** Our steering wrapper
   accepts a message through a tool-result side channel and drains it at the
   next model step; if the turn reaches no later tool window, park delivery
@@ -199,17 +166,9 @@ below are current to that date.
   Emitting `turn.failed` (with a worker-death reason) when a reload/crash
   orphans a turn — or re-driving the in-flight turn from the durable stream
   on worker start, as redeploys are documented to — would delete all of it.
-- **Continuation-token scoping.** A hook's `ctx.channel.continuationToken` is
-  the runtime-namespaced form (`eve:eve:<uuid>`), but `ClientSession.send`
-  needs the client-facing token (`eve:<uuid>`) — and posting the namespaced
-  form doesn't error, it **silently creates a new session** (the continue
-  route's get-or-create). We strip the namespace (`clientContinuationToken`)
-  and assert the echoed session id; either surfacing the client token on
-  `HookContext` or rejecting unknown tokens on continue would remove the trap.
-- **AGENTS.md ingestion.** eve injects no repo conventions; every other
-  harness (Claude Code, Cursor, Codex) reads `AGENTS.md` natively. Our
-  `repoConventions` instruction covers the root file, but first-class support
-  belongs in the framework.
+
+### Context and platform internals
+
 - **In-history tool-output pruning — tool-pair summarization.** Old tool
   results stay in the model prompt verbatim until full compaction rewrites
   the history. We bound tool output at the source (spill files, result caps),
@@ -226,27 +185,6 @@ below are current to that date.
   once, behind the cache prefix). The eve shape: a harness pass over
   `history` before the model call, gated by a config knob, using the
   compaction model. Independent of (and complementary to) full compaction.
-- **Compaction refinements.** eve now derives its threshold from
-  `compaction.thresholdPercent` (0.9 by default), honors a distinct authored
-  `compaction.model`, and asks the summarizer for short labeled sections. Two
-  field-tested goose refinements remain:
-  - **Recovery compact.** On `ContextLengthExceeded`, compact and retry the
-    step (max 2 attempts; if summarization itself overflows, strip
-    tool-response messages middle-outward at 10/20/50/100%). eve still
-    surfaces the model error and the turn dies — the failure mode compaction
-    exists to prevent.
-  - **A mandatory structured prompt.** goose's `compaction.md` requires named
-    sections (User Intent, Technical Concepts, Files + Code, Errors + Fixes,
-    Pending Tasks, Current Work, optional Next Step) and states "this summary
-    will only be read by you." eve's prompt now suggests shorter sections
-    "when helpful", but doesn't require the task-state-bearing shape.
-- **A source-backed `compaction.model` can still resolve to the turn model.**
-  Distinct model ids work, but when the configured compaction model is an
-  authored model instance loaded from the same agent config module,
-  `loadSourceBackedRuntimeModelReference` resolves that module's turn `model`
-  instead. The config silently becomes a no-op; resolving the actual authored
-  compaction reference, or rejecting that shape at compile time, would make
-  the knob truthful.
 - **No compaction-validation hook.** Compaction is the one step where the
   harness deletes information on the model's behalf, and nothing downstream
   compares the summary to what it replaced — Slipstream (arXiv:2605.08580)
@@ -277,6 +215,75 @@ below are current to that date.
   providers already have `ParentSessionKey` in reach — would let both
   integrations stop reading eve's internals. See
   [subagent-shared-sandboxes.md](https://github.com/zocomputer/zov2-code/blob/main/plans/ben/subagent-shared-sandboxes.md).
+
+## Next — bounded reliability and observability gaps
+
+- **HITL replay.** eve persists `input.requested` but has no durable
+  `input.responded` event, so replaying the server stream reopens answered
+  prompts as pending. The React/Vue/Svelte stores project a
+  `client.input.responded` event locally, and vercel/eve#588 fixed approval
+  results in model history, but neither closes the durable client-replay gap
+  for `ask_question`. Our clients append synthetic responded-events from
+  client-side storage; persisting the response in the stream would fix every
+  client at once.
+- **Continuation-token scoping.** A hook's `ctx.channel.continuationToken` is
+  the runtime-namespaced form (`eve:eve:<uuid>`), but `ClientSession.send`
+  needs the client-facing token (`eve:<uuid>`) — and posting the namespaced
+  form doesn't error, it **silently creates a new session** (the continue
+  route's get-or-create). We strip the namespace (`clientContinuationToken`)
+  and assert the echoed session id; either surfacing the client token on
+  `HookContext` or rejecting unknown tokens on continue would remove the trap.
+- **No per-tool `strict` / `providerOptions` passthrough.** Anthropic's
+  `strict: true` (grammar-constrained sampling — the documented fix for
+  newer Claude models garbling off-prior tool schemas) is a per-tool flag
+  the AI SDK already forwards to providers, but `buildToolSet` constructs
+  `tool()` without it, so no eve agent can enable it. Accepting `strict`
+  (and per-tool `providerOptions`) on `defineTool` and passing them through
+  would make it a one-line opt-in; the change-list design is
+  [`proposals/eve-strict-tool-passthrough.md`](./proposals/eve-strict-tool-passthrough.md).
+  Same seam: `experimental_repairToolCall` is unwired.
+- **Invalid tool calls never reach the event stream.** When a call fails
+  schema validation the AI SDK marks it `invalid` and feeds the error back
+  to the model, but `emitStreamContent` and `emitStepActions` both skip
+  invalid calls — no event is emitted, so clients can't render the retry
+  and harnesses can't measure schema-misuse rates (the regression newer
+  Anthropic models show on off-prior schemas). An `action.invalid` event
+  with the tool name and error class closes the gap. We built and tested
+  exactly that patch against `vercel/eve` (all suites green): the PR-grade
+  writeup is
+  [`proposals/eve-invalid-tool-call-events.md`](./proposals/eve-invalid-tool-call-events.md)
+  and the DCO-signed patch sits beside it
+  (`eve-invalid-tool-call-events.patch`). Filed by 0thernet as open
+  [vercel/eve#542](https://github.com/vercel/eve/issues/542); implemented in
+  open [vercel/eve#665](https://github.com/vercel/eve/pull/665), currently
+  conflicting with main.
+- **No public turn-cancellation API.** eve's durable runtime now propagates
+  cancellation through the turn workflow and exposes `ctx.abortSignal` to
+  tools, but the HTTP client has no cancel route/method. Aborting the client
+  stream still only detaches; the server-side turn runs to completion. Stop
+  buttons need a public operation that triggers the cancellation machinery
+  already present underneath.
+- **Compaction refinements.** eve now derives its threshold from
+  `compaction.thresholdPercent` (0.9 by default), honors a distinct authored
+  `compaction.model`, and asks the summarizer for short labeled sections. Two
+  field-tested goose refinements remain:
+  - **Recovery compact.** On `ContextLengthExceeded`, compact and retry the
+    step (max 2 attempts; if summarization itself overflows, strip
+    tool-response messages middle-outward at 10/20/50/100%). eve still
+    surfaces the model error and the turn dies — the failure mode compaction
+    exists to prevent.
+  - **A mandatory structured prompt.** goose's `compaction.md` requires named
+    sections (User Intent, Technical Concepts, Files + Code, Errors + Fixes,
+    Pending Tasks, Current Work, optional Next Step) and states "this summary
+    will only be read by you." eve's prompt now suggests shorter sections
+    "when helpful", but doesn't require the task-state-bearing shape.
+- **A source-backed `compaction.model` can still resolve to the turn model.**
+  Distinct model ids work, but when the configured compaction model is an
+  authored model instance loaded from the same agent config module,
+  `loadSourceBackedRuntimeModelReference` resolves that module's turn `model`
+  instead. The config silently becomes a no-op; resolving the actual authored
+  compaction reference, or rejecting that shape at compile time, would make
+  the knob truthful.
 - **The eval client's HTTP layer flakes with ECONNRESET under fast streams.**
   Running the coder example's eval suites locally, eve's client
   intermittently dies with `socket hang up` (`ECONNRESET`) — on the stream
@@ -291,3 +298,34 @@ below are current to that date.
   (apart from the narrow HITL-delivery retry). Retrying a transport reset
   before that POST receives a response — or using `Connection: close` for the
   short-lived eval client — would make `eve evals` runs deterministic.
+
+## Later — schema and ergonomics improvements
+
+- **`ask_question` multi-select.** The input-request contract carries rich
+  options (`id`/`label`/`description`/`style`) but the response carries a
+  single `optionId` — there's no way to ask "pick all that apply."
+  `allowMultiple` on the request plus `optionIds` on the response would
+  complete the surface; clients render checkboxes instead of buttons when
+  it's set.
+- **Tool naming + config-level disable.** The built-ins ship off-prior names
+  (`read_file`, `write_file`), and vacating one requires a `disableTool()`
+  shim file per name. Prior-aligned defaults — or a config switch to disable
+  built-ins wholesale — would remove the shims.
+- **`ask_question`'s options are the off-prior nested shape.** Its `options`
+  array of `.strict()` option objects is exactly the shape newer Claude
+  models garble (invented trailing keys after long strings), and it has no
+  Claude Code analog to ride. Flattening it — or at least dropping
+  `.strict()` so the advertised contract matches the (unvalidated) lenient
+  runtime — would cut the schema-slop surface every HITL agent presents.
+- **The `agent` clone tool can't be disabled.** It's injected after graph
+  resolution by `createNodeHarnessTools`, not registered as a framework tool,
+  so a `disableTool()` shim for it fails runtime agent-graph resolution —
+  every session create 500s. eve now keeps the generic clone root-only and
+  defaults `maxSubagentDepth` to 1, which bounds recursion but doesn't let a
+  read-only root agent vacate the tool. Either registering `agent` as a
+  disableable framework tool or honoring the shim at the harness layer would
+  close the gap.
+- **AGENTS.md ingestion.** eve injects no repo conventions; every other
+  harness (Claude Code, Cursor, Codex) reads `AGENTS.md` natively. Our
+  `repoConventions` instruction covers the root file, but first-class support
+  belongs in the framework.
