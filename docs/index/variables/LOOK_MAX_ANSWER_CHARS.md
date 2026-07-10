@@ -8,6 +8,6 @@
 
 > `const` **LOOK\_MAX\_ANSWER\_CHARS**: `30000` = `30_000`
 
-Defined in: [packages/agent-sdk/src/tools/look.ts:53](https://github.com/zocomputer/zov2-code/blob/9c31432d7362033dfbece45d1305011eb46c55ac/packages/agent-sdk/src/tools/look.ts#L53)
+Defined in: [packages/agent-sdk/src/tools/look.ts:53](https://github.com/zocomputer/zov2-code/blob/311b5755d0a50f315302987e21c3a97a752a3696/packages/agent-sdk/src/tools/look.ts#L53)
 
 Character cap on the oracle's answer before truncation (tool results enter the transcript permanently).

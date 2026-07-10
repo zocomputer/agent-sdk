@@ -6,7 +6,7 @@
 
 # Interface: PlacedPromptSection
 
-Defined in: [packages/agent-sdk/src/prompt-sections.ts:73](https://github.com/zocomputer/zov2-code/blob/9c31432d7362033dfbece45d1305011eb46c55ac/packages/agent-sdk/src/prompt-sections.ts#L73)
+Defined in: [packages/agent-sdk/src/prompt-sections.ts:73](https://github.com/zocomputer/zov2-code/blob/311b5755d0a50f315302987e21c3a97a752a3696/packages/agent-sdk/src/prompt-sections.ts#L73)
 
 A consumer-owned section plus where to place it among the baseline
 sections. No `placement` appends it at the end. Anchors refer to baseline
@@ -18,7 +18,7 @@ section ids only — extras can't anchor to other extras.
 
 > `readonly` `optional` **placement?**: [`SectionPlacement`](../type-aliases/SectionPlacement.md)
 
-Defined in: [packages/agent-sdk/src/prompt-sections.ts:77](https://github.com/zocomputer/zov2-code/blob/9c31432d7362033dfbece45d1305011eb46c55ac/packages/agent-sdk/src/prompt-sections.ts#L77)
+Defined in: [packages/agent-sdk/src/prompt-sections.ts:77](https://github.com/zocomputer/zov2-code/blob/311b5755d0a50f315302987e21c3a97a752a3696/packages/agent-sdk/src/prompt-sections.ts#L77)
 
 Placement relative to a baseline section id; omitted → appended last.
 
@@ -28,6 +28,6 @@ Placement relative to a baseline section id; omitted → appended last.
 
 > `readonly` **section**: [`PromptSection`](PromptSection.md)
 
-Defined in: [packages/agent-sdk/src/prompt-sections.ts:75](https://github.com/zocomputer/zov2-code/blob/9c31432d7362033dfbece45d1305011eb46c55ac/packages/agent-sdk/src/prompt-sections.ts#L75)
+Defined in: [packages/agent-sdk/src/prompt-sections.ts:75](https://github.com/zocomputer/zov2-code/blob/311b5755d0a50f315302987e21c3a97a752a3696/packages/agent-sdk/src/prompt-sections.ts#L75)
 
 The section to insert.

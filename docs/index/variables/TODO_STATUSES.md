@@ -8,6 +8,6 @@
 
 > `const` **TODO\_STATUSES**: readonly \[`"pending"`, `"in_progress"`, `"completed"`, `"cancelled"`\]
 
-Defined in: [packages/agent-sdk/src/todo-discipline.ts:21](https://github.com/zocomputer/zov2-code/blob/9c31432d7362033dfbece45d1305011eb46c55ac/packages/agent-sdk/src/todo-discipline.ts#L21)
+Defined in: [packages/agent-sdk/src/todo-discipline.ts:21](https://github.com/zocomputer/zov2-code/blob/311b5755d0a50f315302987e21c3a97a752a3696/packages/agent-sdk/src/todo-discipline.ts#L21)
 
 The todo statuses eve's framework `todo` tool accepts.

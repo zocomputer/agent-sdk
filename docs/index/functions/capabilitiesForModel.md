@@ -8,7 +8,7 @@
 
 > **capabilitiesForModel**(`modelId`, `catalog`): [`ModelInputCapabilities`](../interfaces/ModelInputCapabilities.md)
 
-Defined in: [packages/agent-sdk/src/model-capabilities.ts:84](https://github.com/zocomputer/zov2-code/blob/9c31432d7362033dfbece45d1305011eb46c55ac/packages/agent-sdk/src/model-capabilities.ts#L84)
+Defined in: [packages/agent-sdk/src/model-capabilities.ts:84](https://github.com/zocomputer/zov2-code/blob/311b5755d0a50f315302987e21c3a97a752a3696/packages/agent-sdk/src/model-capabilities.ts#L84)
 
 Resolve a model's input capabilities from the fetched gateway catalog:
 catalog tags as the base (text-only when the model isn't listed), then the
