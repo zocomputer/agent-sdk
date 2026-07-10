@@ -8,6 +8,6 @@
 
 > `const` **LineTrimmedReplacer**: [`Replacer`](../type-aliases/Replacer.md)
 
-Defined in: [packages/agent-sdk/src/edit-match.ts:101](https://github.com/zocomputer/zov2-code/blob/09e5498b7ca8b96ad6bf74ed9ca9414f7ea0fd66/packages/agent-sdk/src/edit-match.ts#L101)
+Defined in: [packages/agent-sdk/src/edit-match.ts:101](https://github.com/zocomputer/zov2-code/blob/b1083703742c40f0a33149c0d589f9948d72aea2/packages/agent-sdk/src/edit-match.ts#L101)
 
 Per-line trim-equality over a sliding window; yields the exact original span.

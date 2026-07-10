@@ -8,7 +8,7 @@
 
 > `const` **TASK\_DISABLED\_BUILTINS**: readonly \[`"ask_question"`\]
 
-Defined in: [packages/agent-sdk/src/task.ts:51](https://github.com/zocomputer/zov2-code/blob/09e5498b7ca8b96ad6bf74ed9ca9414f7ea0fd66/packages/agent-sdk/src/task.ts#L51)
+Defined in: [packages/agent-sdk/src/task.ts:51](https://github.com/zocomputer/zov2-code/blob/b1083703742c40f0a33149c0d589f9948d72aea2/packages/agent-sdk/src/task.ts#L51)
 
 Framework built-ins a task child vacates with a `disableTool()` shim — one
 `tools/<name>.ts` per entry. Only `ask_question`: a parked child parks the

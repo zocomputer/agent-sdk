@@ -8,7 +8,7 @@
 
 > **redeliveryFromEvent**(`event`): [`PendingRedelivery`](../interfaces/PendingRedelivery.md) \| `null`
 
-Defined in: [packages/agent-sdk/src/redeliver.ts:41](https://github.com/zocomputer/zov2-code/blob/09e5498b7ca8b96ad6bf74ed9ca9414f7ea0fd66/packages/agent-sdk/src/redeliver.ts#L41)
+Defined in: [packages/agent-sdk/src/redeliver.ts:41](https://github.com/zocomputer/zov2-code/blob/b1083703742c40f0a33149c0d589f9948d72aea2/packages/agent-sdk/src/redeliver.ts#L41)
 
 Extract a read-media attachment from an `action.result` stream event, if the
 completed tool's raw output carries one. Structural (no eve types) and

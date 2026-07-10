@@ -8,7 +8,7 @@
 
 > **WorkspaceIoProvider** = (`ctx`) => [`WorkspaceIO`](../interfaces/WorkspaceIO.md)
 
-Defined in: [packages/agent-sdk/src/workspace-io.ts:138](https://github.com/zocomputer/zov2-code/blob/09e5498b7ca8b96ad6bf74ed9ca9414f7ea0fd66/packages/agent-sdk/src/workspace-io.ts#L138)
+Defined in: [packages/agent-sdk/src/workspace-io.ts:138](https://github.com/zocomputer/zov2-code/blob/b1083703742c40f0a33149c0d589f9948d72aea2/packages/agent-sdk/src/workspace-io.ts#L138)
 
 Resolves the IO for one tool call. The local provider ignores `ctx`; the
 sandbox provider (see ./sandbox-io.ts) resolves `ctx.getSandbox()` lazily,

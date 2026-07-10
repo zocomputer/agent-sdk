@@ -8,7 +8,7 @@
 
 > **createMockStoryModel**(`options?`): `LanguageModelV4`
 
-Defined in: [packages/agent-sdk/src/mock-model.ts:433](https://github.com/zocomputer/zov2-code/blob/09e5498b7ca8b96ad6bf74ed9ca9414f7ea0fd66/packages/agent-sdk/src/mock-model.ts#L433)
+Defined in: [packages/agent-sdk/src/mock-model.ts:433](https://github.com/zocomputer/zov2-code/blob/b1083703742c40f0a33149c0d589f9948d72aea2/packages/agent-sdk/src/mock-model.ts#L433)
 
 Build a slow-streaming mock model for testing eve clients without inference
 credentials: streams canned "story" text with configurable pacing or runs

@@ -6,7 +6,7 @@
 
 # Interface: StreamGuardOptions
 
-Defined in: [packages/agent-sdk/src/gateway-fetch.ts:30](https://github.com/zocomputer/zov2-code/blob/09e5498b7ca8b96ad6bf74ed9ca9414f7ea0fd66/packages/agent-sdk/src/gateway-fetch.ts#L30)
+Defined in: [packages/agent-sdk/src/gateway-fetch.ts:30](https://github.com/zocomputer/zov2-code/blob/b1083703742c40f0a33149c0d589f9948d72aea2/packages/agent-sdk/src/gateway-fetch.ts#L30)
 
 First-byte and idle timeout options for stream guards.
 
@@ -16,7 +16,7 @@ First-byte and idle timeout options for stream guards.
 
 > `readonly` **firstByteMs**: `number`
 
-Defined in: [packages/agent-sdk/src/gateway-fetch.ts:32](https://github.com/zocomputer/zov2-code/blob/09e5498b7ca8b96ad6bf74ed9ca9414f7ea0fd66/packages/agent-sdk/src/gateway-fetch.ts#L32)
+Defined in: [packages/agent-sdk/src/gateway-fetch.ts:32](https://github.com/zocomputer/zov2-code/blob/b1083703742c40f0a33149c0d589f9948d72aea2/packages/agent-sdk/src/gateway-fetch.ts#L32)
 
 Max wait for response headers, ms.
 
@@ -26,6 +26,6 @@ Max wait for response headers, ms.
 
 > `readonly` **idleMs**: `number`
 
-Defined in: [packages/agent-sdk/src/gateway-fetch.ts:34](https://github.com/zocomputer/zov2-code/blob/09e5498b7ca8b96ad6bf74ed9ca9414f7ea0fd66/packages/agent-sdk/src/gateway-fetch.ts#L34)
+Defined in: [packages/agent-sdk/src/gateway-fetch.ts:34](https://github.com/zocomputer/zov2-code/blob/b1083703742c40f0a33149c0d589f9948d72aea2/packages/agent-sdk/src/gateway-fetch.ts#L34)
 
 Max quiet gap between response-body chunks, ms.
