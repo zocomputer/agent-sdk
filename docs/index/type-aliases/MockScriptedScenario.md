@@ -8,7 +8,7 @@
 
 > **MockScriptedScenario** = `Extract`\<[`MockScenario`](MockScenario.md), `"hitl"` \| `"parallel"` \| `"todo"` \| `"delegate"`\>
 
-Defined in: [packages/agent-sdk/src/mock-model.ts:114](https://github.com/zocomputer/zov2-code/blob/ef70d86dc0c3cdb95eb7c208e5ea40a4edf9effb/packages/agent-sdk/src/mock-model.ts#L114)
+Defined in: [packages/agent-sdk/src/mock-model.ts:114](https://github.com/zocomputer/zov2-code/blob/0e648df1796b1446eeb67f62d6e2274440971464/packages/agent-sdk/src/mock-model.ts#L114)
 
 The multi-step tool scripts (not the stream-shape tests): `hitl`, `parallel`,
 `todo`, `delegate`. Each scenario emits tool calls across multiple turns.

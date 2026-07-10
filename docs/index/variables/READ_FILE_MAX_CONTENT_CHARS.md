@@ -8,6 +8,6 @@
 
 > `const` **READ\_FILE\_MAX\_CONTENT\_CHARS**: `50000` = `50_000`
 
-Defined in: [packages/agent-sdk/src/file-view.ts:13](https://github.com/zocomputer/zov2-code/blob/ef70d86dc0c3cdb95eb7c208e5ea40a4edf9effb/packages/agent-sdk/src/file-view.ts#L13)
+Defined in: [packages/agent-sdk/src/file-view.ts:13](https://github.com/zocomputer/zov2-code/blob/0e648df1796b1446eeb67f62d6e2274440971464/packages/agent-sdk/src/file-view.ts#L13)
 
 Total character budget for the numbered content of one call.

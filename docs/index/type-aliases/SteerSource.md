@@ -8,6 +8,6 @@
 
 > **SteerSource** = `Pick`\<[`SteerInbox`](../../steer-inbox/interfaces/SteerInbox.md), `"drain"`\>
 
-Defined in: [packages/agent-sdk/src/steer-tool.ts:29](https://github.com/zocomputer/zov2-code/blob/ef70d86dc0c3cdb95eb7c208e5ea40a4edf9effb/packages/agent-sdk/src/steer-tool.ts#L29)
+Defined in: [packages/agent-sdk/src/steer-tool.ts:29](https://github.com/zocomputer/zov2-code/blob/0e648df1796b1446eeb67f62d6e2274440971464/packages/agent-sdk/src/steer-tool.ts#L29)
 
 The drain-side subset of the inbox the wrapper needs.

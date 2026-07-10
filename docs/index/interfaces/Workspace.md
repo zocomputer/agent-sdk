@@ -6,7 +6,7 @@
 
 # Interface: Workspace
 
-Defined in: [packages/agent-sdk/src/workspace.ts:30](https://github.com/zocomputer/zov2-code/blob/ef70d86dc0c3cdb95eb7c208e5ea40a4edf9effb/packages/agent-sdk/src/workspace.ts#L30)
+Defined in: [packages/agent-sdk/src/workspace.ts:30](https://github.com/zocomputer/zov2-code/blob/0e648df1796b1446eeb67f62d6e2274440971464/packages/agent-sdk/src/workspace.ts#L30)
 
 One workspace root plus the two path operations every file tool needs.
 
@@ -16,7 +16,7 @@ One workspace root plus the two path operations every file tool needs.
 
 > `readonly` **root**: `string`
 
-Defined in: [packages/agent-sdk/src/workspace.ts:31](https://github.com/zocomputer/zov2-code/blob/ef70d86dc0c3cdb95eb7c208e5ea40a4edf9effb/packages/agent-sdk/src/workspace.ts#L31)
+Defined in: [packages/agent-sdk/src/workspace.ts:31](https://github.com/zocomputer/zov2-code/blob/0e648df1796b1446eeb67f62d6e2274440971464/packages/agent-sdk/src/workspace.ts#L31)
 
 ## Methods
 
@@ -24,7 +24,7 @@ Defined in: [packages/agent-sdk/src/workspace.ts:31](https://github.com/zocomput
 
 > **relativize**(`abs`): `string`
 
-Defined in: [packages/agent-sdk/src/workspace.ts:35](https://github.com/zocomputer/zov2-code/blob/ef70d86dc0c3cdb95eb7c208e5ea40a4edf9effb/packages/agent-sdk/src/workspace.ts#L35)
+Defined in: [packages/agent-sdk/src/workspace.ts:35](https://github.com/zocomputer/zov2-code/blob/0e648df1796b1446eeb67f62d6e2274440971464/packages/agent-sdk/src/workspace.ts#L35)
 
 Turn an absolute path into a root-relative, forward-slash display path.
 
@@ -44,7 +44,7 @@ Turn an absolute path into a root-relative, forward-slash display path.
 
 > **resolve**(`path`): `string`
 
-Defined in: [packages/agent-sdk/src/workspace.ts:33](https://github.com/zocomputer/zov2-code/blob/ef70d86dc0c3cdb95eb7c208e5ea40a4edf9effb/packages/agent-sdk/src/workspace.ts#L33)
+Defined in: [packages/agent-sdk/src/workspace.ts:33](https://github.com/zocomputer/zov2-code/blob/0e648df1796b1446eeb67f62d6e2274440971464/packages/agent-sdk/src/workspace.ts#L33)
 
 Resolve a path against the workspace root and refuse anything that escapes it.
 
