@@ -6,7 +6,7 @@
 
 # Interface: OutputWatcher
 
-Defined in: [packages/agent-sdk/src/watch-output.ts:28](https://github.com/zocomputer/zov2-code/blob/311b5755d0a50f315302987e21c3a97a752a3696/packages/agent-sdk/src/watch-output.ts#L28)
+Defined in: [packages/agent-sdk/src/watch-output.ts:28](https://github.com/zocomputer/zov2-code/blob/384c0715e5dbd68ec5614af4167eaef9b0b6e0cd/packages/agent-sdk/src/watch-output.ts#L28)
 
 A live output watcher for background commands: feed it output chunks, get
 back the complete lines that match the regex — debounced and capped so a
@@ -18,7 +18,7 @@ chatty pattern can't flood the session.
 
 > **feed**(`chunk`): `string`[] \| `null`
 
-Defined in: [packages/agent-sdk/src/watch-output.ts:33](https://github.com/zocomputer/zov2-code/blob/311b5755d0a50f315302987e21c3a97a752a3696/packages/agent-sdk/src/watch-output.ts#L33)
+Defined in: [packages/agent-sdk/src/watch-output.ts:33](https://github.com/zocomputer/zov2-code/blob/384c0715e5dbd68ec5614af4167eaef9b0b6e0cd/packages/agent-sdk/src/watch-output.ts#L33)
 
 Consume an output chunk (any framing — watcher handles line buffering).
 Returns the matching complete lines that clear debounce/cap, or null.
@@ -39,7 +39,7 @@ Returns the matching complete lines that clear debounce/cap, or null.
 
 > **flush**(): `string`[] \| `null`
 
-Defined in: [packages/agent-sdk/src/watch-output.ts:35](https://github.com/zocomputer/zov2-code/blob/311b5755d0a50f315302987e21c3a97a752a3696/packages/agent-sdk/src/watch-output.ts#L35)
+Defined in: [packages/agent-sdk/src/watch-output.ts:35](https://github.com/zocomputer/zov2-code/blob/384c0715e5dbd68ec5614af4167eaef9b0b6e0cd/packages/agent-sdk/src/watch-output.ts#L35)
 
 Flush the unterminated tail as a final line (call when the command ends).
 

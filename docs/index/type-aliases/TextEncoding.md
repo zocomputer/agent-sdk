@@ -8,7 +8,7 @@
 
 > **TextEncoding** = `"utf8"` \| `"utf16le"` \| `"utf16be"`
 
-Defined in: [packages/agent-sdk/src/file-kind.ts:61](https://github.com/zocomputer/zov2-code/blob/311b5755d0a50f315302987e21c3a97a752a3696/packages/agent-sdk/src/file-kind.ts#L61)
+Defined in: [packages/agent-sdk/src/file-kind.ts:61](https://github.com/zocomputer/zov2-code/blob/384c0715e5dbd68ec5614af4167eaef9b0b6e0cd/packages/agent-sdk/src/file-kind.ts#L61)
 
 Text encodings `read` decodes. UTF-16 is BOM-detected (a NUL-sniff alone
 would misclassify UTF-16 text — common in Windows-exported CSVs — as binary).

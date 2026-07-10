@@ -8,6 +8,6 @@
 
 > `const` **ZO\_EVE\_SESSION\_HEADER**: `"x-zo-eve-session"` = `"x-zo-eve-session"`
 
-Defined in: [packages/agent-sdk/src/state-sandbox.ts:22](https://github.com/zocomputer/zov2-code/blob/311b5755d0a50f315302987e21c3a97a752a3696/packages/agent-sdk/src/state-sandbox.ts#L22)
+Defined in: [packages/agent-sdk/src/state-sandbox.ts:22](https://github.com/zocomputer/zov2-code/blob/384c0715e5dbd68ec5614af4167eaef9b0b6e0cd/packages/agent-sdk/src/state-sandbox.ts#L22)
 
 HTTP header for the eve session key when requesting a sandbox handle.
