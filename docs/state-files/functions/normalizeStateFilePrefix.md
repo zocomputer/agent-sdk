@@ -8,7 +8,7 @@
 
 > **normalizeStateFilePrefix**(`prefix`): `string` \| `undefined`
 
-Defined in: [packages/agent-sdk/src/state-files.ts:398](https://github.com/zocomputer/zov2-code/blob/b1083703742c40f0a33149c0d589f9948d72aea2/packages/agent-sdk/src/state-files.ts#L398)
+Defined in: [packages/agent-sdk/src/state-files.ts:398](https://github.com/zocomputer/zov2-code/blob/2ecdaafb938b2184f882642908beb7b52901cb28/packages/agent-sdk/src/state-files.ts#L398)
 
 Validates and normalizes a state-file prefix for list operations.
 Returns `undefined` for empty/undefined input; ensures trailing slash for directory-style prefixes.

@@ -103,6 +103,15 @@ degrades, never crashes a session. The vocabulary (`PromptSection`,
 `PlacedPromptSection`, `composePromptSections`, `renderPromptSections`) is
 exported for consumers building their own composed instructions.
 
+One ready-made extra ships with the SDK: `toolAuthoringSection` (id
+`tool-authoring`, heading "Authoring tools") — the tool contract the SDK's own
+tools follow (snake_case names/params, flat strip-mode schemas, corrective
+thrown errors, echo-back result keys, static descriptions), for agents that
+**write** eve tools (an agent-builder editing another agent's `tools/`
+directory). It's deliberately not in the baseline — most agents never author
+tools — so wire it through `extraInstructionSections` (or à la carte via
+`createToolAuthoringInstruction`).
+
 On a split topology, `createSandboxFileTools` returns the same stack
 pre-configured for the sandbox — see
 [Sandbox-backed file tools](#sandbox-backed-file-tools-split-topologies).

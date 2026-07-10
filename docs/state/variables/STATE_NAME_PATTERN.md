@@ -8,6 +8,6 @@
 
 > `const` **STATE\_NAME\_PATTERN**: `RegExp`
 
-Defined in: [packages/agent-sdk/src/state.ts:54](https://github.com/zocomputer/zov2-code/blob/b1083703742c40f0a33149c0d589f9948d72aea2/packages/agent-sdk/src/state.ts#L54)
+Defined in: [packages/agent-sdk/src/state.ts:54](https://github.com/zocomputer/zov2-code/blob/2ecdaafb938b2184f882642908beb7b52901cb28/packages/agent-sdk/src/state.ts#L54)
 
 Mirrors the deploy parser's name rule: lowercase, digit/underscore/hyphen tail.

@@ -77,6 +77,14 @@ function isZodSchema(value: unknown): value is z.ZodType {
   return typeof value === "object" && value !== null && "_zod" in value;
 }
 
+// The prior-aligned naming contract extends to param CASE: snake_case keys
+// (`old_string`, `task_id`), matching Claude Code / opencode priors. The one
+// deliberate camelCase surface — `request_state_consent`'s envelope
+// (`bindingId`, `declarationName`, …) — is a verbatim pass-through of the
+// broker's 409 body shared with chat-core, and isn't part of the toolsets
+// this suite sweeps.
+const SNAKE_CASE = /^[a-z][a-z0-9_]*$/;
+
 /** Walk a JSON schema and collect shape-contract violations with their paths. */
 function collectViolations(node: unknown, path: string, out: string[]): void {
   if (Array.isArray(node)) {
@@ -89,6 +97,13 @@ function collectViolations(node: unknown, path: string, out: string[]): void {
   }
   if (node.type === "array" && isRecord(node.items) && node.items.type === "object") {
     out.push(`${path}: array of objects`);
+  }
+  if (isRecord(node.properties)) {
+    for (const key of Object.keys(node.properties)) {
+      if (!SNAKE_CASE.test(key)) {
+        out.push(`${path}.properties.${key}: not snake_case`);
+      }
+    }
   }
   for (const [key, value] of Object.entries(node)) {
     collectViolations(value, `${path}.${key}`, out);
@@ -127,7 +142,7 @@ describe("model-facing schema shape", () => {
     );
   });
 
-  test("every schema is flat and strip-mode: no object arrays, no .strict()", () => {
+  test("every schema is flat, strip-mode, and snake_case", () => {
     const violations: string[] = [];
     for (const [name, tool] of Object.entries(allTools)) {
       if (!isZodSchema(tool.inputSchema)) {

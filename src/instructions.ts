@@ -588,6 +588,68 @@ export function createSubagentInstruction(opts?: {
 }
 
 // ---------------------------------------------------------------------------
+// Tool authoring
+// ---------------------------------------------------------------------------
+
+/**
+ * The tool-authoring contract section, for agents that WRITE eve tools (Zo's
+ * Builder; any agent that edits another agent's `tools/` directory): the
+ * naming, schema-shape, error, and prompt-cache rules the SDK's own tools
+ * follow (`packages/agent-sdk/src/tools/AGENTS.md`,
+ * `design/foundation/03-prior-aligned-naming.md`). Deliberately NOT part of
+ * the baseline stack — most agents never author tools — wire it via
+ * `extraInstructionSections`.
+ */
+export function toolAuthoringSection(opts?: {
+  /** Prose depth; defaults to "full". */
+  tier?: InstructionTier | undefined;
+}): PromptSection {
+  const body =
+    (opts?.tier ?? "full") === "compact"
+      ? `When you create or edit an eve tool module, follow the platform tool contract:
+
+- snake_case tool names and params (\`generate_image\`, \`output_dir\`); the filename is the wire name. Prefer established names; \`path\`, not \`file_path\`.
+- Flat \`z.object\`s of scalars — no arrays of objects, no nested unions; mutually exclusive options are two optional scalars with the exclusivity enforced in \`execute\`. Never \`.strict()\` a model-facing schema (unknown keys must strip, not reject).
+- \`.describe(...)\` every param.
+- A result key the model must pass back later uses the same name as the param that consumes it (\`task_id\` out → \`task_id\` in).
+- Failures \`throw new Error(...)\` with corrective prose: what happened, that nothing changed, what to resend — never a raw fetch/zod/provider error. Success results are plain bounded JSON, no \`ok: true\` flags.
+- Descriptions are static — never interpolate live state (counts, timestamps) into a description; per-call state belongs in results.`
+      : `When you create or edit an eve tool (a \`tools/<name>.ts\` module), follow the platform's tool contract — models are measurably better at calling tools that match these priors:
+
+- **Names and params are snake_case** (\`generate_image\`, \`output_dir\`, \`task_id\`), and the snake_case filename is the wire name the model sees. Prefer short established names over novel ones, and \`path\` over \`file_path\`.
+- **Schemas are flat objects of scalars.** No arrays of objects and no nested unions in model-facing params — models garble high-entropy nested shapes. Make mutually exclusive options two optional scalars and enforce the exclusivity inside \`execute\` with a corrective error. Never call \`.strict()\` on a model-facing schema: an unknown extra key must strip (Zod's default), not bounce the whole call as a validation error.
+- **Describe every param** with \`.describe(...)\` so the model fills it correctly.
+- **Echo-back keys match param names.** When a result carries a value the model will pass to a later call, use the same key in both places — a result's \`task_id\` feeds a param named \`task_id\`, never \`taskId\`.
+- **Failures are corrective prose, thrown.** \`throw new Error(...)\` with a message that names what happened, states that nothing changed, and says exactly what to resend — never let a raw fetch/zod/provider error or a stack trace reach the model. Success results are plain, bounded, JSON-serializable data; don't add \`ok: true\` flags (the throw is the failure channel).
+- **Descriptions are static.** Never interpolate live state (counts, timestamps, current config) into a tool description — descriptions are part of the cached prompt prefix; per-call state belongs in tool results.`;
+  return { id: "tool-authoring", heading: "Authoring tools", body };
+}
+
+/** Pure markdown for the tool-authoring contract; see {@link toolAuthoringSection}. */
+export function buildToolAuthoringMarkdown(opts?: {
+  tier?: InstructionTier | undefined;
+}): string {
+  return renderPromptSection(toolAuthoringSection(opts));
+}
+
+/**
+ * The tool-authoring contract as a standalone à la carte instruction, for
+ * agents that author eve tools. Static and session-stable (prompt-cache
+ * safe). Stack consumers pass {@link toolAuthoringSection} through
+ * `extraInstructionSections` instead.
+ */
+export function createToolAuthoringInstruction(opts?: {
+  tier?: InstructionTier | undefined;
+}) {
+  const instruction = defineInstructions({ markdown: buildToolAuthoringMarkdown(opts) });
+  return defineDynamic({
+    events: {
+      "session.started": () => instruction,
+    },
+  });
+}
+
+// ---------------------------------------------------------------------------
 // The composed instruction stack
 // ---------------------------------------------------------------------------
 

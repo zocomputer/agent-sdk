@@ -12,6 +12,7 @@ import {
   buildPlanningMarkdown,
   buildRepoConventionsMarkdown,
   buildSubagentMarkdown,
+  buildToolAuthoringMarkdown,
   buildWorkflowMarkdown,
   INSTRUCTION_STACK_SECTION_IDS,
 } from "./instructions";
@@ -247,6 +248,20 @@ describe("compact tier", () => {
       name: "communication",
       render: (tier) => buildCommunicationMarkdown({ tier }),
       tokens: ["Lead with the outcome", "Readable beats brief", "faithfully"],
+    },
+    {
+      name: "tool authoring",
+      render: (tier) => buildToolAuthoringMarkdown({ tier }),
+      tokens: [
+        "snake_case",
+        "`output_dir`",
+        "`.strict()`",
+        "strip",
+        "`.describe(...)`",
+        "`task_id`",
+        "nothing changed",
+        "static",
+      ],
     },
   ];
 

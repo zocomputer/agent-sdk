@@ -8,7 +8,7 @@
 
 > **\_\_resetDirConventionsCacheForTests**(): `void`
 
-Defined in: [packages/agent-sdk/src/dir-conventions.ts:135](https://github.com/zocomputer/zov2-code/blob/b1083703742c40f0a33149c0d589f9948d72aea2/packages/agent-sdk/src/dir-conventions.ts#L135)
+Defined in: [packages/agent-sdk/src/dir-conventions.ts:135](https://github.com/zocomputer/zov2-code/blob/2ecdaafb938b2184f882642908beb7b52901cb28/packages/agent-sdk/src/dir-conventions.ts#L135)
 
 Test-only: drop the per-process tracker state dedupe.
 

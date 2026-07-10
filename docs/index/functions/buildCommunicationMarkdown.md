@@ -8,7 +8,7 @@
 
 > **buildCommunicationMarkdown**(`opts?`): `string`
 
-Defined in: [packages/agent-sdk/src/instructions.ts:338](https://github.com/zocomputer/zov2-code/blob/b1083703742c40f0a33149c0d589f9948d72aea2/packages/agent-sdk/src/instructions.ts#L338)
+Defined in: [packages/agent-sdk/src/instructions.ts:338](https://github.com/zocomputer/zov2-code/blob/2ecdaafb938b2184f882642908beb7b52901cb28/packages/agent-sdk/src/instructions.ts#L338)
 
 Pure markdown for the reporting contract; see createCommunicationInstruction.
 

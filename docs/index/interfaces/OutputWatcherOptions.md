@@ -6,7 +6,7 @@
 
 # Interface: OutputWatcherOptions
 
-Defined in: [packages/agent-sdk/src/watch-output.ts:12](https://github.com/zocomputer/zov2-code/blob/b1083703742c40f0a33149c0d589f9948d72aea2/packages/agent-sdk/src/watch-output.ts#L12)
+Defined in: [packages/agent-sdk/src/watch-output.ts:12](https://github.com/zocomputer/zov2-code/blob/2ecdaafb938b2184f882642908beb7b52901cb28/packages/agent-sdk/src/watch-output.ts#L12)
 
 Configuration for an output watcher: the regex pattern matched against
 complete output lines, debounce/cap to limit notification flood, and
@@ -18,7 +18,7 @@ injectable clock for tests.
 
 > `optional` **debounceMs?**: `number`
 
-Defined in: [packages/agent-sdk/src/watch-output.ts:16](https://github.com/zocomputer/zov2-code/blob/b1083703742c40f0a33149c0d589f9948d72aea2/packages/agent-sdk/src/watch-output.ts#L16)
+Defined in: [packages/agent-sdk/src/watch-output.ts:16](https://github.com/zocomputer/zov2-code/blob/2ecdaafb938b2184f882642908beb7b52901cb28/packages/agent-sdk/src/watch-output.ts#L16)
 
 Minimum ms between match batches; matches inside the window drop.
 
@@ -28,7 +28,7 @@ Minimum ms between match batches; matches inside the window drop.
 
 > `optional` **maxNotifications?**: `number`
 
-Defined in: [packages/agent-sdk/src/watch-output.ts:18](https://github.com/zocomputer/zov2-code/blob/b1083703742c40f0a33149c0d589f9948d72aea2/packages/agent-sdk/src/watch-output.ts#L18)
+Defined in: [packages/agent-sdk/src/watch-output.ts:18](https://github.com/zocomputer/zov2-code/blob/2ecdaafb938b2184f882642908beb7b52901cb28/packages/agent-sdk/src/watch-output.ts#L18)
 
 Max match batches over the watcher's lifetime; later matches drop.
 
@@ -38,7 +38,7 @@ Max match batches over the watcher's lifetime; later matches drop.
 
 > `optional` **now?**: () => `number`
 
-Defined in: [packages/agent-sdk/src/watch-output.ts:20](https://github.com/zocomputer/zov2-code/blob/b1083703742c40f0a33149c0d589f9948d72aea2/packages/agent-sdk/src/watch-output.ts#L20)
+Defined in: [packages/agent-sdk/src/watch-output.ts:20](https://github.com/zocomputer/zov2-code/blob/2ecdaafb938b2184f882642908beb7b52901cb28/packages/agent-sdk/src/watch-output.ts#L20)
 
 Clock, injectable for tests.
 
@@ -52,6 +52,6 @@ Clock, injectable for tests.
 
 > **pattern**: `string`
 
-Defined in: [packages/agent-sdk/src/watch-output.ts:14](https://github.com/zocomputer/zov2-code/blob/b1083703742c40f0a33149c0d589f9948d72aea2/packages/agent-sdk/src/watch-output.ts#L14)
+Defined in: [packages/agent-sdk/src/watch-output.ts:14](https://github.com/zocomputer/zov2-code/blob/2ecdaafb938b2184f882642908beb7b52901cb28/packages/agent-sdk/src/watch-output.ts#L14)
 
 Regex source matched against complete output lines.
