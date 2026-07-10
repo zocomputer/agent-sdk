@@ -8,6 +8,6 @@
 
 > **AudioFormat** = `"mp3"` \| `"wav"` \| `"ogg"` \| `"flac"` \| `"m4a"`
 
-Defined in: [packages/agent-sdk/src/file-kind.ts:38](https://github.com/zocomputer/zov2-code/blob/2ecdaafb938b2184f882642908beb7b52901cb28/packages/agent-sdk/src/file-kind.ts#L38)
+Defined in: [packages/agent-sdk/src/file-kind.ts:38](https://github.com/zocomputer/zov2-code/blob/4567e46fc689740ed814c3b4b8b1101dff80bfbe/packages/agent-sdk/src/file-kind.ts#L38)
 
 Audio formats `read` detects. Same provider-gated delivery as video.

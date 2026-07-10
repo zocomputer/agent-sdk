@@ -8,7 +8,7 @@
 
 > **planningSection**(`opts?`): [`PromptSection`](../interfaces/PromptSection.md)
 
-Defined in: [packages/agent-sdk/src/instructions.ts:172](https://github.com/zocomputer/zov2-code/blob/2ecdaafb938b2184f882642908beb7b52901cb28/packages/agent-sdk/src/instructions.ts#L172)
+Defined in: [packages/agent-sdk/src/instructions.ts:172](https://github.com/zocomputer/zov2-code/blob/4567e46fc689740ed814c3b4b8b1101dff80bfbe/packages/agent-sdk/src/instructions.ts#L172)
 
 The todo-tool playbook: when a plan is worth writing, what a good step
 looks like, and the status discipline (one `in_progress`, immediate

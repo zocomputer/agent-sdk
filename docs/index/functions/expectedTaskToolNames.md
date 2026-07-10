@@ -8,7 +8,7 @@
 
 > **expectedTaskToolNames**(`options`): `string`[]
 
-Defined in: [packages/agent-sdk/src/task.ts:80](https://github.com/zocomputer/zov2-code/blob/2ecdaafb938b2184f882642908beb7b52901cb28/packages/agent-sdk/src/task.ts#L80)
+Defined in: [packages/agent-sdk/src/task.ts:80](https://github.com/zocomputer/zov2-code/blob/4567e46fc689740ed814c3b4b8b1101dff80bfbe/packages/agent-sdk/src/task.ts#L80)
 
 The exact file set (sorted, without `.ts`) a task subagent's `tools/` dir
 must contain: every parent tool minus the exclusions, plus one disable shim

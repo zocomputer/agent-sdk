@@ -8,6 +8,6 @@
 
 > `const` **EscapeNormalizedReplacer**: [`Replacer`](../type-aliases/Replacer.md)
 
-Defined in: [packages/agent-sdk/src/edit-match.ts:312](https://github.com/zocomputer/zov2-code/blob/2ecdaafb938b2184f882642908beb7b52901cb28/packages/agent-sdk/src/edit-match.ts#L312)
+Defined in: [packages/agent-sdk/src/edit-match.ts:312](https://github.com/zocomputer/zov2-code/blob/4567e46fc689740ed814c3b4b8b1101dff80bfbe/packages/agent-sdk/src/edit-match.ts#L312)
 
 Unescapes `\n`, `\t`, `\r`, quotes, backticks, `\\`, `\$`, and escaped literal newlines — the "model double-escaped the string" case.

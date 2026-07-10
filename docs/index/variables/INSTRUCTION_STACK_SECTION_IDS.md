@@ -8,7 +8,7 @@
 
 > `const` **INSTRUCTION\_STACK\_SECTION\_IDS**: readonly \[`"repo-conventions"`, `"workflow"`, `"planning"`, `"parallel-tools"`, `"subagents"`, `"media"`, `"hitl"`, `"communication"`\]
 
-Defined in: [packages/agent-sdk/src/instructions.ts:664](https://github.com/zocomputer/zov2-code/blob/2ecdaafb938b2184f882642908beb7b52901cb28/packages/agent-sdk/src/instructions.ts#L664)
+Defined in: [packages/agent-sdk/src/instructions.ts:664](https://github.com/zocomputer/zov2-code/blob/4567e46fc689740ed814c3b4b8b1101dff80bfbe/packages/agent-sdk/src/instructions.ts#L664)
 
 The SDK's canonical section order — environment first (repo conventions),
 then the core loop (workflow, planning), tool playbooks (parallel tools,
