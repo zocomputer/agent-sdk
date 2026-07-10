@@ -8,7 +8,7 @@
 
 > **parallelToolsSection**(`opts?`): [`PromptSection`](../interfaces/PromptSection.md)
 
-Defined in: [packages/agent-sdk/src/instructions.ts:230](https://github.com/zocomputer/zov2-code/blob/0e648df1796b1446eeb67f62d6e2274440971464/packages/agent-sdk/src/instructions.ts#L230)
+Defined in: [packages/agent-sdk/src/instructions.ts:230](https://github.com/zocomputer/zov2-code/blob/9c31432d7362033dfbece45d1305011eb46c55ac/packages/agent-sdk/src/instructions.ts#L230)
 
 The background-work section for the stdlib's async tools (bash
 auto-backgrounding, run_async/check_tasks/await_task, notify watchers, the

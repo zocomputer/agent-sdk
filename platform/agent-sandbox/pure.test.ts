@@ -2,12 +2,111 @@ import { describe, expect, test } from "bun:test";
 import {
   decodeText,
   encodeText,
+  mapNominalWorkspacePath,
   readSandboxId,
   resolveSandboxPath,
   shellSingleQuote,
 } from "./pure";
 
+describe("mapNominalWorkspacePath", () => {
+  test("maps the exact nominal root to the work dir", () => {
+    expect(mapNominalWorkspacePath("/home/daytona", "/workspace")).toBe("/home/daytona");
+  });
+
+  test("maps the root with a trailing slash to the work dir", () => {
+    expect(mapNominalWorkspacePath("/home/daytona", "/workspace/")).toBe("/home/daytona");
+  });
+
+  test("maps a nested path under the root (eve skill materialization shape)", () => {
+    expect(
+      mapNominalWorkspacePath("/home/daytona", "/workspace/skills/demo/SKILL.md"),
+    ).toBe("/home/daytona/skills/demo/SKILL.md");
+  });
+
+  test("maps a deeply nested path", () => {
+    expect(mapNominalWorkspacePath("/home/daytona", "/workspace/a/b/c.txt")).toBe(
+      "/home/daytona/a/b/c.txt",
+    );
+  });
+
+  test("normalizes a duplicate slash after the root", () => {
+    expect(mapNominalWorkspacePath("/home/daytona", "/workspace//skills")).toBe(
+      "/home/daytona/skills",
+    );
+  });
+
+  test("does NOT map a sibling path that merely shares the prefix characters", () => {
+    expect(mapNominalWorkspacePath("/home/daytona", "/workspaces/x")).toBe("/workspaces/x");
+    expect(mapNominalWorkspacePath("/home/daytona", "/workspace-old/x")).toBe(
+      "/workspace-old/x",
+    );
+  });
+
+  test("does NOT map a path that contains the substring elsewhere", () => {
+    expect(
+      mapNominalWorkspacePath("/home/daytona", "/home/daytona/workspace-file"),
+    ).toBe("/home/daytona/workspace-file");
+    expect(mapNominalWorkspacePath("/home/daytona", "/tmp/workspace/x")).toBe(
+      "/tmp/workspace/x",
+    );
+  });
+
+  test("leaves other absolute paths untouched", () => {
+    expect(mapNominalWorkspacePath("/home/daytona", "/etc/hosts")).toBe("/etc/hosts");
+  });
+
+  test("leaves relative paths untouched (anchoring is resolveSandboxPath's job)", () => {
+    expect(mapNominalWorkspacePath("/home/daytona", "workspace/x")).toBe("workspace/x");
+    expect(mapNominalWorkspacePath("/home/daytona", "skills/demo")).toBe("skills/demo");
+  });
+
+  test("is the identity when the work dir IS the nominal root", () => {
+    expect(mapNominalWorkspacePath("/workspace", "/workspace/skills/x")).toBe(
+      "/workspace/skills/x",
+    );
+  });
+
+  test("rejects a .. that would escape the work dir after mapping", () => {
+    expect(() => mapNominalWorkspacePath("/home/daytona", "/workspace/../x")).toThrow(
+      /escapes the work dir/,
+    );
+    expect(() => mapNominalWorkspacePath("/home/daytona", "/workspace/..")).toThrow(
+      /escapes the work dir/,
+    );
+    // Even when the work dir IS the nominal root, an escaping .. is rejected.
+    expect(() => mapNominalWorkspacePath("/workspace", "/workspace/../etc")).toThrow(
+      /escapes the work dir/,
+    );
+  });
+
+  test("allows a .. that stays within the work dir", () => {
+    expect(mapNominalWorkspacePath("/home/daytona", "/workspace/a/../b")).toBe(
+      "/home/daytona/b",
+    );
+  });
+});
+
 describe("resolveSandboxPath", () => {
+  test("remaps an absolute /workspace path onto the work dir", () => {
+    expect(resolveSandboxPath("/home/daytona", "/workspace/skills/demo/SKILL.md")).toBe(
+      "/home/daytona/skills/demo/SKILL.md",
+    );
+  });
+
+  test("remaps the exact /workspace root onto the work dir", () => {
+    expect(resolveSandboxPath("/home/daytona", "/workspace")).toBe("/home/daytona");
+  });
+
+  test("does not remap a non-workspace absolute that shares prefix characters", () => {
+    expect(resolveSandboxPath("/home/daytona", "/workspaces/x")).toBe("/workspaces/x");
+  });
+
+  test("rejects a /workspace path whose .. escapes the work dir after mapping", () => {
+    expect(() => resolveSandboxPath("/home/daytona", "/workspace/../x")).toThrow(
+      /escapes the work dir/,
+    );
+  });
+
   test("anchors a relative path under the work dir", () => {
     expect(resolveSandboxPath("/home/daytona", "src/run.py")).toBe(
       "/home/daytona/src/run.py",

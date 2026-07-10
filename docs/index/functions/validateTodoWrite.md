@@ -8,7 +8,7 @@
 
 > **validateTodoWrite**(`args`): readonly [`TodoViolation`](../type-aliases/TodoViolation.md)[]
 
-Defined in: [packages/agent-sdk/src/todo-discipline.ts:100](https://github.com/zocomputer/zov2-code/blob/0e648df1796b1446eeb67f62d6e2274440971464/packages/agent-sdk/src/todo-discipline.ts#L100)
+Defined in: [packages/agent-sdk/src/todo-discipline.ts:100](https://github.com/zocomputer/zov2-code/blob/9c31432d7362033dfbece45d1305011eb46c55ac/packages/agent-sdk/src/todo-discipline.ts#L100)
 
 Validate a full-replacement todo write against the discipline rules:
 non-empty unique contents, at most one `in_progress`, and no

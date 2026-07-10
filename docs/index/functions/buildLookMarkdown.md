@@ -8,7 +8,7 @@
 
 > **buildLookMarkdown**(`opts`): `string`
 
-Defined in: [packages/agent-sdk/src/instructions.ts:464](https://github.com/zocomputer/zov2-code/blob/0e648df1796b1446eeb67f62d6e2274440971464/packages/agent-sdk/src/instructions.ts#L464)
+Defined in: [packages/agent-sdk/src/instructions.ts:464](https://github.com/zocomputer/zov2-code/blob/9c31432d7362033dfbece45d1305011eb46c55ac/packages/agent-sdk/src/instructions.ts#L464)
 
 Pure markdown for the media-delegation playbook; see createLookInstruction.
 

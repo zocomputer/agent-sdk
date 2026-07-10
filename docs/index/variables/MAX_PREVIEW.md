@@ -8,7 +8,7 @@
 
 > `const` **MAX\_PREVIEW**: `20000` = `20_000`
 
-Defined in: [packages/agent-sdk/src/run.ts:11](https://github.com/zocomputer/zov2-code/blob/0e648df1796b1446eeb67f62d6e2274440971464/packages/agent-sdk/src/run.ts#L11)
+Defined in: [packages/agent-sdk/src/run.ts:11](https://github.com/zocomputer/zov2-code/blob/9c31432d7362033dfbece45d1305011eb46c55ac/packages/agent-sdk/src/run.ts#L11)
 
 Character cap for live progress previews; the tail alone when output exceeds
 it. Full-run results get head + tail instead (see bounded-output.ts).

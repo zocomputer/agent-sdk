@@ -8,7 +8,7 @@
 
 > **detectFileKind**(`buf`, `path`): [`FileKind`](../type-aliases/FileKind.md)
 
-Defined in: [packages/agent-sdk/src/file-kind.ts:232](https://github.com/zocomputer/zov2-code/blob/0e648df1796b1446eeb67f62d6e2274440971464/packages/agent-sdk/src/file-kind.ts#L232)
+Defined in: [packages/agent-sdk/src/file-kind.ts:232](https://github.com/zocomputer/zov2-code/blob/9c31432d7362033dfbece45d1305011eb46c55ac/packages/agent-sdk/src/file-kind.ts#L232)
 
 Classify a file by its magic bytes and path. Magic bytes decide the family; the path disambiguates containers.
 

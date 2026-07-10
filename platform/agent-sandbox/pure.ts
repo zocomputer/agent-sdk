@@ -6,19 +6,71 @@ import path from "node:path";
 // see `pure.test.ts`.
 
 /**
+ * Eve's nominal sandbox root. Eve's runtime hardcodes this absolute path —
+ * skill materialization writes `/workspace/skills/<name>/…` and its framework
+ * `load_skill` tool reads `/workspace/skills/<name>/SKILL.md` back — but on the
+ * Daytona image `/workspace` doesn't exist and the `daytona` user can't create
+ * it (root-owned mount point), so those paths must be remapped onto the real
+ * work dir. See `mapNominalWorkspacePath`.
+ */
+export const NOMINAL_WORKSPACE_ROOT = "/workspace";
+
+/** Is `resolved` the work dir itself or a path beneath it? */
+function withinWorkDir(workDir: string, resolved: string): boolean {
+  const prefix = workDir.endsWith("/") ? workDir : `${workDir}/`;
+  return resolved === workDir || resolved.startsWith(prefix);
+}
+
+/**
+ * Transparently remap eve's nominal `/workspace` root onto the session's real
+ * work dir: `/workspace` → `workDir`, `/workspace/<rest>` → `<workDir>/<rest>`.
+ * Any other path passes through unchanged — the prefix must be a whole segment
+ * at the path root, so `/workspaces/x` and `/home/daytona/workspace-file` are
+ * NOT remapped.
+ *
+ * A `..` in the rest that would land the mapped path OUTSIDE the work dir
+ * (e.g. `/workspace/../x` → `/home/x`) throws — a nominal path has no
+ * legitimate reason to climb out of the root it names, so an escape is a bug
+ * (or an attempt), the same policy relative paths get in `resolveSandboxPath`.
+ * `..` that stays inside (`/workspace/a/../b`) is fine.
+ *
+ * Why `<workDir>/<rest>` and not `<workDir>/workspace/<rest>`: relative paths
+ * already anchor to the work dir, the seed agents root their file tools at
+ * `/home/daytona` directly (see apps/api/seed/lib/file-tools.ts), and the
+ * Builder checkout lives at `/home/daytona/agent` — so eve-materialized skills
+ * at `/workspace/skills/x` stay visible to all of them at the `skills/x`
+ * relative path. A `/home/daytona/workspace/…` mirror would hide them in a
+ * subdirectory nothing else reads.
+ */
+export function mapNominalWorkspacePath(workDir: string, p: string): string {
+  if (p === NOMINAL_WORKSPACE_ROOT) return workDir;
+  const prefix = `${NOMINAL_WORKSPACE_ROOT}/`;
+  if (!p.startsWith(prefix)) return p;
+  const rest = p.slice(prefix.length);
+  // `/workspace/` (empty rest) is the root itself; join normalizes duplicate
+  // slashes in a non-empty rest (e.g. `/workspace//skills`).
+  const mapped = rest === "" ? workDir : path.posix.join(workDir, rest);
+  if (!withinWorkDir(workDir, mapped)) {
+    throw new Error(`sandbox path escapes the work dir: ${p}`);
+  }
+  return mapped;
+}
+
+/**
  * Anchor a sandbox path to the work dir: relative paths resolve under
- * `workDir`, absolute paths pass through unchanged.
+ * `workDir`; absolute paths pass through unchanged, except eve's nominal
+ * `/workspace` root, which is remapped onto `workDir` (see
+ * `mapNominalWorkspacePath`).
  *
  * A relative path that escapes `workDir` via `..` (e.g. `../../etc/passwd`) is
  * rejected — `path.posix.join` would otherwise normalize it to a location
- * outside the workspace, which the file methods would then read/write.
+ * outside the workspace, which the file methods would then read/write. (Mapped
+ * `/workspace` paths get the same guard inside `mapNominalWorkspacePath`.)
  */
 export function resolveSandboxPath(workDir: string, p: string): string {
-  if (path.posix.isAbsolute(p)) return p;
+  if (path.posix.isAbsolute(p)) return mapNominalWorkspacePath(workDir, p);
   const resolved = path.posix.join(workDir, p);
-  // Stay within workDir: either the dir itself or a path beneath it.
-  const prefix = workDir.endsWith("/") ? workDir : `${workDir}/`;
-  if (resolved !== workDir && !resolved.startsWith(prefix)) {
+  if (!withinWorkDir(workDir, resolved)) {
     throw new Error(`sandbox path escapes the work dir: ${p}`);
   }
   return resolved;

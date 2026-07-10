@@ -8,7 +8,7 @@
 
 > **xhtmlToText**(`html`): `string`
 
-Defined in: [packages/agent-sdk/src/extract/epub.ts:45](https://github.com/zocomputer/zov2-code/blob/0e648df1796b1446eeb67f62d6e2274440971464/packages/agent-sdk/src/extract/epub.ts#L45)
+Defined in: [packages/agent-sdk/src/extract/epub.ts:45](https://github.com/zocomputer/zov2-code/blob/9c31432d7362033dfbece45d1305011eb46c55ac/packages/agent-sdk/src/extract/epub.ts#L45)
 
 Strip one (X)HTML document to plain text: block tags break lines, script/style/head content is dropped.
 

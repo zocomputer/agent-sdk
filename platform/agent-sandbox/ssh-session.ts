@@ -3,7 +3,7 @@ import { Client, type ClientChannel } from "ssh2";
 import type { SandboxSession } from "eve/sandbox";
 import { extractLines } from "@ai-sdk/provider-utils";
 import { decodeText, encodeText, resolveSandboxPath, shellSingleQuote } from "./pure";
-import { SshConnectionManager, type SshSandboxAccess } from "./ssh-connection";
+import { type Connector, SshConnectionManager, type SshSandboxAccess } from "./ssh-connection";
 import { awaitCommand } from "./ssh-exec";
 import { removePath as sftpRemovePath, sftpReadBytes, sftpWriteBytes } from "./sftp";
 
@@ -34,9 +34,12 @@ export type { SshSandboxAccess };
  * `/workspace` doesn't exist and the sandbox user (`daytona`) can't create it
  * (it's a root-owned mount point — verified: `mkdir /workspace` → permission
  * denied). So we anchor to the user's home, which is where SSH lands and is
- * writable. The divergence only matters if an authored agent hardcodes the
- * literal `/workspace`; surfacing a real writable workspace at that path would
- * need a base image that pre-creates + chowns it (a snapshot/bootstrap follow-up).
+ * writable. Absolute `/workspace/...` paths (eve's runtime hardcodes them for
+ * skill materialization and `load_skill`) are transparently remapped onto this
+ * dir by `resolveSandboxPath` → `mapNominalWorkspacePath` (pure.ts), so eve
+ * features that use the nominal root work without a base image that pre-creates
+ * `/workspace`. Paths embedded in command STRINGS are the one surface we can't
+ * remap (they're opaque shell).
  */
 const WORK_DIR = "/home/daytona";
 
@@ -373,22 +376,27 @@ export function sshSandboxSession(
   /** Stable id surfaced as `SandboxSession.id` (the eve session key). */
   id: string,
   acquireAccess: () => Promise<SshSandboxAccess>,
+  /**
+   * Injectable connector (unit tests pass a fake `Client`, no live socket) —
+   * the same seam `SshConnectionManager` exposes. Defaults to real ssh2.
+   */
+  connect: Connector<Client> = async (access) => {
+    const client = await connectSsh(access);
+    return {
+      client,
+      end: () => client.end(),
+      onClose: (cb) => void client.on("close", cb),
+    };
+  },
 ): SshSession {
   const resolvePath = (p: string): string => resolveSandboxPath(WORK_DIR, p);
 
   // The connection lifecycle (reuse / reconnect / re-mint / dispose) lives in
-  // the manager; here we only wrap the real ssh2 `Client` as a ManagedConn.
+  // the manager; here we only wrap the (injected) connector's client.
   const manager = new SshConnectionManager<Client>({
     acquireAccess,
     expirySkewMs: EXPIRY_SKEW_MS,
-    connect: async (access) => {
-      const client = await connectSsh(access);
-      return {
-        client,
-        end: () => client.end(),
-        onClose: (cb) => void client.on("close", cb),
-      };
-    },
+    connect,
   });
 
   const session: SandboxSession = {

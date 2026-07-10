@@ -8,7 +8,7 @@
 
 > **parseSteerLine**(`line`): [`SteerMessage`](../interfaces/SteerMessage.md) \| `null`
 
-Defined in: [packages/agent-sdk/src/steer.ts:138](https://github.com/zocomputer/zov2-code/blob/0e648df1796b1446eeb67f62d6e2274440971464/packages/agent-sdk/src/steer.ts#L138)
+Defined in: [packages/agent-sdk/src/steer.ts:138](https://github.com/zocomputer/zov2-code/blob/9c31432d7362033dfbece45d1305011eb46c55ac/packages/agent-sdk/src/steer.ts#L138)
 
 Parse one NDJSON line; null on blank or malformed input.
 

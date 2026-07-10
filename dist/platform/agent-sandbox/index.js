@@ -1,7 +1,7 @@
-// ../../../../../tmp/agent-sdk-mirror-JIbFxf/repo/platform/agent-sandbox/zo-sandbox.ts
+// ../../../../../tmp/agent-sdk-mirror-yIjGmT/repo/platform/agent-sandbox/zo-sandbox.ts
 import { defineSandbox } from "eve/sandbox";
 
-// ../../../../../tmp/agent-sdk-mirror-JIbFxf/repo/platform/agent-sandbox/ambient.ts
+// ../../../../../tmp/agent-sdk-mirror-yIjGmT/repo/platform/agent-sandbox/ambient.ts
 var EVE_CONTEXT_STORAGE_KEY = Symbol.for("eve.context-storage");
 var PARENT_SESSION_KEY_NAME = "eve.parentSession";
 function hasMethod(value, name) {
@@ -35,7 +35,7 @@ function ambientSessionParent() {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-JIbFxf/repo/platform/runtime-auth/index.ts
+// ../../../../../tmp/agent-sdk-mirror-yIjGmT/repo/platform/runtime-auth/index.ts
 import { SignJWT, jwtVerify } from "jose";
 var AGENT_TOKEN_HEADER = "x-zo-agent-token";
 var EVE_SESSION_HEADER = "x-zo-eve-session";
@@ -58,7 +58,7 @@ var RESERVED_AGENT_PROJECT_IDS = [
   LOCAL_AGENT_IDENTITY.agentProjectId
 ];
 
-// ../../../../../tmp/agent-sdk-mirror-JIbFxf/repo/platform/agent-sandbox/api-client.ts
+// ../../../../../tmp/agent-sdk-mirror-yIjGmT/repo/platform/agent-sandbox/api-client.ts
 var SCRATCH_DECLARATION = "scratch";
 var STATE_HANDLE_PATH = "/state/handles";
 
@@ -182,19 +182,36 @@ function describeBrokerError(status, code, message) {
   return `sandbox provisioning failed: ${status}${detail ? ` ${detail}` : ""}`.trim();
 }
 
-// ../../../../../tmp/agent-sdk-mirror-JIbFxf/repo/platform/agent-sandbox/ssh-session.ts
+// ../../../../../tmp/agent-sdk-mirror-yIjGmT/repo/platform/agent-sandbox/ssh-session.ts
 import { Client } from "ssh2";
 import { extractLines } from "@ai-sdk/provider-utils";
 
-// ../../../../../tmp/agent-sdk-mirror-JIbFxf/repo/platform/agent-sandbox/pure.ts
+// ../../../../../tmp/agent-sdk-mirror-yIjGmT/repo/platform/agent-sandbox/pure.ts
 import { Buffer as Buffer2 } from "node:buffer";
 import path from "node:path";
+var NOMINAL_WORKSPACE_ROOT = "/workspace";
+function withinWorkDir(workDir, resolved) {
+  const prefix = workDir.endsWith("/") ? workDir : `${workDir}/`;
+  return resolved === workDir || resolved.startsWith(prefix);
+}
+function mapNominalWorkspacePath(workDir, p) {
+  if (p === NOMINAL_WORKSPACE_ROOT)
+    return workDir;
+  const prefix = `${NOMINAL_WORKSPACE_ROOT}/`;
+  if (!p.startsWith(prefix))
+    return p;
+  const rest = p.slice(prefix.length);
+  const mapped = rest === "" ? workDir : path.posix.join(workDir, rest);
+  if (!withinWorkDir(workDir, mapped)) {
+    throw new Error(`sandbox path escapes the work dir: ${p}`);
+  }
+  return mapped;
+}
 function resolveSandboxPath(workDir, p) {
   if (path.posix.isAbsolute(p))
-    return p;
+    return mapNominalWorkspacePath(workDir, p);
   const resolved = path.posix.join(workDir, p);
-  const prefix = workDir.endsWith("/") ? workDir : `${workDir}/`;
-  if (resolved !== workDir && !resolved.startsWith(prefix)) {
+  if (!withinWorkDir(workDir, resolved)) {
     throw new Error(`sandbox path escapes the work dir: ${p}`);
   }
   return resolved;
@@ -226,7 +243,7 @@ function encodeText(text, encoding) {
   return new Uint8Array(Buffer2.from(text, enc));
 }
 
-// ../../../../../tmp/agent-sdk-mirror-JIbFxf/repo/platform/agent-sandbox/ssh-connection.ts
+// ../../../../../tmp/agent-sdk-mirror-yIjGmT/repo/platform/agent-sandbox/ssh-connection.ts
 function isExpired(access, skewMs, now) {
   const expiry = Date.parse(access.expiresAt);
   if (Number.isNaN(expiry))
@@ -317,7 +334,7 @@ class SshConnectionManager {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-JIbFxf/repo/platform/agent-sandbox/ssh-exec.ts
+// ../../../../../tmp/agent-sdk-mirror-yIjGmT/repo/platform/agent-sandbox/ssh-exec.ts
 var SIGNAL_EXIT_CODE = 137;
 function abortError(signal) {
   return signal.reason instanceof Error ? signal.reason : new Error(typeof signal.reason === "string" ? signal.reason : "aborted");
@@ -370,7 +387,7 @@ function awaitCommand(stream, abortSignal) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-JIbFxf/repo/platform/agent-sandbox/sftp.ts
+// ../../../../../tmp/agent-sdk-mirror-yIjGmT/repo/platform/agent-sandbox/sftp.ts
 import path2 from "node:path";
 var SFTP_NO_SUCH_FILE = 2;
 function isNoSuchFile(error) {
@@ -455,7 +472,7 @@ async function removePath(client, remotePath, opts = {}) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-JIbFxf/repo/platform/agent-sandbox/ssh-session.ts
+// ../../../../../tmp/agent-sdk-mirror-yIjGmT/repo/platform/agent-sandbox/ssh-session.ts
 var WORK_DIR = "/home/daytona";
 var EXPIRY_SKEW_MS = 30000;
 var SSH_PORT = 22;
@@ -623,19 +640,19 @@ function buildSpawnedProcess(stream, options = {}) {
     kill
   };
 }
-function sshSandboxSession(id, acquireAccess) {
+function sshSandboxSession(id, acquireAccess, connect = async (access) => {
+  const client = await connectSsh(access);
+  return {
+    client,
+    end: () => client.end(),
+    onClose: (cb) => void client.on("close", cb)
+  };
+}) {
   const resolvePath = (p) => resolveSandboxPath(WORK_DIR, p);
   const manager = new SshConnectionManager({
     acquireAccess,
     expirySkewMs: EXPIRY_SKEW_MS,
-    connect: async (access) => {
-      const client = await connectSsh(access);
-      return {
-        client,
-        end: () => client.end(),
-        onClose: (cb) => void client.on("close", cb)
-      };
-    }
+    connect
   });
   const session = {
     id,
@@ -711,7 +728,7 @@ function sshSandboxSession(id, acquireAccess) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-JIbFxf/repo/platform/agent-sandbox/zo-backend.ts
+// ../../../../../tmp/agent-sdk-mirror-yIjGmT/repo/platform/agent-sandbox/zo-backend.ts
 var BACKEND_NAME = "zo";
 function zoBackend(options) {
   return {
@@ -761,7 +778,7 @@ function zoBackend(options) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-JIbFxf/repo/platform/agent-sandbox/zo-sandbox.ts
+// ../../../../../tmp/agent-sdk-mirror-yIjGmT/repo/platform/agent-sandbox/zo-sandbox.ts
 var DEFAULT_API_URL = "http://api.zo.localhost:4000";
 function zoSandbox(options = {}) {
   return defineSandbox({

@@ -8,6 +8,6 @@
 
 > `const` **CHAT\_ATTACHMENT\_FIELD**: `"chatAttachment"`
 
-Defined in: [packages/agent-sdk/src/attachments.ts:15](https://github.com/zocomputer/zov2-code/blob/0e648df1796b1446eeb67f62d6e2274440971464/packages/agent-sdk/src/attachments.ts#L15)
+Defined in: [packages/agent-sdk/src/attachments.ts:15](https://github.com/zocomputer/zov2-code/blob/9c31432d7362033dfbece45d1305011eb46c55ac/packages/agent-sdk/src/attachments.ts#L15)
 
 The result field carrying the model-hidden attachment.

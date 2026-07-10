@@ -8,6 +8,6 @@
 
 > `const` **DEFAULT\_MAX\_WATCH\_NOTIFICATIONS**: `5` = `5`
 
-Defined in: [packages/agent-sdk/src/watch-output.ts:41](https://github.com/zocomputer/zov2-code/blob/0e648df1796b1446eeb67f62d6e2274440971464/packages/agent-sdk/src/watch-output.ts#L41)
+Defined in: [packages/agent-sdk/src/watch-output.ts:41](https://github.com/zocomputer/zov2-code/blob/9c31432d7362033dfbece45d1305011eb46c55ac/packages/agent-sdk/src/watch-output.ts#L41)
 
 Max match batches over one watcher's lifetime; later matches drop.
