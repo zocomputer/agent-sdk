@@ -97,9 +97,9 @@
       "types": "./platform/cloud-tools/image.ts",
       "import": "./dist/platform/cloud-tools/image.js"
     },
-    "./cloud-tools/web-search": {
-      "types": "./platform/cloud-tools/web-search.ts",
-      "import": "./dist/platform/cloud-tools/web-search.js"
+    "./cloud-tools/video": {
+      "types": "./platform/cloud-tools/video.ts",
+      "import": "./dist/platform/cloud-tools/video.js"
     }
   },
   "files": [

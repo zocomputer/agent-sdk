@@ -8,6 +8,6 @@
 
 > **StateFilesEngine** = `"zo-blob-r2"`
 
-Defined in: [packages/agent-sdk/src/state-files.ts:12](https://github.com/zocomputer/zov2-code/blob/3ac531f9ac263da198125b35b739171d97e53cac/packages/agent-sdk/src/state-files.ts#L12)
+Defined in: [packages/agent-sdk/src/state-files.ts:12](https://github.com/zocomputer/zov2-code/blob/13e58351dfe3adc12c256d37f6058b3b4e0032bd/packages/agent-sdk/src/state-files.ts#L12)
 
 Cloud object-store engine backed by Cloudflare R2.

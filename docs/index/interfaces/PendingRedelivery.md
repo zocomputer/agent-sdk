@@ -6,7 +6,7 @@
 
 # Interface: PendingRedelivery
 
-Defined in: [packages/agent-sdk/src/redeliver.ts:30](https://github.com/zocomputer/zov2-code/blob/3ac531f9ac263da198125b35b739171d97e53cac/packages/agent-sdk/src/redeliver.ts#L30)
+Defined in: [packages/agent-sdk/src/redeliver.ts:30](https://github.com/zocomputer/zov2-code/blob/13e58351dfe3adc12c256d37f6058b3b4e0032bd/packages/agent-sdk/src/redeliver.ts#L30)
 
 One read-media attachment queued for delivery on the next park.
 
@@ -16,7 +16,7 @@ One read-media attachment queued for delivery on the next park.
 
 > `readonly` **attachment**: [`ChatAttachment`](../../attachments/type-aliases/ChatAttachment.md)
 
-Defined in: [packages/agent-sdk/src/redeliver.ts:32](https://github.com/zocomputer/zov2-code/blob/3ac531f9ac263da198125b35b739171d97e53cac/packages/agent-sdk/src/redeliver.ts#L32)
+Defined in: [packages/agent-sdk/src/redeliver.ts:32](https://github.com/zocomputer/zov2-code/blob/13e58351dfe3adc12c256d37f6058b3b4e0032bd/packages/agent-sdk/src/redeliver.ts#L32)
 
 ***
 
@@ -24,4 +24,4 @@ Defined in: [packages/agent-sdk/src/redeliver.ts:32](https://github.com/zocomput
 
 > `readonly` **toolCallId**: `string`
 
-Defined in: [packages/agent-sdk/src/redeliver.ts:31](https://github.com/zocomputer/zov2-code/blob/3ac531f9ac263da198125b35b739171d97e53cac/packages/agent-sdk/src/redeliver.ts#L31)
+Defined in: [packages/agent-sdk/src/redeliver.ts:31](https://github.com/zocomputer/zov2-code/blob/13e58351dfe3adc12c256d37f6058b3b4e0032bd/packages/agent-sdk/src/redeliver.ts#L31)

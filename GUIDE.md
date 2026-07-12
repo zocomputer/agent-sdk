@@ -757,7 +757,7 @@ its whole harness from this one dependency:
 | --- | --- |
 | `@zocomputer/agent-sdk/sandbox` | `zoSandbox()` — the Zo sandbox backend for eve's `agent/sandbox.ts` slot. The runtime holds no provider key; it asks the Zo control plane (`ZO_API_URL`, authenticated by `ZO_AGENT_TOKEN`) for a scoped, short-lived SSH session. |
 | `@zocomputer/agent-sdk/ai` (+ `/ai/gateway`, `/ai/register`, `/ai/session-fetch`) | The Zo AI provider layer. `import "@zocomputer/agent-sdk/ai/register"` (first in `agent.ts`) points the AI SDK's default provider at Zo's metering gateway so bare catalog model slugs work. |
-| `@zocomputer/agent-sdk/cloud-tools` (+ `/image`, `/web-search`) | The default Zo cloud tools: `generate_image` and the Exa web-search factory, built on the gateway. |
+| `@zocomputer/agent-sdk/cloud-tools` (+ `/image`, `/video`) | Zo's media-generation tools: `generate_image` and `generate_video`, built on the gateway. Web search comes from eve's default harness. |
 | `@zocomputer/agent-sdk/runtime-auth` | The agent-token contract (header/env names, mint/verify) shared with the Zo control plane. |
 
 These modules assume Zo's control plane and are inert elsewhere; `ai` joins

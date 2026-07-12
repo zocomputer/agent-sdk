@@ -1,6 +1,6 @@
-// ../../../../../tmp/agent-sdk-mirror-Pmrk2F/repo/platform/cloud-tools/image.ts
+// ../../../../../tmp/agent-sdk-mirror-Pmrk2F/repo/platform/cloud-tools/video.ts
 import { randomUUID } from "node:crypto";
-import { generateImage } from "ai";
+import { experimental_generateVideo as generateVideo } from "ai";
 import { defineTool } from "eve/tools";
 import { z as z4 } from "zod";
 
@@ -477,79 +477,69 @@ function saveFailure(kind, error) {
   return new Error(`The ${kind} was generated but no state asset was saved — ${errorDetail(error)}. ` + `Nothing is available to the chat. If the reason looks transient (a storage ` + `write failure), retry the call once; if it's a configuration problem, report ` + `it to the user instead of retrying.`);
 }
 
-// ../../../../../tmp/agent-sdk-mirror-Pmrk2F/repo/platform/cloud-tools/image.ts
-var DEFAULT_IMAGE_MODEL = "bfl/flux-2-pro";
-function isImageSize(value) {
-  return typeof value === "string" && /^[1-9]\d{1,4}x[1-9]\d{1,4}$/u.test(value);
-}
-function isImageAspectRatio(value) {
-  return typeof value === "string" && /^[1-9]\d{0,2}:[1-9]\d{0,2}$/u.test(value);
-}
-var SizeSchema = z4.templateLiteral([z4.number().int().positive(), "x", z4.number().int().positive()]).refine(isImageSize, { message: "Use WIDTHxHEIGHT, for example 1024x1024." });
-var AspectRatioSchema = z4.templateLiteral([z4.number().int().positive(), ":", z4.number().int().positive()]).refine(isImageAspectRatio, { message: "Use WIDTH:HEIGHT, for example 1:1 or 16:9." });
-var GenerateImageInputSchema = z4.object({
-  aspect_ratio: AspectRatioSchema.optional().describe("Aspect ratio as WIDTH:HEIGHT, e.g. '1:1' or '16:9'. Give this or `size`, not both."),
-  model: z4.string().trim().min(1).optional().describe("Image model id; omit to use the default."),
+// ../../../../../tmp/agent-sdk-mirror-Pmrk2F/repo/platform/cloud-tools/video.ts
+var DEFAULT_VIDEO_MODEL = "bytedance/seedance-2.0-fast";
+var AspectRatioSchema = z4.enum(["16:9", "9:16", "1:1"]);
+var GenerateVideoInputSchema = z4.object({
+  aspect_ratio: AspectRatioSchema.optional().describe("Aspect ratio; omit for the model's default."),
+  duration_seconds: z4.number().int().positive().max(30).optional().describe("Clip length in seconds (max 30); omit for the model's short default."),
+  model: z4.string().trim().min(1).optional().describe("Video model id; omit to use the default."),
   output_dir: OutputDirSchema.optional().describe("Relative state-file directory for the generated asset; defaults to 'generated'."),
   prompt: z4.string().trim().min(1).max(4000).describe("What to generate."),
-  seed: z4.number().int().nonnegative().optional().describe("Reproducibility seed."),
-  size: SizeSchema.optional().describe("Exact pixel size as WIDTHxHEIGHT, e.g. '1024x1024'. Give this or `aspect_ratio`, not both.")
+  seed: z4.number().int().nonnegative().optional().describe("Reproducibility seed.")
 });
-var GenerateImageOutputSchema = GeneratedAssetOutputSchema;
-function randomImageId() {
+var GenerateVideoOutputSchema = GeneratedAssetOutputSchema;
+function randomVideoId() {
   return randomUUID().slice(0, 8);
 }
-function generateImageTool(options = {}) {
+function generateVideoTool(options = {}) {
   const declarationName = options.declarationName ?? DEFAULT_STATE_ASSET_DECLARATION_NAME;
   const assetWriter = options.assetWriter ?? createRuntimeStateFilesClient({ declarationName });
-  const generate = options.generate ?? generateImage;
-  const randomId = options.randomId ?? randomImageId;
+  const generate = options.generate ?? generateVideo;
+  const randomId = options.randomId ?? randomVideoId;
   return defineTool({
-    description: CLOUD_TOOL_META.image.description,
-    inputSchema: GenerateImageInputSchema,
-    outputSchema: GenerateImageOutputSchema,
+    description: CLOUD_TOOL_META.video.description,
+    inputSchema: GenerateVideoInputSchema,
+    outputSchema: GenerateVideoOutputSchema,
     async execute(input) {
-      if (input.size !== undefined && input.aspect_ratio !== undefined) {
-        throw new Error("Give `size` or `aspect_ratio`, not both — no image was generated. " + "Resend with one of them (or neither, for the model's default framing).");
-      }
-      const model = input.model ?? DEFAULT_IMAGE_MODEL;
+      const model = input.model ?? DEFAULT_VIDEO_MODEL;
       let result;
       try {
         result = await generate({
-          headers: { [ZO_TOOL_HEADER]: "generate_image" },
-          model: zoGateway().imageModel(model),
+          headers: { [ZO_TOOL_HEADER]: "generate_video" },
+          model: zoGateway().video(model),
           prompt: input.prompt,
-          ...input.size === undefined ? {} : { size: input.size },
           ...input.aspect_ratio === undefined ? {} : { aspectRatio: input.aspect_ratio },
+          ...input.duration_seconds === undefined ? {} : { duration: input.duration_seconds },
           ...input.seed === undefined ? {} : { seed: input.seed }
         });
       } catch (error) {
-        throw generationFailure("image", error);
+        throw generationFailure("video", error);
       }
-      const image = result.image;
+      const video = result.video;
       const path = assetOutputPath({
         id: randomId(),
-        mediaType: image.mediaType,
+        mediaType: video.mediaType,
         outputDir: input.output_dir,
         prompt: input.prompt,
-        fallbackSlug: "image"
+        fallbackSlug: "video"
       });
       try {
-        await assetWriter.write(path, image.uint8Array, { contentType: image.mediaType });
+        await assetWriter.write(path, video.uint8Array, { contentType: video.mediaType });
       } catch (error) {
-        throw saveFailure("image", error);
+        throw saveFailure("video", error);
       }
       const asset = stateAssetReference({
         type: "state_asset",
         declarationName,
         path,
-        contentType: image.mediaType,
-        bytes: image.uint8Array.byteLength
+        contentType: video.mediaType,
+        bytes: video.uint8Array.byteLength
       });
       return {
         asset,
-        bytes: image.uint8Array.byteLength,
-        mediaType: image.mediaType,
+        bytes: video.uint8Array.byteLength,
+        mediaType: video.mediaType,
         model,
         path,
         prompt: input.prompt,
@@ -559,16 +549,16 @@ function generateImageTool(options = {}) {
     toModelOutput(output) {
       return {
         type: "text",
-        value: `Generated image saved as state asset ${output.asset.declarationName}:${output.asset.path}. ` + `The asset is available to the chat UI through the state_asset reference; ` + `do not invent or expose a temporary URL.`
+        value: `Generated video saved as state asset ${output.asset.declarationName}:${output.asset.path}. ` + `The asset is available to the chat UI through the state_asset reference; ` + `do not invent or expose a temporary URL.`
       };
     }
   });
 }
-var image_default = generateImageTool();
+var video_default = generateVideoTool();
 export {
-  generateImageTool,
-  image_default as default,
-  GenerateImageOutputSchema,
-  GenerateImageInputSchema,
-  DEFAULT_IMAGE_MODEL
+  generateVideoTool,
+  video_default as default,
+  GenerateVideoOutputSchema,
+  GenerateVideoInputSchema,
+  DEFAULT_VIDEO_MODEL
 };

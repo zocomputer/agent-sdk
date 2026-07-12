@@ -32,6 +32,3 @@ export {
   StateAssetReferenceSchema,
   warningText,
 } from "./tool-shared";
-
-export { webSearch } from "./web-search";
-export type { WebSearchConfig } from "./web-search";

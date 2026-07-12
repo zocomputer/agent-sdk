@@ -8,6 +8,6 @@
 
 > **VisibleReasoningJsonValue** = `string` \| `number` \| `boolean` \| `null` \| `VisibleReasoningJsonValue`[] \| \{\[`key`: `string`\]: `VisibleReasoningJsonValue`; \}
 
-Defined in: [packages/agent-sdk/src/visible-reasoning.ts:63](https://github.com/zocomputer/zov2-code/blob/3ac531f9ac263da198125b35b739171d97e53cac/packages/agent-sdk/src/visible-reasoning.ts#L63)
+Defined in: [packages/agent-sdk/src/visible-reasoning.ts:63](https://github.com/zocomputer/zov2-code/blob/13e58351dfe3adc12c256d37f6058b3b4e0032bd/packages/agent-sdk/src/visible-reasoning.ts#L63)
 
 A JSON value, mirrored from eve (structurally compatible) so this module stays dependency-free.
