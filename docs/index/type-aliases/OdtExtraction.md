@@ -8,6 +8,6 @@
 
 > **OdtExtraction** = \{ `ok`: `true`; `text`: `string`; \} \| \{ `ok`: `false`; `reason`: `string`; \}
 
-Defined in: [packages/agent-sdk/src/extract/odf.ts:11](https://github.com/zocomputer/zov2-code/blob/6c8f0491294917993809515b241a9263669c5f1d/packages/agent-sdk/src/extract/odf.ts#L11)
+Defined in: [packages/agent-sdk/src/extract/odf.ts:11](https://github.com/zocomputer/zov2-code/blob/3ac531f9ac263da198125b35b739171d97e53cac/packages/agent-sdk/src/extract/odf.ts#L11)
 
 Result of ODT extraction: paragraph text or a failure reason.

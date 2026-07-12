@@ -6,7 +6,7 @@
 
 # Interface: DirConventionsTracker
 
-Defined in: [packages/agent-sdk/src/dir-conventions.ts:58](https://github.com/zocomputer/zov2-code/blob/6c8f0491294917993809515b241a9263669c5f1d/packages/agent-sdk/src/dir-conventions.ts#L58)
+Defined in: [packages/agent-sdk/src/dir-conventions.ts:58](https://github.com/zocomputer/zov2-code/blob/3ac531f9ac263da198125b35b739171d97e53cac/packages/agent-sdk/src/dir-conventions.ts#L58)
 
 Tracks which directories have delivered their conventions files to each session.
 
@@ -16,7 +16,7 @@ Tracks which directories have delivered their conventions files to each session.
 
 > **collect**(`sessionId`, `relPath`, `loadFile?`): `Promise`\<[`DirConventionsRider`](../type-aliases/DirConventionsRider.md)[]\>
 
-Defined in: [packages/agent-sdk/src/dir-conventions.ts:67](https://github.com/zocomputer/zov2-code/blob/6c8f0491294917993809515b241a9263669c5f1d/packages/agent-sdk/src/dir-conventions.ts#L67)
+Defined in: [packages/agent-sdk/src/dir-conventions.ts:67](https://github.com/zocomputer/zov2-code/blob/3ac531f9ac263da198125b35b739171d97e53cac/packages/agent-sdk/src/dir-conventions.ts#L67)
 
 Riders for a read of `relPath` (workspace-relative), marking every
 directory on its chain as delivered for `sessionId`. No session id (a

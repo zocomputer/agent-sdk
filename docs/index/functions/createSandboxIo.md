@@ -8,7 +8,7 @@
 
 > **createSandboxIo**(`opts`): [`WorkspaceIO`](../interfaces/WorkspaceIO.md)
 
-Defined in: [packages/agent-sdk/src/sandbox-io.ts:85](https://github.com/zocomputer/zov2-code/blob/6c8f0491294917993809515b241a9263669c5f1d/packages/agent-sdk/src/sandbox-io.ts#L85)
+Defined in: [packages/agent-sdk/src/sandbox-io.ts:85](https://github.com/zocomputer/zov2-code/blob/3ac531f9ac263da198125b35b739171d97e53cac/packages/agent-sdk/src/sandbox-io.ts#L85)
 
 One call's IO over a sandbox session. The session resolves lazily on first
 use and is shared across the call's operations.

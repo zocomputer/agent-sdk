@@ -8,7 +8,7 @@
 
 > **communicationSection**(`opts?`): [`PromptSection`](../interfaces/PromptSection.md)
 
-Defined in: [packages/agent-sdk/src/instructions.ts:318](https://github.com/zocomputer/zov2-code/blob/6c8f0491294917993809515b241a9263669c5f1d/packages/agent-sdk/src/instructions.ts#L318)
+Defined in: [packages/agent-sdk/src/instructions.ts:318](https://github.com/zocomputer/zov2-code/blob/3ac531f9ac263da198125b35b739171d97e53cac/packages/agent-sdk/src/instructions.ts#L318)
 
 The reporting-contract section: lead with the outcome, readable over brief,
 report-don't-fix when the user is diagnosing, act without permission-seeking

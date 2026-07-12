@@ -8,6 +8,6 @@
 
 > `const` **HEAD\_CHARS**: `25000` = `25_000`
 
-Defined in: [packages/agent-sdk/src/bounded-output.ts:12](https://github.com/zocomputer/zov2-code/blob/6c8f0491294917993809515b241a9263669c5f1d/packages/agent-sdk/src/bounded-output.ts#L12)
+Defined in: [packages/agent-sdk/src/bounded-output.ts:12](https://github.com/zocomputer/zov2-code/blob/3ac531f9ac263da198125b35b739171d97e53cac/packages/agent-sdk/src/bounded-output.ts#L12)
 
 Default head character cap for bounded captures.

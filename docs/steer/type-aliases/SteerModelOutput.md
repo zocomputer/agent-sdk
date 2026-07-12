@@ -8,6 +8,6 @@
 
 > **SteerModelOutput** = \{ `type`: `"text"`; `value`: `string`; \} \| \{ `type`: `"json"`; `value`: `unknown`; \}
 
-Defined in: [packages/agent-sdk/src/steer.ts:113](https://github.com/zocomputer/zov2-code/blob/6c8f0491294917993809515b241a9263669c5f1d/packages/agent-sdk/src/steer.ts#L113)
+Defined in: [packages/agent-sdk/src/steer.ts:113](https://github.com/zocomputer/zov2-code/blob/3ac531f9ac263da198125b35b739171d97e53cac/packages/agent-sdk/src/steer.ts#L113)
 
 The shape eve's `toModelOutput` produces — mirrored here to stay dependency-free.

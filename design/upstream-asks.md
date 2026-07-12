@@ -22,7 +22,7 @@ below are current to that date.
   client-side tools. Implementation open as
   [#664](https://github.com/vercel/eve/pull/664).
 
-Everything else is tiered by the workaround burden we carry today:
+The remaining framework asks are tiered by the workaround burden we carry today:
 **Priority** asks each sustain a bespoke app-side layer (state machines, model
 facades, reads of eve internals, recovery code) that the upstream change would
 delete outright; **Next** asks cover reliability and observability gaps whose
@@ -215,6 +215,94 @@ that don't drive real machinery.
   providers already have `ParentSessionKey` in reach — would let both
   integrations stop reading eve's internals. See
   [subagent-shared-sandboxes.md](https://github.com/zocomputer/zov2-code/blob/main/plans/ben/subagent-shared-sandboxes.md).
+
+### AI Gateway
+
+These questions cross eve, the AI SDK Gateway provider, and the hosted AI
+Gateway service. We need every model call to pass through our authenticated
+metering proxy without giving up eve's gateway-specific behavior, and we need
+enough evidence from each call to bill the owning organization correctly.
+
+#### Is our host-selected Gateway transport supported?
+
+- **What we do.** Agents keep a bare `creator/model` slug, but an early import
+  installs a proxy-pointed `createGateway` on the AI SDK's
+  `globalThis.AI_SDK_DEFAULT_PROVIDER` slot. The provider supplies our proxy
+  `baseURL`, runtime-auth headers, and a `fetch` wrapper that stamps the eve
+  session and turn. See
+  [`runtime-ai/register.ts`](../../runtime-ai/src/register.ts) and
+  [`runtime-ai/gateway.ts`](../../runtime-ai/src/gateway.ts).
+- **Why.** A bare slug makes eve classify the model as gateway-routed, preserving
+  automatic caching, provider-executed web search, and catalog-based context
+  windows. Passing a custom Gateway model instance instead loses those behaviors
+  in eve today because several decisions branch on a string model or the resolved
+  provider name.
+- **Ask.** Is replacing `AI_SDK_DEFAULT_PROVIDER` an intended host integration,
+  or is there a supported eve-level seam for the Gateway provider, `baseURL`,
+  default headers, and `fetch`? If the global slot is the intended seam, can eve
+  document and test that a host-selected provider retains bare-slug semantics?
+
+#### Is there a supported model-call accounting surface?
+
+- **What we do.** The proxy transparently forwards the AI SDK Gateway protocol,
+  tees each response, and parses `providerMetadata.gateway` for the generation
+  id, serving provider, credential type, fallback attempts, and the market/base/
+  surcharge/total cost fields. This parser is the billing input; see
+  [`gateway-usage.ts`](../../../apps/api/src/lib/gateway-usage.ts).
+- **Why.** Eve receives the full AI SDK step result, but `step.completed` keeps
+  only input, output, cache-read, and cache-write token counts. The Gateway
+  generation id and provider metadata are discarded before an eve host can
+  observe them.
+- **Ask.** Is it safe to depend on the current Gateway response metadata, or can
+  eve expose a server-side `onModelCallComplete`-style hook with the session,
+  turn, step, model, full usage, response/generation id, and provider metadata?
+  A server-side hook would avoid putting raw provider details into the durable
+  client stream while giving hosts a supported metering boundary.
+
+#### Does `/v4/ai` have a stable wire and cost contract?
+
+The public [AI SDK Gateway provider documentation](https://ai-sdk.dev/providers/ai-sdk-providers/ai-gateway#provider-instance)
+documents `createGateway({ baseURL, headers, fetch })` but currently names
+`https://ai-gateway.vercel.sh/v3/ai` as the default prefix. The
+`@ai-sdk/gateway@4.0.7` source and bundled docs installed with eve instead use
+`https://ai-gateway.vercel.sh/v4/ai`. We found no public specification for the
+`/v4/ai/language-model` request/stream protocol or for the inline camel-case
+`providerMetadata.gateway` fields. Vercel's
+[Custom Reporting docs](https://vercel.com/docs/ai-gateway/observability-and-spend/custom-reporting#response-fields)
+define related snake-case aggregate fields, but not this per-generation wire.
+
+That ambiguity became a billing bug, not just a documentation concern. A live
+Anthropic Sonnet 4.6 call served through Bedrock BYOK reported all the raw token
+classes correctly:
+
+- 7,638 prompt tokens: 3 uncached + 7,635 cache-write
+- 14 output tokens
+- catalog prices: `$0.000003` input, `$0.00000375` cache-write,
+  `$0.000015` output
+
+`providerMetadata.gateway.marketCost` nevertheless reported `$0.000219`, the
+price of only the three uncached input and fourteen output tokens. The complete
+list-price calculation is `$0.02885025`; the `$0.02863125` gap is exactly
+`7,635 × $0.00000375`. A second live call reported 9,642 cache-write tokens,
+then fell back from failed BYOK to Vercel system credentials; `/v4/ai`'s market
+and Gateway costs and the subsequent `/v1/generation` record all reported only
+the three uncached input and four output tokens (`$0.000069` instead of
+`$0.0362265`).
+
+Our billing layer currently repairs only this exact case: an Anthropic-model
+cost mismatch with inclusive cache-write accounting whose gap equals the
+catalog-stamped cache-write charge. It preserves any separately reported
+Gateway add-on and leaves every other mismatch on the Gateway-reported basis.
+
+- **Ask.** Is `marketCost` intended to include every priced token class? Is the
+  missing cache-write charge a known `/v4/ai` bug, and is our narrow correction
+  safe until it is fixed?
+- **Ask.** Which surface is authoritative for billing: inline
+  `providerMetadata.gateway`, `/v1/generation`, or `/v1/report`? The fallback
+  repro shows that `/v1/generation` can preserve the same omission.
+- **Ask.** Are `marketCost`, `cost`, `surchargeCost`, and `gatewayCost` supported
+  per-generation fields, and what are their exact overlap/addition semantics
+  under BYOK, system credentials, fallback, and separately metered add-ons?
 
 ## Next — bounded reliability and observability gaps
 
