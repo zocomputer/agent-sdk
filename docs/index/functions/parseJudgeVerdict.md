@@ -8,7 +8,7 @@
 
 > **parseJudgeVerdict**(`text`): \{ `kind`: `"nothing-missing"`; \} \| \{ `facts`: readonly `string`[]; `kind`: `"missing"`; \}
 
-Defined in: [packages/agent-sdk/src/validated-compaction.ts:162](https://github.com/zocomputer/zov2-code/blob/1fcc8b4b31cf28b6badb9d28c6512cd9261c730c/packages/agent-sdk/src/validated-compaction.ts#L162)
+Defined in: [packages/agent-sdk/src/validated-compaction.ts:162](https://github.com/zocomputer/zov2-code/blob/61dc346b545160acfebf6cc02d8729e8a18c78ba/packages/agent-sdk/src/validated-compaction.ts#L162)
 
 Parse a judge reply into a verdict. Total — any string parses: a trimmed
 `NOTHING MISSING` (case-insensitive, optional trailing punctuation) or a

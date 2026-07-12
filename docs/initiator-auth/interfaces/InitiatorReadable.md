@@ -6,7 +6,7 @@
 
 # Interface: InitiatorReadable
 
-Defined in: [packages/agent-sdk/src/initiator-auth.ts:61](https://github.com/zocomputer/zov2-code/blob/1fcc8b4b31cf28b6badb9d28c6512cd9261c730c/packages/agent-sdk/src/initiator-auth.ts#L61)
+Defined in: [packages/agent-sdk/src/initiator-auth.ts:61](https://github.com/zocomputer/zov2-code/blob/61dc346b545160acfebf6cc02d8729e8a18c78ba/packages/agent-sdk/src/initiator-auth.ts#L61)
 
 What a tool/hook reads off `session.auth.initiator` to authorize its work.
 
@@ -16,7 +16,7 @@ What a tool/hook reads off `session.auth.initiator` to authorize its work.
 
 > `readonly` `optional` **attributes?**: `Readonly`\<`Record`\<`string`, `string` \| readonly `string`[]\>\>
 
-Defined in: [packages/agent-sdk/src/initiator-auth.ts:62](https://github.com/zocomputer/zov2-code/blob/1fcc8b4b31cf28b6badb9d28c6512cd9261c730c/packages/agent-sdk/src/initiator-auth.ts#L62)
+Defined in: [packages/agent-sdk/src/initiator-auth.ts:62](https://github.com/zocomputer/zov2-code/blob/61dc346b545160acfebf6cc02d8729e8a18c78ba/packages/agent-sdk/src/initiator-auth.ts#L62)
 
 ***
 
@@ -24,4 +24,4 @@ Defined in: [packages/agent-sdk/src/initiator-auth.ts:62](https://github.com/zoc
 
 > `readonly` `optional` **subject?**: `string`
 
-Defined in: [packages/agent-sdk/src/initiator-auth.ts:63](https://github.com/zocomputer/zov2-code/blob/1fcc8b4b31cf28b6badb9d28c6512cd9261c730c/packages/agent-sdk/src/initiator-auth.ts#L63)
+Defined in: [packages/agent-sdk/src/initiator-auth.ts:63](https://github.com/zocomputer/zov2-code/blob/61dc346b545160acfebf6cc02d8729e8a18c78ba/packages/agent-sdk/src/initiator-auth.ts#L63)

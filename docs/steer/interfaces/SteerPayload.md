@@ -6,7 +6,7 @@
 
 # Interface: SteerPayload
 
-Defined in: [packages/agent-sdk/src/steer.ts:36](https://github.com/zocomputer/zov2-code/blob/1fcc8b4b31cf28b6badb9d28c6512cd9261c730c/packages/agent-sdk/src/steer.ts#L36)
+Defined in: [packages/agent-sdk/src/steer.ts:36](https://github.com/zocomputer/zov2-code/blob/61dc346b545160acfebf6cc02d8729e8a18c78ba/packages/agent-sdk/src/steer.ts#L36)
 
 What rides under STEER_FIELD on a tool output.
 
@@ -16,7 +16,7 @@ What rides under STEER_FIELD on a tool output.
 
 > **messages**: [`SteerMessage`](SteerMessage.md)[]
 
-Defined in: [packages/agent-sdk/src/steer.ts:38](https://github.com/zocomputer/zov2-code/blob/1fcc8b4b31cf28b6badb9d28c6512cd9261c730c/packages/agent-sdk/src/steer.ts#L38)
+Defined in: [packages/agent-sdk/src/steer.ts:38](https://github.com/zocomputer/zov2-code/blob/61dc346b545160acfebf6cc02d8729e8a18c78ba/packages/agent-sdk/src/steer.ts#L38)
 
 ***
 
@@ -24,4 +24,4 @@ Defined in: [packages/agent-sdk/src/steer.ts:38](https://github.com/zocomputer/z
 
 > **note**: `string`
 
-Defined in: [packages/agent-sdk/src/steer.ts:37](https://github.com/zocomputer/zov2-code/blob/1fcc8b4b31cf28b6badb9d28c6512cd9261c730c/packages/agent-sdk/src/steer.ts#L37)
+Defined in: [packages/agent-sdk/src/steer.ts:37](https://github.com/zocomputer/zov2-code/blob/61dc346b545160acfebf6cc02d8729e8a18c78ba/packages/agent-sdk/src/steer.ts#L37)

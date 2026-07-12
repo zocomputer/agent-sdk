@@ -8,7 +8,7 @@
 
 > **openZip**(`buffer`): [`ZipArchive`](../interfaces/ZipArchive.md)
 
-Defined in: [packages/agent-sdk/src/extract/zip.ts:66](https://github.com/zocomputer/zov2-code/blob/1fcc8b4b31cf28b6badb9d28c6512cd9261c730c/packages/agent-sdk/src/extract/zip.ts#L66)
+Defined in: [packages/agent-sdk/src/extract/zip.ts:66](https://github.com/zocomputer/zov2-code/blob/61dc346b545160acfebf6cc02d8729e8a18c78ba/packages/agent-sdk/src/extract/zip.ts#L66)
 
 Parse a ZIP archive from a whole-file buffer. Throws when the buffer is
 not a readable archive; entry decompression is lazy (see

@@ -8,7 +8,7 @@
 
 > **assertHttpUrl**(`url`): `void`
 
-Defined in: [packages/agent-sdk/src/web-fetch.ts:222](https://github.com/zocomputer/zov2-code/blob/1fcc8b4b31cf28b6badb9d28c6512cd9261c730c/packages/agent-sdk/src/web-fetch.ts#L222)
+Defined in: [packages/agent-sdk/src/web-fetch.ts:222](https://github.com/zocomputer/zov2-code/blob/61dc346b545160acfebf6cc02d8729e8a18c78ba/packages/agent-sdk/src/web-fetch.ts#L222)
 
 Throws with a clear message for anything that isn't a plain http(s) URL.
 
