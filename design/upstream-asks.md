@@ -34,15 +34,13 @@ that don't drive real machinery.
 ### Media
 
 - **Multimodal tool results.** `ToolModelOutput` is `text | json` only, so
-  `read` can't return an image directly — we work around it by smuggling the
-  bytes past on the raw result and having a hook send them back as the next
-  user turn (see the guide's
-  [Media reads](../GUIDE.md#media-reads-images-video-audio)), which costs
-  an extra turn and an extra copy of the bytes in the durable stream.
+  `read` can't return an image directly. It returns metadata and routes
+  inspection through the one-shot `look` oracle (see the guide's
+  [Media reads](../GUIDE.md#media-reads-images-video-audio)).
   `@workflow/ai`'s DurableAgent already merged multimodal tool-result
   pass-through (`type: "content"`, vercel/workflow#848 → #1385); exposing that
-  through eve's tool surface would let `read` return real image blocks and
-  delete the whole workaround. We've worked the design to change-list
+  through eve's tool surface would let `read` return real image blocks to the
+  session model. We've worked the design to change-list
   precision — including the storage-independent persistence policy (stub-first
   history + an in-process byte cache, so the model sees media the turn it read
   them and degrades gracefully to a text stub across process boundaries) and
@@ -56,7 +54,7 @@ that don't drive real machinery.
   `application/pdf` ≤20 MiB at model-call time — every other media type
   (video, audio) hydrates as an `Attached file …` text stub even when the
   session's model accepts it. That silently blocks video/audio delivery on any
-  sandboxed runtime (the user-turn workaround included), while the AI SDK
+  sandboxed runtime, while the AI SDK
   underneath is ready: `@ai-sdk/google` converts any file part to `inlineData`
   and Gemini natively takes video/audio (Anthropic's converter throws
   `UnsupportedFunctionalityError` on them, so a *blind* widening would turn
@@ -70,13 +68,12 @@ that don't drive real machinery.
   and the DCO-signed patch sits beside it
   (`eve-hydrate-media-support.patch`). Filed by 0thernet as open
   [vercel/eve#543](https://github.com/vercel/eve/issues/543); the PR follows
-  on maintainer go-ahead. It would make `read`'s opt-in video/audio
-  attachments (`attachVideoToChat`/`attachAudioToChat`) work end-to-end.
+  on maintainer go-ahead. It is required for video/audio user and future
+  tool-result file parts to reach capable models end to end.
 - **Subagents can't receive media or an explicit model choice.** A subagent
   tool's input is fixed at `{ message, outputSchema? }` — text only, no file
   parts — so "hand this video to a model that can see it" can't be a subagent
-  call: the child can't be given the bytes (park-delivery is deliberately
-  unwired in children). eve now supports lifecycle-scoped dynamic model
+  call: the child can't be given the bytes. eve now supports lifecycle-scoped dynamic model
   selection (`defineDynamic` on the agent's `model`, vercel/eve#581), but the
   parent still can't select an allowed model in the individual subagent call.
   Our workaround is the `look` media oracle (see the guide's
@@ -108,11 +105,9 @@ that don't drive real machinery.
   tool window, but eve has no first-class "deliver this to the session when it
   next parks" operation. Our park-delivery hook watches for
   `session.waiting`, sends the queued batch back over loopback as the next user
-  turn, and handles the park/send race; the same bridge carries media,
-  background-task notifications, and late steering. A framework operation
-  keyed by session id would delete the event watcher, token normalization, and
-  retry state machine even before multimodal tool results remove the media
-  use case.
+  turn, and handles the park/send race; the same bridge carries background-task
+  notifications and late steering. A framework operation keyed by session id
+  would delete the event watcher, token normalization, and retry state machine.
 
 ### Correctness and scale
 

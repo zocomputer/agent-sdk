@@ -77,15 +77,9 @@ re-exports of
 the stdlib's `repoConventions`, `workflow`, and `parallelTools` — a
 write-capable worker needs the same how-to-work contract as the parent.
 Hooks don't inherit: a session-log hook must be re-exported or child sessions
-vanish from the consumer's records. The park-delivery hook is deliberately
-*not* wired — a task child never parks awaiting input (`ask_question` is
-shimmed off), so queued deliveries would never send, and a mistaken send
-would start an invisible extra turn on the child. That absence makes the
-parent's attachment-enabled `read`/`webfetch` dishonest in a child, so those
-two are the one exception to parity-by-re-export: `createTaskChildTools`
-builds attach-disabled instances with report-the-path hints
-(`TASK_CHILD_TOOL_OVERRIDES`), and the manifest suite pins that they diverge
-from the parent's instances while everything else stays identity-equal.
+vanish from the consumer's records. Ordinary tools, including metadata-only
+`read` and `webfetch`, re-export the parent's exact instances. The manifest
+suite pins that identity.
 
 ## The inspiration
 

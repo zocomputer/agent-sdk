@@ -46,10 +46,8 @@
 - [ParkDeliveryOptions](interfaces/ParkDeliveryOptions.md)
 - [ParkDeliveryRequest](interfaces/ParkDeliveryRequest.md)
 - [ParkNotification](interfaces/ParkNotification.md)
-- [PendingRedelivery](interfaces/PendingRedelivery.md)
 - [PlacedPromptSection](interfaces/PlacedPromptSection.md)
 - [PromptSection](interfaces/PromptSection.md)
-- [RedeliveryRequest](interfaces/RedeliveryRequest.md)
 - [RenderedWebText](interfaces/RenderedWebText.md)
 - [RunningCommand](interfaces/RunningCommand.md)
 - [RunProgress](interfaces/RunProgress.md)
@@ -67,7 +65,6 @@
 - [StdlibOptions](interfaces/StdlibOptions.md)
 - [SubagentRosterEntry](interfaces/SubagentRosterEntry.md)
 - [TaskAgentOptions](interfaces/TaskAgentOptions.md)
-- [TaskChildToolsOptions](interfaces/TaskChildToolsOptions.md)
 - [TaskDescriptionOptions](interfaces/TaskDescriptionOptions.md)
 - [TaskRegistry](interfaces/TaskRegistry.md)
 - [TaskToolManifestOptions](interfaces/TaskToolManifestOptions.md)
@@ -105,8 +102,6 @@
 - [ParkDeliveryState](type-aliases/ParkDeliveryState.md)
 - [PdfExtraction](type-aliases/PdfExtraction.md)
 - [PptxExtraction](type-aliases/PptxExtraction.md)
-- [RedeliveryMessagePart](type-aliases/RedeliveryMessagePart.md)
-- [RedeliveryState](type-aliases/RedeliveryState.md)
 - [Replacer](type-aliases/Replacer.md)
 - [RtfExtraction](type-aliases/RtfExtraction.md)
 - [SandboxFileTools](type-aliases/SandboxFileTools.md)
@@ -173,7 +168,6 @@
 - [SimpleReplacer](variables/SimpleReplacer.md)
 - [STDLIB\_EXTERNAL\_DEPENDENCIES](variables/STDLIB_EXTERNAL_DEPENDENCIES.md)
 - [TAIL\_CHARS](variables/TAIL_CHARS.md)
-- [TASK\_CHILD\_TOOL\_OVERRIDES](variables/TASK_CHILD_TOOL_OVERRIDES.md)
 - [TASK\_DISABLED\_BUILTINS](variables/TASK_DISABLED_BUILTINS.md)
 - [TEXT\_ONLY\_CAPABILITIES](variables/TEXT_ONLY_CAPABILITIES.md)
 - [TODO\_DISCIPLINE\_RIDER](variables/TODO_DISCIPLINE_RIDER.md)
@@ -202,7 +196,6 @@
 - [buildParallelToolsMarkdown](functions/buildParallelToolsMarkdown.md)
 - [buildPlanningMarkdown](functions/buildPlanningMarkdown.md)
 - [buildRecoverySection](functions/buildRecoverySection.md)
-- [buildRedeliveryMessage](functions/buildRedeliveryMessage.md)
 - [buildRepoConventionsMarkdown](functions/buildRepoConventionsMarkdown.md)
 - [buildSubagentMarkdown](functions/buildSubagentMarkdown.md)
 - [buildTaskDescription](functions/buildTaskDescription.md)
@@ -240,7 +233,6 @@
 - [createParkDeliveryState](functions/createParkDeliveryState.md)
 - [createPlanningInstruction](functions/createPlanningInstruction.md)
 - [createReadTool](functions/createReadTool.md)
-- [createRedeliveryState](functions/createRedeliveryState.md)
 - [createRepoConventionsInstruction](functions/createRepoConventionsInstruction.md)
 - [createSandboxFileTools](functions/createSandboxFileTools.md)
 - [createSandboxIo](functions/createSandboxIo.md)
@@ -250,7 +242,6 @@
 - [createSteerWrapper](functions/createSteerWrapper.md)
 - [createSubagentInstruction](functions/createSubagentInstruction.md)
 - [createTaskAgent](functions/createTaskAgent.md)
-- [createTaskChildTools](functions/createTaskChildTools.md)
 - [createTaskInstruction](functions/createTaskInstruction.md)
 - [createTaskRegistry](functions/createTaskRegistry.md)
 - [createTasksTools](functions/createTasksTools.md)
@@ -313,7 +304,6 @@
 - [planningSection](functions/planningSection.md)
 - [postParkNotification](functions/postParkNotification.md)
 - [readTextForSearch](functions/readTextForSearch.md)
-- [redeliveryFromEvent](functions/redeliveryFromEvent.md)
 - [relativizeWithin](functions/relativizeWithin.md)
 - [renderPromptSection](functions/renderPromptSection.md)
 - [renderPromptSections](functions/renderPromptSections.md)
@@ -360,39 +350,9 @@ Re-exports [buildSteerPayload](../steer/functions/buildSteerPayload.md)
 
 ***
 
-### CHAT\_ATTACHMENT\_FIELD
-
-Re-exports [CHAT_ATTACHMENT_FIELD](../attachments/variables/CHAT_ATTACHMENT_FIELD.md)
-
-***
-
-### ChatAttachment
-
-Re-exports [ChatAttachment](../attachments/type-aliases/ChatAttachment.md)
-
-***
-
-### ChatAttachmentKind
-
-Re-exports [ChatAttachmentKind](../attachments/type-aliases/ChatAttachmentKind.md)
-
-***
-
 ### createSteerInbox
 
 Re-exports [createSteerInbox](../steer-inbox/functions/createSteerInbox.md)
-
-***
-
-### DEFAULT\_MAX\_INLINE\_IMAGE\_BYTES
-
-Re-exports [DEFAULT_MAX_INLINE_IMAGE_BYTES](../attachments/variables/DEFAULT_MAX_INLINE_IMAGE_BYTES.md)
-
-***
-
-### DEFAULT\_MAX\_INLINE\_MEDIA\_BYTES
-
-Re-exports [DEFAULT_MAX_INLINE_MEDIA_BYTES](../attachments/variables/DEFAULT_MAX_INLINE_MEDIA_BYTES.md)
 
 ***
 
@@ -411,12 +371,6 @@ Re-exports [mergeSteerIntoModelOutput](../steer/functions/mergeSteerIntoModelOut
 ### parseSteerLine
 
 Re-exports [parseSteerLine](../steer/functions/parseSteerLine.md)
-
-***
-
-### readChatAttachment
-
-Re-exports [readChatAttachment](../attachments/functions/readChatAttachment.md)
 
 ***
 

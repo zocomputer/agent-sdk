@@ -12,7 +12,6 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import type { SandboxSession } from "eve/sandbox";
 import type { ToolContext } from "eve/tools";
-import { readChatAttachment } from "./attachments";
 import { createDirConventionsTracker } from "./dir-conventions";
 import { sandboxIoProvider } from "./sandbox-io";
 import { createEditTool } from "./tools/edit";
@@ -151,8 +150,6 @@ for (const backend of backends) {
       workspace,
       noun,
       io,
-      attachImagesToChat: true,
-      maxInlineImageBytes: 3 * 1024 * 1024,
       dirConventions,
     });
     const edit = createEditTool({ workspace, noun, io });
@@ -188,14 +185,14 @@ for (const backend of backends) {
       expect(result.content).not.toContain("iVBORw0KGgo");
     });
 
-    test("read attaches a small image and video stays metadata-only", async () => {
+    test("read returns metadata for image and video", async () => {
       const image = await read.execute({ path: "pic.png" }, ctx);
       expect(image).toMatchObject({ source: "image", format: "png" });
-      expect(readChatAttachment(image)?.mediaType).toBe("image/png");
+      expect(image).toHaveProperty("note");
 
       const video = await read.execute({ path: "clip.mp4" }, ctx);
       expect(video).toMatchObject({ source: "video", format: "mp4" });
-      expect(readChatAttachment(video)).toBeNull();
+      expect(video).toHaveProperty("note");
     });
 
     test("read fails clearly for a missing file and refuses escapes", async () => {

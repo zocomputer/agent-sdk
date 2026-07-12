@@ -1,9 +1,8 @@
 // Generic park-delivery: queue items for a session and release them as one
 // batch exactly when the session is parked (`session.waiting`) and reachable
-// (a continuation token has been seen). Two producers ride this core today —
-// read-image redelivery (./redeliver.ts, items observed off stream events)
-// and background-task notifications (./watch-output.ts matches posted through
-// the bridge below) — and the effectful hook (./hooks.ts) performs the sends.
+// (a continuation token has been seen). Background-task notifications and
+// leftover steering messages ride this core; the effectful hook (./hooks.ts)
+// performs the sends.
 //
 // eve hooks are observe-only for model context, so "delivery" means starting
 // the session's NEXT turn, exactly like a user hitting send. Two paths emit a

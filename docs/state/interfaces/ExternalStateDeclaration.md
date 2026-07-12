@@ -6,7 +6,7 @@
 
 # Interface: ExternalStateDeclaration
 
-Defined in: [packages/agent-sdk/src/state.ts:40](https://github.com/zocomputer/zov2-code/blob/d124383bcfcf0ca6d96b92bff96fa6dfccc07562/packages/agent-sdk/src/state.ts#L40)
+Defined in: [packages/agent-sdk/src/state.ts:40](https://github.com/zocomputer/zov2-code/blob/1fcc8b4b31cf28b6badb9d28c6512cd9261c730c/packages/agent-sdk/src/state.ts#L40)
 
 What an agent declares it depends on: the interface, access, visibility intent, and deployment hints for one external-state capability.
 
@@ -16,7 +16,7 @@ What an agent declares it depends on: the interface, access, visibility intent, 
 
 > `readonly` **access**: [`StateAccess`](../type-aliases/StateAccess.md)
 
-Defined in: [packages/agent-sdk/src/state.ts:48](https://github.com/zocomputer/zov2-code/blob/d124383bcfcf0ca6d96b92bff96fa6dfccc07562/packages/agent-sdk/src/state.ts#L48)
+Defined in: [packages/agent-sdk/src/state.ts:48](https://github.com/zocomputer/zov2-code/blob/1fcc8b4b31cf28b6badb9d28c6512cd9261c730c/packages/agent-sdk/src/state.ts#L48)
 
 ***
 
@@ -24,7 +24,7 @@ Defined in: [packages/agent-sdk/src/state.ts:48](https://github.com/zocomputer/z
 
 > `readonly` **intent**: [`StateIntent`](../type-aliases/StateIntent.md)
 
-Defined in: [packages/agent-sdk/src/state.ts:49](https://github.com/zocomputer/zov2-code/blob/d124383bcfcf0ca6d96b92bff96fa6dfccc07562/packages/agent-sdk/src/state.ts#L49)
+Defined in: [packages/agent-sdk/src/state.ts:49](https://github.com/zocomputer/zov2-code/blob/1fcc8b4b31cf28b6badb9d28c6512cd9261c730c/packages/agent-sdk/src/state.ts#L49)
 
 ***
 
@@ -32,7 +32,7 @@ Defined in: [packages/agent-sdk/src/state.ts:49](https://github.com/zocomputer/z
 
 > `readonly` **interface**: [`StateInterface`](../type-aliases/StateInterface.md)
 
-Defined in: [packages/agent-sdk/src/state.ts:47](https://github.com/zocomputer/zov2-code/blob/d124383bcfcf0ca6d96b92bff96fa6dfccc07562/packages/agent-sdk/src/state.ts#L47)
+Defined in: [packages/agent-sdk/src/state.ts:47](https://github.com/zocomputer/zov2-code/blob/1fcc8b4b31cf28b6badb9d28c6512cd9261c730c/packages/agent-sdk/src/state.ts#L47)
 
 ***
 
@@ -40,7 +40,7 @@ Defined in: [packages/agent-sdk/src/state.ts:47](https://github.com/zocomputer/z
 
 > `readonly` **name**: `string`
 
-Defined in: [packages/agent-sdk/src/state.ts:46](https://github.com/zocomputer/zov2-code/blob/d124383bcfcf0ca6d96b92bff96fa6dfccc07562/packages/agent-sdk/src/state.ts#L46)
+Defined in: [packages/agent-sdk/src/state.ts:46](https://github.com/zocomputer/zov2-code/blob/1fcc8b4b31cf28b6badb9d28c6512cd9261c730c/packages/agent-sdk/src/state.ts#L46)
 
 What tools reference at runtime. Must equal the declaring filename
 (`agent/state/<name>.ts`) — deploy validation enforces the match, which
@@ -52,4 +52,4 @@ also makes duplicate names structurally impossible.
 
 > `readonly` `optional` **suggestedDefaults?**: [`SuggestedStateDefaults`](SuggestedStateDefaults.md)
 
-Defined in: [packages/agent-sdk/src/state.ts:50](https://github.com/zocomputer/zov2-code/blob/d124383bcfcf0ca6d96b92bff96fa6dfccc07562/packages/agent-sdk/src/state.ts#L50)
+Defined in: [packages/agent-sdk/src/state.ts:50](https://github.com/zocomputer/zov2-code/blob/1fcc8b4b31cf28b6badb9d28c6512cd9261c730c/packages/agent-sdk/src/state.ts#L50)

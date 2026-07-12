@@ -1,18 +1,11 @@
-import { afterAll, describe, expect, test } from "bun:test";
-import { mkdtempSync, realpathSync, rmSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
-import type { ToolContext } from "eve/tools";
-import { readChatAttachment } from "./attachments";
+import { describe, expect, test } from "bun:test";
 import {
   buildTaskDescription,
   buildTaskMarkdown,
   createTaskAgent,
-  createTaskChildTools,
   expectedTaskToolNames,
   fetchGatewayModelCatalog,
   parseGatewayModelCatalog,
-  TASK_CHILD_TOOL_OVERRIDES,
   TASK_DISABLED_BUILTINS,
 } from "./task";
 import { visibleReasoningModelOptions } from "./visible-reasoning";
@@ -145,77 +138,6 @@ describe("buildTaskDescription", () => {
     });
     expect(description).not.toContain("itself can view");
     expect(description).not.toContain("can view images");
-  });
-});
-
-describe("createTaskChildTools", () => {
-  const root = realpathSync(mkdtempSync(join(tmpdir(), "agent-sdk-task-child-")));
-  afterAll(() => rmSync(root, { recursive: true, force: true }));
-  // A 1x1 PNG so the image path is exercised without a fixture dependency.
-  writeFileSync(
-    join(root, "pic.png"),
-    Buffer.from(
-      "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==",
-      "base64",
-    ),
-  );
-  const tools = createTaskChildTools({
-    workspaceRoot: root,
-    workspaceNoun: "repo",
-    spillDir: join(root, ".state/tool-outputs"),
-  });
-
-  const ctx: ToolContext = {
-    session: {
-      id: "task-child-session",
-      auth: { current: null, initiator: null },
-      turn: { id: "turn-1", sequence: 1 },
-    },
-    getSandbox: () => Promise.reject(new Error("no sandbox in tests")),
-    getSkill: () => {
-      throw new Error("no skills in tests");
-    },
-    getToken: () => Promise.reject(new Error("no auth in tests")),
-    requireAuth: () => {
-      throw new Error("no auth in tests");
-    },
-  };
-
-  test("exports exactly the override names", () => {
-    expect(Object.keys(tools).sort()).toEqual([...TASK_CHILD_TOOL_OVERRIDES].sort());
-  });
-
-  test("images never inline as chat attachments (no park-delivery hook in the child)", async () => {
-    const result = await tools.read.execute({ path: "pic.png" }, ctx);
-    expect(result).toMatchObject({ path: "pic.png", source: "image" });
-    expect(readChatAttachment(result)).toBeNull();
-    if (!("note" in result) || typeof result.note !== "string") throw new Error("expected a note");
-    // The note must not promise an attachment or tell the child to ask the user.
-    expect(result.note).not.toContain("ask the user");
-    expect(result.note).not.toContain("next message");
-    expect(result.note).toContain("report the image's path");
-  });
-
-  test("the read description doesn't promise the attachment path it lacks", () => {
-    expect(tools.read.description).toContain("metadata only");
-    expect(tools.read.description).not.toContain("viewable attachment");
-  });
-
-  test("with a media oracle, the child's unavailable-media notes route to look", async () => {
-    const withOracle = createTaskChildTools({
-      workspaceRoot: root,
-      workspaceNoun: "repo",
-      spillDir: join(root, ".state/tool-outputs"),
-      mediaOracle: true,
-    });
-    const result = await withOracle.read.execute({ path: "pic.png" }, ctx);
-    if (!("note" in result) || typeof result.note !== "string") {
-      throw new Error("expected a note");
-    }
-    expect(result.note).toContain("look tool");
-    expect(result.note).toContain("Gemini 3 Flash");
-    // Attachments still never inline in a child.
-    expect(readChatAttachment(result)).toBeNull();
   });
 });
 

@@ -12,7 +12,6 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import type { ToolContext } from "eve/tools";
 import { z } from "zod";
-import { readChatAttachment } from "./attachments";
 import { createSandboxFileTools, createStdlib } from "./index";
 import {
   __resetParkNotificationBridgeForTests,
@@ -290,50 +289,12 @@ describe("read tool", () => {
     expect(result.content).toContain("=== page 1 of 2 ===");
   });
 
-  test("inlines a small image as a model-hidden chat attachment", async () => {
+  test("returns image metadata with an actionable note", async () => {
     const result = await stdlib.tools.read.execute({ path: "pic.png" }, ctx);
     expect(result).toMatchObject({ path: "pic.png", source: "image", format: "png" });
-
-    // Bytes ride the raw result under the attachment field...
-    const attachment = readChatAttachment(result);
-    if (!attachment) throw new Error("expected a chat attachment on the result");
-    expect(attachment.mediaType).toBe("image/png");
-    expect(attachment.filename).toBe("pic.png");
-    expect(attachment.dataUrl.startsWith("data:image/png;base64,")).toBe(true);
-
-    // ...but toModelOutput strips them, so the model only sees metadata + note.
-    const model = await stdlib.tools.read.toModelOutput?.(result);
-    if (!model || model.type !== "json") throw new Error("expected json model output");
-    expect(readChatAttachment(model.value)).toBeNull();
-    const value = model.value as Record<string, unknown>;
-    expect(value.source).toBe("image");
-    expect(typeof value.note).toBe("string");
-    expect(value.note as string).toContain("next message");
-  });
-
-  test("falls back to a metadata-only note when inlining is disabled", async () => {
-    const plain = createStdlib({
-      workspaceRoot: root,
-      stateDir: join(root, ".agent-noinline"),
-      attachImagesToChat: false,
-    });
-    const result = await plain.tools.read.execute({ path: "pic.png" }, ctx);
-    expect(result).toMatchObject({ path: "pic.png", source: "image" });
-    expect(readChatAttachment(result)).toBeNull();
     if (!("note" in result) || typeof result.note !== "string") throw new Error("expected a note");
     expect(result.note).toContain("ask the user");
-  });
-
-  test("falls back when the image exceeds the inline size cap", async () => {
-    const capped = createStdlib({
-      workspaceRoot: root,
-      stateDir: join(root, ".agent-capped"),
-      maxInlineImageBytes: 1,
-    });
-    const result = await capped.tools.read.execute({ path: "pic.png" }, ctx);
-    expect(readChatAttachment(result)).toBeNull();
-    if (!("note" in result) || typeof result.note !== "string") throw new Error("expected a note");
-    expect(result.note).toContain("too large");
+    expect(result.note).not.toContain("next message");
   });
 
   test("video/audio reads return metadata only by default", async () => {
@@ -344,52 +305,11 @@ describe("read tool", () => {
       format: "mp4",
       mediaType: "video/mp4",
     });
-    expect(readChatAttachment(video)).toBeNull();
     if (!("note" in video) || typeof video.note !== "string") throw new Error("expected a note");
-    expect(video.note).toContain("not enabled");
+    expect(video.note).toContain("text/json only");
 
     const audio = await stdlib.tools.read.execute({ path: "song.mp3" }, ctx);
     expect(audio).toMatchObject({ source: "audio", format: "mp3", mediaType: "audio/mpeg" });
-    expect(readChatAttachment(audio)).toBeNull();
-  });
-
-  test("attachVideoToChat/attachAudioToChat opt into media attachments", async () => {
-    const multimodal = createStdlib({
-      workspaceRoot: root,
-      stateDir: join(root, ".agent-media"),
-      attachVideoToChat: true,
-      attachAudioToChat: true,
-    });
-    expect(multimodal.tools.read.description).toContain("image or video or audio files");
-
-    const video = await multimodal.tools.read.execute({ path: "clip.mp4" }, ctx);
-    const attachment = readChatAttachment(video);
-    if (!attachment) throw new Error("expected a chat attachment on the result");
-    expect(attachment.kind).toBe("video");
-    expect(attachment.mediaType).toBe("video/mp4");
-    expect(attachment.filename).toBe("clip.mp4");
-    expect(attachment.dataUrl.startsWith("data:video/mp4;base64,")).toBe(true);
-
-    // toModelOutput strips the bytes for media too.
-    const model = await multimodal.tools.read.toModelOutput?.(video);
-    if (!model || model.type !== "json") throw new Error("expected json model output");
-    expect(readChatAttachment(model.value)).toBeNull();
-
-    const audio = await multimodal.tools.read.execute({ path: "song.mp3" }, ctx);
-    expect(readChatAttachment(audio)?.kind).toBe("audio");
-  });
-
-  test("media over the inline cap falls back to the metadata note", async () => {
-    const capped = createStdlib({
-      workspaceRoot: root,
-      stateDir: join(root, ".agent-media-capped"),
-      attachVideoToChat: true,
-      maxInlineMediaBytes: 1,
-    });
-    const result = await capped.tools.read.execute({ path: "clip.mp4" }, ctx);
-    expect(readChatAttachment(result)).toBeNull();
-    if (!("note" in result) || typeof result.note !== "string") throw new Error("expected a note");
-    expect(result.note).toContain("too large");
   });
 
   test("refuses paths that escape the workspace", async () => {

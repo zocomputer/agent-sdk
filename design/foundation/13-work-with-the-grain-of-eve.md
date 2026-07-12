@@ -34,7 +34,7 @@ The posture has three rules:
 
 ## The current asks, and what each would delete
 
-- **Multimodal tool results** → deletes park delivery's image leg.
+- **Multimodal tool results** → lets `read` show media to the session model instead of returning metadata.
 - **HITL response persistence** → deletes every client's replay side-channel.
 - **`ask_question` multi-select** → completes the HITL surface the playbook
   teaches.

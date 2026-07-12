@@ -428,7 +428,7 @@ describe("stdlib wiring", () => {
     expect(stdlib.mediaOracle).toBeNull();
   });
 
-  test("parentCapabilities defaults image attach off for a text-only parent, and the read note routes to look", async () => {
+  test("a text-only parent's read note routes to look", async () => {
     const stdlib = createStdlib({
       workspaceRoot: root,
       stateDir: join(root, ".state"),
@@ -439,7 +439,7 @@ describe("stdlib wiring", () => {
     if (!("note" in result) || typeof result.note !== "string") {
       throw new Error("expected a metadata-only note");
     }
-    expect(result.note).toContain("not enabled");
+    expect(result.note).toContain("text/json only");
     expect(result.note).toContain("look tool");
     expect(result.note).not.toContain("ask the user");
   });
@@ -457,17 +457,4 @@ describe("stdlib wiring", () => {
     );
   });
 
-  test("an explicit attachImagesToChat wins over parentCapabilities", async () => {
-    const stdlib = createStdlib({
-      workspaceRoot: root,
-      stateDir: join(root, ".state"),
-      parentCapabilities: TEXT_ONLY_CAPABILITIES,
-      attachImagesToChat: true,
-    });
-    const result = await stdlib.tools.read.execute({ path: "pic.png" }, ctx);
-    if (!("note" in result) || typeof result.note !== "string") {
-      throw new Error("expected the queued-attachment note");
-    }
-    expect(result.note).toContain("queued");
-  });
 });

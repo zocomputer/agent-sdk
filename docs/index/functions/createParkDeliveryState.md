@@ -8,7 +8,7 @@
 
 > **createParkDeliveryState**\<`T`\>(): `object`
 
-Defined in: [packages/agent-sdk/src/park-delivery.ts:75](https://github.com/zocomputer/zov2-code/blob/d124383bcfcf0ca6d96b92bff96fa6dfccc07562/packages/agent-sdk/src/park-delivery.ts#L75)
+Defined in: [packages/agent-sdk/src/park-delivery.ts:74](https://github.com/zocomputer/zov2-code/blob/1fcc8b4b31cf28b6badb9d28c6512cd9261c730c/packages/agent-sdk/src/park-delivery.ts#L74)
 
 Per-process delivery state across sessions. Feed it every stream event via
 `observe`; queue items with `enqueue` or `enqueueAll`. Either returns a

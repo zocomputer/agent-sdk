@@ -1,17 +1,6 @@
 import { defineAgent, type AgentDefinition } from "eve";
 import { defineDynamic, defineInstructions } from "eve/instructions";
-import { createDirConventionsTracker } from "./dir-conventions";
-import {
-  lookAvKindClause,
-  lookOversizeHint,
-  resolveMediaOracle,
-  type LookOracleConfig,
-  type MediaOracleOption,
-} from "./tools/look";
-import { createReadTool } from "./tools/read";
-import { createWebFetchTool } from "./tools/webfetch";
 import { visibleReasoningModelOptions } from "./visible-reasoning";
-import { createWorkspace } from "./workspace";
 
 // The task subagent kit: a generic, full-capability child preset for eve's
 // declared subagents (`agent/subagents/task_fast/`, `task_deep/`, …). Eve has
@@ -27,8 +16,6 @@ import { createWorkspace } from "./workspace";
 // explicit exclusion list for parent-session-coupled tools, plus a
 // `disableTool()` shim for `ask_question` (children are autonomous: they
 // decide and report instead of parking the parent's turn on the user), with
-// `read`/`webfetch` swapped for attach-disabled instances
-// ({@link createTaskChildTools}) since no park-delivery hook runs in a child.
 // `expectedTaskToolNames` is the manifest a consumer's test diffs its
 // subagent `tools/` dir against, so a parent tool added without a re-export
 // (or a forgotten shim) fails CI instead of silently shipping a child with a
@@ -98,119 +85,6 @@ export function expectedTaskToolNames(options: TaskToolManifestOptions): string[
   }
   return [...names].sort();
 }
-
-/**
- * Options for `createTaskChildTools`: workspace root the child is confined to,
- * where oversized output spills, and whether to inject directory conventions
- * on first read.
- */
-export interface TaskChildToolsOptions {
-  /** Directory the child works in; tools refuse paths that escape it. */
-  workspaceRoot: string;
-  /** What tool descriptions call the workspace. Defaults to "workspace". */
-  workspaceNoun?: string;
-  /** Where oversized grep/webfetch output spills (the parent's spill dir). */
-  spillDir: string;
-  /**
-   * Attach a directory's conventions file to the first `read` under it, once
-   * per directory per session (see ./dir-conventions.ts). Defaults to `true`.
-   */
-  injectDirConventions?: boolean;
-  /** Conventions filename the read riders look for. Defaults to "AGENTS.md". */
-  conventionsFileName?: string;
-  /**
-   * The parent's look oracle, when it wires one. A task child re-exports the
-   * parent's `look` like any other tool (it needs no park delivery, so it
-   * works in children), and with this set the child's read/webfetch
-   * unavailable-media hints route to `look` instead of "report the path".
-   *
-   * Pass the parent stdlib's RESOLVED oracle — `stdlib.mediaOracle` — not an
-   * independent option: the hints derive from this config while the `look`
-   * tool itself is the parent's instance, so a mismatched value (e.g. `true`
-   * here against a custom oracle on the parent) would advertise a model and
-   * capability set the child's `look` doesn't run. `true` (the SDK default
-   * oracle) is only correct when the parent also used `true`.
-   */
-  mediaOracle?: MediaOracleOption;
-}
-
-/**
- * Child-safe `read` and `webfetch` overrides for a task subagent's `tools/`
- * dir. A declared child runs WITHOUT the park-delivery hook (it never parks
- * awaiting input — `ask_question` is shimmed off — so queued deliveries would
- * never send), which means the parent's attachment-enabled `read`/`webfetch`
- * would promise media "attached to your next message" that never arrives.
- * These instances disable attachments and rewrite the image hint to the
- * child's honest move: report the path so the caller can view it. Everything
- * else in the child's `tools/` stays a one-line re-export of the parent's
- * instance.
- */
-export function createTaskChildTools(options: TaskChildToolsOptions) {
-  const noun = options.workspaceNoun ?? "workspace";
-  const workspace = createWorkspace(options.workspaceRoot);
-  const conventionsFileName = options.conventionsFileName ?? "AGENTS.md";
-  const dirConventions =
-    (options.injectDirConventions ?? true)
-      ? {
-          tracker: createDirConventionsTracker({
-            workspaceRoot: workspace.root,
-            fileName: conventionsFileName,
-          }),
-          fileName: conventionsFileName,
-        }
-      : undefined;
-  const oracle: LookOracleConfig | null =
-    options.mediaOracle !== undefined ? resolveMediaOracle(options.mediaOracle) : null;
-  // With an oracle wired the child isn't blind — it has the parent's `look`
-  // re-export — so the hints route media there. Without one, reporting is
-  // the honest move: no client re-injects bytes in a child session, and
-  // asking the user is off the table (ask_question is shimmed).
-  const imageUnavailableHint =
-    oracle !== null && oracle.capabilities.image
-      ? `Its pixels are not available as an attachment in a delegated child session — pass the path and a question to the look tool to have ${oracle.modelName} examine it, or report the image's path and metadata in your final message.`
-      : "Its pixels are not available in a delegated child session — report the image's path and metadata in your final message so the caller can view it.";
-  // The AV hints share one string across video and audio results, so the
-  // look clause is scoped to the kinds the oracle actually takes (see
-  // lookAvKindClause) — an unconditional "pass it to look" under a one-kind
-  // oracle would steer the other kind into look's refusal.
-  const avClause = oracle !== null ? lookAvKindClause(oracle.capabilities) : undefined;
-  const mediaUnavailableHint =
-    oracle !== null && avClause !== undefined
-      ? `Its bytes are not available as an attachment in a delegated child session — if it is ${avClause}, pass the path and a question to the look tool to have ${oracle.modelName} view it; otherwise extract what you can with bash (e.g. ffmpeg frames from a video, read as images), or report the file's path and metadata.`
-      : "Its bytes are not available in a delegated child session — use bash extraction if text will do, or report the file's path and metadata so the caller can handle it.";
-  const fetchedImageUnavailableHint =
-    oracle !== null && oracle.capabilities.image
-      ? `Its pixels are not available as an attachment in a delegated child session — download it (e.g. bash curl -o) and pass the saved path with a question to the look tool, or report the image's URL in your final message.`
-      : "Its pixels are not available in a delegated child session — report the image's URL in your final message so the caller can fetch it.";
-  const fetchedMediaUnavailableHint =
-    oracle !== null && avClause !== undefined
-      ? `Its bytes are not available as an attachment in a delegated child session — if it is ${avClause}, download it (e.g. bash curl -o) and pass the saved path with a question to the look tool; otherwise extract what you can with bash (e.g. ffmpeg frames from a video, read as images), or report the file's URL in your final message.`
-      : "Its bytes are not available in a delegated child session — use bash (curl -o) to download it if you need to process it, or report the file's URL in your final message.";
-  const oversizeHint = oracle !== null ? lookOversizeHint(oracle) : undefined;
-  return {
-    read: createReadTool({
-      workspace,
-      noun,
-      attachImagesToChat: false,
-      maxInlineImageBytes: 0,
-      dirConventions,
-      imageUnavailableHint,
-      mediaUnavailableHint,
-      ...(oversizeHint !== undefined ? { oversizeHint } : {}),
-    }),
-    webfetch: createWebFetchTool({
-      workspace,
-      spillDir: options.spillDir,
-      attachImagesToChat: false,
-      maxInlineImageBytes: 0,
-      imageUnavailableHint: fetchedImageUnavailableHint,
-      mediaUnavailableHint: fetchedMediaUnavailableHint,
-    }),
-  };
-}
-
-/** Tool names {@link createTaskChildTools} overrides (not parent re-exports). */
-export const TASK_CHILD_TOOL_OVERRIDES = ["read", "webfetch"] as const;
 
 /** Pure markdown for the task child's operating contract. */
 export function buildTaskMarkdown(opts?: { workspaceNoun?: string }): string {
@@ -290,9 +164,9 @@ export interface TaskDescriptionOptions {
 
 // NOTE: the description deliberately carries NO tier-model media-capability
 // sentence. A delegated child never receives media inline regardless of its
-// pinned model (attach-disabled read/webfetch — no park-delivery hook), so
+// pinned model, so
 // "this tier's model can view images" would invite routing image-heavy work
-// to a child that only ever gets metadata plus the shared `look` oracle. The
+// to a child that gets metadata plus the shared `look` oracle. The
 // honest media story is the consumer's `capabilityNote`. Revisit if eve
 // grows file parts in the subagent input contract (design/upstream-asks.md).
 /** Pure default for a task subagent's parent-facing tool description. */

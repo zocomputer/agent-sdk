@@ -8,7 +8,7 @@
 
 > **extractTextFromHtml**(`html`): `string`
 
-Defined in: [packages/agent-sdk/src/web-fetch.ts:103](https://github.com/zocomputer/zov2-code/blob/d124383bcfcf0ca6d96b92bff96fa6dfccc07562/packages/agent-sdk/src/web-fetch.ts#L103)
+Defined in: [packages/agent-sdk/src/web-fetch.ts:103](https://github.com/zocomputer/zov2-code/blob/1fcc8b4b31cf28b6badb9d28c6512cd9261c730c/packages/agent-sdk/src/web-fetch.ts#L103)
 
 Extract visible text from HTML via htmlparser2, skipping script/style/iframe
 and collapsing whitespace runs left by stripped markup.

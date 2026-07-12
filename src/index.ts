@@ -1,9 +1,5 @@
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import {
-  DEFAULT_MAX_INLINE_IMAGE_BYTES,
-  DEFAULT_MAX_INLINE_MEDIA_BYTES,
-} from "./attachments";
 import { createTaskRegistry, type TaskRegistry } from "./async-tasks";
 import { createBashOp, type BackgroundableOp } from "./backgroundable";
 import { TOOL_OUTPUT_DIRNAME } from "./bounded-output";
@@ -62,7 +58,7 @@ import { sandboxRunnerProvider } from "./sandbox-run";
 
 /**
  * Options for building the stdlib: workspace root, state directory, display
- * noun, attachment/media settings, steering, subagent roster, and optional
+ * noun, media settings, steering, subagent roster, and optional
  * extra backgroundable operations.
  */
 export interface StdlibOptions {
@@ -91,25 +87,10 @@ export interface StdlibOptions {
     runner: CommandRunner;
   }) => readonly BackgroundableOp[];
   /**
-   * When `read` or `webfetch` hits an image, embed its bytes on the tool
-   * result so a client can re-inject it as a viewable attachment on the next
-   * turn (see ./attachments and GUIDE.md). Requires a client that consumes
-   * the attachment (rib, Zo); generic eve consumers can leave this off and get
-   * the metadata-only "ask the user" note. Defaults to `true` — or, when
-   * {@link StdlibOptions.parentCapabilities} is provided, to whether the
-   * session model can view images (an image attached for a text-only model
-   * fails the redelivery turn at the provider). An explicit value always wins.
-   */
-  attachImagesToChat?: boolean;
-  /**
    * The session model's own input capabilities, resolved by the consumer
    * (`capabilitiesForModel` over the gateway catalog, checked in — see
-   * ./model-capabilities.ts). When provided, `attachImagesToChat` defaults to
-   * `parentCapabilities.image`, and the look instruction (when the oracle is
-   * wired) states which kinds to view natively vs delegate. Video/audio
-   * attach stays manual opt-in regardless: eve's attachment hydration stubs
-   * both for every model today (see design/upstream-asks.md), so a
-   * capability-derived default would promise media the runtime won't deliver.
+   * ./model-capabilities.ts). When provided, the look instruction states
+   * which kinds the session model can view natively versus delegate.
    */
   parentCapabilities?: ModelInputCapabilities;
   /**
@@ -123,31 +104,6 @@ export interface StdlibOptions {
    * `look` instead of dead-ending.
    */
   mediaOracle?: MediaOracleOption;
-  /**
-   * Max image size (bytes) to inline on the tool result; larger images fall
-   * back to the metadata-only note. Defaults to 3 MiB — eve's attachment
-   * staging inlines images up to that size at model-call time and text-stubs
-   * bigger ones, so staying under it keeps the "queued" promise truthful.
-   * Also bounds durable-stream bloat (the data URL rides the stream once per
-   * read/fetch).
-   */
-  maxInlineImageBytes?: number;
-  /**
-   * Attach video files (mp4/mov/webm/mkv/avi) the way images attach. Defaults
-   * to `false`: video input is provider-gated (Gemini accepts it; Claude and
-   * most others don't), and eve's attachment staging currently hydrates only
-   * images/PDFs back into the model call (see design/upstream-asks.md) —
-   * enable once both hold for your agent.
-   */
-  attachVideoToChat?: boolean;
-  /** Attach audio files (mp3/wav/ogg/flac/m4a). Same gating as video. */
-  attachAudioToChat?: boolean;
-  /**
-   * Max video/audio size (bytes) to inline on the tool result. Defaults to
-   * 10 MB (read's stat guard rejects bigger files outright; webfetch's 5 MB
-   * response cap bites first for fetches).
-   */
-  maxInlineMediaBytes?: number;
   /**
    * Verify command mentioned by the workflow instruction (e.g. "bun run
    * check"). Interpolated once at build time; omit for a generic hint.
@@ -240,14 +196,6 @@ export function createStdlib(options: StdlibOptions) {
   const steer = createSteerWrapper(steerInbox);
   const oracle: LookOracleConfig | null =
     options.mediaOracle !== undefined ? resolveMediaOracle(options.mediaOracle) : null;
-  // Parent-capability defaulting: an image attached for a model that can't
-  // view images is inlined by eve's hydration regardless (≤3 MiB, model-blind)
-  // and fails the redelivery turn at the provider — so when the consumer told
-  // us the session model's capabilities, they decide the default. An explicit
-  // flag always wins. Video/audio stay manual opt-in (hydration stubs both
-  // for every model today; see the option's doc comment).
-  const attachImagesToChat =
-    options.attachImagesToChat ?? options.parentCapabilities?.image ?? true;
   const readImageHint = oracle ? lookReadImageHint(oracle) : undefined;
   const readMediaHint = oracle ? lookReadMediaHint(oracle) : undefined;
   const readOversizeHint = oracle ? lookOversizeHint(oracle) : undefined;
@@ -262,12 +210,8 @@ export function createStdlib(options: StdlibOptions) {
     steerInbox,
     /**
      * The RESOLVED look oracle (`null` when `mediaOracle` wasn't set). Task
-     * children must derive their hints from this exact config — pass it to
-     * `createTaskChildTools({ mediaOracle: stdlib.mediaOracle ?? undefined })`
-     * — because the child's `look` is a re-export of the parent's instance:
-     * a child resolving its own option (e.g. `true` against a custom parent
-     * oracle) would advertise a model and capability set its `look` doesn't
-     * run.
+     * Children use this same resolved config when building their media
+     * instruction because their `look` is a re-export of the parent instance.
      */
     mediaOracle: oracle,
     tools: {
@@ -275,13 +219,6 @@ export function createStdlib(options: StdlibOptions) {
         createReadTool({
           workspace,
           noun,
-          attachImagesToChat,
-          maxInlineImageBytes:
-            options.maxInlineImageBytes ?? DEFAULT_MAX_INLINE_IMAGE_BYTES,
-          attachVideoToChat: options.attachVideoToChat ?? false,
-          attachAudioToChat: options.attachAudioToChat ?? false,
-          maxInlineMediaBytes:
-            options.maxInlineMediaBytes ?? DEFAULT_MAX_INLINE_MEDIA_BYTES,
           dirConventions,
           ...(readImageHint !== undefined
             ? { imageUnavailableHint: readImageHint }
@@ -311,13 +248,6 @@ export function createStdlib(options: StdlibOptions) {
         createWebFetchTool({
           workspace,
           spillDir,
-          attachImagesToChat,
-          maxInlineImageBytes:
-            options.maxInlineImageBytes ?? DEFAULT_MAX_INLINE_IMAGE_BYTES,
-          attachVideoToChat: options.attachVideoToChat ?? false,
-          attachAudioToChat: options.attachAudioToChat ?? false,
-          maxInlineMediaBytes:
-            options.maxInlineMediaBytes ?? DEFAULT_MAX_INLINE_MEDIA_BYTES,
           ...(fetchedImageHint !== undefined
             ? { imageUnavailableHint: fetchedImageHint }
             : {}),
@@ -445,28 +375,9 @@ export interface SandboxFileToolsOptions {
    * here, unlike the stdlib's `true`): watcher notifications ride
    * `createParkDeliveryHook`, and without that hook registered they queue
    * but never deliver — a promise the model would plan around. An agent
-   * that wires park delivery flips this on. Same honesty precedent as
-   * {@link SandboxFileToolsOptions.attachImagesToChat}.
+   * that wires park delivery flips this on.
    */
   notifications?: boolean;
-  /**
-   * See {@link StdlibOptions.attachImagesToChat}. Defaults to `false` here —
-   * the attachment path only works when the agent registers
-   * `createParkDeliveryHook` AND its runtime can reach itself over loopback
-   * to send the next-turn message; hosted serverless runtimes haven't
-   * validated that leg. Until a consumer wires and verifies it, the honest
-   * default is the metadata-only note (a "queued" promise that never
-   * delivers is the silent failure the attachment contract exists to avoid).
-   */
-  attachImagesToChat?: boolean;
-  /** See {@link StdlibOptions.maxInlineImageBytes}. */
-  maxInlineImageBytes?: number;
-  /** See {@link StdlibOptions.attachVideoToChat}. Defaults to `false`. */
-  attachVideoToChat?: boolean;
-  /** See {@link StdlibOptions.attachAudioToChat}. Defaults to `false`. */
-  attachAudioToChat?: boolean;
-  /** See {@link StdlibOptions.maxInlineMediaBytes}. */
-  maxInlineMediaBytes?: number;
   /** See {@link StdlibOptions.injectDirConventions}. Defaults to `true`. */
   injectDirConventions?: boolean;
   /** See {@link StdlibOptions.conventionsFileName}. Defaults to "AGENTS.md". */
@@ -479,10 +390,8 @@ export interface SandboxFileToolsOptions {
    */
   mediaOracle?: MediaOracleOption;
   /**
-   * See {@link StdlibOptions.parentCapabilities}. Here it only informs the
-   * stack's media section (which kinds to view natively vs delegate) — it
-   * never drives an attachment default, since sandbox attachments stay
-   * explicitly off (see {@link SandboxFileToolsOptions.attachImagesToChat}).
+   * See {@link StdlibOptions.parentCapabilities}. Here it informs the stack's
+   * media section (which kinds to view natively versus delegate).
    */
   parentCapabilities?: ModelInputCapabilities;
   /** See {@link StdlibOptions.verifyCommandHint}. */
@@ -567,13 +476,6 @@ export function createSandboxFileTools(options: SandboxFileToolsOptions) {
         workspace,
         noun,
         io,
-        attachImagesToChat: options.attachImagesToChat ?? false,
-        maxInlineImageBytes:
-          options.maxInlineImageBytes ?? DEFAULT_MAX_INLINE_IMAGE_BYTES,
-        attachVideoToChat: options.attachVideoToChat ?? false,
-        attachAudioToChat: options.attachAudioToChat ?? false,
-        maxInlineMediaBytes:
-          options.maxInlineMediaBytes ?? DEFAULT_MAX_INLINE_MEDIA_BYTES,
         dirConventions,
         ...(readImageHint !== undefined
           ? { imageUnavailableHint: readImageHint }
@@ -678,22 +580,12 @@ export {
 } from "./tools/webfetch";
 export { createWriteTool } from "./tools/write";
 
-export * from "./attachments";
 export {
   createParkDeliveryHook,
   type ParkDeliveryOptions,
 } from "./hooks";
 export {
-  buildRedeliveryMessage,
   clientContinuationToken,
-  createRedeliveryState,
-  type PendingRedelivery,
-  redeliveryFromEvent,
-  type RedeliveryMessagePart,
-  type RedeliveryRequest,
-  type RedeliveryState,
-} from "./redeliver";
-export {
   createParkDeliveryState,
   type ParkDeliveryItem,
   type ParkDeliveryRequest,

@@ -1,13 +1,8 @@
 import { defineTool } from "eve/tools";
 import { z } from "zod";
-import { basename, join } from "node:path";
-import {
-  CHAT_ATTACHMENT_FIELD,
-  DEFAULT_MAX_INLINE_MEDIA_BYTES,
-  type ChatAttachment,
-} from "../attachments";
+import { join } from "node:path";
 import { createBoundedCapture } from "../bounded-output";
-import { audioMediaType, detectFileKind, imageMediaType, videoMediaType } from "../file-kind";
+import { audioMediaType, detectFileKind, videoMediaType } from "../file-kind";
 import { loadFileContent } from "../read-file-content";
 import { buildMediaHint } from "./read";
 import {
@@ -26,8 +21,8 @@ import type { Workspace } from "../workspace";
 // framework `web_fetch` and opencode's tool by reusing the stdlib's own
 // machinery: bounded output spills the complete page to the tool-outputs dir
 // (eve's web_fetch discards everything past its cap), fetched PDFs/DOCX/
-// spreadsheets route through the same extractors as `read`, and images ride
-// the chat-attachment contract instead of decoding to garbage. The fetch/
+// spreadsheets route through the same extractors as `read`, and media returns
+// metadata instead of decoding to garbage. The fetch/
 // render core lives in ../web-fetch.ts; this wrapper owns routing + bounding.
 
 const SPILL_EXTENSION: Record<WebFetchFormat, string> = {
@@ -40,15 +35,6 @@ function spillFilename(format: WebFetchFormat, kind: "text" | "extracted"): stri
   const runId = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
   const ext = kind === "extracted" ? "txt" : SPILL_EXTENSION[format];
   return `webfetch-${runId}.${ext}`;
-}
-
-function fetchedFilename(finalUrl: string, fallback: string): string {
-  try {
-    const name = basename(new URL(finalUrl).pathname);
-    return name === "" || name === "/" ? fallback : name;
-  } catch {
-    return fallback;
-  }
 }
 
 // ZIP magic bytes (PK\x03\x04)
@@ -152,7 +138,7 @@ export const DEFAULT_MAX_INLINE_CONTENT_CHARS = 100_000;
 // page — footers, appendices, the last table — survives truncation.
 const INLINE_TAIL_FRACTION = 0.25;
 
-/** Build the webfetch tool that fetches URLs, renders HTML to markdown, extracts documents, and queues media attachments. */
+/** Build the webfetch tool that fetches URLs, renders HTML to markdown, extracts documents, and describes media. */
 export function createWebFetchTool(opts: {
   workspace: Workspace;
   /**
@@ -171,14 +157,6 @@ export function createWebFetchTool(opts: {
    * set). Defaults to {@link DEFAULT_MAX_INLINE_CONTENT_CHARS}.
    */
   maxInlineContentChars?: number;
-  attachImagesToChat: boolean;
-  maxInlineImageBytes: number;
-  /** Attach fetched video the way images attach — see `createReadTool`. Default false. */
-  attachVideoToChat?: boolean;
-  /** Attach fetched audio. Same gating as video. Default false. */
-  attachAudioToChat?: boolean;
-  /** Max video/audio bytes to inline; the 5 MB response cap bites first. */
-  maxInlineMediaBytes?: number;
   /**
    * The "what to do instead" sentence in the image result note when the
    * pixels can't be delivered (attach disabled or over the size cap).
@@ -196,16 +174,13 @@ export function createWebFetchTool(opts: {
   /** Injectable for tests; defaults to global fetch. */
   fetchImpl?: FetchLike | undefined;
 }) {
-  const { workspace, spillDir, attachImagesToChat, maxInlineImageBytes, fetchImpl } = opts;
+  const { workspace, spillDir, fetchImpl } = opts;
   const imageUnavailableHint =
     opts.imageUnavailableHint ??
     "If you need to see this image, ask the user to attach it to the chat.";
   const mediaUnavailableHint =
     opts.mediaUnavailableHint ??
     "Use bash (curl -o) to download it if you need to process it.";
-  const attachVideoToChat = opts.attachVideoToChat ?? false;
-  const attachAudioToChat = opts.attachAudioToChat ?? false;
-  const maxInlineMediaBytes = opts.maxInlineMediaBytes ?? DEFAULT_MAX_INLINE_MEDIA_BYTES;
   const maxInlineContentChars =
     opts.maxInlineContentChars ?? DEFAULT_MAX_INLINE_CONTENT_CHARS;
   const inlineTailChars = Math.floor(maxInlineContentChars * INLINE_TAIL_FRACTION);
@@ -239,10 +214,7 @@ export function createWebFetchTool(opts: {
     };
   };
 
-  const mediaHint = buildMediaHint(
-    { image: attachImagesToChat, video: attachVideoToChat, audio: attachAudioToChat },
-    "fetching",
-  );
+  const mediaHint = buildMediaHint("fetching");
 
   // Static per factory build (prompt-cache safe): the overflow sentence
   // matches the bounding mode.
@@ -382,28 +354,9 @@ export function createWebFetchTool(opts: {
             height: content.height,
             bytes: body.byteLength,
           };
-          if (!attachImagesToChat || body.byteLength > maxInlineImageBytes) {
-            const why =
-              attachImagesToChat && body.byteLength > maxInlineImageBytes
-                ? `too large to attach automatically (${body.byteLength} bytes, max ${maxInlineImageBytes})`
-                : "cannot be returned as a tool result (text/json only), and image attachments are not enabled for this agent";
-            return {
-              ...imageMeta,
-              note: `Image content ${why}. ${imageUnavailableHint}`,
-            };
-          }
-          const attachment: ChatAttachment = {
-            kind: "image",
-            dataUrl: `data:${imageMediaType(content.format)};base64,${body.toString("base64")}`,
-            mediaType: imageMediaType(content.format),
-            filename: fetchedFilename(finalUrl, "image"),
-            width: content.width,
-            height: content.height,
-          };
           return {
             ...imageMeta,
-            note: "This image is queued and will be attached to your next message as a viewable image — no need to ask the user to attach it.",
-            [CHAT_ATTACHMENT_FIELD]: attachment,
+            note: `Image content cannot be returned as a tool result (text/json only). ${imageUnavailableHint}`,
           };
         }
         case "video":
@@ -422,44 +375,12 @@ export function createWebFetchTool(opts: {
             mediaType,
             bytes: body.byteLength,
           };
-          const label = kind === "video" ? "Video" : "Audio";
-          const enabled = kind === "video" ? attachVideoToChat : attachAudioToChat;
-          if (!enabled || body.byteLength > maxInlineMediaBytes) {
-            const why =
-              enabled && body.byteLength > maxInlineMediaBytes
-                ? `too large to attach automatically (${body.byteLength} bytes, max ${maxInlineMediaBytes})`
-                : `cannot be returned as a tool result (text/json only), and ${kind} attachments are not enabled for this agent`;
-            return {
-              ...mediaMeta,
-              note: `${label} content ${why}. ${mediaUnavailableHint}`,
-            };
-          }
-          const attachment: ChatAttachment = {
-            kind,
-            dataUrl: `data:${mediaType};base64,${body.toString("base64")}`,
-            mediaType,
-            filename: fetchedFilename(finalUrl, kind),
-          };
           return {
             ...mediaMeta,
-            note: `This ${kind} file is queued and will be attached to your next message — no need to ask the user to attach it.`,
-            [CHAT_ATTACHMENT_FIELD]: attachment,
+            note: `${kind === "video" ? "Video" : "Audio"} content cannot be returned as a tool result (text/json only). ${mediaUnavailableHint}`,
           };
         }
       }
-    },
-    // Same contract as `read`: the attachment bytes ride the raw result for a
-    // connected client; the model sees metadata + the note only.
-    toModelOutput(output) {
-      if (
-        typeof output === "object" &&
-        output !== null &&
-        CHAT_ATTACHMENT_FIELD in output
-      ) {
-        const { [CHAT_ATTACHMENT_FIELD]: _omitted, ...rest } = output;
-        return { type: "json", value: rest };
-      }
-      return { type: "json", value: output };
     },
   });
 }

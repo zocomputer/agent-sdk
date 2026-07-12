@@ -1,13 +1,7 @@
 import { defineTool } from "eve/tools";
 import { z } from "zod";
-import { basename } from "node:path";
-import {
-  CHAT_ATTACHMENT_FIELD,
-  DEFAULT_MAX_INLINE_MEDIA_BYTES,
-  type ChatAttachment,
-} from "../attachments";
 import type { DirConventionsRider, DirConventionsTracker } from "../dir-conventions";
-import { audioMediaType, imageMediaType, videoMediaType } from "../file-kind";
+import { audioMediaType, videoMediaType } from "../file-kind";
 import { buildFileView, READ_FILE_MAX_BYTES } from "../file-view";
 import { loadFileContent } from "../read-file-content";
 import type { Workspace } from "../workspace";
@@ -15,21 +9,8 @@ import { localIoProvider, type WorkspaceIoProvider } from "../workspace-io";
 
 /** The description phrase covering media reads/fetches, from the enabled
  * attach kinds. Shared with `createWebFetchTool`; static per factory build. */
-export function buildMediaHint(
-  attach: { image: boolean; video: boolean; audio: boolean },
-  verb: "reading" | "fetching",
-): string {
-  const kinds = ["image", "video", "audio"] as const;
-  const on = kinds.filter((kind) => attach[kind]);
-  const off = kinds.filter((kind) => !attach[kind]);
-  const list = (items: readonly string[]) => items.join(" or ");
-  if (on.length === 0) {
-    return `${verb} media (images, video, audio) returns metadata only`;
-  }
-  const queued = `${verb} ${list(on)} files returns metadata and queues the file to appear as a viewable attachment on your next message`;
-  return off.length === 0
-    ? queued
-    : `${queued} (${list(off)} ${verb === "reading" ? "reads" : "fetches"} return metadata only)`;
+export function buildMediaHint(verb: "reading" | "fetching"): string {
+  return `${verb} media (images, video, audio) returns metadata only`;
 }
 
 // Replaces eve's sandbox `read_file` (vacate the framework name with a disable
@@ -37,17 +18,9 @@ export function buildMediaHint(
 // `read`. Content routes by sniffed kind (see ../read-file-content.ts): text is
 // windowed directly; PDF/DOCX/spreadsheets are converted to text first.
 //
-// eve tool results are text/json — pixels can't ride one. So for media under
-// the inline cap, we embed the bytes as a data URL on the raw result under
-// CHAT_ATTACHMENT_FIELD (see ../attachments.ts) and strip that field in
-// `toModelOutput`: the model sees metadata + a note, while a connected client
-// reads the bytes off the tool-result event and re-injects the media as a real
-// user message part on the next turn. Over the cap (or when disabled), we fall
-// back to a metadata-only note. Images attach by default; video/audio are
-// opt-in because model support is provider-gated (Gemini takes them, Claude
-// does not) and eve's attachment staging today hydrates only images/PDFs back
-// into the model call (see design/upstream-asks.md).
-/** Build the read tool that returns line-numbered text, converts PDFs/DOCX/spreadsheets, and queues image/video/audio attachments. */
+// eve tool results are text/json, so media reads return metadata and an
+// actionable route to `look`, bash extraction, or a user-provided attachment.
+/** Build the read tool that returns line-numbered text, converts documents, and describes media files. */
 export function createReadTool(opts: {
   workspace: Workspace;
   noun: string;
@@ -57,21 +30,6 @@ export function createReadTool(opts: {
    * (../sandbox-io.ts) so reads hit the session's workspace.
    */
   io?: WorkspaceIoProvider;
-  attachImagesToChat: boolean;
-  maxInlineImageBytes: number;
-  /**
-   * Attach video files (mp4/mov/webm/mkv/avi) the way images attach. Default
-   * false — enable only when the agent's model accepts video input AND the
-   * runtime delivers video file parts (see the module comment).
-   */
-  attachVideoToChat?: boolean;
-  /** Attach audio files (mp3/wav/ogg/flac/m4a). Same gating as video. */
-  attachAudioToChat?: boolean;
-  /**
-   * Max video/audio size (bytes) to inline on the tool result. Defaults to
-   * 10 MB — the read stat guard rejects bigger files before this bites.
-   */
-  maxInlineMediaBytes?: number;
   /**
    * When set, the first read under a directory carrying its own conventions
    * file attaches that file to the result under `directory_conventions` —
@@ -104,11 +62,8 @@ export function createReadTool(opts: {
    */
   includeEditGuidance?: boolean;
 }) {
-  const { workspace, noun, attachImagesToChat, maxInlineImageBytes, dirConventions } = opts;
+  const { workspace, noun, dirConventions } = opts;
   const io = opts.io ?? localIoProvider(workspace.root);
-  const attachVideoToChat = opts.attachVideoToChat ?? false;
-  const attachAudioToChat = opts.attachAudioToChat ?? false;
-  const maxInlineMediaBytes = opts.maxInlineMediaBytes ?? DEFAULT_MAX_INLINE_MEDIA_BYTES;
   const oversizeHint =
     opts.oversizeHint ?? "Use bash (head, sed -n, rg) to extract the part you need.";
   const imageUnavailableHint =
@@ -124,10 +79,7 @@ export function createReadTool(opts: {
   // Only promise the attachment path for kinds a client actually delivers
   // (attach option + the park-delivery hook); otherwise be honest that the
   // read is metadata-only.
-  const mediaHint = buildMediaHint(
-    { image: attachImagesToChat, video: attachVideoToChat, audio: attachAudioToChat },
-    "reading",
-  );
+  const mediaHint = buildMediaHint("reading");
   const editHint =
     (opts.includeEditGuidance ?? true)
       ? " Read a file before editing it so your edits target the current text."
@@ -268,29 +220,9 @@ export function createReadTool(opts: {
             height: content.height,
             bytes: stat.size,
           };
-          if (!attachImagesToChat || stat.size > maxInlineImageBytes) {
-            const why =
-              attachImagesToChat && stat.size > maxInlineImageBytes
-                ? `too large to attach automatically (${stat.size} bytes, max ${maxInlineImageBytes})`
-                : "cannot be returned as a tool result (text/json only), and image attachments are not enabled for this agent";
-            return {
-              ...meta,
-              note: `Image content ${why}. ${imageUnavailableHint}`,
-              ...conventions,
-            };
-          }
-          const attachment: ChatAttachment = {
-            kind: "image",
-            dataUrl: `data:${imageMediaType(content.format)};base64,${buffer.toString("base64")}`,
-            mediaType: imageMediaType(content.format),
-            filename: basename(rel),
-            width: content.width,
-            height: content.height,
-          };
           return {
             ...meta,
-            note: "This image is queued and will be attached to your next message as a viewable image — no need to ask the user to attach it.",
-            [CHAT_ATTACHMENT_FIELD]: attachment,
+            note: `Image content cannot be returned as a tool result (text/json only). ${imageUnavailableHint}`,
             ...conventions,
           };
         }
@@ -308,46 +240,13 @@ export function createReadTool(opts: {
             mediaType,
             bytes: stat.size,
           };
-          const label = kind === "video" ? "Video" : "Audio";
-          const enabled = kind === "video" ? attachVideoToChat : attachAudioToChat;
-          if (!enabled || stat.size > maxInlineMediaBytes) {
-            const why =
-              enabled && stat.size > maxInlineMediaBytes
-                ? `too large to attach automatically (${stat.size} bytes, max ${maxInlineMediaBytes})`
-                : `cannot be returned as a tool result (text/json only), and ${kind} attachments are not enabled for this agent`;
-            return {
-              ...meta,
-              note: `${label} content ${why}. ${mediaUnavailableHint}`,
-              ...conventions,
-            };
-          }
-          const attachment: ChatAttachment = {
-            kind,
-            dataUrl: `data:${mediaType};base64,${buffer.toString("base64")}`,
-            mediaType,
-            filename: basename(rel),
-          };
           return {
             ...meta,
-            note: `This ${kind} file is queued and will be attached to your next message — no need to ask the user to attach it.`,
-            [CHAT_ATTACHMENT_FIELD]: attachment,
+            note: `${kind === "video" ? "Video" : "Audio"} content cannot be returned as a tool result (text/json only). ${mediaUnavailableHint}`,
             ...conventions,
           };
         }
       }
-    },
-    // Keep the embedded image bytes out of the model's context: the client reads
-    // them off the raw tool-result event, the model only needs the note + meta.
-    toModelOutput(output) {
-      if (
-        typeof output === "object" &&
-        output !== null &&
-        CHAT_ATTACHMENT_FIELD in output
-      ) {
-        const { [CHAT_ATTACHMENT_FIELD]: _omitted, ...rest } = output;
-        return { type: "json", value: rest };
-      }
-      return { type: "json", value: output };
     },
   });
 }

@@ -1,10 +1,9 @@
-# eve proposal: content tool results — media in the result, no next-turn workaround
+# eve proposal: content tool results — media in the tool result
 
 **Status: worked design, patch not built.** This is the change that would let
 `read` hand the model an image (or, with
 [model-aware media support](./eve-hydrate-model-aware-media.md), a video) **in
-the tool result itself**, deleting the send-next-turn leg of this package's
-park-delivery workaround. Written to change-list precision because the two
+the tool result itself**. Written to change-list precision because the two
 real design forks (persistence shape, provider degrade policy) are upstream's
 to own.
 
@@ -13,12 +12,11 @@ to own.
 eve's model-facing tool result type is `ToolModelOutput = text | json`,
 enforced at runtime by `normalizeToolModelOutput`
 (`packages/eve/src/harness/tools.ts`), which throws on any other `type`. So a
-tool that read an image cannot show it to the model; this package smuggles the
-bytes out on the raw result and a hook re-sends them as the **next user turn**
-(park delivery). That works, but costs an extra turn of latency, an extra
-user message in every transcript, and a copy of the bytes through the
-attachment-staging pipeline — and the model can never see media in the same
-turn it called `read`.
+tool that read an image cannot show it to the model. `read` therefore returns
+metadata and routes inspection to the one-shot `look` oracle. That keeps the
+tool contract honest, but the session model cannot see media in the turn that
+called `read`, and `look` cannot preserve the session model's tools or
+conversation.
 
 The layer below is already done: the AI SDK v7 provider spec's
 `LanguageModelV4ToolResultOutput` includes
@@ -118,18 +116,16 @@ base64-blowup path is unreachable by construction.
 ### 4. Client/event surface: no change
 
 `action.result` stream events already carry the tool's raw `execute()`
-return; `toModelOutput` only narrows the model view. Clients (and this
-package's attachment reader) keep working unchanged.
+return; `toModelOutput` only narrows the model view. No client protocol change
+is needed.
 
-## What this package deletes when it lands
+## What this package changes when it lands
 
-- `read`/`webfetch` return media as a `content` model output directly —
-  `CHAT_ATTACHMENT_FIELD` smuggling and the `toModelOutput` strip go away.
-- Park delivery keeps its other two producers (task notifications, steer
-  leftovers) but drops the media leg: `redeliver.ts` and the redelivery parts
-  of `hooks.ts` are deleted.
-- The "queued for your next message" notes become "shown above", and the
-  next-turn latency + transcript noise disappear.
+- `read`/`webfetch` return media as a `content` model output instead of
+  metadata only.
+- The result note says the media is available to the model in the next step of
+  the same turn. `look` remains useful when the session model lacks the media
+  capability.
 
 ## Open questions for the maintainers
 

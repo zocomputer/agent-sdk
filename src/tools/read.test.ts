@@ -43,8 +43,6 @@ describe("read riders under a failing IO", () => {
       workspace,
       noun: "repo",
       io: flakyRiderIo(() => broken),
-      attachImagesToChat: false,
-      maxInlineImageBytes: 0,
       dirConventions: {
         tracker: createDirConventionsTracker({ workspaceRoot: root }),
         fileName: "AGENTS.md",

@@ -121,8 +121,8 @@ the one-file stack is what keeps the order intentional. See the
 [instruction stack](./GUIDE.md#the-instruction-stack) for the sections, the
 `compact` tier, and how to splice in your own sections or drop baseline ones.
 
-**5. Register the park-delivery hook**, which delivers images and
-background-task notifications to the model:
+**5. Register the park-delivery hook** if you enable background-task
+notifications:
 
 ```ts
 // agent/hooks/park-delivery.ts

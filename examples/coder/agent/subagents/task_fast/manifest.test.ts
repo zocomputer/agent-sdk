@@ -43,14 +43,12 @@ function moduleNames(dir: string): string[] {
 async function taskManifest(): Promise<{
   expected: readonly string[];
   disabledBuiltins: readonly string[];
-  childOverrides: readonly string[];
 }> {
   const sdk: unknown = await import("@zocomputer/agent-sdk");
   if (
     !isRecord(sdk) ||
     typeof sdk.expectedTaskToolNames !== "function" ||
-    !Array.isArray(sdk.TASK_DISABLED_BUILTINS) ||
-    !Array.isArray(sdk.TASK_CHILD_TOOL_OVERRIDES)
+    !Array.isArray(sdk.TASK_DISABLED_BUILTINS)
   ) {
     throw new Error("expected the SDK to export the task manifest helpers");
   }
@@ -60,7 +58,6 @@ async function taskManifest(): Promise<{
   return {
     expected,
     disabledBuiltins: sdk.TASK_DISABLED_BUILTINS as readonly string[],
-    childOverrides: sdk.TASK_CHILD_TOOL_OVERRIDES as readonly string[],
   };
 }
 
@@ -79,7 +76,7 @@ describe.skipIf(!sdkInstalled)("task_fast subagent manifest", () => {
     expect(fileNames).toEqual([...manifest.expected]);
   });
 
-  test("shims are the disable sentinel; overrides are child-safe; the rest are the parent's instances", async () => {
+  test("shims are the disable sentinel; every other tool is the parent's instance", async () => {
     const manifest = await taskManifest();
     for (const name of fileNames) {
       const mod: unknown = await import(join(toolsDir, `${name}.ts`));
@@ -95,16 +92,6 @@ describe.skipIf(!sdkInstalled)("task_fast subagent manifest", () => {
       const parentMod: unknown = await import(join(parentToolsDir, `${name}.ts`));
       if (!isRecord(parentMod) || !("default" in parentMod)) {
         throw new Error(`${name}.ts: expected the parent to export a default`);
-      }
-      if (manifest.childOverrides.includes(name)) {
-        // read/webfetch are DELIBERATELY not the parent's instances: the
-        // child has no park-delivery hook, so the parent's attachment-enabled
-        // tools would promise media that never arrives (see ../lib/child-tools.ts).
-        if (!isRecord(mod.default)) throw new Error(`${name}.ts: expected a tool`);
-        expect(mod.default.kind).not.toBe("eve:disabled-tool");
-        expect(typeof mod.default.execute).toBe("function");
-        expect(mod.default).not.toBe(parentMod.default);
-        continue;
       }
       // Identity with the parent's module is the parity property: the child
       // runs the same tool instance, not a diverged copy (this also covers

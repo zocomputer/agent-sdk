@@ -3,7 +3,6 @@ import { existsSync, mkdtempSync, readFileSync, realpathSync, rmSync } from "nod
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import type { ToolContext } from "eve/tools";
-import { readChatAttachment } from "../attachments";
 import { HEAD_CHARS, TAIL_CHARS } from "../bounded-output";
 import type { FetchLike } from "../web-fetch";
 import { createWorkspace } from "../workspace";
@@ -37,8 +36,6 @@ function toolWith(response: Response | ((url: string) => Response)) {
   return createWebFetchTool({
     workspace,
     spillDir,
-    attachImagesToChat: true,
-    maxInlineImageBytes: 5 * 1024 * 1024,
     fetchImpl,
   });
 }
@@ -127,8 +124,6 @@ describe("webfetch tool", () => {
     const underCap = `start-marker\n${"m".repeat(80_000)}\nend-marker`;
     const tool = createWebFetchTool({
       workspace,
-      attachImagesToChat: true,
-      maxInlineImageBytes: 5 * 1024 * 1024,
       fetchImpl: () =>
         Promise.resolve(
           new Response(underCap, { status: 200, headers: { "content-type": "text/plain" } }),
@@ -147,8 +142,6 @@ describe("webfetch tool", () => {
     const body = `start-marker\n${"middle line\n".repeat(20_000)}end-marker\n`; // ~240k chars
     const tool = createWebFetchTool({
       workspace,
-      attachImagesToChat: true,
-      maxInlineImageBytes: 5 * 1024 * 1024,
       fetchImpl: () =>
         Promise.resolve(
           new Response(body, { status: 200, headers: { "content-type": "text/plain" } }),
@@ -171,8 +164,6 @@ describe("webfetch tool", () => {
     const tool = createWebFetchTool({
       workspace,
       maxInlineContentChars: 1_000,
-      attachImagesToChat: true,
-      maxInlineImageBytes: 5 * 1024 * 1024,
       fetchImpl: () =>
         Promise.resolve(
           new Response(body, { status: 200, headers: { "content-type": "text/plain" } }),
@@ -256,7 +247,7 @@ describe("webfetch tool", () => {
     expect(result.content).toContain("Trip Notes");
   });
 
-  test("attaches a fetched image for the chat and strips it from model output", async () => {
+  test("returns fetched image metadata with an actionable note", async () => {
     const png = readFileSync(fixture("tiny.png"));
     const tool = toolWith(
       new Response(png, { status: 200, headers: { "content-type": "image/png" } }),
@@ -264,18 +255,12 @@ describe("webfetch tool", () => {
     const result = await tool.execute({ url: "https://example.com/pic.png" }, ctx);
     expect(result).toMatchObject({ source: "image", imageFormat: "png" });
 
-    const attachment = readChatAttachment(result);
-    if (!attachment) throw new Error("expected a chat attachment");
-    expect(attachment.mediaType).toBe("image/png");
-    expect(attachment.filename).toBe("pic.png");
-    expect(attachment.dataUrl.startsWith("data:image/png;base64,")).toBe(true);
-
-    const model = await tool.toModelOutput?.(result);
-    if (!model || model.type !== "json") throw new Error("expected json model output");
-    expect(readChatAttachment(model.value)).toBeNull();
+    if (!("note" in result) || typeof result.note !== "string") throw new Error("expected a note");
+    expect(result.note).toContain("text/json only");
+    expect(result.note).toContain("ask the user");
   });
 
-  test("fetched video returns metadata only unless video attach is enabled", async () => {
+  test("fetched video returns metadata only", async () => {
     const mp4 = Buffer.concat([
       Buffer.from([0, 0, 0, 0x18]),
       Buffer.from("ftypisom"),
@@ -293,47 +278,10 @@ describe("webfetch tool", () => {
       mediaFormat: "mp4",
       mediaType: "video/mp4",
     });
-    expect(readChatAttachment(metadataOnly)).toBeNull();
     if (!("note" in metadataOnly) || typeof metadataOnly.note !== "string") {
       throw new Error("expected a note");
     }
-    expect(metadataOnly.note).toContain("not enabled");
-
-    const attaching = createWebFetchTool({
-      workspace,
-      spillDir,
-      attachImagesToChat: true,
-      maxInlineImageBytes: 5 * 1024 * 1024,
-      attachVideoToChat: true,
-      fetchImpl: () => Promise.resolve(response()),
-    });
-    const attached = await attaching.execute({ url: "https://example.com/clip.mp4" }, ctx);
-    const attachment = readChatAttachment(attached);
-    if (!attachment) throw new Error("expected a chat attachment");
-    expect(attachment.kind).toBe("video");
-    expect(attachment.filename).toBe("clip.mp4");
-    expect(attachment.dataUrl.startsWith("data:video/mp4;base64,")).toBe(true);
-    const model = await attaching.toModelOutput?.(attached);
-    if (!model || model.type !== "json") throw new Error("expected json model output");
-    expect(readChatAttachment(model.value)).toBeNull();
-  });
-
-  test("falls back to a note when image inlining is off", async () => {
-    const png = readFileSync(fixture("tiny.png"));
-    const tool = createWebFetchTool({
-      workspace,
-      spillDir,
-      attachImagesToChat: false,
-      maxInlineImageBytes: 5 * 1024 * 1024,
-      fetchImpl: () =>
-        Promise.resolve(
-          new Response(png, { status: 200, headers: { "content-type": "image/png" } }),
-        ),
-    });
-    const result = await tool.execute({ url: "https://example.com/pic.png" }, ctx);
-    expect(readChatAttachment(result)).toBeNull();
-    if (!("note" in result) || typeof result.note !== "string") throw new Error("expected a note");
-    expect(result.note).toContain("ask the user");
+    expect(metadataOnly.note).toContain("text/json only");
   });
 
   test("refuses opaque binary content with a download hint", async () => {

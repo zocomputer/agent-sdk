@@ -6,7 +6,6 @@
 
 ## Modules
 
-- [attachments](attachments/README.md)
 - [gateway-fetch](gateway-fetch/README.md)
 - [index](index/README.md)
 - [initiator-auth](initiator-auth/README.md)

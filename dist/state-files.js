@@ -1,4 +1,4 @@
-// ../../../../../tmp/agent-sdk-mirror-6xW5o5/repo/src/state-consent-envelope.ts
+// ../../../../../tmp/agent-sdk-mirror-11YCnL/repo/src/state-consent-envelope.ts
 import { z } from "zod";
 var consentPartySchema = z.object({
   handle: z.string().min(1),
@@ -16,7 +16,7 @@ function parseConsentEnvelope(value) {
   return result.success ? result.data : null;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-6xW5o5/repo/src/state-files.ts
+// ../../../../../tmp/agent-sdk-mirror-11YCnL/repo/src/state-files.ts
 var STATE_FILES_HANDLE_PATH = "/state/handles";
 var ZO_AGENT_TOKEN_HEADER = "x-zo-agent-token";
 var ZO_EVE_SESSION_HEADER = "x-zo-eve-session";

@@ -130,9 +130,8 @@ write your agent's identity as your own instruction file (see the example's
 
 ### The park-delivery hook
 
-One hook file makes `read` media actually reach the model (see
-[Media reads](#media-reads-images-video-audio)) and delivers background-task
-notifications (see [Tool behavior](#tool-behavior)):
+One hook file delivers background-task notifications (see
+[Tool behavior](#tool-behavior)):
 
 ```ts
 // agent/hooks/park-delivery.ts
@@ -142,8 +141,7 @@ export default createParkDeliveryHook();
 
 If you enable [Steering](#steering-mid-turn-messages), pass the same inbox
 dir here: `createParkDeliveryHook({ steer: { dir } })`. The hook's
-`serverUrl` defaults to loopback on `$PORT` (eve dev's 2000 otherwise); an
-agent that skips the hook simply gets metadata-only media notes.
+`serverUrl` defaults to loopback on `$PORT` (eve dev's 2000 otherwise).
 
 ## Tool behavior
 
@@ -155,10 +153,9 @@ The names are deliberately boring; the behavior behind them is the point:
   spreadsheets (`.xlsx`/`.xlsm`/`.xls`/`.ods` via SheetJS, TSV per sheet),
   EPUB (spine order, per-section markers), Jupyter notebooks (per-cell
   markers, output stubs instead of base64 blobs), RTF, and UTF-16 BOM
-  decode. Reading an **image** returns metadata and queues the pixels to appear
-  as a viewable attachment on the next turn; **video/audio** reads return
-  metadata (format, MIME type, bytes) and can queue the same way where the
-  model supports it (see [Media reads](#media-reads-images-video-audio)).
+  decode. Reading **image/video/audio** returns metadata plus an actionable
+  note, routed to `look` when a media oracle is wired (see
+  [Media reads](#media-reads-images-video-audio)).
   No-extractor formats fail with a named, actionable error; extraction is cached
   by path + stat. The first read under a directory with its own `AGENTS.md`
   attaches that file to the result (`directory_conventions`), **once per
@@ -238,53 +235,15 @@ The names are deliberately boring; the behavior behind them is the point:
 
 ## Media reads (images, video, audio)
 
-eve tool results are text/json only, so `read` can't hand the model an image
-directly. The workaround: for media under the inline cap, `read` embeds the
-bytes as a `data:` URL on its **raw** result under a model-hidden field, and
-its `toModelOutput` strips that field. The model sees only metadata + a note;
-the **park-delivery hook** watches the runtime stream from inside the agent's
-own server process and, when the session parks, sends the media back into the
-session as a real user turn over loopback. The model sees the pixels on its
-next turn with no browser, cockpit, or user action involved. (The same hook
-delivers background-task notifications — see
-[Tool behavior](#tool-behavior).)
+eve tool results are text/json only, so `read` and `webfetch` return metadata
+for images, video, and audio. Their result notes route the model to `look`
+when a media oracle is wired; without one they point to bash extraction or a
+user-provided attachment. Documents still convert to text directly.
 
-- eve hooks are observe-only for model context, so the hook doesn't mutate the
-  current turn — it starts the next one, exactly like a user hitting send.
-  Delivery is deduped per tool call, retried briefly on a racing send, and
-  re-queued for the next park if it still fails.
-- The contract + a dependency-free reader live at
-  **`@zocomputer/agent-sdk/attachments`** (`readChatAttachment(output)` →
-  `ChatAttachment | null`, kinds `image`/`video`/`audio`), so UI clients that
-  want to render or track the attachments import it without the extraction
-  deps. The pure decision core (`redeliveryFromEvent`, `createRedeliveryState`,
-  `buildRedeliveryMessage`) is exported for hosts that would rather run
-  delivery elsewhere.
-- **Images** attach by default: `attachImagesToChat` (default `true`) and
-  `maxInlineImageBytes` (default 3 MiB — eve's attachment staging inlines
-  images up to that size at model-call time and text-stubs bigger ones, so the
-  cap keeps the "queued" promise truthful; larger images fall back to the
-  metadata-only "ask the user" note).
-- **Video/audio are opt-in**: `attachVideoToChat` / `attachAudioToChat`
-  (default `false`) and `maxInlineMediaBytes` (default 10 MB, read's stat
-  guard). Two gates must hold before enabling them: your **model** takes that
-  medium (Gemini accepts video/audio file parts; Claude and most others don't
-  — an unsupported part fails the delivery turn), and your **runtime** passes
-  them through (eve's attachment staging currently hydrates only images ≤3 MiB
-  and PDFs ≤20 MiB back into the model call; anything else becomes an
-  "Attached file …" text stub — see
-  [`design/upstream-asks.md`](./design/upstream-asks.md)). Until
-  both hold, video/audio reads return honest metadata + a note steering to
-  bash extraction (e.g. ffmpeg frames read back as images) — or to `look`,
-  when [the media oracle](#the-media-oracle-look) is wired.
-- **`parentCapabilities`** (an optional `ModelInputCapabilities` — resolve it
-  with `capabilitiesForModel` over the gateway catalog and check it in)
-  derives the image default from the session model itself:
-  `attachImagesToChat` defaults to `parentCapabilities.image`, because an
-  image attached for a text-only model is inlined by eve's hydration
-  regardless and **fails the redelivery turn** at the provider. An explicit
-  flag always wins; video/audio stay manual opt-in until eve's hydration is
-  model-aware.
+Native multimodal tool results remain an upstream goal. They would let the
+model inspect media in the step after `read`, without a synthetic follow-up
+turn. The worked Eve change is in
+[`design/proposals/eve-content-tool-results.md`](./design/proposals/eve-content-tool-results.md).
 
 ## The media oracle (`look`)
 
@@ -374,11 +333,9 @@ export default createTaskInstruction({ workspaceNoun: "repo" });
 // agent/subagents/task_fast/tools/bash.ts — one re-export per PARENT tool
 export { default } from "../../../tools/bash";
 
-// agent/subagents/task_fast/tools/read.ts — EXCEPT read/webfetch, which use
-// attach-disabled child instances: no park-delivery hook runs in a child, so
-// the parent's attachment-enabled tools would promise media that never arrives
-import { taskChildTools } from "../lib/child-tools"; // your createTaskChildTools(...) instance
-export default taskChildTools.read;
+// agent/subagents/task_fast/tools/read.ts — every ordinary tool is the
+// parent's exact instance
+export { default } from "../../../tools/read";
 ```
 
 **The critical part: a declared subagent inherits nothing from the root.** An
@@ -419,15 +376,11 @@ divides by — one generated source instead of hand-maintained constants that
 go stale silently.
 
 With [the media oracle](#the-media-oracle-look) wired, children keep their
-sight: `look` needs no park-delivery hook, so the child re-exports the
-parent's instance like any other tool, and passing the parent's **resolved**
-oracle — `stdlib.mediaOracle` — to `createTaskChildTools` routes the child's
-read/webfetch unavailable-media hints to `look` instead of "report the path"
-(never resolve a fresh option there: the hints must describe the exact model
-the re-exported `look` runs). Note the tier description
+sight: the child re-exports the parent's `look`, `read`, and `webfetch`
+instances like every other ordinary tool. The tier description
 deliberately says nothing about the pinned model's own media viewing — a
 delegated child never receives media inline regardless of its model
-(attach-disabled read/webfetch), so its media story is `look`, and a "this
+(read/webfetch return metadata), so its media story is `look`, and a "this
 tier can view images" line would misroute image-heavy work.
 
 Finally, tell the parent when to route to each tier — pass a roster to the
@@ -474,7 +427,7 @@ Every effect routes through the session sandbox, resolved per tool call:
 bytes over `readBinaryFile`/`writeBinaryFile`, stat/list/search executed
 remotely via `run` (ripgrep when present, POSIX grep fallback) so a search
 never pulls file contents over the wire. The rich-read pipeline (extraction,
-media detection, attachments, `AGENTS.md` riders) is byte-identical to the
+media detection, metadata, `AGENTS.md` riders) is byte-identical to the
 local backend — a shared conformance suite pins the two together. `bash` and
 the task machinery stay host-side by design: on a sandboxed runtime, keep
 eve's built-in `bash` (already sandbox-native).
@@ -484,13 +437,6 @@ WorkspaceIoProvider` (default local `node:fs`), and `createSandboxIo` /
 `sandboxIoProvider` implement it over a structural `SandboxSessionLike` that
 eve's `SandboxSession` satisfies. A custom backend (e.g. a bootstrap step
 before first use) plugs in via `resolveSession`.
-
-One default flips versus `createStdlib`: `attachImagesToChat` is **false**
-here. The attachment path needs the park-delivery hook and a runtime that can
-send itself the next-turn message over loopback — unvalidated on hosted
-serverless runtimes — so until a consumer wires and verifies that leg, image
-reads return the honest metadata-only note instead of a "queued" promise that
-never delivers.
 
 The factory also returns `instructions.stack` — the composed stack from
 [The instruction stack](#the-instruction-stack), pre-configured for this

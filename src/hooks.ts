@@ -1,16 +1,10 @@
 import { Client } from "eve/client";
 import { defineHook } from "eve/hooks";
-import type { ChatAttachment } from "./attachments";
 import {
   createParkDeliveryState,
   setParkNotificationHandler,
   type ParkDeliveryRequest,
 } from "./park-delivery";
-import {
-  buildRedeliveryMessage,
-  redeliveryFromEvent,
-  type RedeliveryMessagePart,
-} from "./redeliver";
 import type { SteerMessage } from "./steer";
 import { createSteerInbox } from "./steer-inbox";
 
@@ -21,11 +15,7 @@ import { createSteerInbox } from "./steer-inbox";
 //   import { createParkDeliveryHook } from "@zocomputer/agent-sdk";
 //   export default createParkDeliveryHook();
 //
-// Three producers feed it:
-// - **Read media** (./redeliver.ts): `action.result` events carry read's raw
-//   output (bytes included — toModelOutput only narrows what the model sees);
-//   on park the images/video/audio go back into the session as a real user
-//   turn.
+// Two producers feed it:
 // - **Background-task notifications** (./watch-output.ts): a bash/run_async
 //   watcher match or a completion notice posted through the notification
 //   bridge; delivered on park — or immediately, when the match lands while
@@ -49,20 +39,16 @@ import { createSteerInbox } from "./steer-inbox";
 
 const RETRY_DELAYS_MS = [500, 2_000, 5_000];
 
-/** What one park delivery carries: read media, a note, or a steered message. */
+/** What one park delivery carries: a notification or a steered message. */
 type DeliveryPayload =
-  | { readonly kind: "media"; readonly attachment: ChatAttachment }
   | { readonly kind: "note"; readonly text: string }
   | { readonly kind: "steer"; readonly message: SteerMessage };
 
+type DeliveryMessagePart = { readonly type: "text"; readonly text: string };
+
 function buildDeliveryMessage(
   request: ParkDeliveryRequest<DeliveryPayload>,
-): RedeliveryMessagePart[] {
-  const media = request.items.flatMap((item) =>
-    item.payload.kind === "media"
-      ? [{ toolCallId: item.key, attachment: item.payload.attachment }]
-      : [],
-  );
+): DeliveryMessagePart[] {
   const notes = request.items.flatMap((item) =>
     item.payload.kind === "note" ? [item.payload.text] : [],
   );
@@ -72,7 +58,6 @@ function buildDeliveryMessage(
   );
   return [
     ...steers.map((text) => ({ type: "text" as const, text })),
-    ...(media.length > 0 ? buildRedeliveryMessage(media) : []),
     ...notes.map((text) => ({ type: "text" as const, text })),
   ];
 }
@@ -85,7 +70,7 @@ function isSessionWaiting(event: unknown): boolean {
   return isRecord(event) && event.type === "session.waiting";
 }
 
-/** Options for the park-delivery hook that sends queued media/notes/steers on session parks. */
+/** Options for the park-delivery hook that sends queued notifications and steers on session parks. */
 export interface ParkDeliveryOptions {
   /**
    * Base URL of this agent's own eve server. Defaults to loopback on the
@@ -102,7 +87,7 @@ export interface ParkDeliveryOptions {
   steer?: { dir: string };
 }
 
-/** Build the park-delivery hook that sends read media, notifications, and steered messages when a session parks. */
+/** Build the park-delivery hook that sends notifications and steered messages when a session parks. */
 export function createParkDeliveryHook(options: ParkDeliveryOptions = {}) {
   const serverUrl =
     options.serverUrl ?? `http://127.0.0.1:${process.env.PORT ?? "2000"}`;
@@ -134,9 +119,7 @@ export function createParkDeliveryHook(options: ParkDeliveryOptions = {}) {
         await response.result();
         const next = state.settle(request, true);
         if (log) {
-          const labels = request.items.map((item) =>
-            item.payload.kind === "media" ? item.payload.attachment.filename : item.key,
-          );
+          const labels = request.items.map((item) => item.key);
           console.log(
             `[agent-sdk] park delivery to ${request.sessionId}: ${labels.join(", ")}`,
           );
@@ -201,15 +184,6 @@ export function createParkDeliveryHook(options: ParkDeliveryOptions = {}) {
         }
         const request = state.observe(event, meta);
         if (request) void deliver(request);
-        const found = redeliveryFromEvent(event);
-        if (found) {
-          // Media arrive on action.result (a non-waiting event), so this
-          // enqueue never fires an immediate delivery — they ride the park.
-          state.enqueue(meta.sessionId, {
-            key: found.toolCallId,
-            payload: { kind: "media", attachment: found.attachment },
-          });
-        }
       },
     },
   });

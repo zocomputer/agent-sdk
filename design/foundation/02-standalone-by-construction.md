@@ -28,10 +28,9 @@ boundary an external consumer would have.
 - **Extraction deps are WASM/pure-JS only** (`clawpdf` for PDFium, `mammoth`,
   SheetJS, `defuddle`, `linkedom`) — no native postinstalls, so `bun add`
   works everywhere the agent runs.
-- **Dependency-free subpaths for UI clients.** `./attachments`, `./steer`,
-  and `./steer-inbox` export just the wire contracts and pure readers, so a
-  frontend that renders image attachments or steer bubbles doesn't pull the
-  extraction stack into its bundle.
+- **Dependency-free subpaths for UI clients.** `./steer` and `./steer-inbox`
+  export just the wire contracts and pure readers, so a frontend that renders
+  steer bubbles doesn't pull the extraction stack into its bundle.
 
 ## The non-obvious constraint: `file:` resolves devDependencies
 

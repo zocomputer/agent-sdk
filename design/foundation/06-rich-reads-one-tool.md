@@ -10,9 +10,8 @@ by magic bytes) and routes: PDF → per-page text via PDFium WASM with
 text (+ speaker notes) under `=== slide N of M ===` markers, spreadsheets →
 per-sheet TSV with dimension headers, EPUB → spine-ordered sections, Jupyter
 notebooks → per-cell text with `[mime output]` stubs in place of base64
-blobs. Images — and, behind opt-in flags, video/audio — return structured
-metadata (the bytes reach the model separately — see
-[08](./08-park-delivery.md)). Unknown binary gets a structured rejection
+blobs. Images, video, and audio return structured metadata with a `look` or
+extraction hint. Unknown binary gets a structured rejection
 naming the detected type. `webfetch` routes fetched documents through the
 same extractors, so a URL and a local file read identically.
 

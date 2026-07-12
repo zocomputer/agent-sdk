@@ -7,25 +7,16 @@ queued and delivered as the **next user turn**: `createParkDeliveryState`
 queues keyed items per session, and `createParkDeliveryHook` watches the
 runtime stream from inside the agent's own server process and, the moment the
 session parks, sends the batch back into the session over loopback
-`eve/client` — exactly like a user hitting send. The first clients are
-`read`/`webfetch` **media bytes** (riding the chat-attachment contract —
-images by default, video/audio behind opt-in flags since model support is
-provider-gated and eve's hydration whitelist is image/PDF-only today) and
-background-task **`notify` matches** ([07](./07-background-tasks.md)); the
-steering backstop rides it too ([12](./12-mid-turn-steering.md)).
+`eve/client` — exactly like a user hitting send. Its clients are background-task
+**`notify` matches** ([07](./07-background-tasks.md)) and the steering
+backstop ([12](./12-mid-turn-steering.md)).
 
 ## Why
 
 eve gives tools no way to message the model after their result returns: hooks
 are observe-only for model context, tool results are text/json-only, and a
-parked session just sits there. Two capabilities genuinely need a push path:
-
-- **Media.** A `read` of an image can return only metadata. The bytes reach
-  the model only via a follow-up user turn whose file part hydrates through
-  eve's attachment pipeline — inlining base64 into a result would reproduce
-  opencode's tokenized-base64 blowup deliberately.
-- **Async progress.** A backgrounded task outlives its tool result; without a
-  push path the model must poll or stall.
+parked session just sits there. A backgrounded task outlives its tool result;
+without a push path the model must poll or stall.
 
 Delivery-as-a-user-send uses no private API, and the delivered batch is
 **durable, replayable, and rendered by every client for free** — it's a
@@ -42,22 +33,16 @@ turn (eve hooks can't); it starts the next one.
 - **A `globalThis` bridge** so a notification posted in one rebuilt module
   graph reaches the hook created in another (the same hot-reload constraint
   as the task registry).
-- **The pure decision core is exported** (`redeliveryFromEvent`,
-  `createRedeliveryState`, `buildRedeliveryMessage`) for hosts that would
-  rather run delivery elsewhere, and the attachment contract lives on a
-  dependency-free subpath so UI clients can render attachments without the
-  extraction deps.
+- **The generic decision core is exported** (`createParkDeliveryState`) for
+  hosts that would rather run delivery elsewhere.
 
 ## Status
 
-This is a workaround with a documented expiry: native multimodal tool results
-upstream would delete the image leg, and a first-class "deliver to this
-session when it parks" API would delete the park detection. Both are on the
-upstream-asks list ([13](./13-work-with-the-grain-of-eve.md)). Until
-then the pattern is fully app-side and portable to any eve agent.
+This is a workaround with a documented expiry: a first-class "deliver to this
+session when it parks" API would delete the park detection. It remains on the
+upstream-asks list ([13](./13-work-with-the-grain-of-eve.md)). Until then the
+pattern is app-side and portable to any eve agent.
 
 ## Sources
 
 - `rib/learnings/26-park-delivery.md` — the mechanics.
-- `rib/learnings/17-rich-filetype-reads.md` — why images can't ride results.
-- `plans/ben/agent-sdk-media-reads.md` — the media-reads design.

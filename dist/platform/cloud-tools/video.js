@@ -1,13 +1,13 @@
-// ../../../../../tmp/agent-sdk-mirror-6xW5o5/repo/platform/cloud-tools/video.ts
+// ../../../../../tmp/agent-sdk-mirror-11YCnL/repo/platform/cloud-tools/video.ts
 import { randomUUID } from "node:crypto";
 import { experimental_generateVideo as generateVideo } from "ai";
 import { defineTool } from "eve/tools";
 import { z as z4 } from "zod";
 
-// ../../../../../tmp/agent-sdk-mirror-6xW5o5/repo/platform/runtime-ai/gateway.ts
+// ../../../../../tmp/agent-sdk-mirror-11YCnL/repo/platform/runtime-ai/gateway.ts
 import { createGateway } from "ai";
 
-// ../../../../../tmp/agent-sdk-mirror-6xW5o5/repo/platform/runtime-ai/session-fetch.ts
+// ../../../../../tmp/agent-sdk-mirror-11YCnL/repo/platform/runtime-ai/session-fetch.ts
 var EVE_SESSION_HEADER = "x-zo-eve-session";
 var EVE_TURN_HEADER = "x-zo-eve-turn";
 var EVE_SUBAGENT_SESSION_HEADER = "x-zo-eve-subagent-session";
@@ -74,7 +74,7 @@ function eveSessionFetch(getSessionId = ambientEveSessionId, baseFetch = globalT
   }, baseFetch);
 }
 
-// ../../../../../tmp/agent-sdk-mirror-6xW5o5/repo/platform/runtime-ai/stream-guards.ts
+// ../../../../../tmp/agent-sdk-mirror-11YCnL/repo/platform/runtime-ai/stream-guards.ts
 var DEFAULT_STREAM_GUARDS = {
   firstByteMs: 60000,
   idleMs: 180000
@@ -138,7 +138,7 @@ function withStreamGuards(baseFetch, options = DEFAULT_STREAM_GUARDS) {
   return Object.assign(guarded, { preconnect: globalThis.fetch.preconnect });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-6xW5o5/repo/platform/runtime-ai/gateway-config.ts
+// ../../../../../tmp/agent-sdk-mirror-11YCnL/repo/platform/runtime-ai/gateway-config.ts
 var ZO_TOOL_HEADER = "x-zo-tool";
 var DEFAULT_ZO_AI_BASE_URL = "http://localhost:4000/runtime/ai/v4/ai";
 var DEFAULT_ZO_AI_KEY = "dev-proxy";
@@ -166,11 +166,11 @@ function zoGatewaySettings(options = {}) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-6xW5o5/repo/platform/runtime-ai/gateway.ts
+// ../../../../../tmp/agent-sdk-mirror-11YCnL/repo/platform/runtime-ai/gateway.ts
 function zoGateway(options = {}) {
   return createGateway(zoGatewaySettings(options));
 }
-// ../../../../../tmp/agent-sdk-mirror-6xW5o5/repo/platform/cloud-tools/asset-path.ts
+// ../../../../../tmp/agent-sdk-mirror-11YCnL/repo/platform/cloud-tools/asset-path.ts
 import { z } from "zod";
 var DEFAULT_ASSET_OUTPUT_DIR = "generated";
 var OutputDirSchema = z.string().trim().min(1).max(200).regex(/^(?!\/)(?!.*\/$)(?!.*\/\/)(?!.*(?:^|\/)(?:\.|\.\.)(?:\/|$))[A-Za-z0-9._/-]+$/u, "Use a relative state file path without empty, . or .. segments.");
@@ -199,7 +199,7 @@ function assetOutputPath(input) {
   return `${normalizedOutputDir(input.outputDir)}/${slugForPrompt(input.prompt, input.fallbackSlug)}-${input.id}.${extensionForMediaType(input.mediaType)}`;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-6xW5o5/repo/platform/cloud-tools/tool-meta.ts
+// ../../../../../tmp/agent-sdk-mirror-11YCnL/repo/platform/cloud-tools/tool-meta.ts
 var CLOUD_TOOL_META = {
   image: {
     description: "Generate an image from a text prompt and save it as an external state asset."
@@ -209,10 +209,10 @@ var CLOUD_TOOL_META = {
   }
 };
 
-// ../../../../../tmp/agent-sdk-mirror-6xW5o5/repo/platform/cloud-tools/tool-shared.ts
+// ../../../../../tmp/agent-sdk-mirror-11YCnL/repo/platform/cloud-tools/tool-shared.ts
 import { z as z3 } from "zod";
 
-// ../../../../../tmp/agent-sdk-mirror-6xW5o5/repo/platform/cloud-tools/state-consent.ts
+// ../../../../../tmp/agent-sdk-mirror-11YCnL/repo/platform/cloud-tools/state-consent.ts
 import { z as z2 } from "zod";
 var REQUEST_STATE_CONSENT_TOOL_NAME = "request_state_consent";
 var consentPartySchema = z2.object({
@@ -240,7 +240,7 @@ function buildConsentSteer(envelope) {
 `);
 }
 
-// ../../../../../tmp/agent-sdk-mirror-6xW5o5/repo/platform/cloud-tools/state-files.ts
+// ../../../../../tmp/agent-sdk-mirror-11YCnL/repo/platform/cloud-tools/state-files.ts
 var DEFAULT_STATE_ASSET_DECLARATION_NAME = "files";
 var STATE_FILES_HANDLE_PATH = "/state/handles";
 var ZO_AGENT_TOKEN_HEADER = "x-zo-agent-token";
@@ -510,7 +510,7 @@ function readString(record, key) {
   return typeof value === "string" && value.length > 0 ? value : null;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-6xW5o5/repo/platform/cloud-tools/tool-shared.ts
+// ../../../../../tmp/agent-sdk-mirror-11YCnL/repo/platform/cloud-tools/tool-shared.ts
 var StateAssetReferenceSchema = z3.object({
   bytes: z3.number().int().nonnegative().optional(),
   contentType: z3.string().optional(),
@@ -546,7 +546,7 @@ function saveFailure(kind, error) {
   return new Error(`The ${kind} was generated but no state asset was saved — ${errorDetail(error)}. ` + `Nothing is available to the chat. If the reason looks transient (a storage ` + `write failure), retry the call once; if it's a configuration problem, report ` + `it to the user instead of retrying.`);
 }
 
-// ../../../../../tmp/agent-sdk-mirror-6xW5o5/repo/platform/cloud-tools/video.ts
+// ../../../../../tmp/agent-sdk-mirror-11YCnL/repo/platform/cloud-tools/video.ts
 var DEFAULT_VIDEO_MODEL = "bytedance/seedance-2.0-fast";
 var AspectRatioSchema = z4.enum(["16:9", "9:16", "1:1"]);
 var GenerateVideoInputSchema = z4.object({
