@@ -8,7 +8,7 @@
 
 > **buildRepoConventionsMarkdown**(`workspaceRoot`): `string`
 
-Defined in: [packages/agent-sdk/src/instructions.ts:74](https://github.com/zocomputer/zov2-code/blob/13e58351dfe3adc12c256d37f6058b3b4e0032bd/packages/agent-sdk/src/instructions.ts#L74)
+Defined in: [packages/agent-sdk/src/instructions.ts:74](https://github.com/zocomputer/zov2-code/blob/d124383bcfcf0ca6d96b92bff96fa6dfccc07562/packages/agent-sdk/src/instructions.ts#L74)
 
 Pure markdown for the root-AGENTS.md section; "" when the file is absent.
 

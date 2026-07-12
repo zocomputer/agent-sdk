@@ -1,7 +1,7 @@
-// ../../../../../tmp/agent-sdk-mirror-Pmrk2F/repo/platform/runtime-ai/gateway.ts
+// ../../../../../tmp/agent-sdk-mirror-6xW5o5/repo/platform/runtime-ai/gateway.ts
 import { createGateway } from "ai";
 
-// ../../../../../tmp/agent-sdk-mirror-Pmrk2F/repo/platform/runtime-ai/session-fetch.ts
+// ../../../../../tmp/agent-sdk-mirror-6xW5o5/repo/platform/runtime-ai/session-fetch.ts
 var EVE_SESSION_HEADER = "x-zo-eve-session";
 var EVE_TURN_HEADER = "x-zo-eve-turn";
 var EVE_SUBAGENT_SESSION_HEADER = "x-zo-eve-subagent-session";
@@ -68,7 +68,71 @@ function eveSessionFetch(getSessionId = ambientEveSessionId, baseFetch = globalT
   }, baseFetch);
 }
 
-// ../../../../../tmp/agent-sdk-mirror-Pmrk2F/repo/platform/runtime-ai/gateway.ts
+// ../../../../../tmp/agent-sdk-mirror-6xW5o5/repo/platform/runtime-ai/stream-guards.ts
+var DEFAULT_STREAM_GUARDS = {
+  firstByteMs: 60000,
+  idleMs: 180000
+};
+function withStreamGuards(baseFetch, options = DEFAULT_STREAM_GUARDS) {
+  const guarded = async (input, init) => {
+    const controller = new AbortController;
+    const outer = init?.signal;
+    if (outer != null) {
+      if (outer.aborted)
+        controller.abort(outer.reason);
+      else
+        outer.addEventListener("abort", () => controller.abort(outer.reason), { once: true });
+    }
+    const firstByteTimer = setTimeout(() => {
+      controller.abort(new Error(`gateway response headers not received within ${options.firstByteMs}ms`));
+    }, options.firstByteMs);
+    let response;
+    try {
+      response = await baseFetch(input, { ...init, signal: controller.signal });
+    } finally {
+      clearTimeout(firstByteTimer);
+    }
+    const body = response.body;
+    if (body === null)
+      return response;
+    const reader = body.getReader();
+    const guarded2 = new ReadableStream({
+      async pull(streamController) {
+        let idleTimer;
+        const idle = new Promise((_, reject) => {
+          idleTimer = setTimeout(() => {
+            const reason = new Error(`gateway stream idle for ${options.idleMs}ms`);
+            controller.abort(reason);
+            reject(reason);
+          }, options.idleMs);
+        });
+        try {
+          const result = await Promise.race([reader.read(), idle]);
+          if (result.done)
+            streamController.close();
+          else
+            streamController.enqueue(result.value);
+        } catch (error) {
+          await reader.cancel(error).catch(() => {});
+          throw error;
+        } finally {
+          clearTimeout(idleTimer);
+        }
+      },
+      async cancel(reason) {
+        await reader.cancel(reason).catch(() => {});
+      }
+    });
+    return new Response(guarded2, {
+      status: response.status,
+      statusText: response.statusText,
+      headers: response.headers
+    });
+  };
+  return Object.assign(guarded, { preconnect: globalThis.fetch.preconnect });
+}
+
+// ../../../../../tmp/agent-sdk-mirror-6xW5o5/repo/platform/runtime-ai/gateway-config.ts
 var ZO_TOOL_HEADER = "x-zo-tool";
 var DEFAULT_ZO_AI_BASE_URL = "http://localhost:4000/runtime/ai/v4/ai";
 var DEFAULT_ZO_AI_KEY = "dev-proxy";
@@ -86,16 +150,22 @@ function resolveZoGatewayApiKey(apiKey = process.env.ZO_AI_KEY) {
   const trimmed = apiKey?.trim();
   return trimmed && trimmed.length > 0 ? trimmed : DEFAULT_ZO_AI_KEY;
 }
-function zoGateway(options = {}) {
-  return createGateway({
+function zoGatewaySettings(options = {}) {
+  return {
     ...options,
     headers: { ...agentAuthHeaders(), ...options.headers },
     apiKey: resolveZoGatewayApiKey(options.apiKey),
     baseURL: resolveZoGatewayBaseUrl(options.baseURL),
-    fetch: eveSessionFetch(undefined, options.fetch)
-  });
+    fetch: withStreamGuards(eveSessionFetch(undefined, options.fetch))
+  };
+}
+
+// ../../../../../tmp/agent-sdk-mirror-6xW5o5/repo/platform/runtime-ai/gateway.ts
+function zoGateway(options = {}) {
+  return createGateway(zoGatewaySettings(options));
 }
 export {
+  zoGatewaySettings,
   zoGateway,
   resolveZoGatewayBaseUrl,
   resolveZoGatewayApiKey,

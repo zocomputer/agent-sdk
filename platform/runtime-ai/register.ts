@@ -1,4 +1,5 @@
 import { zoGateway } from "./gateway";
+import { installZoDefaultProvider } from "./provider-slot";
 import { withValidatedCompactionProvider } from "./validated-compaction";
 
 // Register the Zo gateway as the AI SDK's default provider
@@ -18,16 +19,13 @@ import { withValidatedCompactionProvider } from "./validated-compaction";
 // against the transcript it replaces and repaired in place when it dropped
 // load-bearing facts. The wrap lives at the provider so agents keep their bare
 // string slugs (see above — wrapping a model instance breaks web_search).
+//
+// Workspace-symlinked consumers whose agent.ts bundle would INLINE this module
+// (the Builder) can't import it — the transitive runtime `ai` import splits
+// eve's one-chunk agent bundle. They compose the same provider from app-root
+// modules instead: `createGateway(zoGatewaySettings())` (gateway-config) +
+// `withValidatedCompactionProvider` + `installZoDefaultProvider`
+// (provider-slot), keeping the `ai` import where eve externalizes it. See
+// apps/local-builder-agent/lib/register.ts.
 
-const SLOT = "AI_SDK_DEFAULT_PROVIDER";
-
-if (!(SLOT in globalThis)) {
-  Object.defineProperty(globalThis, SLOT, {
-    value: withValidatedCompactionProvider(zoGateway()),
-    // Locked down so a later accidental assignment throws instead of silently
-    // rerouting model traffic.
-    writable: false,
-    configurable: false,
-    enumerable: false,
-  });
-}
+installZoDefaultProvider(withValidatedCompactionProvider(zoGateway()));

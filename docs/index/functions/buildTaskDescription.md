@@ -8,7 +8,7 @@
 
 > **buildTaskDescription**(`options`): `string`
 
-Defined in: [packages/agent-sdk/src/task.ts:299](https://github.com/zocomputer/zov2-code/blob/13e58351dfe3adc12c256d37f6058b3b4e0032bd/packages/agent-sdk/src/task.ts#L299)
+Defined in: [packages/agent-sdk/src/task.ts:299](https://github.com/zocomputer/zov2-code/blob/d124383bcfcf0ca6d96b92bff96fa6dfccc07562/packages/agent-sdk/src/task.ts#L299)
 
 Pure default for a task subagent's parent-facing tool description.
 

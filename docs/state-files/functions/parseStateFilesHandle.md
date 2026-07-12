@@ -8,7 +8,7 @@
 
 > **parseStateFilesHandle**(`value`): [`StateFilesHandle`](../interfaces/StateFilesHandle.md) \| `null`
 
-Defined in: [packages/agent-sdk/src/state-files.ts:146](https://github.com/zocomputer/zov2-code/blob/13e58351dfe3adc12c256d37f6058b3b4e0032bd/packages/agent-sdk/src/state-files.ts#L146)
+Defined in: [packages/agent-sdk/src/state-files.ts:146](https://github.com/zocomputer/zov2-code/blob/d124383bcfcf0ca6d96b92bff96fa6dfccc07562/packages/agent-sdk/src/state-files.ts#L146)
 
 Parses a runtime-broker response into a `StateFilesHandle`, or `null` if malformed.
 

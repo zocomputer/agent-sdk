@@ -8,6 +8,6 @@
 
 > **FetchLike** = *typeof* `globalThis.fetch`
 
-Defined in: [packages/agent-sdk/src/gateway-fetch.ts:18](https://github.com/zocomputer/zov2-code/blob/13e58351dfe3adc12c256d37f6058b3b4e0032bd/packages/agent-sdk/src/gateway-fetch.ts#L18)
+Defined in: [packages/agent-sdk/src/gateway-fetch.ts:18](https://github.com/zocomputer/zov2-code/blob/d124383bcfcf0ca6d96b92bff96fa6dfccc07562/packages/agent-sdk/src/gateway-fetch.ts#L18)
 
 The full global fetch type, as the AI SDK's gateway provider expects.

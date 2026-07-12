@@ -1,0 +1,130 @@
+/**
+ * Drift pin: this package's vendored stream-guards copy stays in lockstep with
+ * `@zocomputer/agent-sdk/gateway-fetch` (the canonical implementation). The
+ * module is duplicated because the vendored agent copy resolves only `ai` +
+ * Node built-ins; this suite fails loudly when the two copies diverge —
+ * defaults or behavior. Change them together.
+ */
+import { describe, expect, test } from "bun:test";
+import * as sdk from "@zocomputer/agent-sdk/gateway-fetch";
+import * as local from "./stream-guards";
+
+const GUARDS = { firstByteMs: 50, idleMs: 50 } as const;
+
+type Wrap = (
+  baseFetch: local.FetchCall,
+  options?: local.StreamGuardOptions,
+) => local.FetchLike;
+
+const IMPLEMENTATIONS: readonly { name: string; wrap: Wrap }[] = [
+  { name: "local", wrap: local.withStreamGuards },
+  { name: "sdk", wrap: sdk.withStreamGuards },
+];
+
+function streamOf(
+  chunks: readonly string[],
+  options?: { hangAfter?: boolean },
+): ReadableStream<Uint8Array> {
+  const encoder = new TextEncoder();
+  let index = 0;
+  return new ReadableStream({
+    async pull(controller) {
+      const chunk = chunks[index];
+      index += 1;
+      if (chunk !== undefined) {
+        controller.enqueue(encoder.encode(chunk));
+        return;
+      }
+      if (options?.hangAfter === true) {
+        // Never resolve another chunk and never close: a dropped connection
+        // the TCP stack hasn't noticed.
+        await new Promise<never>(() => {});
+        return;
+      }
+      controller.close();
+    },
+  });
+}
+
+async function readAll(body: ReadableStream<Uint8Array> | null): Promise<string> {
+  if (body === null) return "";
+  const decoder = new TextDecoder();
+  let text = "";
+  for await (const chunk of body) text += decoder.decode(chunk, { stream: true });
+  return text;
+}
+
+describe("constants match agent-sdk", () => {
+  test("default guard timeouts are equal", () => {
+    expect(local.DEFAULT_STREAM_GUARDS).toEqual(sdk.DEFAULT_STREAM_GUARDS);
+  });
+});
+
+describe("behavior matches agent-sdk", () => {
+  for (const { name, wrap } of IMPLEMENTATIONS) {
+    describe(name, () => {
+      test("a healthy streaming response passes through with status and headers", async () => {
+        const guarded = wrap(
+          async () =>
+            new Response(streamOf(["hel", "lo"]), {
+              status: 200,
+              headers: { "content-type": "text/event-stream" },
+            }),
+          GUARDS,
+        );
+        const response = await guarded("https://gateway.test/v1");
+        expect(response.status).toBe(200);
+        expect(response.headers.get("content-type")).toBe("text/event-stream");
+        expect(await readAll(response.body)).toBe("hello");
+      });
+
+      test("a body-less response passes through untouched", async () => {
+        const original = new Response(null, { status: 204 });
+        const guarded = wrap(async () => original, GUARDS);
+        expect(await guarded("https://gateway.test/v1")).toBe(original);
+      });
+
+      test("headers that never arrive reject after firstByteMs", async () => {
+        const guarded = wrap(
+          (_input, init) =>
+            new Promise<Response>((_, reject) => {
+              init?.signal?.addEventListener("abort", () => {
+                const reason: unknown = init.signal?.reason;
+                reject(reason instanceof Error ? reason : new Error("aborted"));
+              });
+            }),
+          GUARDS,
+        );
+        expect(guarded("https://gateway.test/v1")).rejects.toThrow(
+          /headers not received within 50ms/,
+        );
+      });
+
+      test("a mid-stream stall errors the body after idleMs", async () => {
+        const guarded = wrap(
+          async () => new Response(streamOf(["first "], { hangAfter: true })),
+          GUARDS,
+        );
+        const response = await guarded("https://gateway.test/v1");
+        expect(readAll(response.body)).rejects.toThrow(/stream idle for 50ms/);
+      });
+
+      test("an outer abort signal propagates to the base fetch", async () => {
+        const outer = new AbortController();
+        const guarded = wrap(
+          (_input, init) =>
+            new Promise<Response>((_, reject) => {
+              init?.signal?.addEventListener("abort", () => {
+                const reason: unknown = init.signal?.reason;
+                reject(reason instanceof Error ? reason : new Error("aborted"));
+              });
+            }),
+          { firstByteMs: 10_000, idleMs: 10_000 },
+        );
+        const pending = guarded("https://gateway.test/v1", { signal: outer.signal });
+        outer.abort(new Error("caller gave up"));
+        expect(pending).rejects.toThrow("caller gave up");
+      });
+    });
+  }
+});
