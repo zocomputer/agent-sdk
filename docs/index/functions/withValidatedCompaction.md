@@ -8,7 +8,7 @@
 
 > **withValidatedCompaction**(`model`, `options?`): `LanguageModelV4`
 
-Defined in: [packages/agent-sdk/src/validated-compaction.ts:250](https://github.com/zocomputer/zov2-code/blob/384c0715e5dbd68ec5614af4167eaef9b0b6e0cd/packages/agent-sdk/src/validated-compaction.ts#L250)
+Defined in: [packages/agent-sdk/src/validated-compaction.ts:250](https://github.com/zocomputer/zov2-code/blob/6c8f0491294917993809515b241a9263669c5f1d/packages/agent-sdk/src/validated-compaction.ts#L250)
 
 Wrap a model so eve's compaction summaries are judged against the transcript
 they replace, and repaired in place when the judge finds dropped facts.

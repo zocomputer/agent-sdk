@@ -8,7 +8,7 @@
 
 > **composePromptSections**(`baseline`, `options?`): [`PromptSection`](../interfaces/PromptSection.md)[]
 
-Defined in: [packages/agent-sdk/src/prompt-sections.ts:87](https://github.com/zocomputer/zov2-code/blob/384c0715e5dbd68ec5614af4167eaef9b0b6e0cd/packages/agent-sdk/src/prompt-sections.ts#L87)
+Defined in: [packages/agent-sdk/src/prompt-sections.ts:87](https://github.com/zocomputer/zov2-code/blob/6c8f0491294917993809515b241a9263669c5f1d/packages/agent-sdk/src/prompt-sections.ts#L87)
 
 Compose a prompt from a baseline section order plus consumer edits: drop
 baseline sections by id (`omit`), and insert extras relative to baseline

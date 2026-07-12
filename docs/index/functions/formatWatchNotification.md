@@ -8,7 +8,7 @@
 
 > **formatWatchNotification**(`opts`): `string`
 
-Defined in: [packages/agent-sdk/src/watch-output.ts:102](https://github.com/zocomputer/zov2-code/blob/384c0715e5dbd68ec5614af4167eaef9b0b6e0cd/packages/agent-sdk/src/watch-output.ts#L102)
+Defined in: [packages/agent-sdk/src/watch-output.ts:102](https://github.com/zocomputer/zov2-code/blob/6c8f0491294917993809515b241a9263669c5f1d/packages/agent-sdk/src/watch-output.ts#L102)
 
 The message text for a watcher match, complete and self-describing.
 

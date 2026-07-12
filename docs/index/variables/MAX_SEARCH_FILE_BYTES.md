@@ -8,6 +8,6 @@
 
 > `const` **MAX\_SEARCH\_FILE\_BYTES**: `1500000` = `1_500_000`
 
-Defined in: [packages/agent-sdk/src/read-text.ts:4](https://github.com/zocomputer/zov2-code/blob/384c0715e5dbd68ec5614af4167eaef9b0b6e0cd/packages/agent-sdk/src/read-text.ts#L4)
+Defined in: [packages/agent-sdk/src/read-text.ts:4](https://github.com/zocomputer/zov2-code/blob/6c8f0491294917993809515b241a9263669c5f1d/packages/agent-sdk/src/read-text.ts#L4)
 
 Search tools skip anything bigger — no source file we'd grep comes close, and the cap keeps a stray artifact from stalling a search.

@@ -8,7 +8,7 @@
 
 > **buildFileView**(`text`, `opts?`): [`FileView`](../interfaces/FileView.md)
 
-Defined in: [packages/agent-sdk/src/file-view.ts:40](https://github.com/zocomputer/zov2-code/blob/384c0715e5dbd68ec5614af4167eaef9b0b6e0cd/packages/agent-sdk/src/file-view.ts#L40)
+Defined in: [packages/agent-sdk/src/file-view.ts:40](https://github.com/zocomputer/zov2-code/blob/6c8f0491294917993809515b241a9263669c5f1d/packages/agent-sdk/src/file-view.ts#L40)
 
 Build the bounded, line-numbered window of `text` for a read result.
 

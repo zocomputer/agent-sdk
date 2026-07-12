@@ -8,7 +8,7 @@
 
 > **createParkDeliveryHook**(`options?`): `object`
 
-Defined in: [packages/agent-sdk/src/hooks.ts:106](https://github.com/zocomputer/zov2-code/blob/384c0715e5dbd68ec5614af4167eaef9b0b6e0cd/packages/agent-sdk/src/hooks.ts#L106)
+Defined in: [packages/agent-sdk/src/hooks.ts:106](https://github.com/zocomputer/zov2-code/blob/6c8f0491294917993809515b241a9263669c5f1d/packages/agent-sdk/src/hooks.ts#L106)
 
 Build the park-delivery hook that sends read media, notifications, and steered messages when a session parks.
 

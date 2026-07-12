@@ -8,7 +8,7 @@
 
 > **Stdlib** = `ReturnType`\<*typeof* [`createStdlib`](../functions/createStdlib.md)\>
 
-Defined in: [packages/agent-sdk/src/index.ts:391](https://github.com/zocomputer/zov2-code/blob/384c0715e5dbd68ec5614af4167eaef9b0b6e0cd/packages/agent-sdk/src/index.ts#L391)
+Defined in: [packages/agent-sdk/src/index.ts:391](https://github.com/zocomputer/zov2-code/blob/6c8f0491294917993809515b241a9263669c5f1d/packages/agent-sdk/src/index.ts#L391)
 
 The stdlib return type: workspace, runner, registry, spill dir,
 backgroundables, steerInbox, tools, and instructions.

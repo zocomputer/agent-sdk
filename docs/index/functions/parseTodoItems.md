@@ -8,7 +8,7 @@
 
 > **parseTodoItems**(`value`): readonly [`TodoItem`](../interfaces/TodoItem.md)[] \| `null`
 
-Defined in: [packages/agent-sdk/src/todo-discipline.ts:61](https://github.com/zocomputer/zov2-code/blob/384c0715e5dbd68ec5614af4167eaef9b0b6e0cd/packages/agent-sdk/src/todo-discipline.ts#L61)
+Defined in: [packages/agent-sdk/src/todo-discipline.ts:61](https://github.com/zocomputer/zov2-code/blob/6c8f0491294917993809515b241a9263669c5f1d/packages/agent-sdk/src/todo-discipline.ts#L61)
 
 Parse an unknown value as a todo list (the tool input's `todos` array).
 Returns `null` when the value isn't an array of well-formed items; unknown

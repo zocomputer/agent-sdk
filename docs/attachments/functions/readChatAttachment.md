@@ -8,7 +8,7 @@
 
 > **readChatAttachment**(`toolOutput`): [`ChatAttachment`](../type-aliases/ChatAttachment.md) \| `null`
 
-Defined in: [packages/agent-sdk/src/attachments.ts:76](https://github.com/zocomputer/zov2-code/blob/384c0715e5dbd68ec5614af4167eaef9b0b6e0cd/packages/agent-sdk/src/attachments.ts#L76)
+Defined in: [packages/agent-sdk/src/attachments.ts:76](https://github.com/zocomputer/zov2-code/blob/6c8f0491294917993809515b241a9263669c5f1d/packages/agent-sdk/src/attachments.ts#L76)
 
 Read the model-hidden media attachment off a tool result, if present.
 Matches by payload shape, not tool name, so it's agnostic to what a

@@ -8,7 +8,7 @@
 
 > **StateHandleOutcome**\<`THandle`\> = \{ `handle`: `THandle`; `kind`: `"handle"`; \} \| \{ `envelope`: [`StateConsentEnvelope`](StateConsentEnvelope.md); `kind`: `"consent_required"`; `steer`: `string`; \}
 
-Defined in: [packages/agent-sdk/src/state-consent-wrapper.ts:28](https://github.com/zocomputer/zov2-code/blob/384c0715e5dbd68ec5614af4167eaef9b0b6e0cd/packages/agent-sdk/src/state-consent-wrapper.ts#L28)
+Defined in: [packages/agent-sdk/src/state-consent-wrapper.ts:28](https://github.com/zocomputer/zov2-code/blob/6c8f0491294917993809515b241a9263669c5f1d/packages/agent-sdk/src/state-consent-wrapper.ts#L28)
 
 The outcome of a consent-aware handle request: the handle, or a consent steer.
 

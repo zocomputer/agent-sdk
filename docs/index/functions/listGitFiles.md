@@ -8,7 +8,7 @@
 
 > **listGitFiles**(`root`, `scope?`): `string`[] \| `null`
 
-Defined in: [packages/agent-sdk/src/list-files.ts:21](https://github.com/zocomputer/zov2-code/blob/384c0715e5dbd68ec5614af4167eaef9b0b6e0cd/packages/agent-sdk/src/list-files.ts#L21)
+Defined in: [packages/agent-sdk/src/list-files.ts:21](https://github.com/zocomputer/zov2-code/blob/6c8f0491294917993809515b241a9263669c5f1d/packages/agent-sdk/src/list-files.ts#L21)
 
 Candidate file list for glob/grep: one `git ls-files` spawn (tens of ms)
 with exact .gitignore semantics, instead of a hand-rolled walk that has to

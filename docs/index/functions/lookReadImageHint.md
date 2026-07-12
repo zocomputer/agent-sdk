@@ -8,7 +8,7 @@
 
 > **lookReadImageHint**(`oracle`): `string` \| `undefined`
 
-Defined in: [packages/agent-sdk/src/tools/look.ts:355](https://github.com/zocomputer/zov2-code/blob/384c0715e5dbd68ec5614af4167eaef9b0b6e0cd/packages/agent-sdk/src/tools/look.ts#L355)
+Defined in: [packages/agent-sdk/src/tools/look.ts:355](https://github.com/zocomputer/zov2-code/blob/6c8f0491294917993809515b241a9263669c5f1d/packages/agent-sdk/src/tools/look.ts#L355)
 
 `read`'s image-unavailable hint when a look oracle is wired: route to
 `look` instead of the default "ask the user". `undefined` when the oracle
