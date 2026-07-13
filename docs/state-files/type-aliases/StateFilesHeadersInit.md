@@ -8,6 +8,6 @@
 
 > **StateFilesHeadersInit** = `Headers` \| `ReadonlyArray`\<readonly \[`string`, `string`\]\> \| `Readonly`\<`Record`\<`string`, `string`\>\>
 
-Defined in: [packages/agent-sdk/src/state-files.ts:68](https://github.com/zocomputer/zov2-code/blob/07721c227b11c8cc8115ab6c09048e903415a342/packages/agent-sdk/src/state-files.ts#L68)
+Defined in: [packages/agent-sdk/src/state-files.ts:68](https://github.com/zocomputer/zov2-code/blob/1e24004df378afe2dca17754c9e6cedc76f36385/packages/agent-sdk/src/state-files.ts#L68)
 
 Union of accepted header-initialization shapes: Headers instance, array of pairs, or record.

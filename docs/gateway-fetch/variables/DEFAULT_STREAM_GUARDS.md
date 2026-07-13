@@ -8,6 +8,6 @@
 
 > `const` **DEFAULT\_STREAM\_GUARDS**: [`StreamGuardOptions`](../interfaces/StreamGuardOptions.md)
 
-Defined in: [packages/runtime-ai/src/stream-guards.ts:39](https://github.com/zocomputer/zov2-code/blob/07721c227b11c8cc8115ab6c09048e903415a342/packages/runtime-ai/src/stream-guards.ts#L39)
+Defined in: [packages/runtime-ai/src/stream-guards.ts:39](https://github.com/zocomputer/zov2-code/blob/1e24004df378afe2dca17754c9e6cedc76f36385/packages/runtime-ai/src/stream-guards.ts#L39)
 
 Generous defaults that convert a dead connection into a retryable error without racing slow-but-alive models. Headers should arrive in seconds; reasoning models can pause between chunks, so the idle guard gets minutes.

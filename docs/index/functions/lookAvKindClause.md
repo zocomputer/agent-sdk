@@ -8,7 +8,7 @@
 
 > **lookAvKindClause**(`caps`): `string` \| `undefined`
 
-Defined in: [packages/agent-sdk/src/tools/look.ts:368](https://github.com/zocomputer/zov2-code/blob/07721c227b11c8cc8115ab6c09048e903415a342/packages/agent-sdk/src/tools/look.ts#L368)
+Defined in: [packages/agent-sdk/src/tools/look.ts:368](https://github.com/zocomputer/zov2-code/blob/1e24004df378afe2dca17754c9e6cedc76f36385/packages/agent-sdk/src/tools/look.ts#L368)
 
 The "if it is …" clause naming exactly the AV kinds the oracle takes, or
 `undefined` when it takes neither. read/webfetch share ONE

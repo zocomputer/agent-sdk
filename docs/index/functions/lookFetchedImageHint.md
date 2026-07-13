@@ -8,7 +8,7 @@
 
 > **lookFetchedImageHint**(`oracle`): `string` \| `undefined`
 
-Defined in: [packages/agent-sdk/src/tools/look.ts:391](https://github.com/zocomputer/zov2-code/blob/07721c227b11c8cc8115ab6c09048e903415a342/packages/agent-sdk/src/tools/look.ts#L391)
+Defined in: [packages/agent-sdk/src/tools/look.ts:391](https://github.com/zocomputer/zov2-code/blob/1e24004df378afe2dca17754c9e6cedc76f36385/packages/agent-sdk/src/tools/look.ts#L391)
 
 `webfetch`'s image-unavailable hint when a look oracle is wired: the image
 is at a URL (look takes workspace paths), so the route is download-then-look.

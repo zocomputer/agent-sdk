@@ -8,7 +8,7 @@
 
 > **extractEpub**(`bytes`, `options?`): [`EpubExtraction`](../type-aliases/EpubExtraction.md)
 
-Defined in: [packages/agent-sdk/src/extract/epub.ts:129](https://github.com/zocomputer/zov2-code/blob/07721c227b11c8cc8115ab6c09048e903415a342/packages/agent-sdk/src/extract/epub.ts#L129)
+Defined in: [packages/agent-sdk/src/extract/epub.ts:129](https://github.com/zocomputer/zov2-code/blob/1e24004df378afe2dca17754c9e6cedc76f36385/packages/agent-sdk/src/extract/epub.ts#L129)
 
 Extract EPUB bytes into text: spine sections in reading order under
 `=== section N of M (href) ===` markers. Extraction stops at

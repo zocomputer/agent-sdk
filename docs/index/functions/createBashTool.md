@@ -8,7 +8,7 @@
 
 > **createBashTool**(`opts`): `ToolDefinition`\<\{ `command`: `string`; `cwd?`: `string`; `foreground_ms?`: `number`; `timeout_ms?`: `number`; \}, \{ `exitCode`: `number` \| `null`; `mode`: `"completed"`; `note?`: `undefined`; `progress?`: `undefined`; `status?`: `undefined`; `stderr`: `string`; `stdout`: `string`; `task_id?`: `undefined`; `timedOut`: `boolean`; `workdir`: `string`; \} \| \{ `exitCode?`: `undefined`; `mode`: `"backgrounded"`; `note`: `string`; `progress`: [`RunProgress`](../interfaces/RunProgress.md); `status`: `"running"`; `stderr?`: `undefined`; `stdout?`: `undefined`; `task_id`: `string`; `timedOut?`: `undefined`; `workdir`: `string`; \}\>
 
-Defined in: [packages/agent-sdk/src/tools/bash.ts:27](https://github.com/zocomputer/zov2-code/blob/07721c227b11c8cc8115ab6c09048e903415a342/packages/agent-sdk/src/tools/bash.ts#L27)
+Defined in: [packages/agent-sdk/src/tools/bash.ts:27](https://github.com/zocomputer/zov2-code/blob/1e24004df378afe2dca17754c9e6cedc76f36385/packages/agent-sdk/src/tools/bash.ts#L27)
 
 Build the bash tool: a real shell through the given runner (host or sandbox), rooted at the workspace.
 

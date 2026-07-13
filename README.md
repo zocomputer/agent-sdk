@@ -5,11 +5,11 @@ workspace toolset (`read`, `edit`, `write`, `glob`, `grep`, `bash`,
 `webfetch`), background tasks, and the instructions that teach a model to use
 them well — wired up in one call.
 
-We build [Zo](https://zo.computer), where published cloud agents run on eve.
-This SDK is the toolset we give them, extracted from a coding agent we use on
-our own repo every day. Nothing in it assumes Zo: every tool factory and
-helper is exported à la carte, so any eve project can take the whole set or
-just the pieces it wants.
+We build [Zo](https://zo.computer), where published agents run as cloud
+services on eve. This SDK is what those agents are built with — if you deploy
+on Zo, it's the dependency in your agent's `package.json`. The core assumes
+nothing about Zo: every tool factory and helper is exported à la carte, so
+any eve project can take the whole set or just the pieces it wants.
 
 ## What's inside
 
@@ -51,7 +51,7 @@ Or pin a release tag on this repo directly (each release is a `v<version>`
 tag, matching the npm version):
 
 ```sh
-bun add @zocomputer/agent-sdk@github:zocomputer/agent-sdk#v0.6.0
+bun add @zocomputer/agent-sdk@github:zocomputer/agent-sdk#v0.13.0
 ```
 
 `eve`, `zod`, and `ai` are peer dependencies.
@@ -123,6 +123,28 @@ That's the whole setup — `eve dev` and you have a working agent with the
 full toolset. Everything is also exported à la carte (`createReadTool`,
 `createCommandRunner`, …) if you'd rather compose a subset.
 
+## The Zo platform layer
+
+The published package also carries the modules a Zo-deployed agent's harness
+is wired with, as subpath exports:
+
+- **`@zocomputer/agent-sdk/sandbox`** — the sandbox backend: file tools and
+  `bash` run in the agent's cloud workspace, provisioned on demand by the Zo
+  control plane, so the runtime never holds an infrastructure credential.
+- **`@zocomputer/agent-sdk/ai`** — the model gateway: one `/ai/register`
+  import points the AI SDK at Zo's metered gateway, so agents call catalog
+  models by bare slug with no provider keys of their own.
+- **`@zocomputer/agent-sdk/cloud-tools`** — the cloud tool suite: image and
+  video generation and editing, speech synthesis, audio transcription, and
+  provider-selectable web, X, and Maps search.
+- **`@zocomputer/agent-sdk/runtime-auth`** — the token contract between a
+  running agent and the Zo control plane.
+
+These modules assume Zo's control plane and are inert elsewhere; the rest of
+the package is the generic stdlib and runs in any eve project. The
+[Zo platform modules](./GUIDE.md#zo-platform-modules-platform) section of the
+guide covers each in detail.
+
 ## Going deeper
 
 The [guide](./GUIDE.md) documents each subsystem:
@@ -143,8 +165,6 @@ The [guide](./GUIDE.md) documents each subsystem:
   — auditing eve's compaction summaries and repairing dropped facts.
 - [Mock model](./GUIDE.md#mock-model-credential-free-testing) — deterministic,
   credential-free end-to-end testing.
-- [Zo platform modules](./GUIDE.md#zo-platform-modules-platform) — the extra
-  subpath exports an agent deployed on Zo uses.
 
 The design rationale — why the tools work this way, and the prior art they
 come from — lives in [`design/foundation/`](./design/foundation/00-overview.md).

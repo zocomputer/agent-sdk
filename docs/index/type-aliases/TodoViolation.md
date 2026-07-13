@@ -8,7 +8,7 @@
 
 > **TodoViolation** = \{ `index`: `number`; `kind`: `"empty_content"`; \} \| \{ `content`: `string`; `kind`: `"duplicate_content"`; \} \| \{ `contents`: readonly `string`[]; `kind`: `"multiple_in_progress"`; \} \| \{ `content`: `string`; `kind`: `"pending_completed_jump"`; \}
 
-Defined in: [packages/agent-sdk/src/todo-discipline.ts:83](https://github.com/zocomputer/zov2-code/blob/07721c227b11c8cc8115ab6c09048e903415a342/packages/agent-sdk/src/todo-discipline.ts#L83)
+Defined in: [packages/agent-sdk/src/todo-discipline.ts:83](https://github.com/zocomputer/zov2-code/blob/1e24004df378afe2dca17754c9e6cedc76f36385/packages/agent-sdk/src/todo-discipline.ts#L83)
 
 One discipline violation found in a todo write.
 

@@ -8,7 +8,7 @@
 
 > **editNotFoundHint**(`content`, `oldString`): [`EditNotFoundHint`](../interfaces/EditNotFoundHint.md) \| `null`
 
-Defined in: [packages/agent-sdk/src/edit-match.ts:591](https://github.com/zocomputer/zov2-code/blob/07721c227b11c8cc8115ab6c09048e903415a342/packages/agent-sdk/src/edit-match.ts#L591)
+Defined in: [packages/agent-sdk/src/edit-match.ts:591](https://github.com/zocomputer/zov2-code/blob/1e24004df378afe2dca17754c9e6cedc76f36385/packages/agent-sdk/src/edit-match.ts#L591)
 
 Locate the region of `content` the model probably meant when `oldString`
 failed every replacer, so the not-found error can point instead of just

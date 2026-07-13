@@ -8,7 +8,7 @@
 
 > **CommandRunnerProvider** = (`ctx`) => [`CommandRunner`](../interfaces/CommandRunner.md)
 
-Defined in: [packages/agent-sdk/src/run.ts:82](https://github.com/zocomputer/zov2-code/blob/07721c227b11c8cc8115ab6c09048e903415a342/packages/agent-sdk/src/run.ts#L82)
+Defined in: [packages/agent-sdk/src/run.ts:82](https://github.com/zocomputer/zov2-code/blob/1e24004df378afe2dca17754c9e6cedc76f36385/packages/agent-sdk/src/run.ts#L82)
 
 Resolves the runner for one tool call — the exec twin of
 `WorkspaceIoProvider`. A sandbox arrives per tool call (`ctx.getSandbox()`),

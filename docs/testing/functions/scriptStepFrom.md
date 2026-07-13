@@ -8,7 +8,7 @@
 
 > **scriptStepFrom**(`prompt`): `number`
 
-Defined in: [packages/agent-sdk/src/mock-model.ts:183](https://github.com/zocomputer/zov2-code/blob/07721c227b11c8cc8115ab6c09048e903415a342/packages/agent-sdk/src/mock-model.ts#L183)
+Defined in: [packages/agent-sdk/src/mock-model.ts:183](https://github.com/zocomputer/zov2-code/blob/1e24004df378afe2dca17754c9e6cedc76f36385/packages/agent-sdk/src/mock-model.ts#L183)
 
 Which step of a scripted scenario this doStream call is: the number of tool
 RESULTS since the last user message. Step 0 emits the scenario's first tool

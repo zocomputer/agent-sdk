@@ -8,7 +8,7 @@
 
 > `const` **DEFAULT\_MAX\_INLINE\_CONTENT\_CHARS**: `100000` = `100_000`
 
-Defined in: [packages/agent-sdk/src/tools/webfetch.ts:134](https://github.com/zocomputer/zov2-code/blob/07721c227b11c8cc8115ab6c09048e903415a342/packages/agent-sdk/src/tools/webfetch.ts#L134)
+Defined in: [packages/agent-sdk/src/tools/webfetch.ts:134](https://github.com/zocomputer/zov2-code/blob/1e24004df378afe2dca17754c9e6cedc76f36385/packages/agent-sdk/src/tools/webfetch.ts#L134)
 
 Default in-context character budget for the inline-first mode (no
 `spillDir`): the whole rendered content returns inline up to this, then

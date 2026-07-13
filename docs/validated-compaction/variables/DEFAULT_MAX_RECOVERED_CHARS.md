@@ -8,6 +8,6 @@
 
 > `const` **DEFAULT\_MAX\_RECOVERED\_CHARS**: `2000` = `2000`
 
-Defined in: [packages/runtime-ai/src/validated-compaction.ts:56](https://github.com/zocomputer/zov2-code/blob/07721c227b11c8cc8115ab6c09048e903415a342/packages/runtime-ai/src/validated-compaction.ts#L56)
+Defined in: [packages/runtime-ai/src/validated-compaction.ts:56](https://github.com/zocomputer/zov2-code/blob/1e24004df378afe2dca17754c9e6cedc76f36385/packages/runtime-ai/src/validated-compaction.ts#L56)
 
 Default cap on the appended recovery section, in characters.

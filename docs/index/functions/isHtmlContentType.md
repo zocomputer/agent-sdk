@@ -8,7 +8,7 @@
 
 > **isHtmlContentType**(`contentType`): `boolean`
 
-Defined in: [packages/agent-sdk/src/web-fetch.ts:136](https://github.com/zocomputer/zov2-code/blob/07721c227b11c8cc8115ab6c09048e903415a342/packages/agent-sdk/src/web-fetch.ts#L136)
+Defined in: [packages/agent-sdk/src/web-fetch.ts:136](https://github.com/zocomputer/zov2-code/blob/1e24004df378afe2dca17754c9e6cedc76f36385/packages/agent-sdk/src/web-fetch.ts#L136)
 
 Check if a Content-Type header value is HTML (text/html or
 application/xhtml+xml).

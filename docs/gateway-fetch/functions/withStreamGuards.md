@@ -8,7 +8,7 @@
 
 > **withStreamGuards**(`baseFetch`, `options?`): *typeof* `fetch`
 
-Defined in: [packages/runtime-ai/src/stream-guards.ts:49](https://github.com/zocomputer/zov2-code/blob/07721c227b11c8cc8115ab6c09048e903415a342/packages/runtime-ai/src/stream-guards.ts#L49)
+Defined in: [packages/runtime-ai/src/stream-guards.ts:49](https://github.com/zocomputer/zov2-code/blob/1e24004df378afe2dca17754c9e6cedc76f36385/packages/runtime-ai/src/stream-guards.ts#L49)
 
 Wrap a fetch with first-byte and idle timeouts. The returned fetch chains
 any caller-provided abort signal, preserves status/headers, and passes

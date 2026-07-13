@@ -8,7 +8,7 @@
 
 > **createBoundedCapture**(`opts?`): [`BoundedCapture`](../interfaces/BoundedCapture.md)
 
-Defined in: [packages/agent-sdk/src/bounded-output.ts:98](https://github.com/zocomputer/zov2-code/blob/07721c227b11c8cc8115ab6c09048e903415a342/packages/agent-sdk/src/bounded-output.ts#L98)
+Defined in: [packages/agent-sdk/src/bounded-output.ts:98](https://github.com/zocomputer/zov2-code/blob/1e24004df378afe2dca17754c9e6cedc76f36385/packages/agent-sdk/src/bounded-output.ts#L98)
 
 Create a bounded stream capture: keeps head + tail in-memory (within the
 caps) and, on first overflow, spills the complete output to a file. Handles
