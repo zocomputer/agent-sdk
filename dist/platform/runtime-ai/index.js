@@ -1,7 +1,7 @@
-// ../../../../../tmp/agent-sdk-mirror-NTHgaU/repo/platform/runtime-ai/gateway.ts
+// ../../../../../tmp/agent-sdk-mirror-MlASZC/repo/platform/runtime-ai/gateway.ts
 import { createGateway } from "ai";
 
-// ../../../../../tmp/agent-sdk-mirror-NTHgaU/repo/platform/runtime-ai/session-fetch.ts
+// ../../../../../tmp/agent-sdk-mirror-MlASZC/repo/platform/runtime-ai/session-fetch.ts
 var EVE_SESSION_HEADER = "x-zo-eve-session";
 var EVE_TURN_HEADER = "x-zo-eve-turn";
 var EVE_SUBAGENT_SESSION_HEADER = "x-zo-eve-subagent-session";
@@ -68,7 +68,7 @@ function eveSessionFetch(getSessionId = ambientEveSessionId, baseFetch = globalT
   }, baseFetch);
 }
 
-// ../../../../../tmp/agent-sdk-mirror-NTHgaU/repo/platform/runtime-ai/stream-guards.ts
+// ../../../../../tmp/agent-sdk-mirror-MlASZC/repo/platform/runtime-ai/stream-guards.ts
 var DEFAULT_STREAM_GUARDS = {
   firstByteMs: 60000,
   idleMs: 180000
@@ -132,7 +132,7 @@ function withStreamGuards(baseFetch, options = DEFAULT_STREAM_GUARDS) {
   return Object.assign(guarded, { preconnect: globalThis.fetch.preconnect });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-NTHgaU/repo/platform/runtime-ai/gateway-config.ts
+// ../../../../../tmp/agent-sdk-mirror-MlASZC/repo/platform/runtime-ai/gateway-config.ts
 var ZO_TOOL_HEADER = "x-zo-tool";
 var DEFAULT_ZO_AI_BASE_URL = "http://localhost:4000/runtime/ai/v4/ai";
 var DEFAULT_ZO_AI_KEY = "dev-proxy";
@@ -160,14 +160,56 @@ function zoGatewaySettings(options = {}) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-NTHgaU/repo/platform/runtime-ai/gateway.ts
+// ../../../../../tmp/agent-sdk-mirror-MlASZC/repo/platform/runtime-ai/gateway.ts
 function zoGateway(options = {}) {
   return createGateway(zoGatewaySettings(options));
 }
+// ../../../../../tmp/agent-sdk-mirror-MlASZC/repo/platform/runtime-ai/catalog.ts
+function resolveZoGatewayCatalogUrl(baseURL) {
+  const url = new URL(resolveZoGatewayBaseUrl(baseURL));
+  if (!/\/v4\/ai\/?$/u.test(url.pathname)) {
+    throw new Error("ZO_AI_BASE_URL must end in /v4/ai to derive the authenticated media catalog endpoint");
+  }
+  url.pathname = url.pathname.replace(/\/v4\/ai\/?$/u, "/v1/models");
+  url.search = "";
+  url.hash = "";
+  return url;
+}
+async function fetchMediaCatalog(options = {}) {
+  const url = resolveZoGatewayCatalogUrl(options.baseURL);
+  const controller = new AbortController;
+  const timeout = setTimeout(() => controller.abort(), options.timeoutMs ?? 1e4);
+  const now = options.now ?? (() => new Date);
+  const fetcher = eveSessionFetch(undefined, options.fetch);
+  try {
+    const response = await fetcher(url, {
+      signal: controller.signal,
+      headers: {
+        authorization: `Bearer ${resolveZoGatewayApiKey(options.apiKey)}`,
+        ...agentAuthHeaders(),
+        ...options.validators?.etag ? { "if-none-match": options.validators.etag } : {},
+        ...options.validators?.lastModified ? { "if-modified-since": options.validators.lastModified } : {}
+      }
+    });
+    const etag = response.headers.get("etag");
+    const lastModified = response.headers.get("last-modified");
+    const validators = { ...etag ? { etag } : {}, ...lastModified ? { lastModified } : {} };
+    if (response.status === 304)
+      return { status: "not_modified", validatedAt: now().toISOString(), validators };
+    if (!response.ok)
+      throw new Error(`Media catalog request failed (${response.status})`);
+    const raw = await response.json();
+    return { status: "modified", raw, fetchedAt: now().toISOString(), validators };
+  } finally {
+    clearTimeout(timeout);
+  }
+}
 export {
   zoGateway,
+  resolveZoGatewayCatalogUrl,
   resolveZoGatewayBaseUrl,
   resolveZoGatewayApiKey,
+  fetchMediaCatalog,
   eveSessionFetch,
   ambientSessionParent,
   ambientEveTurnId,

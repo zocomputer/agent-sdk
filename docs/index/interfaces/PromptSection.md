@@ -6,7 +6,7 @@
 
 # Interface: PromptSection
 
-Defined in: [packages/agent-sdk/src/prompt-sections.ts:29](https://github.com/zocomputer/zov2-code/blob/fc4b6dd8dd680b4495b1f44b776f9a8d76104d40/packages/agent-sdk/src/prompt-sections.ts#L29)
+Defined in: [packages/agent-sdk/src/prompt-sections.ts:29](https://github.com/zocomputer/zov2-code/blob/76a0c7e372069bfa29a1d30375fdc2f67f746411/packages/agent-sdk/src/prompt-sections.ts#L29)
 
 One system-prompt section: a stable `id` (placement anchor and omit key),
 the markdown `heading` (rendered as `## {heading}`), and the tier-rendered
@@ -18,7 +18,7 @@ the markdown `heading` (rendered as `## {heading}`), and the tier-rendered
 
 > `readonly` **body**: `string`
 
-Defined in: [packages/agent-sdk/src/prompt-sections.ts:35](https://github.com/zocomputer/zov2-code/blob/fc4b6dd8dd680b4495b1f44b776f9a8d76104d40/packages/agent-sdk/src/prompt-sections.ts#L35)
+Defined in: [packages/agent-sdk/src/prompt-sections.ts:35](https://github.com/zocomputer/zov2-code/blob/76a0c7e372069bfa29a1d30375fdc2f67f746411/packages/agent-sdk/src/prompt-sections.ts#L35)
 
 Markdown body for the chosen tier; empty means "render nothing".
 
@@ -28,7 +28,7 @@ Markdown body for the chosen tier; empty means "render nothing".
 
 > `readonly` **heading**: `string`
 
-Defined in: [packages/agent-sdk/src/prompt-sections.ts:33](https://github.com/zocomputer/zov2-code/blob/fc4b6dd8dd680b4495b1f44b776f9a8d76104d40/packages/agent-sdk/src/prompt-sections.ts#L33)
+Defined in: [packages/agent-sdk/src/prompt-sections.ts:33](https://github.com/zocomputer/zov2-code/blob/76a0c7e372069bfa29a1d30375fdc2f67f746411/packages/agent-sdk/src/prompt-sections.ts#L33)
 
 Section heading, without the leading `## `.
 
@@ -38,6 +38,6 @@ Section heading, without the leading `## `.
 
 > `readonly` **id**: `string`
 
-Defined in: [packages/agent-sdk/src/prompt-sections.ts:31](https://github.com/zocomputer/zov2-code/blob/fc4b6dd8dd680b4495b1f44b776f9a8d76104d40/packages/agent-sdk/src/prompt-sections.ts#L31)
+Defined in: [packages/agent-sdk/src/prompt-sections.ts:31](https://github.com/zocomputer/zov2-code/blob/76a0c7e372069bfa29a1d30375fdc2f67f746411/packages/agent-sdk/src/prompt-sections.ts#L31)
 
 Stable identifier — the anchor for placement and the key for omission.

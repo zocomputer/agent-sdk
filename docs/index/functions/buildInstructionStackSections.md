@@ -8,7 +8,7 @@
 
 > **buildInstructionStackSections**(`opts`): [`PromptSection`](../interfaces/PromptSection.md)[]
 
-Defined in: [packages/agent-sdk/src/instructions.ts:720](https://github.com/zocomputer/zov2-code/blob/fc4b6dd8dd680b4495b1f44b776f9a8d76104d40/packages/agent-sdk/src/instructions.ts#L720)
+Defined in: [packages/agent-sdk/src/instructions.ts:720](https://github.com/zocomputer/zov2-code/blob/76a0c7e372069bfa29a1d30375fdc2f67f746411/packages/agent-sdk/src/instructions.ts#L720)
 
 Build the stack's sections: the baseline in canonical order
 (repo-conventions only with a local `workspaceRoot`, media only when an

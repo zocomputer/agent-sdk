@@ -62,9 +62,10 @@ describe("createRuntimeStateFilesClient", () => {
       now: () => new Date("2026-07-05T22:00:00.000Z"),
     });
 
-    await client.write("generated/hello world.png", new Uint8Array([1, 2, 3]), {
+    const ref = await client.write("generated/hello world.png", new Uint8Array([1, 2, 3]), {
       contentType: "image/png",
     });
+    expect(ref).toEqual({ type: "state_asset", declarationName: "files", path: "generated/hello world.png", contentType: "image/png", bytes: 3 });
 
     expect(calls).toHaveLength(2);
     const handleCall = calls[0];
@@ -106,6 +107,100 @@ describe("createRuntimeStateFilesClient", () => {
       "state file path",
     );
     expect(calls).toEqual([]);
+  });
+
+  test("reads through an r handle, signs the exact object, and sniffs bytes", async () => {
+    const calls: { url: string; init?: RequestInit }[] = [];
+    const png = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+    const fetch = Object.assign(async (input: Parameters<typeof globalThis.fetch>[0], init?: RequestInit) => {
+      const url = typeof input === "string" ? input : input instanceof URL ? input.href : input.url;
+      calls.push({ url, ...(init === undefined ? {} : { init }) });
+      if (url.endsWith("/state/handles")) return jsonResponse({
+        handleId: "hnd_r", declarationName: "files", interface: "files", access: "r", engine: "zo-blob-r2",
+        bucketName: "bucket-one", endpoint: "https://acct.r2.example.test", credentials: {
+          accessKeyId: "AKIA_TEST", secretAccessKey: "secret", sessionToken: "token", expiresAt: "2026-07-05T23:00:00.000Z",
+        },
+      });
+      return new Response(png, { headers: { "content-type": "text/plain" } });
+    }, globalThis.fetch);
+    const client = createRuntimeStateFilesClient({ apiBaseUrl: "https://api.example.test", agentToken: "token", fetch, now: () => new Date("2026-07-05T22:00:00.000Z") });
+    const asset = await client.read({ type: "state_asset", declarationName: "files", path: "uploads/cat fake.mp3", contentType: "audio/mpeg" }, { maxBytes: 8 });
+    const handleBody = calls[0]?.init?.body;
+    expect(typeof handleBody === "string" ? JSON.parse(handleBody) : null).toMatchObject({ access: "r", declarationName: "files" });
+    expect(calls[1]?.url).toBe("https://acct.r2.example.test/bucket-one/uploads/cat%20fake.mp3");
+    expect(calls[1]?.init?.method).toBe("GET");
+    expect(asset).toMatchObject({ kind: "image", contentType: "image/png", bytes: 8 });
+  });
+
+  test("creates an exact-object GET URL capped by the read handle expiry", async () => {
+    const calls: { url: string; init?: RequestInit }[] = [];
+    const fetch = Object.assign(async (input: Parameters<typeof globalThis.fetch>[0], init?: RequestInit) => {
+      const url = typeof input === "string" ? input : input instanceof URL ? input.href : input.url;
+      calls.push({ url, ...(init === undefined ? {} : { init }) });
+      return jsonResponse({
+        handleId: "hnd_r", declarationName: "files", interface: "files", access: "r", engine: "zo-blob-r2",
+        bucketName: "bucket-one", endpoint: "https://acct.r2.example.test", credentials: {
+          accessKeyId: "AKIA_TEST", secretAccessKey: "secret", sessionToken: "session-token", expiresAt: "2026-07-05T22:02:00.000Z",
+        },
+      });
+    }, globalThis.fetch);
+    const client = createRuntimeStateFilesClient({ apiBaseUrl: "https://api.example.test", agentToken: "token", fetch, now: () => new Date("2026-07-05T22:00:00.000Z") });
+    if (client.resolveUrl === undefined) throw new Error("runtime store must support URL delivery");
+    const url = await client.resolveUrl({ type: "state_asset", declarationName: "files", path: "uploads/a b.mp4" }, 300);
+
+    expect(calls).toHaveLength(1);
+    const handleBody = calls[0]?.init?.body;
+    expect(typeof handleBody === "string" ? JSON.parse(handleBody) : null).toMatchObject({ access: "r" });
+    expect(url.origin + url.pathname).toBe("https://acct.r2.example.test/bucket-one/uploads/a%20b.mp4");
+    expect(url.searchParams.get("X-Amz-Algorithm")).toBe("AWS4-HMAC-SHA256");
+    expect(url.searchParams.get("X-Amz-Expires")).toBe("120");
+    expect(url.searchParams.get("X-Amz-Security-Token")).toBe("session-token");
+    expect(url.searchParams.get("X-Amz-SignedHeaders")).toBe("host");
+    expect(url.searchParams.get("X-Amz-Signature")).toMatch(/^[a-f0-9]{64}$/u);
+    expect(url.toString()).not.toContain("secret");
+  });
+
+  test("confines URL paths and validates expiry before requesting credentials", async () => {
+    let calls = 0;
+    const client = createRuntimeStateFilesClient({
+      apiBaseUrl: "https://api.example.test",
+      agentToken: "token",
+      fetch: Object.assign(async () => { calls += 1; return new Response(null, { status: 500 }); }, globalThis.fetch),
+    });
+    if (client.resolveUrl === undefined) throw new Error("runtime store must support URL delivery");
+    await expect(client.resolveUrl({ type: "state_asset", declarationName: "files", path: "../secret.mp4" }, 60)).rejects.toThrow(".. segments");
+    await expect(client.resolveUrl({ type: "state_asset", declarationName: "files", path: "safe.mp4" }, 0)).rejects.toThrow("positive safe integer");
+    expect(calls).toBe(0);
+  });
+
+  test("bounds streamed reads and confines declarations before handle access", async () => {
+    let objectReads = 0;
+    const fetch = Object.assign(async (input: Parameters<typeof globalThis.fetch>[0]) => {
+      const url = typeof input === "string" ? input : input instanceof URL ? input.href : input.url;
+      if (url.endsWith("/state/handles")) return jsonResponse({
+        handleId: "hnd_r", declarationName: "files", interface: "files", access: "r", engine: "zo-blob-r2",
+        bucketName: "bucket", endpoint: "https://r2.test", credentials: { accessKeyId: "key", secretAccessKey: "secret", sessionToken: "token", expiresAt: "2026-07-05T23:00:00.000Z" },
+      });
+      objectReads += 1;
+      return new Response(new Uint8Array([1, 2, 3, 4]));
+    }, globalThis.fetch);
+    const client = createRuntimeStateFilesClient({ apiBaseUrl: "https://api.test", agentToken: "token", fetch, now: () => new Date("2026-07-05T22:00:00.000Z") });
+    await expect(client.read({ type: "state_asset", declarationName: "files", path: "x.png" }, { maxBytes: 3 })).rejects.toThrow("3 byte read limit");
+    await expect(client.read({ type: "state_asset", declarationName: "other", path: "x.png" }, { maxBytes: 3 })).rejects.toThrow("configured");
+    expect(objectReads).toBe(1);
+  });
+
+  test("rejects mismatched and expired handles before object access", async () => {
+    for (const variant of [{ declarationName: "other", expiresAt: "2026-07-05T23:00:00.000Z" }, { declarationName: "files", expiresAt: "2026-07-05T21:00:00.000Z" }]) {
+      let calls = 0;
+      const fetch = Object.assign(async () => {
+        calls += 1;
+        return jsonResponse({ handleId: "h", declarationName: variant.declarationName, interface: "files", access: "r", engine: "zo-blob-r2", bucketName: "b", endpoint: "https://r2.test", credentials: { accessKeyId: "k", secretAccessKey: "s", sessionToken: "t", expiresAt: variant.expiresAt } });
+      }, globalThis.fetch);
+      const client = createRuntimeStateFilesClient({ apiBaseUrl: "https://api.test", agentToken: "token", fetch, now: () => new Date("2026-07-05T22:00:00.000Z") });
+      await expect(client.read({ type: "state_asset", declarationName: "files", path: "x.png" }, { maxBytes: 10 })).rejects.toBeInstanceOf(StateFilesRuntimeError);
+      expect(calls).toBe(1);
+    }
   });
 });
 

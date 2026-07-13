@@ -7,6 +7,12 @@ export {
   zoGateway,
 } from "./gateway";
 export type { ZoGatewayOptions } from "./gateway";
+export { fetchMediaCatalog, resolveZoGatewayCatalogUrl } from "./catalog";
+export type {
+  CatalogFetchResult,
+  CatalogValidators,
+  FetchMediaCatalogOptions,
+} from "./catalog";
 export {
   EVE_SESSION_HEADER,
   EVE_SUBAGENT_SESSION_HEADER,

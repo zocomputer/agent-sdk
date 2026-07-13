@@ -5,7 +5,7 @@ import { CLOUD_TOOL_META, cloudToolMeta } from "./tool-meta";
 describe("cloudToolMeta", () => {
   test("resolves a known built-in by its subpath key", () => {
     expect(cloudToolMeta("image")).toBe(CLOUD_TOOL_META.image);
-    expect(cloudToolMeta("image")?.description).toContain("Generate an image");
+    expect(cloudToolMeta("image")?.description).toContain("Generate image");
   });
 
   test("returns null for an unknown key", () => {

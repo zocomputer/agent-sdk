@@ -14,10 +14,37 @@
 // so `apps/api` can import it without pulling the agent-runtime deps into its bundle.
 export const CLOUD_TOOL_META = {
   image: {
-    description: "Generate an image from a text prompt and save it as an external state asset.",
+    description: "Generate images from text and optional durable references. Use media_models to inspect model-specific settings and prices.",
+  },
+  "edit-image": {
+    description: "Edit a durable image asset with optional mask and reference assets. Use media_models before selecting advanced settings.",
   },
   video: {
-    description: "Generate a short video from a text prompt and save it as an external state asset.",
+    description: "Generate a video from text, frames, or a durable image reference. Use media_models to inspect capabilities and prices.",
+  },
+  "edit-video": {
+    description: "Edit a durable video asset through a verified model adapter.",
+  },
+  "generate-speech": {
+    description: "Generate spoken audio from text and save it as a durable asset. Use media_models to inspect voices, formats, and prices.",
+  },
+  "transcribe-audio": {
+    description: "Transcribe a durable audio asset with bounded inline text and optional JSON, SRT, or VTT spill output.",
+  },
+  "media-models": {
+    description: "List current media models or inspect one model's operations, settings, availability, provenance, and pricing.",
+  },
+  "web-search": {
+    description: "Search the web through a chosen provider (Exa, Parallel, or Perplexity) with domain and freshness filters. Use search_providers to compare providers.",
+  },
+  "search-providers": {
+    description: "List the available web search providers, their strengths, and supported options.",
+  },
+  "x-search": {
+    description: "Search X (Twitter) posts with handle and date filters, including image and video understanding.",
+  },
+  "maps-search": {
+    description: "Answer places and geography questions with Google Maps data: businesses, addresses, hours, and areas.",
   },
 } as const;
 

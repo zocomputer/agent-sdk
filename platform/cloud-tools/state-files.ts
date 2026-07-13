@@ -1,6 +1,8 @@
 import { ambientEveSessionId } from "../runtime-ai/session-fetch.ts";
 
 import { buildConsentSteer, type ConsentEnvelope, parseConsentEnvelope } from "./state-consent";
+import { assertMediaAssetRef, normalizeMediaAssetPath, sniffMediaAsset } from "./media-asset";
+import type { MediaAssetRef, ResolvedMediaAsset } from "./media-contracts";
 
 export const DEFAULT_STATE_ASSET_DECLARATION_NAME = "files";
 export const STATE_FILES_HANDLE_PATH = "/state/handles";
@@ -43,7 +45,12 @@ export interface StateFilesWriteOptions {
 }
 
 export interface StateFilesAssetWriter {
-  write(path: string, body: Uint8Array, options?: StateFilesWriteOptions): Promise<void>;
+  write(path: string, body: Uint8Array, options?: StateFilesWriteOptions): Promise<MediaAssetRef>;
+}
+
+export interface StateFilesAssetStore extends StateFilesAssetWriter {
+  read(ref: MediaAssetRef, limits: { readonly maxBytes: number }): Promise<ResolvedMediaAsset>;
+  resolveUrl?(ref: MediaAssetRef, expiresInSeconds: number): Promise<URL>;
 }
 
 export interface RuntimeStateFilesClientOptions {
@@ -90,21 +97,79 @@ export class StateFilesConsentError extends Error {
 
 export function createRuntimeStateFilesClient(
   options: RuntimeStateFilesClientOptions = {},
-): StateFilesAssetWriter {
+): StateFilesAssetStore {
   const fetchImpl = options.fetch ?? globalThis.fetch;
   const declarationName = options.declarationName ?? DEFAULT_STATE_ASSET_DECLARATION_NAME;
   const getSessionId = options.getSessionId ?? ambientEveSessionId;
   const now = options.now ?? (() => new Date());
 
   return {
-    async write(path, body, writeOptions) {
-      const key = normalizeStateFilePath(path);
+    async resolveUrl(ref, expiresInSeconds) {
+      if (!Number.isSafeInteger(expiresInSeconds) || expiresInSeconds <= 0) {
+        throw new StateFilesRuntimeError("media URL expiry must be a positive safe integer");
+      }
+      const trustedRef = assertMediaAssetRef(ref, declarationName);
       const eveSessionKey = getSessionId();
       const handle = await requestRuntimeStateFilesHandle({
+        access: "r",
         apiBaseUrl: resolveApiBaseUrl(options.apiBaseUrl),
         agentToken: resolveAgentToken(options.agentToken),
         declarationName,
         fetch: fetchImpl,
+        now,
+        suggestedDefaults: options.suggestedDefaults ?? DEFAULT_STATE_FILES_SUGGESTED_DEFAULTS,
+        ...(eveSessionKey === undefined ? {} : { eveSessionKey }),
+      });
+      return presignedStateFileGetUrl({
+        bucketName: handle.bucketName,
+        credentials: handle.credentials,
+        endpoint: handle.endpoint,
+        expiresInSeconds,
+        key: trustedRef.path,
+        now: now(),
+      });
+    },
+    async read(ref, limits) {
+      if (!Number.isSafeInteger(limits.maxBytes) || limits.maxBytes <= 0) {
+        throw new StateFilesRuntimeError("media read maxBytes must be a positive safe integer");
+      }
+      const trustedRef = assertMediaAssetRef(ref, declarationName);
+      const eveSessionKey = getSessionId();
+      const handle = await requestRuntimeStateFilesHandle({
+        access: "r",
+        apiBaseUrl: resolveApiBaseUrl(options.apiBaseUrl),
+        agentToken: resolveAgentToken(options.agentToken),
+        declarationName,
+        fetch: fetchImpl,
+        now,
+        suggestedDefaults: options.suggestedDefaults ?? DEFAULT_STATE_FILES_SUGGESTED_DEFAULTS,
+        ...(eveSessionKey === undefined ? {} : { eveSessionKey }),
+      });
+      const body = await getStateFileObject({
+        bucketName: handle.bucketName,
+        credentials: handle.credentials,
+        endpoint: handle.endpoint,
+        fetch: fetchImpl,
+        key: trustedRef.path,
+        maxBytes: limits.maxBytes,
+        now,
+      });
+      const resolved = sniffMediaAsset(trustedRef, body);
+      if (resolved === null) {
+        throw new StateFilesRuntimeError("the state asset is not a supported image, video, or audio file");
+      }
+      return resolved;
+    },
+    async write(path, body, writeOptions) {
+      const key = normalizeStateFilePath(path);
+      const eveSessionKey = getSessionId();
+      const handle = await requestRuntimeStateFilesHandle({
+        access: "rw",
+        apiBaseUrl: resolveApiBaseUrl(options.apiBaseUrl),
+        agentToken: resolveAgentToken(options.agentToken),
+        declarationName,
+        fetch: fetchImpl,
+        now,
         suggestedDefaults: options.suggestedDefaults ?? DEFAULT_STATE_FILES_SUGGESTED_DEFAULTS,
         ...(eveSessionKey === undefined ? {} : { eveSessionKey }),
       });
@@ -123,6 +188,13 @@ export function createRuntimeStateFilesClient(
         now,
         ...(writeOptions?.contentType === undefined ? {} : { contentType: writeOptions.contentType }),
       });
+      return stateAssetReference({
+        type: "state_asset",
+        declarationName,
+        path: key,
+        ...(writeOptions?.contentType === undefined ? {} : { contentType: writeOptions.contentType }),
+        bytes: body.byteLength,
+      });
     },
   };
 }
@@ -138,21 +210,21 @@ export function stateAssetReference(input: StateAssetReference): StateAssetRefer
 }
 
 export function normalizeStateFilePath(path: string): string {
-  if (path.length === 0) throw new Error("state file path must not be empty");
-  if (path.startsWith("/")) throw new Error(`state file path "${path}" must be relative`);
-  const segments = path.split("/");
-  if (segments.some((segment) => segment.length === 0 || segment === "." || segment === "..")) {
-    throw new Error(`state file path "${path}" must not contain empty, . or .. segments`);
+  try {
+    return normalizeMediaAssetPath(path);
+  } catch (error) {
+    throw new Error(`state file path is invalid: ${error instanceof Error ? error.message : "invalid path"}`);
   }
-  return path;
 }
 
 interface RequestRuntimeStateFilesHandleOptions {
+  readonly access: "r" | "rw";
   readonly apiBaseUrl: string;
   readonly agentToken: string;
   readonly declarationName: string;
   readonly eveSessionKey?: string;
   readonly fetch: typeof globalThis.fetch;
+  readonly now: () => Date;
   readonly suggestedDefaults: RuntimeStateFilesSuggestedDefaults;
 }
 
@@ -171,7 +243,7 @@ async function requestRuntimeStateFilesHandle(
     body: JSON.stringify({
       declarationName: options.declarationName,
       interface: "files",
-      access: "rw",
+      access: options.access,
       suggestedDefaults: options.suggestedDefaults,
     }),
   });
@@ -192,6 +264,15 @@ async function requestRuntimeStateFilesHandle(
     throw new StateFilesRuntimeError(
       "the state files broker returned a malformed handle; retrying may help",
     );
+  }
+  if (handle.declarationName !== options.declarationName) {
+    throw new StateFilesRuntimeError("the state files broker returned a handle for another declaration");
+  }
+  if (options.access === "rw" && handle.access !== "rw") {
+    throw new StateFilesRuntimeError("the state files broker returned a read-only handle for a write request");
+  }
+  if (Date.parse(handle.credentials.expiresAt) <= options.now().getTime()) {
+    throw new StateFilesRuntimeError("the state files broker returned an expired handle; retrying may help");
   }
   return handle;
 }
@@ -286,6 +367,65 @@ interface PutStateFileObjectOptions {
   readonly now: () => Date;
 }
 
+interface GetStateFileObjectOptions {
+  readonly endpoint: string;
+  readonly bucketName: string;
+  readonly credentials: StateFilesCredentials;
+  readonly key: string;
+  readonly maxBytes: number;
+  readonly fetch: typeof globalThis.fetch;
+  readonly now: () => Date;
+}
+
+async function getStateFileObject(options: GetStateFileObjectOptions): Promise<Uint8Array> {
+  const url = stateFileObjectUrl(options.endpoint, options.bucketName, options.key);
+  const headers = await signedS3Headers({
+    credentials: options.credentials,
+    date: options.now(),
+    host: url.host,
+    method: "GET",
+    path: url.pathname,
+    payloadHash: "UNSIGNED-PAYLOAD",
+  });
+  const response = await options.fetch(url, { method: "GET", headers });
+  if (!response.ok) throw new StateFilesRuntimeError(`the storage read was rejected with HTTP ${response.status}`);
+  const contentLength = response.headers.get("content-length");
+  if (contentLength !== null && Number(contentLength) > options.maxBytes) {
+    await response.body?.cancel();
+    throw new StateFilesRuntimeError(`the state asset exceeds the ${options.maxBytes} byte read limit`);
+  }
+  if (response.body === null) return new Uint8Array();
+  const stream: ReadableStream<Uint8Array> = response.body;
+  const reader = stream.getReader();
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  let done = false;
+  try {
+    while (!done) {
+      const result = await reader.read();
+      if (result.done) {
+        done = true;
+        continue;
+      }
+      total += result.value.byteLength;
+      if (total > options.maxBytes) {
+        await reader.cancel();
+        throw new StateFilesRuntimeError(`the state asset exceeds the ${options.maxBytes} byte read limit`);
+      }
+      chunks.push(result.value);
+    }
+  } finally {
+    reader.releaseLock();
+  }
+  const body = new Uint8Array(total);
+  let offset = 0;
+  for (const chunk of chunks) {
+    body.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  return body;
+}
+
 async function putStateFileObject(options: PutStateFileObjectOptions): Promise<void> {
   const url = stateFileObjectUrl(options.endpoint, options.bucketName, options.key);
   const payloadHash = await sha256Hex(options.body);
@@ -315,8 +455,64 @@ function stateFileObjectUrl(endpoint: string, bucketName: string, key: string): 
   return new URL(`${base}/${encodeS3PathSegment(bucketName)}/${encodeS3Key(key)}`);
 }
 
+interface PresignedStateFileGetUrlOptions {
+  readonly endpoint: string;
+  readonly bucketName: string;
+  readonly credentials: StateFilesCredentials;
+  readonly key: string;
+  readonly expiresInSeconds: number;
+  readonly now: Date;
+}
+
+async function presignedStateFileGetUrl(options: PresignedStateFileGetUrlOptions): Promise<URL> {
+  const credentialSeconds = Math.floor(
+    (Date.parse(options.credentials.expiresAt) - options.now.getTime()) / 1000,
+  );
+  const expires = Math.min(options.expiresInSeconds, credentialSeconds);
+  if (expires <= 0) {
+    throw new StateFilesRuntimeError("the state files handle expired before a delivery URL could be created");
+  }
+  const url = stateFileObjectUrl(options.endpoint, options.bucketName, options.key);
+  const amzDate = awsAmzDate(options.now);
+  const dateStamp = amzDate.slice(0, 8);
+  const scope = `${dateStamp}/auto/s3/aws4_request`;
+  const query = new URLSearchParams({
+    "X-Amz-Algorithm": "AWS4-HMAC-SHA256",
+    "X-Amz-Credential": `${options.credentials.accessKeyId}/${scope}`,
+    "X-Amz-Date": amzDate,
+    "X-Amz-Expires": String(expires),
+    "X-Amz-Security-Token": options.credentials.sessionToken,
+    "X-Amz-SignedHeaders": "host",
+  });
+  const canonicalQuery = [...query.entries()]
+    .map(([name, value]) => `${encodeS3PathSegment(name)}=${encodeS3PathSegment(value)}`)
+    .sort()
+    .join("&");
+  const canonicalRequest = [
+    "GET",
+    url.pathname,
+    canonicalQuery,
+    `host:${url.host}\n`,
+    "host",
+    "UNSIGNED-PAYLOAD",
+  ].join("\n");
+  const stringToSign = [
+    "AWS4-HMAC-SHA256",
+    amzDate,
+    scope,
+    await sha256Hex(new TextEncoder().encode(canonicalRequest)),
+  ].join("\n");
+  const signingKey = await awsSigningKey(options.credentials.secretAccessKey, dateStamp);
+  query.set("X-Amz-Signature", await hmacHex(signingKey, stringToSign));
+  url.search = [...query.entries()]
+    .map(([name, value]) => `${encodeS3PathSegment(name)}=${encodeS3PathSegment(value)}`)
+    .sort()
+    .join("&");
+  return url;
+}
+
 interface SignedS3HeadersInput {
-  readonly method: "PUT";
+  readonly method: "GET" | "PUT";
   readonly path: string;
   readonly host: string;
   readonly payloadHash: string;
