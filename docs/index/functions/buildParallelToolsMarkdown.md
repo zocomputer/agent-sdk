@@ -8,7 +8,7 @@
 
 > **buildParallelToolsMarkdown**(`opts?`): `string`
 
-Defined in: [packages/agent-sdk/src/instructions.ts:263](https://github.com/zocomputer/zov2-code/blob/76a0c7e372069bfa29a1d30375fdc2f67f746411/packages/agent-sdk/src/instructions.ts#L263)
+Defined in: [packages/agent-sdk/src/instructions.ts:263](https://github.com/zocomputer/zov2-code/blob/07721c227b11c8cc8115ab6c09048e903415a342/packages/agent-sdk/src/instructions.ts#L263)
 
 Pure markdown for the background-work playbook; see createParallelToolsInstruction.
 

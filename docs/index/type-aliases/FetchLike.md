@@ -8,7 +8,7 @@
 
 > **FetchLike** = (`url`, `init?`) => `Promise`\<`Response`\>
 
-Defined in: [packages/agent-sdk/src/web-fetch.ts:207](https://github.com/zocomputer/zov2-code/blob/76a0c7e372069bfa29a1d30375fdc2f67f746411/packages/agent-sdk/src/web-fetch.ts#L207)
+Defined in: [packages/agent-sdk/src/web-fetch.ts:207](https://github.com/zocomputer/zov2-code/blob/07721c227b11c8cc8115ab6c09048e903415a342/packages/agent-sdk/src/web-fetch.ts#L207)
 
 The slice of `fetch` this module needs. Narrower than `typeof fetch` (Bun
 adds a `preconnect` property to the global) so test stubs stay plain
