@@ -8,6 +8,6 @@
 
 > **InstructionStackSectionId** = *typeof* [`INSTRUCTION_STACK_SECTION_IDS`](../variables/INSTRUCTION_STACK_SECTION_IDS.md)\[`number`\]
 
-Defined in: [packages/agent-sdk/src/instructions.ts:655](https://github.com/zocomputer/zov2-code/blob/1e24004df378afe2dca17754c9e6cedc76f36385/packages/agent-sdk/src/instructions.ts#L655)
+Defined in: [packages/agent-sdk/src/instructions.ts:655](https://github.com/zocomputer/zov2-code/blob/71f3c28acf6f43bb252eb9f351caca137d9922f9/packages/agent-sdk/src/instructions.ts#L655)
 
 A baseline stack section id — an omit key or a placement anchor.

@@ -1,4 +1,4 @@
-// ../../../../../tmp/agent-sdk-mirror-pyFJSK/repo/src/visible-reasoning.ts
+// ../../../../../tmp/agent-sdk-mirror-81kny2/repo/src/visible-reasoning.ts
 var ANTHROPIC_ADAPTIVE_THINKING_MODELS = [
   /^anthropic\/claude-fable-/,
   /^anthropic\/claude-mythos-/,

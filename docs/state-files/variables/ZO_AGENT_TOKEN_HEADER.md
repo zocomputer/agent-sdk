@@ -8,6 +8,6 @@
 
 > `const` **ZO\_AGENT\_TOKEN\_HEADER**: `"x-zo-agent-token"` = `"x-zo-agent-token"`
 
-Defined in: [packages/agent-sdk/src/state-files.ts:21](https://github.com/zocomputer/zov2-code/blob/1e24004df378afe2dca17754c9e6cedc76f36385/packages/agent-sdk/src/state-files.ts#L21)
+Defined in: [packages/agent-sdk/src/state-files.ts:21](https://github.com/zocomputer/zov2-code/blob/71f3c28acf6f43bb252eb9f351caca137d9922f9/packages/agent-sdk/src/state-files.ts#L21)
 
 Header name carrying the agent bearer token to the runtime broker.

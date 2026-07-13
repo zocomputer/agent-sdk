@@ -1,4 +1,4 @@
-// ../../../../../tmp/agent-sdk-mirror-pyFJSK/repo/src/initiator-auth.ts
+// ../../../../../tmp/agent-sdk-mirror-81kny2/repo/src/initiator-auth.ts
 var INITIATOR_HEADER = "x-zo-initiator";
 function parseInitiator(value) {
   if (!value)
