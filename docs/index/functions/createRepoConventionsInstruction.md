@@ -6,9 +6,9 @@
 
 # Function: createRepoConventionsInstruction()
 
-> **createRepoConventionsInstruction**(`opts`): `DynamicSentinel`
+> **createRepoConventionsInstruction**(`opts`): `DynamicSentinel`\<\{ `markdown`: `string`; \}\>
 
-Defined in: [packages/agent-sdk/src/instructions.ts:83](https://github.com/zocomputer/zov2-code/blob/2f680aef81cf6a147ceac91fe4d066f3e4aff1b6/packages/agent-sdk/src/instructions.ts#L83)
+Defined in: [packages/agent-sdk/src/instructions.ts:83](https://github.com/zocomputer/zov2-code/blob/fc4b6dd8dd680b4495b1f44b776f9a8d76104d40/packages/agent-sdk/src/instructions.ts#L83)
 
 Inject the workspace's root AGENTS.md as a system-prompt section. Nested
 per-directory AGENTS.md files stay the model's job to read — this covers
@@ -24,4 +24,4 @@ the root conventions.
 
 ## Returns
 
-`DynamicSentinel`
+`DynamicSentinel`\<\{ `markdown`: `string`; \}\>

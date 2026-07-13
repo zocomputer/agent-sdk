@@ -15,6 +15,8 @@ const workspace = createWorkspace(root);
 const spillDir = join(root, ".agent", "tool-outputs");
 
 const ctx: ToolContext = {
+  abortSignal: new AbortController().signal,
+  callId: "call-1",
   session: {
     id: "test-session",
     auth: { current: null, initiator: null },

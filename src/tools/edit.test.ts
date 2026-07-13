@@ -31,6 +31,8 @@ const slowReadIo: WorkspaceIoProvider = (ctx) => {
 // The stdlib file tools never touch eve session capabilities; a throwing stub
 // keeps that honest (mirrors index.test.ts).
 const ctx: ToolContext = {
+  abortSignal: new AbortController().signal,
+  callId: "call-1",
   session: {
     id: "edit-test-session",
     auth: { current: null, initiator: null },

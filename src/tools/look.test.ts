@@ -48,6 +48,8 @@ writeFileSync(join(root, "notes.txt"), "plain text\n");
 const workspace = createWorkspace(root);
 
 const ctx: ToolContext = {
+  abortSignal: new AbortController().signal,
+  callId: "call-1",
   session: {
     id: "look-session",
     auth: { current: null, initiator: null },

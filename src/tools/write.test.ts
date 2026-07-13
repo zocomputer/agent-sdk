@@ -14,6 +14,8 @@ const workspace = createWorkspace(root);
 // The stdlib file tools never touch eve session capabilities; a throwing stub
 // keeps that honest (mirrors edit.test.ts).
 const ctx: ToolContext = {
+  abortSignal: new AbortController().signal,
+  callId: "call-1",
   session: {
     id: "write-test-session",
     auth: { current: null, initiator: null },

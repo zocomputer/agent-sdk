@@ -6,9 +6,9 @@
 
 # Function: createToolAuthoringInstruction()
 
-> **createToolAuthoringInstruction**(`opts?`): `DynamicSentinel`
+> **createToolAuthoringInstruction**(`opts?`): `DynamicSentinel`\<\{ `markdown`: `string`; \}\>
 
-Defined in: [packages/agent-sdk/src/instructions.ts:620](https://github.com/zocomputer/zov2-code/blob/2f680aef81cf6a147ceac91fe4d066f3e4aff1b6/packages/agent-sdk/src/instructions.ts#L620)
+Defined in: [packages/agent-sdk/src/instructions.ts:620](https://github.com/zocomputer/zov2-code/blob/fc4b6dd8dd680b4495b1f44b776f9a8d76104d40/packages/agent-sdk/src/instructions.ts#L620)
 
 The tool-authoring contract as a standalone à la carte instruction, for
 agents that author eve tools. Static and session-stable (prompt-cache
@@ -25,4 +25,4 @@ safe). Stack consumers pass [toolAuthoringSection](toolAuthoringSection.md) thro
 
 ## Returns
 
-`DynamicSentinel`
+`DynamicSentinel`\<\{ `markdown`: `string`; \}\>

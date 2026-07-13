@@ -6,9 +6,9 @@
 
 # Function: createTaskInstruction()
 
-> **createTaskInstruction**(`opts?`): `DynamicSentinel`
+> **createTaskInstruction**(`opts?`): `DynamicSentinel`\<\{ `markdown`: `string`; \}\>
 
-Defined in: [packages/agent-sdk/src/task.ts:118](https://github.com/zocomputer/zov2-code/blob/2f680aef81cf6a147ceac91fe4d066f3e4aff1b6/packages/agent-sdk/src/task.ts#L118)
+Defined in: [packages/agent-sdk/src/task.ts:118](https://github.com/zocomputer/zov2-code/blob/fc4b6dd8dd680b4495b1f44b776f9a8d76104d40/packages/agent-sdk/src/task.ts#L118)
 
 The task child's operating contract, wired as the subagent's
 `instructions/task.ts` re-export. Static and session-stable
@@ -24,4 +24,4 @@ The task child's operating contract, wired as the subagent's
 
 ## Returns
 
-`DynamicSentinel`
+`DynamicSentinel`\<\{ `markdown`: `string`; \}\>

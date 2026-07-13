@@ -167,7 +167,7 @@ describe("zoBackend", () => {
     const handle = await zoBackend({ apiBaseUrl: "http://api.test" }).create(
       createInput(WRAPPED_KEY, { rawSessionId: RAW_SESSION_ID }),
     );
-    await handle.dispose();
+    await handle.shutdown();
     await expect(handle.session.run({ command: "echo hi" })).rejects.toThrow(/disposed/);
     // Disposed before any run — the broker was never called.
     expect(fetchCalls).toBe(0);

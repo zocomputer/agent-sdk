@@ -6,9 +6,9 @@
 
 # Function: createInstructionStackInstruction()
 
-> **createInstructionStackInstruction**(`opts`): `DynamicSentinel`
+> **createInstructionStackInstruction**(`opts`): `DynamicSentinel`\<\{ `markdown`: `string`; \}\>
 
-Defined in: [packages/agent-sdk/src/instructions.ts:763](https://github.com/zocomputer/zov2-code/blob/2f680aef81cf6a147ceac91fe4d066f3e4aff1b6/packages/agent-sdk/src/instructions.ts#L763)
+Defined in: [packages/agent-sdk/src/instructions.ts:763](https://github.com/zocomputer/zov2-code/blob/fc4b6dd8dd680b4495b1f44b776f9a8d76104d40/packages/agent-sdk/src/instructions.ts#L763)
 
 The whole baseline prompt as ONE dynamic instruction, in the SDK's
 canonical section order. Prefer this over the per-section factories: eve
@@ -27,4 +27,4 @@ stack ships operational contracts, not personality.
 
 ## Returns
 
-`DynamicSentinel`
+`DynamicSentinel`\<\{ `markdown`: `string`; \}\>

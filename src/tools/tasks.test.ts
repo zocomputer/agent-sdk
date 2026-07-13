@@ -26,6 +26,8 @@ if (!toolset) throw new Error("toolset should exist with one backgroundable");
 
 function ctxWith(sessionId: string): ToolContext {
   return {
+    abortSignal: new AbortController().signal,
+    callId: "call-1",
     session: {
       id: sessionId,
       auth: { current: null, initiator: null },

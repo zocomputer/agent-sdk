@@ -28,6 +28,8 @@ function fakeBase(): { base: ToolDefinition; state: () => readonly TodoItem[] } 
 
 function ctxWith(sessionId: string): ToolContext {
   return {
+    abortSignal: new AbortController().signal,
+    callId: "call-1",
     session: {
       id: sessionId,
       auth: { current: null, initiator: null },

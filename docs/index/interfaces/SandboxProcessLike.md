@@ -6,7 +6,7 @@
 
 # Interface: SandboxProcessLike
 
-Defined in: [packages/agent-sdk/src/sandbox-run.ts:37](https://github.com/zocomputer/zov2-code/blob/2f680aef81cf6a147ceac91fe4d066f3e4aff1b6/packages/agent-sdk/src/sandbox-run.ts#L37)
+Defined in: [packages/agent-sdk/src/sandbox-run.ts:37](https://github.com/zocomputer/zov2-code/blob/fc4b6dd8dd680b4495b1f44b776f9a8d76104d40/packages/agent-sdk/src/sandbox-run.ts#L37)
 
 The structural slice of a spawned sandbox process the runner needs.
 Matches eve's `SandboxProcess` (itself the AI SDK sandbox process shape):
@@ -19,7 +19,7 @@ idempotent kill.
 
 > `readonly` **stderr**: `ReadableStream`\<`Uint8Array`\<`ArrayBufferLike`\>\>
 
-Defined in: [packages/agent-sdk/src/sandbox-run.ts:41](https://github.com/zocomputer/zov2-code/blob/2f680aef81cf6a147ceac91fe4d066f3e4aff1b6/packages/agent-sdk/src/sandbox-run.ts#L41)
+Defined in: [packages/agent-sdk/src/sandbox-run.ts:41](https://github.com/zocomputer/zov2-code/blob/fc4b6dd8dd680b4495b1f44b776f9a8d76104d40/packages/agent-sdk/src/sandbox-run.ts#L41)
 
 Bytes the process writes to standard error.
 
@@ -29,7 +29,7 @@ Bytes the process writes to standard error.
 
 > `readonly` **stdout**: `ReadableStream`\<`Uint8Array`\<`ArrayBufferLike`\>\>
 
-Defined in: [packages/agent-sdk/src/sandbox-run.ts:39](https://github.com/zocomputer/zov2-code/blob/2f680aef81cf6a147ceac91fe4d066f3e4aff1b6/packages/agent-sdk/src/sandbox-run.ts#L39)
+Defined in: [packages/agent-sdk/src/sandbox-run.ts:39](https://github.com/zocomputer/zov2-code/blob/fc4b6dd8dd680b4495b1f44b776f9a8d76104d40/packages/agent-sdk/src/sandbox-run.ts#L39)
 
 Bytes the process writes to standard output.
 
@@ -39,7 +39,7 @@ Bytes the process writes to standard output.
 
 > **kill**(): `PromiseLike`\<`void`\>
 
-Defined in: [packages/agent-sdk/src/sandbox-run.ts:45](https://github.com/zocomputer/zov2-code/blob/2f680aef81cf6a147ceac91fe4d066f3e4aff1b6/packages/agent-sdk/src/sandbox-run.ts#L45)
+Defined in: [packages/agent-sdk/src/sandbox-run.ts:45](https://github.com/zocomputer/zov2-code/blob/fc4b6dd8dd680b4495b1f44b776f9a8d76104d40/packages/agent-sdk/src/sandbox-run.ts#L45)
 
 Terminate the process. Idempotent.
 
@@ -53,7 +53,7 @@ Terminate the process. Idempotent.
 
 > **wait**(): `PromiseLike`\<\{ `exitCode`: `number`; \}\>
 
-Defined in: [packages/agent-sdk/src/sandbox-run.ts:43](https://github.com/zocomputer/zov2-code/blob/2f680aef81cf6a147ceac91fe4d066f3e4aff1b6/packages/agent-sdk/src/sandbox-run.ts#L43)
+Defined in: [packages/agent-sdk/src/sandbox-run.ts:43](https://github.com/zocomputer/zov2-code/blob/fc4b6dd8dd680b4495b1f44b776f9a8d76104d40/packages/agent-sdk/src/sandbox-run.ts#L43)
 
 Resolves when the process exits, with its exit code.
 

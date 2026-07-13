@@ -1,7 +1,7 @@
-// ../../../../../tmp/agent-sdk-mirror-ocVtYJ/repo/platform/runtime-ai/gateway.ts
+// ../../../../../tmp/agent-sdk-mirror-NTHgaU/repo/platform/runtime-ai/gateway.ts
 import { createGateway } from "ai";
 
-// ../../../../../tmp/agent-sdk-mirror-ocVtYJ/repo/platform/runtime-ai/session-fetch.ts
+// ../../../../../tmp/agent-sdk-mirror-NTHgaU/repo/platform/runtime-ai/session-fetch.ts
 var EVE_SESSION_HEADER = "x-zo-eve-session";
 var EVE_TURN_HEADER = "x-zo-eve-turn";
 var EVE_SUBAGENT_SESSION_HEADER = "x-zo-eve-subagent-session";
@@ -68,7 +68,7 @@ function eveSessionFetch(getSessionId = ambientEveSessionId, baseFetch = globalT
   }, baseFetch);
 }
 
-// ../../../../../tmp/agent-sdk-mirror-ocVtYJ/repo/platform/runtime-ai/stream-guards.ts
+// ../../../../../tmp/agent-sdk-mirror-NTHgaU/repo/platform/runtime-ai/stream-guards.ts
 var DEFAULT_STREAM_GUARDS = {
   firstByteMs: 60000,
   idleMs: 180000
@@ -132,7 +132,7 @@ function withStreamGuards(baseFetch, options = DEFAULT_STREAM_GUARDS) {
   return Object.assign(guarded, { preconnect: globalThis.fetch.preconnect });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-ocVtYJ/repo/platform/runtime-ai/gateway-config.ts
+// ../../../../../tmp/agent-sdk-mirror-NTHgaU/repo/platform/runtime-ai/gateway-config.ts
 var DEFAULT_ZO_AI_BASE_URL = "http://localhost:4000/runtime/ai/v4/ai";
 var DEFAULT_ZO_AI_KEY = "dev-proxy";
 var AGENT_TOKEN_HEADER = "x-zo-agent-token";
@@ -159,12 +159,12 @@ function zoGatewaySettings(options = {}) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-ocVtYJ/repo/platform/runtime-ai/gateway.ts
+// ../../../../../tmp/agent-sdk-mirror-NTHgaU/repo/platform/runtime-ai/gateway.ts
 function zoGateway(options = {}) {
   return createGateway(zoGatewaySettings(options));
 }
 
-// ../../../../../tmp/agent-sdk-mirror-ocVtYJ/repo/platform/runtime-ai/provider-slot.ts
+// ../../../../../tmp/agent-sdk-mirror-NTHgaU/repo/platform/runtime-ai/provider-slot.ts
 var SLOT = "AI_SDK_DEFAULT_PROVIDER";
 function installZoDefaultProvider(provider) {
   if (SLOT in globalThis)
@@ -177,7 +177,7 @@ function installZoDefaultProvider(provider) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-ocVtYJ/repo/platform/runtime-ai/validated-compaction.ts
+// ../../../../../tmp/agent-sdk-mirror-NTHgaU/repo/platform/runtime-ai/validated-compaction.ts
 var COMPACTION_SENTINEL = "You are a conversation summarizer.";
 var RECOVERED_CONTEXT_HEADER = "## Recovered context (compaction audit)";
 var DEFAULT_MAX_RECOVERED_CHARS = 2000;
@@ -376,5 +376,5 @@ function withValidatedCompactionProvider(provider, options = {}) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-ocVtYJ/repo/platform/runtime-ai/register.ts
+// ../../../../../tmp/agent-sdk-mirror-NTHgaU/repo/platform/runtime-ai/register.ts
 installZoDefaultProvider(withValidatedCompactionProvider(zoGateway()));

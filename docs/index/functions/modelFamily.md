@@ -8,7 +8,7 @@
 
 > **modelFamily**(`modelId`): `string`
 
-Defined in: [packages/agent-sdk/src/model-capabilities.ts:72](https://github.com/zocomputer/zov2-code/blob/2f680aef81cf6a147ceac91fe4d066f3e4aff1b6/packages/agent-sdk/src/model-capabilities.ts#L72)
+Defined in: [packages/agent-sdk/src/model-capabilities.ts:72](https://github.com/zocomputer/zov2-code/blob/fc4b6dd8dd680b4495b1f44b776f9a8d76104d40/packages/agent-sdk/src/model-capabilities.ts#L72)
 
 The creator segment of a gateway model id (`"google/gemini-3-flash"` → `"google"`), or `""` when the id carries no family signal.
 

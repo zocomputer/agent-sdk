@@ -19,6 +19,8 @@ const workspace = createWorkspace(root);
 // grep never touches the eve session context; a stub that throws on every
 // capability keeps that honest without an `as`-cast.
 const ctx: ToolContext = {
+  abortSignal: new AbortController().signal,
+  callId: "call-1",
   session: {
     id: "grep-test",
     auth: { current: null, initiator: null },

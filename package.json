@@ -130,7 +130,7 @@
   },
   "peerDependencies": {
     "ai": "^7.0.15",
-    "eve": "^0.18.0",
+    "eve": "^0.22.5",
     "zod": "^4.4.3"
   },
   "devDependencies": {
@@ -142,7 +142,7 @@
     "ai": "^7.0.15",
     "eslint": "^9",
     "eslint-plugin-tsdoc": "^0.5.2",
-    "eve": "^0.18.0",
+    "eve": "^0.22.5",
     "fast-check": "^4.8.0",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8",

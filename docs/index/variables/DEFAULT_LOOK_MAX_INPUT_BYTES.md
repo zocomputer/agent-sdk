@@ -8,6 +8,6 @@
 
 > `const` **DEFAULT\_LOOK\_MAX\_INPUT\_BYTES**: `number`
 
-Defined in: [packages/agent-sdk/src/tools/look.ts:38](https://github.com/zocomputer/zov2-code/blob/2f680aef81cf6a147ceac91fe4d066f3e4aff1b6/packages/agent-sdk/src/tools/look.ts#L38)
+Defined in: [packages/agent-sdk/src/tools/look.ts:38](https://github.com/zocomputer/zov2-code/blob/fc4b6dd8dd680b4495b1f44b776f9a8d76104d40/packages/agent-sdk/src/tools/look.ts#L38)
 
 Default byte cap for the file sent to the oracle — the Gemini API's inline-data request budget.

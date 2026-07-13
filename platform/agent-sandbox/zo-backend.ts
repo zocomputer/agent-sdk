@@ -151,9 +151,10 @@ export function zoBackend(options: ZoBackendOptions): SandboxBackend {
               ...(lineageRootId === null ? {} : { brokeredSessionKey: lineageRootId }),
             } satisfies DaytonaSessionMetadata,
           }),
-        // Close the local SSH connection; never destroy the sandbox (the next
-        // reply reattaches via the captured id).
-        dispose: () => {
+        // Close the runtime-owned SSH connection on server shutdown. The
+        // control plane owns the durable sandbox lifecycle, so the next server
+        // process can reattach via the captured id.
+        shutdown: () => {
           ssh.dispose();
           return Promise.resolve();
         },

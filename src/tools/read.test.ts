@@ -63,6 +63,8 @@ describe("read riders under a failing IO", () => {
 /** A stub ToolContext whose capabilities all throw (read touches only `session.id`). */
 function sessionCtx(id: string): ToolContext {
   return {
+    abortSignal: new AbortController().signal,
+    callId: "call-1",
     session: {
       id,
       auth: { current: null, initiator: null },

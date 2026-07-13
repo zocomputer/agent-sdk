@@ -8,7 +8,7 @@
 
 > **createSandboxFileTools**(`options`): `object`
 
-Defined in: [packages/agent-sdk/src/index.ts:138](https://github.com/zocomputer/zov2-code/blob/2f680aef81cf6a147ceac91fe4d066f3e4aff1b6/packages/agent-sdk/src/index.ts#L138)
+Defined in: [packages/agent-sdk/src/index.ts:138](https://github.com/zocomputer/zov2-code/blob/fc4b6dd8dd680b4495b1f44b776f9a8d76104d40/packages/agent-sdk/src/index.ts#L138)
 
 Create the sandbox-backed toolset for hosted agents:
 read/edit/write/glob/grep route through the sandbox session's file API and
@@ -38,27 +38,27 @@ The run_async-able ops (bash).
 
 #### instructions.communication
 
-> **communication**: `DynamicSentinel`
+> **communication**: `DynamicSentinel`\<\{ `markdown`: `string`; \}\>
 
 #### instructions.hitl
 
-> **hitl**: `DynamicSentinel`
+> **hitl**: `DynamicSentinel`\<\{ `markdown`: `string`; \}\>
 
 #### instructions.media?
 
-> `optional` **media?**: `DynamicSentinel`
+> `optional` **media?**: `DynamicSentinel`\<\{ `markdown`: `string`; \}\>
 
 #### instructions.parallelTools
 
-> **parallelTools**: `DynamicSentinel`
+> **parallelTools**: `DynamicSentinel`\<\{ `markdown`: `string`; \}\>
 
 #### instructions.planning
 
-> **planning**: `DynamicSentinel`
+> **planning**: `DynamicSentinel`\<\{ `markdown`: `string`; \}\>
 
 #### instructions.stack
 
-> **stack**: `DynamicSentinel`
+> **stack**: `DynamicSentinel`\<\{ `markdown`: `string`; \}\>
 
 The composed instruction stack (see
 `createInstructionStackInstruction`), pre-configured for the sandbox
@@ -73,11 +73,11 @@ Honors `instructionTier`, `omitInstructionSections`, and
 
 #### instructions.subagents
 
-> **subagents**: `DynamicSentinel`
+> **subagents**: `DynamicSentinel`\<\{ `markdown`: `string`; \}\>
 
 #### instructions.workflow
 
-> **workflow**: `DynamicSentinel`
+> **workflow**: `DynamicSentinel`\<\{ `markdown`: `string`; \}\>
 
 ### io
 
@@ -131,7 +131,7 @@ The sandbox-backed command runner provider behind `bash`/`run_async`.
 
 #### tools.tasks
 
-> **tasks**: `DynamicSentinel`
+> **tasks**: `DynamicSentinel`\<\{ `await_task`: `ToolDefinition`\<\{ `task_id`: `string`; `wait_ms?`: `number`; \}, \{ `elapsedMs`: `number`; `label`: `string`; `result`: `unknown`; `status`: `"running"` \| `"done"` \| `"error"` \| `"lost"`; `task_id`: `string`; `tool`: `string`; \} \| \{ `elapsedMs`: `number`; `error`: `string`; `label`: `string`; `status`: `"running"` \| `"done"` \| `"error"` \| `"lost"`; `task_id`: `string`; `tool`: `string`; \} \| \{ `elapsedMs`: `number`; `label`: `string`; `progress?`: \{ \} \| `null`; `status`: `"running"` \| `"done"` \| `"error"` \| `"lost"`; `task_id`: `string`; `tool`: `string`; \}\>; `check_tasks`: `ToolDefinition`\<`Record`\<`string`, `never`\>, \{ `runningCount`: `number`; `tasks`: `object`[]; \}\>; `run_async`: `ToolDefinition`\<\{ `input`: `Record`\<`string`, `unknown`\>; `tool`: `string`; \}, \{ `note`: `string`; `status`: `"running"`; `task_id`: `string`; `tool`: `string`; \}\>; \} \| `null`\>
 
 #### tools.todo
 
