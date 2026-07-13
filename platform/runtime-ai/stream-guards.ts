@@ -1,8 +1,5 @@
-// Stream guards for the gateway fetch — a DELIBERATE line-for-line duplicate of
-// `@zocomputer/agent-sdk/gateway-fetch` (the canonical implementation). This
-// package is vendored self-contained (`ai` + Node built-ins only), so it can't
-// import the SDK; the sibling `stream-guards.test.ts` is the drift pin that
-// locks defaults and behavior to the SDK copy. Change them together.
+// Stream guards for gateway fetches. This hosted runtime implementation is the
+// source of truth; the composed SDK subpath re-exports it.
 //
 // Neither eve's `defineAgent` nor the AI SDK's gateway provider exposes
 // per-attempt timeouts, so a model call that hangs — headers never arrive, or

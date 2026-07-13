@@ -8,7 +8,7 @@
 
 > **createStateFilesClient**(`options`): [`StateFilesClient`](../interfaces/StateFilesClient.md)
 
-Defined in: [packages/agent-sdk/src/state-files.ts:278](https://github.com/zocomputer/zov2-code/blob/440b57200b266cf1c7309b270db9220db760c77a/packages/agent-sdk/src/state-files.ts#L278)
+Defined in: [packages/agent-sdk/src/state-files.ts:278](https://github.com/zocomputer/zov2-code/blob/2f680aef81cf6a147ceac91fe4d066f3e4aff1b6/packages/agent-sdk/src/state-files.ts#L278)
 
 Creates a state-files client backed by a single static handle.
 For credentials that expire, use `createRefreshingStateFilesClient` instead.

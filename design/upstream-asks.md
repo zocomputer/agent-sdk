@@ -103,11 +103,11 @@ that don't drive real machinery.
   remains unconfirmed.
 - **Deliver-on-park API.** Background work can finish after the model's last
   tool window, but eve has no first-class "deliver this to the session when it
-  next parks" operation. Our park-delivery hook watches for
-  `session.waiting`, sends the queued batch back over loopback as the next user
-  turn, and handles the park/send race; the same bridge carries background-task
-  notifications and late steering. A framework operation keyed by session id
-  would delete the event watcher, token normalization, and retry state machine.
+  next parks" operation. We removed the SDK's loopback follow-up workaround:
+  it depended on topology-specific self-delivery and made background tools
+  promise notifications that hosted agents could not deliver. A framework
+  operation keyed by session id would make this capability portable enough to
+  support directly.
 
 ### Correctness and scale
 
@@ -139,13 +139,11 @@ that don't drive real machinery.
   the next `send` silently creates a fresh session — forking the
   conversation. Preserving the session state across aborts (the id was
   known!) would remove a whole class of client-side recovery code.
-- **No first-class mid-turn user-message injection.** Our steering wrapper
-  accepts a message through a tool-result side channel and drains it at the
-  next model step; if the turn reaches no later tool window, park delivery
-  replays it as a follow-up turn instead. eve owns the running turn and its
-  step boundaries, so a public "append this user message at the next step"
-  operation would preserve the user's timing and delete both the wrapper and
-  parked-turn fallback.
+- **No first-class mid-turn user-message injection.** We removed the SDK's
+  tool-result steering side channel and parked-turn fallback because they were
+  local-agent workarounds with inconsistent hosted semantics. eve owns the
+  running turn and its step boundaries; a public "append this user message at
+  the next step" operation remains the right shape for portable steering.
 - **A worker death mid-turn writes no terminal event.** A structural reload
   (env-file change, dep change) or crash kills every in-flight step, and the
   durable stream just ends mid-turn — no `turn.failed`, so the last assistant

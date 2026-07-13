@@ -94,7 +94,7 @@ Consequences, all deliberate:
   the part to its stub — the same graceful shape as eve's existing
   missing-attachment-bytes degrade (eve #325). The tool's result text should
   say the media can be re-read (this package's `read` note already does).
-- **Same-turn visibility**, the thing park delivery can never give: the model
+- **Same-turn visibility**, the thing removed follow-up delivery workaround can never give: the model
   sees the image on the very next step of the turn that read it.
 
 The alternative for completeness — **persist bytes in history until turn

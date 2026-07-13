@@ -77,23 +77,6 @@ describe("await_task failure hygiene", () => {
 });
 
 describe("run_async failure hygiene", () => {
-  test("an invalid notify.pattern fails before any work starts", () => {
-    const before = registry.listTasks().length;
-    // run_async throws synchronously — the watcher is built before start().
-    // Hoisted: run_async's type is a union (with/without notify), and a fresh
-    // literal would trip excess-property checks on the notify-less arm.
-    const runArgs = {
-      tool: "bash",
-      input: { command: "sleep 5" },
-      notify: { pattern: "(", reason: "unterminated group" },
-    };
-    expect(() => toolset.run_async.execute(runArgs, ctx)).toThrow(
-      /Invalid notify\.pattern — nothing was started/,
-    );
-    // Nothing was registered: the rejection really did precede the spawn.
-    expect(registry.listTasks().length).toBe(before);
-  });
-
   test("bad op input rejects with the field named, and starts nothing", () => {
     const before = registry.listTasks().length;
     expect(() =>

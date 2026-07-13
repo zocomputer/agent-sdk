@@ -17,11 +17,6 @@ Long-running work is a managed task, not a blocked turn:
   mid-session rebuild forks module graphs — module scope is not process
   scope in a hot-reloading harness, and the registry must be anchored to the
   process and the store, never the module.
-- **`notify` watchers replace polling**: `bash` and `run_async` take an
-  optional `{ pattern, reason }` regex watcher (debounced, capped) plus
-  `notify_on_complete`; matches are delivered to the model when the session
-  parks ([08](./08-park-delivery.md)) instead of it burning turns on
-  `check_tasks`.
 
 ## Why
 
@@ -47,12 +42,9 @@ backgroundable.
 
 ## The inspiration
 
-The adaptive foreground-window-then-background shape and the `notify` watchers
-mirror Cursor's `Shell` (`block_until_ms`, `notify_on_output` with a required
-human-readable reason and debounce), read from the inside during the
-learning-from-Cursor study — along with its unusually strong "don't poll;
-multitask or end the turn and let the notification come to you" prose, which
-informed the parallel-tools instruction. The persistence and lost-state
+The adaptive foreground-window-then-background shape mirrors Cursor's `Shell`
+(`block_until_ms`), read from the inside during the learning-from-Cursor study.
+The persistence and lost-state
 semantics are rib's own, forced by real restarts; the `globalThis` dedupe was
 forced by a real split-brain (`await_task` failing "No such task" on a task
 `bash` had just spawned).
@@ -64,5 +56,5 @@ forced by a real split-brain (`await_task` failing "No such task" on a task
   lesson.
 - `rib/learnings/22-rebuild-splits-module-state.md` — the registry split-brain
   and fix.
-- `journal/team/harness-research/2026-07-02-learning-from-cursor.md` §4 — the watcher
-  design.
+- `journal/team/harness-research/2026-07-02-learning-from-cursor.md` §4 — the
+  background-shell design.

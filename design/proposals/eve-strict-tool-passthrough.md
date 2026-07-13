@@ -105,6 +105,6 @@ observe the constraint working.
 ## What it unlocks downstream
 
 `@zocomputer/agent-sdk` can expose a `strictToolSchemas` option on
-`createStdlib` and A/B it against the misuse baseline from the
+the composed toolset and A/B it against the misuse baseline from the
 invalid-call-events proposal — constrained decoding has known quality
 trade-offs, so we want the lever and the measurement, then the decision.

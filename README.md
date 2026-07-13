@@ -26,13 +26,11 @@ just the pieces it wants.
 - **A bash that behaves.** Long commands auto-background instead of hanging
   the turn; oversized output spills to disk instead of flooding the context
   window.
-- **Background tasks.** `run_async` / `check_tasks` / `await_task`, plus
-  regex watchers that notify the model when output matches — no polling.
+- **Background tasks.** `run_async` / `check_tasks` / `await_task` let the
+  model overlap independent work, then poll or await it explicitly.
 - **Instructions included.** The workflow, communication, and
   human-in-the-loop prose that makes an agent behave well ships alongside the
   tools. Your agent's persona stays yours.
-- **Mid-turn steering.** Deliver a user's "actually, stop doing that" into a
-  running turn instead of after it.
 - **Validated compaction.** When eve summarizes an overlong conversation,
   a judge pass checks the summary against what it replaced and repairs
   silently dropped facts in place.
@@ -62,18 +60,18 @@ bun add @zocomputer/agent-sdk@github:zocomputer/agent-sdk#v0.6.0
 
 An eve agent is a folder of TypeScript files: eve auto-loads
 `agent/tools/*.ts` and `agent/instructions/*.ts`, and each tool file's
-**name is the wire name** the model sees. So you build the stdlib once, then
-add one tiny re-export file per tool.
+**name is the wire name** the model sees. Build the sandbox-backed toolset
+once, then add one tiny re-export file per tool.
 
-**1. Build the stdlib once:**
+**1. Build the toolset once:**
 
 ```ts
 // agent/lib/stdlib.ts
-import { createStdlib } from "@zocomputer/agent-sdk";
+import { createSandboxFileTools } from "@zocomputer/agent-sdk";
 
-export const stdlib = createStdlib({
-  workspaceRoot: process.env.MY_WORKDIR ?? process.cwd(),
-  stateDir: ".agent", // task state + spilled tool output — gitignore it
+export const stdlib = createSandboxFileTools({
+  workspaceRoot: "/workspace", // absolute path inside the session sandbox
+  spillDir: "/workspace/.agent/tool-outputs",
   workspaceNoun: "repo", // what tool descriptions call the workspace
 });
 ```
@@ -121,35 +119,9 @@ the one-file stack is what keeps the order intentional. See the
 [instruction stack](./GUIDE.md#the-instruction-stack) for the sections, the
 `compact` tier, and how to splice in your own sections or drop baseline ones.
 
-**5. Register the park-delivery hook** if you enable background-task
-notifications:
-
-```ts
-// agent/hooks/park-delivery.ts
-import { createParkDeliveryHook } from "@zocomputer/agent-sdk";
-export default createParkDeliveryHook();
-```
-
 That's the whole setup — `eve dev` and you have a working agent with the
 full toolset. Everything is also exported à la carte (`createReadTool`,
 `createCommandRunner`, …) if you'd rather compose a subset.
-
-## Try the example
-
-[`examples/coder`](./examples/coder) is a complete, minimal coding agent
-built exactly as prescribed above — real files you can copy. Point it at a
-project and run it:
-
-```sh
-cd examples/coder
-bun install
-CODER_WORKDIR=/path/to/project AI_GATEWAY_API_KEY=… bun dev
-```
-
-It also doubles as the SDK's end-to-end test suite: `bun run eval` drives ten
-deterministic scenarios through a real eve server on the
-[mock model](./GUIDE.md#mock-model-credential-free-testing), with zero
-credentials — a pattern worth copying for your own agent's CI.
 
 ## Going deeper
 
@@ -161,8 +133,6 @@ The [guide](./GUIDE.md) documents each subsystem:
   reach the model, and the video/audio opt-ins.
 - [The media oracle](./GUIDE.md#the-media-oracle-look) — delegating media
   the model can't view to a capable one with `look`.
-- [Steering](./GUIDE.md#steering-mid-turn-messages) — delivering user
-  messages into a running turn.
 - [Model-tier task subagents](./GUIDE.md#model-tier-task-subagents) —
   delegation workers pinned to cheaper or stronger models.
 - [Sandbox-backed file tools](./GUIDE.md#sandbox-backed-file-tools-split-topologies)

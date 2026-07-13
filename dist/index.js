@@ -1,8 +1,8 @@
-// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/index.ts
+// ../../../../../tmp/agent-sdk-mirror-ocVtYJ/repo/src/index.ts
 import { tmpdir } from "node:os";
-import { join as join8 } from "node:path";
+import { join as join7 } from "node:path";
 
-// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/async-tasks.ts
+// ../../../../../tmp/agent-sdk-mirror-ocVtYJ/repo/src/async-tasks.ts
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname } from "node:path";
 function isRecord(value) {
@@ -191,7 +191,7 @@ function buildTaskRegistry(opts) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/backgroundable.ts
+// ../../../../../tmp/agent-sdk-mirror-ocVtYJ/repo/src/backgroundable.ts
 import { z } from "zod";
 function defineOp(cfg) {
   return {
@@ -237,118 +237,7 @@ function createBashOp(runner) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/bounded-output.ts
-import { appendFileSync, mkdirSync as mkdirSync2, writeFileSync as writeFileSync2 } from "node:fs";
-import { dirname as dirname2 } from "node:path";
-var HEAD_CHARS = 25000;
-var TAIL_CHARS = 25000;
-var TOOL_OUTPUT_DIRNAME = "tool-outputs";
-function renderTruncationMarker(opts) {
-  const where = opts.label === undefined ? "" : `; full output: ${opts.label}`;
-  return `
-… [output truncated: showing first ${opts.headChars} and last ${opts.tailChars} of ${opts.totalChars} chars${where}]
-`;
-}
-var isHighSurrogate = (code) => code >= 55296 && code <= 56319;
-var isLowSurrogate = (code) => code >= 56320 && code <= 57343;
-var endsOnHighSurrogate = (text) => text.length > 0 && isHighSurrogate(text.charCodeAt(text.length - 1));
-function takeTail(text, cap) {
-  if (text.length <= cap)
-    return text;
-  let start = text.length - cap;
-  if (isLowSurrogate(text.charCodeAt(start)))
-    start += 1;
-  return text.slice(start);
-}
-function createBoundedCapture(opts = {}) {
-  const headCap = opts.headChars ?? HEAD_CHARS;
-  const tailCap = opts.tailChars ?? TAIL_CHARS;
-  let head = "";
-  let tail = "";
-  let total = 0;
-  let overflowed = false;
-  let spill = opts.spillPath ? "none" : "failed";
-  let spillCarry = "";
-  const writeSpill = (chunk, first) => {
-    if (spill === "failed" || opts.spillPath === undefined)
-      return;
-    let text = spillCarry + chunk;
-    if (endsOnHighSurrogate(text)) {
-      spillCarry = text.slice(-1);
-      text = text.slice(0, -1);
-    } else {
-      spillCarry = "";
-    }
-    try {
-      if (first) {
-        mkdirSync2(dirname2(opts.spillPath), { recursive: true });
-        writeFileSync2(opts.spillPath, text);
-        spill = "live";
-      } else {
-        appendFileSync(opts.spillPath, text);
-      }
-    } catch {
-      spill = "failed";
-    }
-  };
-  return {
-    append(chunk) {
-      total += chunk.length;
-      if (!overflowed) {
-        const room = headCap - head.length;
-        if (chunk.length <= room) {
-          head += chunk;
-          return;
-        }
-        overflowed = true;
-        let cut = room;
-        if (cut > 0 && isHighSurrogate(chunk.charCodeAt(cut - 1)))
-          cut -= 1;
-        head += chunk.slice(0, cut);
-        let remainder = chunk.slice(cut);
-        if (endsOnHighSurrogate(head)) {
-          remainder = head.slice(-1) + remainder;
-          head = head.slice(0, -1);
-        }
-        writeSpill(head + remainder, true);
-        tail = takeTail(remainder, tailCap);
-        return;
-      }
-      writeSpill(chunk, false);
-      tail = takeTail(tail + chunk, tailCap);
-    },
-    snapshot() {
-      if (!overflowed) {
-        return { text: head, head, tail: "", totalChars: total, truncated: false, spillPath: null };
-      }
-      if (head.length + tail.length === total) {
-        return { text: head + tail, head, tail, totalChars: total, truncated: false, spillPath: null };
-      }
-      const marker = renderTruncationMarker({
-        headChars: head.length,
-        tailChars: tail.length,
-        totalChars: total,
-        label: spill === "live" ? opts.spillLabel ?? opts.spillPath : undefined
-      });
-      return {
-        text: `${head}${marker}${tail}`,
-        head,
-        tail,
-        totalChars: total,
-        truncated: true,
-        spillPath: spill === "live" && opts.spillPath !== undefined ? opts.spillPath : null
-      };
-    },
-    latest() {
-      return overflowed ? tail : head;
-    },
-    totalChars() {
-      return total;
-    }
-  };
-}
-
-// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/dir-conventions.ts
+// ../../../../../tmp/agent-sdk-mirror-ocVtYJ/repo/src/dir-conventions.ts
 import { readFileSync as readFileSync2 } from "node:fs";
 import { join } from "node:path";
 var DEFAULT_MAX_BYTES_PER_FILE = 16 * 1024;
@@ -460,12 +349,12 @@ function createDirConventionsTracker(options) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/instructions.ts
+// ../../../../../tmp/agent-sdk-mirror-ocVtYJ/repo/src/instructions.ts
 import { readFileSync as readFileSync3 } from "node:fs";
 import { resolve } from "node:path";
 import { defineDynamic, defineInstructions } from "eve/instructions";
 
-// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/model-capabilities.ts
+// ../../../../../tmp/agent-sdk-mirror-ocVtYJ/repo/src/model-capabilities.ts
 var TEXT_ONLY_CAPABILITIES = {
   image: false,
   pdf: false,
@@ -524,7 +413,7 @@ function describeCapabilities(caps) {
   return `can view ${joinList(can, "and")}, but not ${joinList(cannot, "or")}`;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/prompt-sections.ts
+// ../../../../../tmp/agent-sdk-mirror-ocVtYJ/repo/src/prompt-sections.ts
 function renderPromptSection(section) {
   const body = section.body.trim();
   if (body === "")
@@ -567,7 +456,7 @@ function composePromptSections(baseline, options) {
   return composed;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/instructions.ts
+// ../../../../../tmp/agent-sdk-mirror-ocVtYJ/repo/src/instructions.ts
 function repoConventionsSection(opts) {
   let agents = "";
   try {
@@ -651,15 +540,11 @@ function createPlanningInstruction(opts) {
   });
 }
 function parallelToolsSection(opts) {
-  const notifications = opts?.notifications ?? true;
   const body = (opts?.tier ?? "full") === "compact" ? [
     `Long-running work continues in the **background**: \`bash\` auto-returns a \`task_id\` when a command outlives its short foreground wait; \`run_async\` starts there directly.`,
     ``,
     `- Next action independent of the result? Keep working, then \`check_tasks\` (non-blocking status) or \`await_task\` (blocks for the result). Dependent? \`await_task\` right away.`,
     `- Several tasks can run at once — track their \`task_id\`s.`,
-    ...notifications ? [
-      `- Watching for one signal in the output? Pass \`notify\` (\`{ pattern, reason }\`) to \`bash\`/\`run_async\`, or \`run_async\`'s \`notify_on_complete\`, instead of polling.`
-    ] : [],
     `- When you do poll on wall-clock time, keep each blocking call under ~4 minutes — one long silent call lets the provider prompt cache expire and re-prices your whole context.`,
     `- Completed results survive restarts; a task running through a restart reports \`lost\` — start it again if it still matters.`,
     `- Before ending your turn, await every task whose result matters (\`check_tasks\` if unsure what's in flight).`
@@ -674,12 +559,9 @@ function parallelToolsSection(opts) {
     `- Prefer plain \`bash\` for shell commands even when they might run long; it auto-returns a task handle if needed. Use \`run_async\` when you already know a command should start in the background and want to skip the foreground wait.`,
     `- You can have several tasks in flight at once. Each \`run_async\` returns a \`task_id\`; keep track of them.`,
     `- \`check_tasks\` shows status and live output previews for tasks that support progress. \`await_task\` returns the final output.`,
-    ...notifications ? [
-      `- For a long job where you only care about a specific signal — a failure line, a "listening on" banner — pass \`notify\` (\`{ pattern, reason }\`) to \`bash\` or \`run_async\` instead of polling: matching output is delivered to you as a message while you're idle. \`run_async\`'s \`notify_on_complete\` does the same when the task settles.`
-    ] : [],
     `- When you do poll on wall-clock time (waiting on CI, a review, a deploy), keep any single blocking call under ~4 minutes — one sleep+check per call, not a whole retry loop in one call. Provider prompt caches expire after ~5 minutes of model inactivity, so one long silent call re-prices your entire context on the next step; returning between polls keeps it warm.`,
     `- Background task metadata and completed results persist across agent restarts. A task still running during a restart is reported as \`lost\`; start it again if its result still matters.`,
-    `- Before finishing your turn, make sure any background task whose result matters has been awaited — don't end while relevant work is still running. If you're unsure what's still in flight, call \`check_tasks\`.${notifications ? " A task you set a `notify` watcher on may keep running — its matches will reach you as messages." : ""}`
+    `- Before finishing your turn, make sure any background task whose result matters has been awaited — don't end while relevant work is still running. If you're unsure what's still in flight, call \`check_tasks\`.`
   ].join(`
 `);
   return { id: "parallel-tools", heading: "Parallel tool calls", body };
@@ -872,7 +754,7 @@ function buildInstructionStackSections(opts) {
       tier
     }),
     planningSection({ tier }),
-    parallelToolsSection({ tier, notifications: opts.notifications }),
+    parallelToolsSection({ tier }),
     subagentSection({ workspaceNoun, roster: opts.subagentRoster, tier }),
     ...opts.media ? [lookSection({ ...opts.media, tier })] : [],
     hitlSection({ tier }),
@@ -892,472 +774,18 @@ function createInstructionStackInstruction(opts) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/run.ts
-import { spawn } from "node:child_process";
-import { join as join2 } from "node:path";
-var MAX_PREVIEW = 20000;
-function capturePreview(capture) {
-  const latest = capture.latest();
-  if (capture.totalChars() <= MAX_PREVIEW)
-    return latest;
-  return `… [earlier output truncated]
-${latest.slice(-MAX_PREVIEW)}`;
-}
-function createCommandRunner(opts) {
-  const { workspace, spillDir } = opts;
-  function startCommand(command, runOpts = {}) {
-    const cwd = runOpts.cwd ? workspace.resolve(runOpts.cwd) : workspace.root;
-    const timeoutMs = runOpts.timeoutMs ?? 120000;
-    const child = spawn(command, { cwd, shell: true, env: process.env, detached: true });
-    const runId = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
-    const captureFor = (stream) => {
-      const spillPath = join2(spillDir, `bash-${runId}-${stream}.log`);
-      return createBoundedCapture({ spillPath, spillLabel: workspace.relativize(spillPath) });
-    };
-    const stdoutCapture = captureFor("stdout");
-    const stderrCapture = captureFor("stderr");
-    let stdoutBytes = 0;
-    let stderrBytes = 0;
-    let timedOut = false;
-    let closed = false;
-    const killTree = (signal) => {
-      const pid = child.pid;
-      if (pid === undefined)
-        return;
-      try {
-        process.kill(-pid, signal);
-      } catch {
-        child.kill(signal);
-      }
-    };
-    const timer = setTimeout(() => {
-      timedOut = true;
-      killTree("SIGKILL");
-    }, timeoutMs);
-    const result = new Promise((resolvePromise) => {
-      child.stdout.on("data", (d) => {
-        const chunk = d.toString();
-        stdoutBytes += Buffer.byteLength(chunk);
-        stdoutCapture.append(chunk);
-        runOpts.onOutput?.(chunk);
-      });
-      child.stderr.on("data", (d) => {
-        const chunk = d.toString();
-        stderrBytes += Buffer.byteLength(chunk);
-        stderrCapture.append(chunk);
-        runOpts.onOutput?.(chunk);
-      });
-      child.on("close", (code) => {
-        closed = true;
-        clearTimeout(timer);
-        resolvePromise({
-          stdout: stdoutCapture.snapshot().text,
-          stderr: stderrCapture.snapshot().text,
-          exitCode: code,
-          timedOut
-        });
-      });
-      child.on("error", (err) => {
-        closed = true;
-        clearTimeout(timer);
-        resolvePromise({
-          stdout: stdoutCapture.snapshot().text,
-          stderr: `${stderrCapture.snapshot().text}${err.message}`,
-          exitCode: null,
-          timedOut
-        });
-      });
-    });
-    return {
-      result,
-      progress() {
-        return {
-          stdout: capturePreview(stdoutCapture),
-          stderr: capturePreview(stderrCapture),
-          stdoutBytes,
-          stderrBytes,
-          stdoutTruncated: stdoutCapture.totalChars() > MAX_PREVIEW,
-          stderrTruncated: stderrCapture.totalChars() > MAX_PREVIEW
-        };
-      },
-      kill() {
-        if (closed)
-          return;
-        killTree("SIGTERM");
-      }
-    };
-  }
-  return {
-    startCommand,
-    runCommand: (command, runOpts) => startCommand(command, runOpts).result
-  };
-}
-
-// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/steer-inbox.ts
-import {
-  appendFileSync as appendFileSync2,
-  linkSync,
-  mkdirSync as mkdirSync3,
-  readFileSync as readFileSync4,
-  renameSync,
-  rmSync
-} from "node:fs";
-import { join as join3 } from "node:path";
-
-// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/steer.ts
-var STEER_FIELD = "user_steer";
-var STEER_WRAPPED_OUTPUT_FIELD = "steer_wrapped_output";
-var STEER_DIRNAME = "steer";
-var STEER_NOTE = "The user sent these messages while this tool was running. They take priority: address them now and adjust your current approach before continuing.";
-function buildSteerPayload(messages) {
-  return { note: STEER_NOTE, messages: [...messages] };
-}
-function isRecord2(value) {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-function isSteerMessage(value) {
-  return isRecord2(value) && typeof value.id === "string" && typeof value.text === "string" && typeof value.at === "number";
-}
-function attachSteerToOutput(output, messages) {
-  if (isRecord2(output)) {
-    const existing = readSteerMessages(output) ?? [];
-    return { ...output, [STEER_FIELD]: buildSteerPayload([...existing, ...messages]) };
-  }
-  return {
-    [STEER_WRAPPED_OUTPUT_FIELD]: output,
-    [STEER_FIELD]: buildSteerPayload(messages)
-  };
-}
-function stripSteerFromOutput(record) {
-  const { [STEER_FIELD]: _steer, ...rest } = record;
-  const keys = Object.keys(rest);
-  if (keys.length === 1 && keys[0] === STEER_WRAPPED_OUTPUT_FIELD) {
-    return rest[STEER_WRAPPED_OUTPUT_FIELD];
-  }
-  return rest;
-}
-function readSteerMessages(output) {
-  if (!isRecord2(output))
-    return null;
-  const payload = output[STEER_FIELD];
-  if (!isRecord2(payload) || !Array.isArray(payload.messages))
-    return null;
-  const messages = payload.messages.filter(isSteerMessage);
-  return messages.length > 0 ? messages : null;
-}
-function formatSteerText(messages) {
-  const lines = messages.map((message) => `- ${message.text}`);
-  return `[${STEER_FIELD}] ${STEER_NOTE}
-${lines.join(`
-`)}`;
-}
-function mergeSteerIntoModelOutput(output, messages) {
-  if (output.type === "text") {
-    return { type: "text", value: `${output.value}
-
-${formatSteerText(messages)}` };
-  }
-  return { type: "json", value: attachSteerToOutput(output.value, messages) };
-}
-function serializeSteerLine(message) {
-  return JSON.stringify(message);
-}
-function parseSteerLine(line) {
-  const trimmed = line.trim();
-  if (trimmed === "")
-    return null;
-  try {
-    const parsed = JSON.parse(trimmed);
-    return isSteerMessage(parsed) ? parsed : null;
-  } catch {
-    return null;
-  }
-}
-
-// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/steer-inbox.ts
-var drainSequence = 0;
-function createSteerInbox(options) {
-  const now = options.now ?? Date.now;
-  const newId = options.newId ?? (() => crypto.randomUUID());
-  const readFile = options.readFile ?? ((path) => readFileSync4(path, "utf8"));
-  const fileFor = (sessionId) => join3(options.dir, `${encodeURIComponent(sessionId)}.ndjson`);
-  function appendMessage(sessionId, message) {
-    mkdirSync3(options.dir, { recursive: true });
-    appendFileSync2(fileFor(sessionId), `${serializeSteerLine(message)}
-`, "utf8");
-  }
-  return {
-    append(sessionId, text) {
-      const message = { id: newId(), text, at: now() };
-      appendMessage(sessionId, message);
-      return message;
-    },
-    appendMessage,
-    drain(sessionId) {
-      const file = fileFor(sessionId);
-      const claimed = `${file}.drain-${process.pid}-${drainSequence++}`;
-      try {
-        renameSync(file, claimed);
-      } catch {
-        return [];
-      }
-      let raw;
-      try {
-        raw = readFile(claimed);
-      } catch {
-        try {
-          linkSync(claimed, file);
-          rmSync(claimed, { force: true });
-        } catch {
-          try {
-            appendFileSync2(file, readFileSync4(claimed));
-            rmSync(claimed, { force: true });
-          } catch {}
-        }
-        return [];
-      }
-      rmSync(claimed, { force: true });
-      return raw.split(`
-`).map(parseSteerLine).filter((message) => message !== null);
-    }
-  };
-}
-
-// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/steer-tool.ts
+// ../../../../../tmp/agent-sdk-mirror-ocVtYJ/repo/src/tools/bash.ts
 import { defineTool } from "eve/tools";
-function withSteerDelivery(tool, inbox) {
-  const originalToModelOutput = tool.toModelOutput?.bind(tool);
-  const wrapped = {
-    ...tool,
-    async execute(input, ctx) {
-      const output = await tool.execute(input, ctx);
-      const messages = inbox.drain(ctx.session.id);
-      if (messages.length === 0)
-        return output;
-      return attachSteerToOutput(output, messages);
-    },
-    ...originalToModelOutput ? {
-      async toModelOutput(output) {
-        const messages = readSteerMessages(output);
-        if (!messages)
-          return originalToModelOutput(output);
-        const original = stripSteerFromOutput(output);
-        const narrowed = await originalToModelOutput(original);
-        return mergeSteerIntoModelOutput(narrowed, messages);
-      }
-    } : {}
-  };
-  return defineTool(wrapped);
-}
-function createSteerWrapper(inbox) {
-  if (!inbox)
-    return (tool) => tool;
-  return (tool) => withSteerDelivery(tool, inbox);
-}
-
-// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/tools/bash.ts
-import { defineTool as defineTool2 } from "eve/tools";
 import { z as z2 } from "zod";
-
-// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/park-delivery.ts
-function isRecord3(value) {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-function clientContinuationToken(runtimeToken) {
-  const sep = runtimeToken.indexOf(":");
-  if (sep <= 0)
-    return runtimeToken;
-  const rest = runtimeToken.slice(sep + 1);
-  const schemeSep = rest.indexOf(":");
-  if (schemeSep < 0)
-    return runtimeToken;
-  return rest.includes(":", schemeSep + 1) ? runtimeToken : rest;
-}
-function createParkDeliveryState() {
-  const sessions = new Map;
-  function session(id) {
-    let state = sessions.get(id);
-    if (!state) {
-      state = { pending: new Map, delivered: new Set, parked: false, delivering: false };
-      sessions.set(id, state);
-    }
-    return state;
-  }
-  function drain(id, state) {
-    if (state.pending.size === 0 || !state.continuationToken || state.delivering)
-      return null;
-    const items = [...state.pending.values()];
-    state.pending.clear();
-    for (const item of items)
-      state.delivered.add(item.key);
-    state.delivering = true;
-    return { sessionId: id, continuationToken: state.continuationToken, items };
-  }
-  function enqueueAll(sessionId, items) {
-    const state = session(sessionId);
-    let queued = false;
-    for (const item of items) {
-      if (state.delivered.has(item.key) || state.pending.has(item.key))
-        continue;
-      state.pending.set(item.key, item);
-      queued = true;
-    }
-    if (!queued || !state.parked)
-      return null;
-    return drain(sessionId, state);
-  }
-  return {
-    observe(event, meta) {
-      const state = session(meta.sessionId);
-      if (meta.continuationToken) {
-        state.continuationToken = clientContinuationToken(meta.continuationToken);
-      }
-      if (!isRecord3(event))
-        return null;
-      if (event.type === "session.completed" || event.type === "session.failed") {
-        sessions.delete(meta.sessionId);
-        return null;
-      }
-      if (event.type !== "session.waiting") {
-        state.parked = false;
-        return null;
-      }
-      state.parked = true;
-      return drain(meta.sessionId, state);
-    },
-    enqueue(sessionId, item) {
-      return enqueueAll(sessionId, [item]);
-    },
-    enqueueAll,
-    settle(request, ok) {
-      const state = session(request.sessionId);
-      state.delivering = false;
-      if (ok) {
-        if (state.parked)
-          return drain(request.sessionId, state);
-        return null;
-      }
-      for (const item of request.items) {
-        state.delivered.delete(item.key);
-        state.pending.set(item.key, item);
-      }
-      return null;
-    }
-  };
-}
-var BRIDGE_KEY = Symbol.for("zocomputer.agent-sdk.park-notification-bridge");
-var MAX_QUEUED_PER_SESSION = 20;
-function bridge() {
-  const holder = globalThis;
-  holder[BRIDGE_KEY] ??= { queued: new Map, handler: null };
-  return holder[BRIDGE_KEY];
-}
-function postParkNotification(sessionId, notification) {
-  const b = bridge();
-  if (b.handler) {
-    b.handler(sessionId, notification);
-    return;
-  }
-  const queue = b.queued.get(sessionId) ?? [];
-  if (queue.length >= MAX_QUEUED_PER_SESSION)
-    return;
-  queue.push(notification);
-  b.queued.set(sessionId, queue);
-}
-function setParkNotificationHandler(handler) {
-  const b = bridge();
-  b.handler = handler;
-  const queued = [...b.queued.entries()];
-  b.queued.clear();
-  for (const [sessionId, notifications] of queued) {
-    for (const notification of notifications)
-      handler(sessionId, notification);
-  }
-}
-
-// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/watch-output.ts
-var DEFAULT_WATCH_DEBOUNCE_MS = 5000;
-var DEFAULT_MAX_WATCH_NOTIFICATIONS = 5;
-function createOutputWatcher(options) {
-  let regex;
-  try {
-    regex = new RegExp(options.pattern);
-  } catch (err) {
-    const reason = err instanceof Error ? err.message : String(err);
-    throw new Error(`Invalid notify.pattern — nothing was started. ${reason}. Fix the regex and resend.`);
-  }
-  const debounceMs = options.debounceMs ?? DEFAULT_WATCH_DEBOUNCE_MS;
-  const maxNotifications = options.maxNotifications ?? DEFAULT_MAX_WATCH_NOTIFICATIONS;
-  const now = options.now ?? Date.now;
-  let buffer = "";
-  let notifications = 0;
-  let lastNotifiedAt = null;
-  function emit(lines) {
-    const matches = lines.filter((line) => regex.test(line));
-    if (matches.length === 0)
-      return null;
-    if (notifications >= maxNotifications)
-      return null;
-    const at = now();
-    if (lastNotifiedAt !== null && at - lastNotifiedAt < debounceMs)
-      return null;
-    notifications += 1;
-    lastNotifiedAt = at;
-    return matches;
-  }
-  return {
-    feed(chunk) {
-      buffer += chunk;
-      const parts = buffer.split(`
-`);
-      buffer = parts.pop() ?? "";
-      return emit(parts);
-    },
-    flush() {
-      if (buffer.length === 0)
-        return null;
-      const tail = buffer;
-      buffer = "";
-      const matches = [tail].filter((line) => regex.test(line));
-      if (matches.length === 0)
-        return null;
-      if (notifications >= maxNotifications)
-        return null;
-      notifications += 1;
-      lastNotifiedAt = now();
-      return matches;
-    }
-  };
-}
-function formatWatchNotification(opts) {
-  return `Background task ${opts.taskId} (${opts.label}) — ${opts.reason}. ` + `Output matched your watch pattern:
-${opts.lines.join(`
-`)}`;
-}
-function formatCompletionNotification(opts) {
-  const outcome = opts.status === "done" ? "finished" : `failed${opts.error ? `: ${opts.error}` : ""}`;
-  return `Background task ${opts.taskId} (${opts.label}) ${outcome}. Call await_task to collect its result.`;
-}
-
-// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/tools/bash.ts
 var DEFAULT_INTERACTIVE_HINT = "This is a piped shell with NO tty: avoid interactive or full-screen CLIs (a REPL, vim, an interactive installer/prompt) — those programs hang or degrade without a real terminal.";
-var notifyParam = z2.object({
-  pattern: z2.string().min(1).describe("Regex matched against complete output lines (stdout and stderr)."),
-  reason: z2.string().min(1).describe("Short phrase naming what you're watching for, e.g. 'test failures'."),
-  debounce_ms: z2.number().int().positive().optional().describe("Minimum ms between match notifications (default 5000).")
-}).optional().describe("Watch the command's output if it backgrounds: matching lines are delivered to you as a message while you're idle. No effect on a command that completes in the foreground.");
 function createBashTool(opts) {
   const { workdir, registry, noun } = opts;
   const execEnv = opts.execEnv ?? "host";
-  const notifications = opts.notifications ?? true;
   const interactiveHint = opts.interactiveHint ?? DEFAULT_INTERACTIVE_HINT;
   const resolveRunner = (ctx) => typeof opts.runner === "function" ? opts.runner(ctx) : opts.runner;
   const description = [
     execEnv === "sandbox" ? `Run a shell command inside the session's workspace sandbox, from the ${noun} root by default.` : `Run a shell command on the host, from the ${noun} root by default.`,
     "Quick commands return normally. If the command is still running after foreground_ms, it keeps running in the background and returns a task_id plus current stdout/stderr; use check_tasks and await_task to monitor or collect the result.",
-    ...notifications ? [
-      `For a long-running command where you only care about a specific output signal (a failure line, a "listening on" banner), pass notify — if the command backgrounds, matching output is delivered to you as a message while you're idle, so you can keep working instead of polling.`
-    ] : [],
     "Use it for git, tests/builds/type-checks, ripgrep, dev servers, and anything the file tools don't cover. Very long output is truncated to its head and tail; the complete output is saved to a file named in the result — grep or read that file instead of re-running the command.",
     execEnv === "sandbox" ? "This is a real shell inside the workspace sandbox with no undo — be careful with destructive commands." : "This is a real shell on the user's machine with no sandbox and no undo — be careful with destructive commands.",
     interactiveHint
@@ -1369,20 +797,11 @@ function createBashTool(opts) {
     foreground_ms: z2.number().int().positive().optional().describe("How long to wait before returning a background task handle (default 2000).")
   };
   async function runBash(args, ctx) {
-    const { command, cwd, timeout_ms, foreground_ms, notify } = args;
+    const { command, cwd, timeout_ms, foreground_ms } = args;
     const runner = resolveRunner(ctx);
-    const watcher = notify ? createOutputWatcher({ pattern: notify.pattern, debounceMs: notify.debounce_ms }) : null;
-    let feedLive = null;
-    const buffered = [];
     const running = runner.startCommand(command, {
       cwd,
-      timeoutMs: timeout_ms ?? 600000,
-      onOutput: watcher ? (chunk) => {
-        if (feedLive)
-          feedLive(chunk);
-        else
-          buffered.push(chunk);
-      } : undefined
+      timeoutMs: timeout_ms ?? 600000
     });
     const result = await Promise.race([
       running.result,
@@ -1404,58 +823,27 @@ function createBashTool(opts) {
     running.result.finally(() => clearInterval(interval)).catch(() => {
       return;
     });
-    if (watcher && notify) {
-      const sessionId = ctx?.session?.id;
-      let matchCount = 0;
-      const post = (lines) => {
-        if (!lines || !sessionId)
-          return;
-        matchCount += 1;
-        postParkNotification(sessionId, {
-          key: `${taskId}#watch${matchCount}`,
-          text: formatWatchNotification({ taskId, label: command, reason: notify.reason, lines })
-        });
-      };
-      feedLive = (chunk) => post(watcher.feed(chunk));
-      for (const chunk of buffered.splice(0))
-        feedLive(chunk);
-      running.result.finally(() => post(watcher.flush())).catch(() => {
-        return;
-      });
-    }
     return {
       workdir,
       mode: "backgrounded",
       task_id: taskId,
       status: "running",
       progress: running.progress(),
-      ...watcher ? {
-        watching: notify?.pattern,
-        note: "Command is still running in the background; matching output will be delivered to you as a message while you're idle. Continue independent work, or call await_task if your next step needs the result."
-      } : {
-        note: "Command is still running in the background. Continue independent work, then call check_tasks for live output or await_task when you need the final result."
-      }
+      note: "Command is still running in the background. Continue independent work, then call check_tasks for live output or await_task when you need the final result."
     };
   }
-  if (!notifications) {
-    return defineTool2({
-      description,
-      inputSchema: z2.object(baseParams),
-      execute: (args, ctx) => runBash(args, ctx)
-    });
-  }
-  return defineTool2({
+  return defineTool({
     description,
-    inputSchema: z2.object({ ...baseParams, notify: notifyParam }),
+    inputSchema: z2.object(baseParams),
     execute: (args, ctx) => runBash(args, ctx)
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/tools/edit.ts
-import { defineTool as defineTool3 } from "eve/tools";
+// ../../../../../tmp/agent-sdk-mirror-ocVtYJ/repo/src/tools/edit.ts
+import { defineTool as defineTool2 } from "eve/tools";
 import { z as z3 } from "zod";
 
-// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/edit-match.ts
+// ../../../../../tmp/agent-sdk-mirror-ocVtYJ/repo/src/edit-match.ts
 class EditNotFoundError extends Error {
   constructor() {
     super("old_string not found. It must match the file contents exactly, including whitespace and indentation.");
@@ -1902,7 +1290,7 @@ function joinBom(text, bom) {
   return bom ? BOM + stripped : stripped;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/path-locks.ts
+// ../../../../../tmp/agent-sdk-mirror-ocVtYJ/repo/src/path-locks.ts
 var LOCKS_KEY = Symbol.for("zocomputer.agent-sdk.path-locks");
 function lockChains() {
   const holder = globalThis;
@@ -1928,18 +1316,18 @@ async function withPathLock(path, fn) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/workspace-io.ts
-import { mkdirSync as mkdirSync4, readFileSync as readFileSync7, statSync as statSync2, writeFileSync as writeFileSync3 } from "node:fs";
-import { dirname as dirname3, join as join5 } from "node:path";
+// ../../../../../tmp/agent-sdk-mirror-ocVtYJ/repo/src/workspace-io.ts
+import { mkdirSync as mkdirSync2, readFileSync as readFileSync6, statSync as statSync2, writeFileSync as writeFileSync2 } from "node:fs";
+import { dirname as dirname2, join as join3 } from "node:path";
 
-// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/glob-match.ts
+// ../../../../../tmp/agent-sdk-mirror-ocVtYJ/repo/src/glob-match.ts
 function globToRegExp(glob) {
   const escaped = glob.replace(/[.+^${}()|[\]\\]/g, "\\$&");
   const body = escaped.replace(/\*\*\/?/g, "\x00").replace(/\*/g, "[^/]*").replace(/\?/g, "[^/]").replace(/\u0000/g, "(?:.*/)?");
   return new RegExp(`^${body}$`);
 }
 
-// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/list-files.ts
+// ../../../../../tmp/agent-sdk-mirror-ocVtYJ/repo/src/list-files.ts
 import { spawnSync } from "node:child_process";
 var MAX_BUFFER = 64 * 1024 * 1024;
 function gitPaths(root, args) {
@@ -1967,8 +1355,8 @@ function listGitFiles(root, scope) {
   return files.filter((path) => !gone.has(path));
 }
 
-// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/read-text.ts
-import { readFileSync as readFileSync5, statSync } from "node:fs";
+// ../../../../../tmp/agent-sdk-mirror-ocVtYJ/repo/src/read-text.ts
+import { readFileSync as readFileSync4, statSync } from "node:fs";
 var MAX_SEARCH_FILE_BYTES = 1500000;
 var BINARY_SNIFF_BYTES = 8192;
 function readTextForSearch(abs, maxBytes = MAX_SEARCH_FILE_BYTES) {
@@ -1985,7 +1373,7 @@ function readTextForSearch(abs, maxBytes = MAX_SEARCH_FILE_BYTES) {
     return { kind: "too-large", bytes: size };
   let buf;
   try {
-    buf = readFileSync5(abs);
+    buf = readFileSync4(abs);
   } catch {
     return { kind: "unreadable" };
   }
@@ -1994,15 +1382,15 @@ function readTextForSearch(abs, maxBytes = MAX_SEARCH_FILE_BYTES) {
   return { kind: "text", content: buf.toString("utf8") };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/walk.ts
-import { readFileSync as readFileSync6, readdirSync } from "node:fs";
-import { join as join4, relative, sep } from "node:path";
+// ../../../../../tmp/agent-sdk-mirror-ocVtYJ/repo/src/walk.ts
+import { readFileSync as readFileSync5, readdirSync } from "node:fs";
+import { join as join2, relative, sep } from "node:path";
 import ignore from "ignore";
 var ALWAYS_IGNORED = new Set([".git", ".jj", ".hg", ".svn", "node_modules"]);
 function loadGitignore(absDir, prefix) {
   let text;
   try {
-    text = readFileSync6(join4(absDir, ".gitignore"), "utf8");
+    text = readFileSync5(join2(absDir, ".gitignore"), "utf8");
   } catch {
     return null;
   }
@@ -2037,7 +1425,7 @@ function* walkFiles(root, base = root) {
       scopes.push(own);
     const segments = relRoot.split("/");
     for (const segment of segments.slice(0, -1)) {
-      absDir = join4(absDir, segment);
+      absDir = join2(absDir, segment);
       prefix = prefix === "" ? segment : `${prefix}/${segment}`;
       const scope = loadGitignore(absDir, prefix);
       if (scope !== null)
@@ -2064,7 +1452,7 @@ function* walkFiles(root, base = root) {
           continue;
         if (isIgnored(active, rel, true))
           continue;
-        stack.push({ dir: join4(frame.dir, entry.name), rel, scopes: active });
+        stack.push({ dir: join2(frame.dir, entry.name), rel, scopes: active });
       } else if (entry.isFile()) {
         if (entry.name === ".git")
           continue;
@@ -2076,7 +1464,7 @@ function* walkFiles(root, base = root) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/workspace.ts
+// ../../../../../tmp/agent-sdk-mirror-ocVtYJ/repo/src/workspace.ts
 import { isAbsolute, relative as relative2, resolve as resolve2, sep as sep2 } from "node:path";
 function resolveWithin(root, path) {
   const abs = isAbsolute(path) ? resolve2(path) : resolve2(root, path);
@@ -2098,7 +1486,7 @@ function createWorkspace(root) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/workspace-io.ts
+// ../../../../../tmp/agent-sdk-mirror-ocVtYJ/repo/src/workspace-io.ts
 function createLocalIo(root) {
   return {
     async stat(abs) {
@@ -2111,7 +1499,7 @@ function createLocalIo(root) {
     },
     async readFile(abs) {
       try {
-        return readFileSync7(abs);
+        return readFileSync6(abs);
       } catch (err) {
         if (isMissingFileError(err))
           return null;
@@ -2119,8 +1507,8 @@ function createLocalIo(root) {
       }
     },
     async writeFile(abs, content) {
-      mkdirSync4(dirname3(abs), { recursive: true });
-      writeFileSync3(abs, content);
+      mkdirSync2(dirname2(abs), { recursive: true });
+      writeFileSync2(abs, content);
     },
     async listFiles(scope) {
       if (scope === undefined) {
@@ -2164,7 +1552,7 @@ async function searchLocal(root, options) {
     for (const file of candidates) {
       if (globRe && !globRe.test(file))
         continue;
-      const read = readTextForSearch(join5(root, file));
+      const read = readTextForSearch(join3(root, file));
       if (read.kind === "too-large") {
         skippedLargeFiles += 1;
         continue;
@@ -2186,11 +1574,11 @@ async function searchLocal(root, options) {
   return { matches, stopped, skippedLargeFiles };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/tools/edit.ts
+// ../../../../../tmp/agent-sdk-mirror-ocVtYJ/repo/src/tools/edit.ts
 function createEditTool(opts) {
   const { workspace, noun } = opts;
   const io = opts.io ?? localIoProvider(workspace.root);
-  return defineTool3({
+  return defineTool2({
     description: "Replace a string in an existing file. Prefer the exact text from a read; near-miss whitespace, indentation, and over-escaping are tolerated, but a match much larger than old_string is refused. By default old_string must resolve to exactly one place — include enough surrounding context to make it unique. Set replace_all to replace every occurrence (e.g. renaming a symbol).",
     inputSchema: z3.object({
       path: z3.string().min(1).describe(`File path, relative to the ${noun} root.`),
@@ -2240,13 +1628,13 @@ ${hint.preview}`;
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/tools/glob.ts
-import { defineTool as defineTool4 } from "eve/tools";
+// ../../../../../tmp/agent-sdk-mirror-ocVtYJ/repo/src/tools/glob.ts
+import { defineTool as defineTool3 } from "eve/tools";
 import { z as z4 } from "zod";
 function createGlobTool(opts) {
   const { workspace, noun } = opts;
   const io = opts.io ?? localIoProvider(workspace.root);
-  return defineTool4({
+  return defineTool3({
     description: `Find files in the ${noun} by glob pattern, returning ${noun}-relative paths. \`**\` spans directories, \`*\` matches within a path segment. A pattern without a leading \`**/\` is matched at any depth (so \`*.ts\` finds .ts files anywhere). Gitignored files and build/VCS dirs are skipped.`,
     inputSchema: z4.object({
       pattern: z4.string().min(1).describe("Glob pattern, e.g. `**/*.ts` or `src/tools/*.ts`."),
@@ -2279,16 +1667,16 @@ function createGlobTool(opts) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/tools/grep.ts
-import { defineTool as defineTool5 } from "eve/tools";
+// ../../../../../tmp/agent-sdk-mirror-ocVtYJ/repo/src/tools/grep.ts
+import { defineTool as defineTool4 } from "eve/tools";
 import { z as z5 } from "zod";
-import { join as join6 } from "node:path";
+import { join as join4 } from "node:path";
 var GREP_SPILL_MAX_MATCHES = 5000;
 var MATCH_TEXT_MAX_CHARS = 300;
 function createGrepTool(opts) {
   const { workspace, noun, spillDir } = opts;
   const io = opts.io ?? localIoProvider(workspace.root);
-  return defineTool5({
+  return defineTool4({
     description: `Search ${noun} file contents by regular expression, returning matching lines with their file and line number. Scope with \`path\` (a file or directory) and/or a \`glob\` on the filename. Gitignored files, build/VCS dirs, binaries, and files over ~1.5 MB are skipped.${spillDir === undefined ? "" : " When more lines match than max_results, the collected matches are saved to a file named in the result (the note says whether that list is complete) — read or grep that file instead of re-searching."}`,
     inputSchema: z5.object({
       pattern: z5.string().min(1).describe("JavaScript regular expression to search for."),
@@ -2348,7 +1736,7 @@ function createGrepTool(opts) {
       const allLines = searched.matches.map((m) => `${m.file}:${m.line}: ${m.text.slice(0, MATCH_TEXT_MAX_CHARS)}`);
       let label = null;
       if (spillDir !== undefined) {
-        const spillPath = join6(spillDir, `grep-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}.txt`);
+        const spillPath = join4(spillDir, `grep-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}.txt`);
         try {
           await fio.writeFile(spillPath, allLines.join(`
 `) + `
@@ -2372,12 +1760,12 @@ function createGrepTool(opts) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/tools/look.ts
-import { defineTool as defineTool6 } from "eve/tools";
+// ../../../../../tmp/agent-sdk-mirror-ocVtYJ/repo/src/tools/look.ts
+import { defineTool as defineTool5 } from "eve/tools";
 import { basename } from "node:path";
 import { z as z6 } from "zod";
 
-// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/file-kind.ts
+// ../../../../../tmp/agent-sdk-mirror-ocVtYJ/repo/src/file-kind.ts
 import { extname } from "node:path";
 function imageMediaType(format) {
   return `image/${format}`;
@@ -2575,7 +1963,7 @@ function detectFileKind(buf, path) {
   return { kind: "text", encoding: "utf8" };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/tools/look.ts
+// ../../../../../tmp/agent-sdk-mirror-ocVtYJ/repo/src/tools/look.ts
 var DEFAULT_LOOK_MAX_INPUT_BYTES = 20 * 1024 * 1024;
 var DEFAULT_LOOK_TIMEOUT_MS = 180000;
 var LOOK_MAX_ANSWER_CHARS = 30000;
@@ -2610,7 +1998,7 @@ function createLookTool(opts) {
   const maxInputBytes = opts.maxInputBytes ?? DEFAULT_LOOK_MAX_INPUT_BYTES;
   const generate = opts.generateFn ?? defaultGenerate;
   const capabilityPhrase = describeCapabilities(oracle.capabilities);
-  return defineTool6({
+  return defineTool5({
     description: `Ask ${oracle.modelName} — a separate model that ${capabilityPhrase} — one question about a media file in the ${noun} that you cannot view yourself. Sends the file's bytes and your prompt in a single call and returns the model's answer as text. ` + `The model sees only the file and your prompt — none of your conversation — so pack the prompt with everything it needs and name the exact deliverable ` + `(e.g. "describe the UI layout and transcribe all visible text", "summarize what happens in this recording"). Text-readable files (source, PDFs-as-text, DOCX, spreadsheets) are cheaper through read; use look for pixels, video, and audio.`,
     inputSchema: z6.object({
       path: z6.string().min(1).describe(`Media file path, relative to the ${noun} root.`),
@@ -2764,11 +2152,11 @@ function lookOversizeHint(oracle, maxInputBytes = DEFAULT_LOOK_MAX_INPUT_BYTES) 
   return `For text, use bash (head, sed -n, rg) to extract the part you need. Only if it is ${article} ${kindList} file up to ${capMb} MB, pass the path and a question to the look tool to have ${oracle.modelName} examine it (look sends files read cannot; over ${capMb} MB, shrink it first, e.g. ffmpeg extraction).`;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/tools/read.ts
-import { defineTool as defineTool7 } from "eve/tools";
+// ../../../../../tmp/agent-sdk-mirror-ocVtYJ/repo/src/tools/read.ts
+import { defineTool as defineTool6 } from "eve/tools";
 import { z as z7 } from "zod";
 
-// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/file-view.ts
+// ../../../../../tmp/agent-sdk-mirror-ocVtYJ/repo/src/file-view.ts
 var READ_FILE_DEFAULT_LINE_LIMIT = 2000;
 var READ_FILE_MAX_LINE_CHARS = 2000;
 var READ_FILE_MAX_CONTENT_CHARS = 50000;
@@ -2812,10 +2200,10 @@ function buildFileView(text, opts = {}) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/read-file-content.ts
+// ../../../../../tmp/agent-sdk-mirror-ocVtYJ/repo/src/read-file-content.ts
 import { imageSize } from "image-size";
 
-// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/extract/cache.ts
+// ../../../../../tmp/agent-sdk-mirror-ocVtYJ/repo/src/extract/cache.ts
 function createStatCache(limit) {
   const entries = new Map;
   return {
@@ -2840,7 +2228,7 @@ function createStatCache(limit) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/extract/docx.ts
+// ../../../../../tmp/agent-sdk-mirror-ocVtYJ/repo/src/extract/docx.ts
 import mammoth from "mammoth";
 async function extractDocx(buffer) {
   try {
@@ -2852,10 +2240,10 @@ async function extractDocx(buffer) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/extract/epub.ts
+// ../../../../../tmp/agent-sdk-mirror-ocVtYJ/repo/src/extract/epub.ts
 import { Parser } from "htmlparser2";
 
-// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/extract/zip.ts
+// ../../../../../tmp/agent-sdk-mirror-ocVtYJ/repo/src/extract/zip.ts
 import { inflateRawSync } from "node:zlib";
 var EOCD_SIGNATURE = 101010256;
 var CENTRAL_SIGNATURE = 33639248;
@@ -2943,7 +2331,7 @@ function openZip(buffer) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/extract/epub.ts
+// ../../../../../tmp/agent-sdk-mirror-ocVtYJ/repo/src/extract/epub.ts
 var EPUB_SECTION_CAP = 200;
 var BLOCK_TAGS = new Set([
   "p",
@@ -3079,7 +2467,7 @@ function extractEpub(bytes, options = {}) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/extract/ipynb.ts
+// ../../../../../tmp/agent-sdk-mirror-ocVtYJ/repo/src/extract/ipynb.ts
 function joinSource(value) {
   if (typeof value === "string")
     return value;
@@ -3089,11 +2477,11 @@ function joinSource(value) {
   return "";
 }
 var ANSI_ESCAPE = /\u001b\[[0-9;]*[A-Za-z]/g;
-function isRecord4(value) {
+function isRecord2(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 function renderOutput(output) {
-  if (!isRecord4(output))
+  if (!isRecord2(output))
     return [];
   const lines = [];
   switch (output["output_type"]) {
@@ -3105,7 +2493,7 @@ function renderOutput(output) {
     }
     case "execute_result":
     case "display_data": {
-      const data = isRecord4(output["data"]) ? output["data"] : {};
+      const data = isRecord2(output["data"]) ? output["data"] : {};
       const plain = joinSource(data["text/plain"]).trimEnd();
       if (plain.length > 0)
         lines.push(plain);
@@ -3134,11 +2522,11 @@ function renderOutput(output) {
   return lines;
 }
 function notebookLanguage(notebook) {
-  const metadata = isRecord4(notebook["metadata"]) ? notebook["metadata"] : {};
-  const languageInfo = isRecord4(metadata["language_info"]) ? metadata["language_info"] : {};
+  const metadata = isRecord2(notebook["metadata"]) ? notebook["metadata"] : {};
+  const languageInfo = isRecord2(metadata["language_info"]) ? metadata["language_info"] : {};
   if (typeof languageInfo["name"] === "string")
     return languageInfo["name"];
-  const kernelspec = isRecord4(metadata["kernelspec"]) ? metadata["kernelspec"] : {};
+  const kernelspec = isRecord2(metadata["kernelspec"]) ? metadata["kernelspec"] : {};
   if (typeof kernelspec["language"] === "string")
     return kernelspec["language"];
   return "";
@@ -3153,7 +2541,7 @@ function extractNotebook(bytes) {
       reason: `not valid JSON (${error instanceof Error ? error.message : String(error)})`
     };
   }
-  if (!isRecord4(parsed))
+  if (!isRecord2(parsed))
     return { ok: false, reason: "not a JSON object" };
   const cells = parsed["cells"];
   if (!Array.isArray(cells)) {
@@ -3168,7 +2556,7 @@ function extractNotebook(bytes) {
   const language = notebookLanguage(parsed);
   const parts = [];
   for (const [i, cell] of cells.entries()) {
-    if (!isRecord4(cell))
+    if (!isRecord2(cell))
       continue;
     const type = typeof cell["cell_type"] === "string" ? cell["cell_type"] : "unknown";
     parts.push(`=== cell ${i + 1} of ${cells.length} (${type}) ===`);
@@ -3190,7 +2578,7 @@ function extractNotebook(bytes) {
 `), cells: cells.length };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/extract/odf.ts
+// ../../../../../tmp/agent-sdk-mirror-ocVtYJ/repo/src/extract/odf.ts
 import { Parser as Parser2 } from "htmlparser2";
 var ODP_EMPTY_SLIDE_NOTE = "[no text on this slide — likely image-only; images cannot be extracted]";
 function parseContentXml(xml) {
@@ -3277,7 +2665,7 @@ function extractOdp(bytes) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/extract/pdf.ts
+// ../../../../../tmp/agent-sdk-mirror-ocVtYJ/repo/src/extract/pdf.ts
 import { openPdf } from "clawpdf";
 var PDF_EMPTY_PAGE_NOTE = "[no text on this page — likely scanned or image-only; rendered pages cannot be attached]";
 var PDF_PAGE_CAP = 200;
@@ -3312,7 +2700,7 @@ async function extractPdf(bytes, options = {}) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/extract/pptx.ts
+// ../../../../../tmp/agent-sdk-mirror-ocVtYJ/repo/src/extract/pptx.ts
 import { Parser as Parser3 } from "htmlparser2";
 var PPTX_EMPTY_SLIDE_NOTE = "[no text on this slide — likely image-only; images cannot be extracted]";
 var PPTX_SLIDE_CAP = 200;
@@ -3468,7 +2856,7 @@ function extractPptx(bytes, options = {}) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/extract/rtf.ts
+// ../../../../../tmp/agent-sdk-mirror-ocVtYJ/repo/src/extract/rtf.ts
 var SKIP_DESTINATIONS = new Set([
   "fonttbl",
   "colortbl",
@@ -3666,7 +3054,7 @@ function extractRtf(bytes) {
   return { ok: true, text: text.replace(/\n+$/, "") };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/extract/sheet.ts
+// ../../../../../tmp/agent-sdk-mirror-ocVtYJ/repo/src/extract/sheet.ts
 import { read, utils } from "xlsx";
 var SHEET_ROW_CAP = 5000;
 function extractSheets(buffer, rowCap = SHEET_ROW_CAP) {
@@ -3707,7 +3095,7 @@ function extractSheets(buffer, rowCap = SHEET_ROW_CAP) {
 `), sheets };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/read-file-content.ts
+// ../../../../../tmp/agent-sdk-mirror-ocVtYJ/repo/src/read-file-content.ts
 var EXTRACTION_CACHE_LIMIT = 20;
 var extractionCache = createStatCache(EXTRACTION_CACHE_LIMIT);
 function decodeText(buffer, encoding) {
@@ -3826,7 +3214,7 @@ async function loadFileContent(buffer, path, id) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/tools/read.ts
+// ../../../../../tmp/agent-sdk-mirror-ocVtYJ/repo/src/tools/read.ts
 function buildMediaHint(verb) {
   return `${verb} media (images, video, audio) returns metadata only`;
 }
@@ -3839,7 +3227,7 @@ function createReadTool(opts) {
   const conventionsHint = dirConventions ? ` When a read first enters a directory with its own ${dirConventions.fileName} conventions file, the result includes it under directory_conventions (once per directory per session) — honor those conventions for work in that directory.` : "";
   const mediaHint = buildMediaHint("reading");
   const editHint = opts.includeEditGuidance ?? true ? " Read a file before editing it so your edits target the current text." : "";
-  return defineTool7({
+  return defineTool6({
     description: `Read a file from the ${noun}, returning line-numbered text. Documents are converted to plain text: PDF (per-page markers), DOCX/ODT/RTF, PPTX/ODP decks (per-slide markers, speaker notes), spreadsheets (.xlsx, .xlsm, .xls, .ods; TSV per sheet), EPUB (per-section markers), and Jupyter notebooks (per-cell markers); ${mediaHint}.${editHint} Returns up to 2000 lines per call by default; page bigger files with offset/limit.` + conventionsHint,
     inputSchema: z7.object({
       path: z7.string().min(1).describe(`File path, relative to the ${noun} root.`),
@@ -3978,8 +3366,8 @@ function createReadTool(opts) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/tools/tasks.ts
-import { defineDynamic as defineDynamic2, defineTool as defineTool8 } from "eve/tools";
+// ../../../../../tmp/agent-sdk-mirror-ocVtYJ/repo/src/tools/tasks.ts
+import { defineDynamic as defineDynamic2, defineTool as defineTool7 } from "eve/tools";
 import { z as z8 } from "zod";
 var DEFAULT_WAIT_MS = 120000;
 function elapsedMs(task) {
@@ -4013,7 +3401,6 @@ function full(task) {
 }
 function buildTasksToolset(opts) {
   const { registry, backgroundables } = opts;
-  const notifications = opts.notifications ?? true;
   const [firstOp, ...restOps] = backgroundables;
   if (!firstOp)
     return null;
@@ -4021,8 +3408,7 @@ function buildTasksToolset(opts) {
   const catalog = backgroundables.map((o) => `- ${o.name}: ${o.description}
   input: ${JSON.stringify(o.inputJsonSchema)}`).join(`
 `);
-  const wrap = createSteerWrapper(opts.steerInbox ?? null);
-  const runAsyncDescription = "Start a tool running in the BACKGROUND and return immediately with a task id, instead of blocking until it finishes. Use it for long work whose result your next step doesn't need yet (tests, builds, installs) so you can keep working in parallel; poll with check_tasks and collect the result with await_task. If your very next step needs the output, just call the tool directly instead." + (notifications ? " For work where you only care about a specific output signal, pass notify — matching lines are delivered to you as a message while you're idle, instead of you polling." : "") + `
+  const runAsyncDescription = "Start a tool running in the BACKGROUND and return immediately with a task id, instead of blocking until it finishes. Use it for long work whose result your next step doesn't need yet (tests, builds, installs) so you can keep working in parallel; poll with check_tasks and collect the result with await_task. If your very next step needs the output, just call the tool directly instead." + `
 
 Backgroundable tools (pass \`input\` matching the tool's own schema):
 ` + catalog;
@@ -4030,66 +3416,13 @@ Backgroundable tools (pass \`input\` matching the tool's own schema):
     tool: z8.enum(toolNames).describe("Which backgroundable tool to run."),
     input: z8.record(z8.string(), z8.unknown()).describe("Arguments for that tool — the same object you'd pass calling it directly.")
   };
-  const notifyParam2 = z8.object({
-    pattern: z8.string().min(1).describe("Regex matched against complete output lines."),
-    reason: z8.string().min(1).describe("Short phrase naming what you're watching for, e.g. 'build errors'."),
-    debounce_ms: z8.number().int().positive().optional().describe("Minimum ms between match notifications (default 5000).")
-  }).optional().describe("Watch the task's output: matching lines are delivered to you as a message while you're idle.");
   function startAsync(args, ctx) {
-    const { tool, input, notify, notify_on_complete } = args;
+    const { tool, input } = args;
     const op = backgroundables.find((o) => o.name === tool);
     if (!op)
       throw new Error(`Unknown backgroundable tool: ${tool}`);
-    const sessionId = ctx?.session?.id;
-    const watcher = notify ? createOutputWatcher({ pattern: notify.pattern, debounceMs: notify.debounce_ms }) : null;
-    let post = null;
-    const early = [];
-    const { label, work, progress } = op.start(input, {
-      ctx,
-      ...watcher ? {
-        onOutput: (chunk) => {
-          const matches = watcher.feed(chunk);
-          if (!matches)
-            return;
-          if (post)
-            post(matches);
-          else
-            early.push(matches);
-        }
-      } : {}
-    });
-    const taskId = registry.spawnTask(tool, label, work, sessionId);
-    if (watcher && notify && sessionId) {
-      let matchCount = 0;
-      post = (lines) => {
-        if (!lines || lines.length === 0)
-          return;
-        matchCount += 1;
-        postParkNotification(sessionId, {
-          key: `${taskId}#watch${matchCount}`,
-          text: formatWatchNotification({ taskId, label, reason: notify.reason, lines })
-        });
-      };
-      for (const batch of early.splice(0))
-        post(batch);
-      work.finally(() => post?.(watcher.flush())).catch(() => {
-        return;
-      });
-    }
-    if (notify_on_complete && sessionId) {
-      work.then(() => postParkNotification(sessionId, {
-        key: `${taskId}#done`,
-        text: formatCompletionNotification({ taskId, label, status: "done" })
-      }), (err) => postParkNotification(sessionId, {
-        key: `${taskId}#done`,
-        text: formatCompletionNotification({
-          taskId,
-          label,
-          status: "error",
-          error: err instanceof Error ? err.message : String(err)
-        })
-      }));
-    }
+    const { label, work, progress } = op.start(input, { ctx });
+    const taskId = registry.spawnTask(tool, label, work, ctx?.session?.id);
     if (progress) {
       registry.updateTaskProgress(taskId, progress());
       const interval = setInterval(() => registry.updateTaskProgress(taskId, progress()), 500);
@@ -4101,34 +3434,25 @@ Backgroundable tools (pass \`input\` matching the tool's own schema):
       task_id: taskId,
       tool,
       status: "running",
-      ...watcher ? { watching: notify?.pattern } : {},
       note: "Started in the background. If your next actions don't depend on this, keep working and call check_tasks / await_task later; otherwise call await_task now."
     };
   }
-  const runAsync = notifications ? defineTool8({
-    description: runAsyncDescription,
-    inputSchema: z8.object({
-      ...runAsyncBaseParams,
-      notify: notifyParam2,
-      notify_on_complete: z8.boolean().optional().describe("Also deliver a message when the task settles (default false; await_task remains the primary way to collect results).")
-    }),
-    execute: (args, ctx) => startAsync(args, ctx)
-  }) : defineTool8({
+  const runAsync = defineTool7({
     description: runAsyncDescription,
     inputSchema: z8.object(runAsyncBaseParams),
     execute: (args, ctx) => startAsync(args, ctx)
   });
   return {
-    run_async: wrap(runAsync),
-    check_tasks: wrap(defineTool8({
+    run_async: runAsync,
+    check_tasks: defineTool7({
       description: "List background tasks and their status without blocking; returns `runningCount` plus the task list. For tasks that support progress (notably bash), includes a live stdout/stderr preview. Call await_task to collect a task's final result.",
       inputSchema: z8.object({}),
       execute(_args, ctx) {
         const tasks = registry.listTasks(ctx?.session?.id).map(peek);
         return { runningCount: tasks.filter((t) => t.status === "running").length, tasks };
       }
-    })),
-    await_task: wrap(defineTool8({
+    }),
+    await_task: defineTool7({
       description: "Block until a background task finishes (up to wait_ms), then return its full result. Use it when your next step needs the task's final output. If the wait elapses while it's still running, returns the running status plus any live progress so you can decide to keep waiting or move on.",
       inputSchema: z8.object({
         task_id: z8.string().min(1).describe("Task id returned by run_async or a backgrounded bash call."),
@@ -4141,7 +3465,7 @@ Backgroundable tools (pass \`input\` matching the tool's own schema):
         }
         return full(task);
       }
-    }))
+    })
   };
 }
 function createTasksTools(opts) {
@@ -4152,12 +3476,12 @@ function createTasksTools(opts) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/tools/todo.ts
-import { defineTool as defineTool9 } from "eve/tools";
+// ../../../../../tmp/agent-sdk-mirror-ocVtYJ/repo/src/tools/todo.ts
+import { defineTool as defineTool8 } from "eve/tools";
 import { todo as eveTodo } from "eve/tools/defaults";
 
-// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/todo-discipline.ts
-function isRecord5(value) {
+// ../../../../../tmp/agent-sdk-mirror-ocVtYJ/repo/src/todo-discipline.ts
+function isRecord3(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 var TODO_STATUSES = ["pending", "in_progress", "completed", "cancelled"];
@@ -4166,7 +3490,7 @@ function isOneOf(value, options) {
   return typeof value === "string" && options.includes(value);
 }
 function parseTodoItem(value) {
-  if (!isRecord5(value))
+  if (!isRecord3(value))
     return null;
   const { content, status, priority } = value;
   if (typeof content !== "string")
@@ -4190,7 +3514,7 @@ function parseTodoItems(value) {
   return items;
 }
 function parseTodoListResult(value) {
-  if (!isRecord5(value))
+  if (!isRecord3(value))
     return null;
   return parseTodoItems(value.todos);
 }
@@ -4264,18 +3588,18 @@ var TODO_DISCIPLINE_RIDER = [
 ].join(`
 `);
 
-// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/tools/todo.ts
-function isRecord6(value) {
+// ../../../../../tmp/agent-sdk-mirror-ocVtYJ/repo/src/tools/todo.ts
+function isRecord4(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 function createTodoTool(opts = {}) {
   const base = opts.base ?? eveTodo;
-  return defineTool9({
+  return defineTool8({
     ...base,
     description: `${base.description}
 ${TODO_DISCIPLINE_RIDER}`,
     async execute(input, ctx) {
-      const todosValue = isRecord6(input) ? input.todos : undefined;
+      const todosValue = isRecord4(input) ? input.todos : undefined;
       const next = todosValue === undefined ? null : parseTodoItems(todosValue);
       if (next === null)
         return base.execute(input, ctx);
@@ -4291,17 +3615,128 @@ ${TODO_DISCIPLINE_RIDER}`,
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/tools/webfetch.ts
-import { defineTool as defineTool10 } from "eve/tools";
+// ../../../../../tmp/agent-sdk-mirror-ocVtYJ/repo/src/tools/webfetch.ts
+import { defineTool as defineTool9 } from "eve/tools";
 import { z as z9 } from "zod";
-import { join as join7 } from "node:path";
+import { join as join5 } from "node:path";
 
-// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/web-fetch.ts
+// ../../../../../tmp/agent-sdk-mirror-ocVtYJ/repo/src/bounded-output.ts
+import { appendFileSync, mkdirSync as mkdirSync3, writeFileSync as writeFileSync3 } from "node:fs";
+import { dirname as dirname3 } from "node:path";
+var HEAD_CHARS = 25000;
+var TAIL_CHARS = 25000;
+var TOOL_OUTPUT_DIRNAME = "tool-outputs";
+function renderTruncationMarker(opts) {
+  const where = opts.label === undefined ? "" : `; full output: ${opts.label}`;
+  return `
+… [output truncated: showing first ${opts.headChars} and last ${opts.tailChars} of ${opts.totalChars} chars${where}]
+`;
+}
+var isHighSurrogate = (code) => code >= 55296 && code <= 56319;
+var isLowSurrogate = (code) => code >= 56320 && code <= 57343;
+var endsOnHighSurrogate = (text) => text.length > 0 && isHighSurrogate(text.charCodeAt(text.length - 1));
+function takeTail(text, cap) {
+  if (text.length <= cap)
+    return text;
+  let start = text.length - cap;
+  if (isLowSurrogate(text.charCodeAt(start)))
+    start += 1;
+  return text.slice(start);
+}
+function createBoundedCapture(opts = {}) {
+  const headCap = opts.headChars ?? HEAD_CHARS;
+  const tailCap = opts.tailChars ?? TAIL_CHARS;
+  let head = "";
+  let tail = "";
+  let total = 0;
+  let overflowed = false;
+  let spill = opts.spillPath ? "none" : "failed";
+  let spillCarry = "";
+  const writeSpill = (chunk, first) => {
+    if (spill === "failed" || opts.spillPath === undefined)
+      return;
+    let text = spillCarry + chunk;
+    if (endsOnHighSurrogate(text)) {
+      spillCarry = text.slice(-1);
+      text = text.slice(0, -1);
+    } else {
+      spillCarry = "";
+    }
+    try {
+      if (first) {
+        mkdirSync3(dirname3(opts.spillPath), { recursive: true });
+        writeFileSync3(opts.spillPath, text);
+        spill = "live";
+      } else {
+        appendFileSync(opts.spillPath, text);
+      }
+    } catch {
+      spill = "failed";
+    }
+  };
+  return {
+    append(chunk) {
+      total += chunk.length;
+      if (!overflowed) {
+        const room = headCap - head.length;
+        if (chunk.length <= room) {
+          head += chunk;
+          return;
+        }
+        overflowed = true;
+        let cut = room;
+        if (cut > 0 && isHighSurrogate(chunk.charCodeAt(cut - 1)))
+          cut -= 1;
+        head += chunk.slice(0, cut);
+        let remainder = chunk.slice(cut);
+        if (endsOnHighSurrogate(head)) {
+          remainder = head.slice(-1) + remainder;
+          head = head.slice(0, -1);
+        }
+        writeSpill(head + remainder, true);
+        tail = takeTail(remainder, tailCap);
+        return;
+      }
+      writeSpill(chunk, false);
+      tail = takeTail(tail + chunk, tailCap);
+    },
+    snapshot() {
+      if (!overflowed) {
+        return { text: head, head, tail: "", totalChars: total, truncated: false, spillPath: null };
+      }
+      if (head.length + tail.length === total) {
+        return { text: head + tail, head, tail, totalChars: total, truncated: false, spillPath: null };
+      }
+      const marker = renderTruncationMarker({
+        headChars: head.length,
+        tailChars: tail.length,
+        totalChars: total,
+        label: spill === "live" ? opts.spillLabel ?? opts.spillPath : undefined
+      });
+      return {
+        text: `${head}${marker}${tail}`,
+        head,
+        tail,
+        totalChars: total,
+        truncated: true,
+        spillPath: spill === "live" && opts.spillPath !== undefined ? opts.spillPath : null
+      };
+    },
+    latest() {
+      return overflowed ? tail : head;
+    },
+    totalChars() {
+      return total;
+    }
+  };
+}
+
+// ../../../../../tmp/agent-sdk-mirror-ocVtYJ/repo/src/web-fetch.ts
 import { Parser as Parser4 } from "htmlparser2";
 import { parseHTML as parseHTML2 } from "linkedom";
 import TurndownService from "turndown";
 
-// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/web-page.ts
+// ../../../../../tmp/agent-sdk-mirror-ocVtYJ/repo/src/web-page.ts
 import Defuddle from "defuddle";
 import { parseHTML } from "linkedom";
 var asField = (value) => {
@@ -4412,7 +3847,7 @@ function looksLikeRawHtmlOutput(rendered) {
   return tagChars / rendered.length > 0.1;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/web-fetch.ts
+// ../../../../../tmp/agent-sdk-mirror-ocVtYJ/repo/src/web-fetch.ts
 var WEB_FETCH_MAX_RESPONSE_BYTES = 5 * 1024 * 1024;
 var WEB_FETCH_DEFAULT_TIMEOUT_SECONDS = 30;
 var WEB_FETCH_PDF_DEFAULT_TIMEOUT_SECONDS = 60;
@@ -4602,7 +4037,7 @@ function urlLooksLikePdf(url) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/tools/webfetch.ts
+// ../../../../../tmp/agent-sdk-mirror-ocVtYJ/repo/src/tools/webfetch.ts
 var SPILL_EXTENSION = {
   markdown: "md",
   text: "txt",
@@ -4691,7 +4126,7 @@ function createWebFetchTool(opts) {
   const inlineHeadChars = maxInlineContentChars - inlineTailChars;
   const bounded = (text, format, kind) => {
     const capture = spillDir !== undefined ? (() => {
-      const spillPath = join7(spillDir, spillFilename(format, kind));
+      const spillPath = join5(spillDir, spillFilename(format, kind));
       return createBoundedCapture({
         spillPath,
         spillLabel: workspace.relativize(spillPath)
@@ -4710,7 +4145,7 @@ function createWebFetchTool(opts) {
   };
   const mediaHint = buildMediaHint("fetching");
   const overflowHint = spillDir !== undefined ? "Content over the in-context budget is truncated head+tail and the complete output is spilled to a file named in the truncation marker — read or grep that file instead of re-fetching." : "Content returns whole; only extremely long pages truncate head+tail (the marker shows the boundary) — refetch a narrower page or a more specific URL if the middle matters.";
-  return defineTool10({
+  return defineTool9({
     description: `Fetch a URL and return its content. HTML pages are reduced to their main content (boilerplate stripped, title/author/date header) and converted to readable markdown by default (set format to "text" for plain text or "html" for the raw page). Fetched documents (PDF, DOCX/ODT/RTF, PPTX/ODP, spreadsheets, EPUB, Jupyter notebooks) are converted to plain text; ${mediaHint}. ${overflowHint} Default timeout ${WEB_FETCH_DEFAULT_TIMEOUT_SECONDS}s (${WEB_FETCH_PDF_DEFAULT_TIMEOUT_SECONDS}s for PDFs), max ${WEB_FETCH_MAX_TIMEOUT_SECONDS}s; responses over 5 MB error. Read-only: one HTTP GET, no side effects.`,
     inputSchema: z9.object({
       url: z9.string().min(1).describe("The URL to fetch. Must start with http:// or https://."),
@@ -4833,13 +4268,13 @@ function createWebFetchTool(opts) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/tools/write.ts
-import { defineTool as defineTool11 } from "eve/tools";
+// ../../../../../tmp/agent-sdk-mirror-ocVtYJ/repo/src/tools/write.ts
+import { defineTool as defineTool10 } from "eve/tools";
 import { z as z10 } from "zod";
 function createWriteTool(opts) {
   const { workspace, noun } = opts;
   const io = opts.io ?? localIoProvider(workspace.root);
-  return defineTool11({
+  return defineTool10({
     description: `Write a complete file to the ${noun}, creating parent directories and overwriting any existing file. For a small change to an existing file, prefer edit so you don't have to reproduce the whole file.`,
     inputSchema: z10.object({
       path: z10.string().min(1).describe(`File path, relative to the ${noun} root.`),
@@ -4869,7 +4304,7 @@ function createWriteTool(opts) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/sandbox-io.ts
+// ../../../../../tmp/agent-sdk-mirror-ocVtYJ/repo/src/sandbox-io.ts
 import ignore2 from "ignore";
 function shellSingleQuote(value) {
   return `'${value.replaceAll("'", `'\\''`)}'`;
@@ -5085,7 +4520,108 @@ function parseSearchOutput(stdout, maxMatches, flooded = false) {
   return { matches, stopped, skippedLargeFiles: null };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/sandbox-run.ts
+// ../../../../../tmp/agent-sdk-mirror-ocVtYJ/repo/src/run.ts
+import { spawn } from "node:child_process";
+import { join as join6 } from "node:path";
+var MAX_PREVIEW = 20000;
+function capturePreview(capture) {
+  const latest = capture.latest();
+  if (capture.totalChars() <= MAX_PREVIEW)
+    return latest;
+  return `… [earlier output truncated]
+${latest.slice(-MAX_PREVIEW)}`;
+}
+function createCommandRunner(opts) {
+  const { workspace, spillDir } = opts;
+  function startCommand(command, runOpts = {}) {
+    const cwd = runOpts.cwd ? workspace.resolve(runOpts.cwd) : workspace.root;
+    const timeoutMs = runOpts.timeoutMs ?? 120000;
+    const child = spawn(command, { cwd, shell: true, env: process.env, detached: true });
+    const runId = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+    const captureFor = (stream) => {
+      const spillPath = join6(spillDir, `bash-${runId}-${stream}.log`);
+      return createBoundedCapture({ spillPath, spillLabel: workspace.relativize(spillPath) });
+    };
+    const stdoutCapture = captureFor("stdout");
+    const stderrCapture = captureFor("stderr");
+    let stdoutBytes = 0;
+    let stderrBytes = 0;
+    let timedOut = false;
+    let closed = false;
+    const killTree = (signal) => {
+      const pid = child.pid;
+      if (pid === undefined)
+        return;
+      try {
+        process.kill(-pid, signal);
+      } catch {
+        child.kill(signal);
+      }
+    };
+    const timer = setTimeout(() => {
+      timedOut = true;
+      killTree("SIGKILL");
+    }, timeoutMs);
+    const result = new Promise((resolvePromise) => {
+      child.stdout.on("data", (d) => {
+        const chunk = d.toString();
+        stdoutBytes += Buffer.byteLength(chunk);
+        stdoutCapture.append(chunk);
+        runOpts.onOutput?.(chunk);
+      });
+      child.stderr.on("data", (d) => {
+        const chunk = d.toString();
+        stderrBytes += Buffer.byteLength(chunk);
+        stderrCapture.append(chunk);
+        runOpts.onOutput?.(chunk);
+      });
+      child.on("close", (code) => {
+        closed = true;
+        clearTimeout(timer);
+        resolvePromise({
+          stdout: stdoutCapture.snapshot().text,
+          stderr: stderrCapture.snapshot().text,
+          exitCode: code,
+          timedOut
+        });
+      });
+      child.on("error", (err) => {
+        closed = true;
+        clearTimeout(timer);
+        resolvePromise({
+          stdout: stdoutCapture.snapshot().text,
+          stderr: `${stderrCapture.snapshot().text}${err.message}`,
+          exitCode: null,
+          timedOut
+        });
+      });
+    });
+    return {
+      result,
+      progress() {
+        return {
+          stdout: capturePreview(stdoutCapture),
+          stderr: capturePreview(stderrCapture),
+          stdoutBytes,
+          stderrBytes,
+          stdoutTruncated: stdoutCapture.totalChars() > MAX_PREVIEW,
+          stderrTruncated: stderrCapture.totalChars() > MAX_PREVIEW
+        };
+      },
+      kill() {
+        if (closed)
+          return;
+        killTree("SIGTERM");
+      }
+    };
+  }
+  return {
+    startCommand,
+    runCommand: (command, runOpts) => startCommand(command, runOpts).result
+  };
+}
+
+// ../../../../../tmp/agent-sdk-mirror-ocVtYJ/repo/src/sandbox-run.ts
 var MAX_SPILL_RETAIN_CHARS = 5 * 1024 * 1024;
 var STREAM_DRAIN_GRACE_MS = 1000;
 function defaultResolveSession2(ctx) {
@@ -5300,99 +4836,7 @@ function createSandboxRunner(opts) {
     runCommand: (command, runOpts) => startCommand(command, runOpts).result
   };
 }
-// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/hooks.ts
-import { Client } from "eve/client";
-import { defineHook } from "eve/hooks";
-var RETRY_DELAYS_MS = [500, 2000, 5000];
-function buildDeliveryMessage(request) {
-  const notes = request.items.flatMap((item) => item.payload.kind === "note" ? [item.payload.text] : []);
-  const steers = request.items.flatMap((item) => item.payload.kind === "steer" ? [item.payload.message.text] : []);
-  return [
-    ...steers.map((text) => ({ type: "text", text })),
-    ...notes.map((text) => ({ type: "text", text }))
-  ];
-}
-function isRecord7(value) {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-function isSessionWaiting(event) {
-  return isRecord7(event) && event.type === "session.waiting";
-}
-function createParkDeliveryHook(options = {}) {
-  const serverUrl = options.serverUrl ?? `http://127.0.0.1:${process.env.PORT ?? "2000"}`;
-  const log = options.log ?? true;
-  const steerInbox = options.steer ? createSteerInbox({ dir: options.steer.dir }) : null;
-  const state = createParkDeliveryState();
-  async function deliver(request) {
-    const client = new Client({ host: serverUrl });
-    const message = buildDeliveryMessage(request);
-    for (let attempt = 0;; attempt++) {
-      try {
-        const session = client.session({
-          sessionId: request.sessionId,
-          continuationToken: request.continuationToken,
-          streamIndex: 0
-        });
-        const response = await session.send({ message });
-        if (response.sessionId !== request.sessionId) {
-          throw new Error(`park delivery landed on ${response.sessionId} instead of ${request.sessionId} (continuation token mismatch)`);
-        }
-        await response.result();
-        const next = state.settle(request, true);
-        if (log) {
-          const labels = request.items.map((item) => item.key);
-          console.log(`[agent-sdk] park delivery to ${request.sessionId}: ${labels.join(", ")}`);
-        }
-        if (next)
-          deliver(next);
-        return;
-      } catch (error) {
-        const delay = RETRY_DELAYS_MS[attempt];
-        if (delay === undefined) {
-          state.settle(request, false);
-          if (log) {
-            console.warn(`[agent-sdk] park delivery to ${request.sessionId} failed; will retry on next park:`, error);
-          }
-          return;
-        }
-        await new Promise((resolve3) => setTimeout(resolve3, delay));
-      }
-    }
-  }
-  setParkNotificationHandler((sessionId, notification) => {
-    const request = state.enqueue(sessionId, {
-      key: notification.key,
-      payload: { kind: "note", text: notification.text }
-    });
-    if (request)
-      deliver(request);
-  });
-  return defineHook({
-    events: {
-      "*"(event, ctx) {
-        const meta = {
-          sessionId: ctx.session.id,
-          continuationToken: ctx.channel.continuationToken
-        };
-        if (steerInbox && isSessionWaiting(event)) {
-          const steers = steerInbox.drain(meta.sessionId);
-          if (steers.length > 0) {
-            const flush = state.enqueueAll(meta.sessionId, steers.map((message) => ({
-              key: `steer:${message.id}`,
-              payload: { kind: "steer", message }
-            })));
-            if (flush)
-              deliver(flush);
-          }
-        }
-        const request = state.observe(event, meta);
-        if (request)
-          deliver(request);
-      }
-    }
-  });
-}
-// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/build-externals.ts
+// ../../../../../tmp/agent-sdk-mirror-ocVtYJ/repo/src/build-externals.ts
 var STDLIB_EXTERNAL_DEPENDENCIES = [
   "ai",
   "clawpdf",
@@ -5406,11 +4850,11 @@ var STDLIB_EXTERNAL_DEPENDENCIES = [
   "xlsx",
   "zod"
 ];
-// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/task.ts
+// ../../../../../tmp/agent-sdk-mirror-ocVtYJ/repo/src/task.ts
 import { defineAgent } from "eve";
 import { defineDynamic as defineDynamic3, defineInstructions as defineInstructions2 } from "eve/instructions";
 
-// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/visible-reasoning.ts
+// ../../../../../tmp/agent-sdk-mirror-ocVtYJ/repo/src/visible-reasoning.ts
 var ANTHROPIC_ADAPTIVE_THINKING_MODELS = [
   /^anthropic\/claude-fable-/,
   /^anthropic\/claude-mythos-/,
@@ -5436,7 +4880,7 @@ function visibleReasoningModelOptions(modelId) {
   return;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/task.ts
+// ../../../../../tmp/agent-sdk-mirror-ocVtYJ/repo/src/task.ts
 var TASK_DISABLED_BUILTINS = ["ask_question"];
 function expectedTaskToolNames(options) {
   const parent = new Set(options.parentToolNames);
@@ -5496,22 +4940,23 @@ function createTaskAgent(options) {
   return defineAgent({
     description: options.description ?? buildTaskDescription(options),
     model: options.model,
+    ...options.modelContextWindowTokens !== undefined ? { modelContextWindowTokens: options.modelContextWindowTokens } : {},
     ...options.reasoning !== undefined ? { reasoning: options.reasoning } : {},
     ...options.build !== undefined ? { build: options.build } : {},
     ...modelOptions !== undefined ? { modelOptions } : {}
   });
 }
 var GATEWAY_MODELS_URL = "https://ai-gateway.vercel.sh/v1/models";
-function isRecord8(value) {
+function isRecord5(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 function parseGatewayModelCatalog(value) {
-  if (!isRecord8(value) || !Array.isArray(value.data))
+  if (!isRecord5(value) || !Array.isArray(value.data))
     return null;
   const models = [];
   const positiveInt = (raw) => typeof raw === "number" && Number.isInteger(raw) && raw > 0 ? raw : undefined;
   for (const entry of value.data) {
-    if (!isRecord8(entry) || typeof entry.id !== "string")
+    if (!isRecord5(entry) || typeof entry.id !== "string")
       return null;
     models.push({
       id: entry.id,
@@ -5537,845 +4982,8 @@ async function fetchGatewayModelCatalog(options) {
   }
   return parsed;
 }
-// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/validated-compaction.ts
-var COMPACTION_SENTINEL = "You are a conversation summarizer.";
-var RECOVERED_CONTEXT_HEADER = "## Recovered context (compaction audit)";
-var DEFAULT_MAX_RECOVERED_CHARS = 2000;
-var DEFAULT_MAX_RECOVERED_FACTS = 12;
-var DEFAULT_JUDGE_MAX_OUTPUT_TOKENS = 1024;
-var DEFAULT_JUDGE_TIMEOUT_MS = 60000;
-function buildValidationSystemPrompt(maxFacts) {
-  return [
-    "You audit conversation summaries for information loss.",
-    "You will receive the original conversation transcript and a candidate summary of it.",
-    "Identify concrete, load-bearing facts present in the transcript but missing from the summary:",
-    "task goals and their status, files or paths modified, decisions and their reasons, constraints,",
-    "open questions, pending verification steps, exact identifiers (names, commands, versions, URLs).",
-    "Reply with exactly `NOTHING MISSING` if the summary preserves everything needed.",
-    "Otherwise reply with one missing fact per line, each line starting with `- `,",
-    `most important first, at most ${maxFacts} lines, no other text.`
-  ].join(" ");
-}
-function parseJudgeVerdict(text) {
-  if (/^nothing missing[.!]?$/i.test(text.trim())) {
-    return { kind: "nothing-missing" };
-  }
-  const facts = [];
-  for (const line of text.split(`
-`)) {
-    const match = /^\s*[-*]\s+(.+)$/.exec(line);
-    const fact = match?.[1]?.trim();
-    if (fact !== undefined && fact !== "")
-      facts.push(fact);
-  }
-  if (facts.length === 0)
-    return { kind: "nothing-missing" };
-  return { kind: "missing", facts };
-}
-function buildRecoverySection(facts, maxChars) {
-  const intro = "Facts from the pre-compaction transcript the summary above omitted:";
-  let text = `${RECOVERED_CONTEXT_HEADER}
-${intro}`;
-  let kept = 0;
-  for (const fact of facts) {
-    const withFact = `${text}
-- ${fact}`;
-    if (withFact.length > maxChars)
-      break;
-    text = withFact;
-    kept += 1;
-  }
-  if (kept === 0)
-    return null;
-  return { text, kept, truncated: kept < facts.length };
-}
-function extractTranscript(prompt) {
-  const chunks = [];
-  for (const message of prompt) {
-    if (message.role !== "user")
-      continue;
-    for (const part of message.content) {
-      if (part.type === "text" && part.text !== "")
-        chunks.push(part.text);
-    }
-  }
-  return chunks.join(`
 
-`);
-}
-function isTextContent(part) {
-  return part.type === "text";
-}
-function extractText(content) {
-  return content.filter(isTextContent).map((part) => part.text).join("");
-}
-function withValidatedCompaction(model, options = {}) {
-  const maxRecoveredChars = options.maxRecoveredChars ?? DEFAULT_MAX_RECOVERED_CHARS;
-  const maxRecoveredFacts = options.maxRecoveredFacts ?? DEFAULT_MAX_RECOVERED_FACTS;
-  const judgeMaxOutputTokens = options.judgeMaxOutputTokens ?? DEFAULT_JUDGE_MAX_OUTPUT_TOKENS;
-  const judgeTimeoutMs = options.judgeTimeoutMs ?? DEFAULT_JUDGE_TIMEOUT_MS;
-  const judgeSystemPrompt = options.validationSystemPrompt ?? buildValidationSystemPrompt(maxRecoveredFacts);
-  const emit = (report) => {
-    try {
-      options.onValidation?.(report);
-    } catch {}
-  };
-  const validate = async (params, result) => {
-    const transcript = extractTranscript(params.prompt);
-    if (transcript === "") {
-      emit({ kind: "skipped", reason: "no-transcript" });
-      return result;
-    }
-    const candidate = extractText(result.content);
-    if (candidate.trim() === "") {
-      emit({ kind: "skipped", reason: "no-summary-text" });
-      return result;
-    }
-    let judgeText;
-    try {
-      const signals = [AbortSignal.timeout(judgeTimeoutMs)];
-      if (params.abortSignal)
-        signals.push(params.abortSignal);
-      const judgeResult = await model.doGenerate({
-        prompt: [
-          { role: "system", content: judgeSystemPrompt },
-          {
-            role: "user",
-            content: [
-              {
-                type: "text",
-                text: `Original conversation transcript:
-<transcript>
-${transcript}
-</transcript>
-
-Candidate summary:
-<summary>
-${candidate}
-</summary>`
-              }
-            ]
-          }
-        ],
-        temperature: 0,
-        maxOutputTokens: judgeMaxOutputTokens,
-        abortSignal: AbortSignal.any(signals),
-        ...params.headers !== undefined && { headers: params.headers },
-        ...params.providerOptions !== undefined && {
-          providerOptions: params.providerOptions
-        }
-      });
-      judgeText = extractText(judgeResult.content);
-    } catch (error) {
-      emit({ kind: "judge-error", error });
-      return result;
-    }
-    const verdict = parseJudgeVerdict(judgeText);
-    if (verdict.kind === "nothing-missing") {
-      emit({ kind: "nothing-missing", judgeText });
-      return result;
-    }
-    const capped = verdict.facts.slice(0, maxRecoveredFacts);
-    const cappedByCount = capped.length < verdict.facts.length;
-    const section = buildRecoverySection(capped, maxRecoveredChars);
-    if (section === null) {
-      emit({ kind: "nothing-missing", judgeText });
-      return result;
-    }
-    const lastTextIndex = result.content.findLastIndex(isTextContent);
-    const lastText = result.content[lastTextIndex];
-    if (lastText === undefined || !isTextContent(lastText)) {
-      emit({ kind: "skipped", reason: "no-summary-text" });
-      return result;
-    }
-    const appended = `
-
-${section.text}`;
-    const content = result.content.map((part, index) => index === lastTextIndex && isTextContent(part) ? { ...part, text: part.text + appended } : part);
-    emit({
-      kind: "repaired",
-      facts: capped.slice(0, section.kept),
-      truncated: section.truncated || cappedByCount,
-      appendedChars: appended.length
-    });
-    return { ...result, content };
-  };
-  return {
-    specificationVersion: "v4",
-    provider: model.provider,
-    modelId: model.modelId,
-    get supportedUrls() {
-      return model.supportedUrls;
-    },
-    async doGenerate(params) {
-      const first = params.prompt[0];
-      const isCompaction = first !== undefined && first.role === "system" && first.content.startsWith(COMPACTION_SENTINEL);
-      if (!isCompaction)
-        return model.doGenerate(params);
-      const result = await model.doGenerate(params);
-      return validate(params, result);
-    },
-    doStream(params) {
-      return model.doStream(params);
-    }
-  };
-}
-
-// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/mock-model.ts
-var STORY_SENTENCES = [
-  "The lighthouse keeper counted the waves as they broke against the rocks.",
-  "Every seventh wave carried a whisper from the old town beneath the sea.",
-  "Marisol had kept the light burning for forty-one years without a single dark night.",
-  "Tonight the fog rolled in thicker than she had ever seen it.",
-  "Somewhere out past the shoals, a bell rang that no ship had carried in decades.",
-  "She climbed the spiral stairs slowly, lantern in one hand, logbook in the other.",
-  "The glass at the top of the tower was cold and streaked with salt.",
-  "Below, the sea moved like a great animal turning in its sleep.",
-  "She wrote the date in the logbook and then paused, pen hovering.",
-  "The bell rang again, closer now, and the fog pressed against the windows."
-];
-function storyChunk(index) {
-  const sentence = STORY_SENTENCES[index % STORY_SENTENCES.length] ?? "The story went on.";
-  const paragraphBreak = index > 0 && index % 8 === 0 ? `
-
-` : " ";
-  return `${paragraphBreak}${sentence}`;
-}
-var delay = (ms) => ms > 0 ? new Promise((r) => setTimeout(r, ms)) : Promise.resolve();
-function usageFor(outputTokens) {
-  return {
-    inputTokens: { total: 100, noCache: 100, cacheRead: 0, cacheWrite: 0 },
-    outputTokens: { total: outputTokens, text: outputTokens, reasoning: 0 }
-  };
-}
-var MOCK_SCENARIOS = [
-  "hitl",
-  "parallel",
-  "todo",
-  "delegate",
-  "fail",
-  "burst",
-  "markdown",
-  "interleave",
-  "empty",
-  "recall"
-];
-function markdownChunks() {
-  return [
-    `## Streaming markdown stress
-
-`,
-    "A paragraph with **bold**, _italic_, `inline code`, and a [link](https://example.com).\n\n",
-    "```ts\n",
-    `export function keeper(light: number): string {
-`,
-    `  // the fence stays open across deltas
-`,
-    "  return `burning for ${light} years`;\n",
-    `}
-`,
-    "```\n\n",
-    `| tide | bell | fog |
-`,
-    `| --- | --- | --- |
-`,
-    `| low | quiet | thin |
-`,
-    `| high | ringing | thick |
-
-`,
-    `1. climb the stairs
-`,
-    `   - lantern in one hand
-`,
-    `   - logbook in the other
-`,
-    `2. write the date
-`,
-    `   1. pause, pen hovering
-`,
-    `   2. listen for the bell
-
-`,
-    `> The sea moved like a great animal turning in its sleep.
-
-`,
-    `Unicode: emoji \uD83C\uDF0A\uD83D\uDD14, CJK 灯台守は波を数えた, RTL مرحبا, combining é ñ ü.
-
-`,
-    "A very long unbroken token: " + "abcdefghij".repeat(40) + `
-
-`,
-    `Done. ✅
-`
-  ];
-}
-function mockScenarioFrom(text) {
-  const match = /\[mock:([a-z]+)\]/.exec(text);
-  const name = match?.[1];
-  return MOCK_SCENARIOS.includes(name ?? "") ? name : null;
-}
-function scriptStepFrom(prompt) {
-  let step = 0;
-  for (const message of prompt) {
-    if (message.role === "user")
-      step = 0;
-    else if (message.role === "tool") {
-      step += message.content.filter((part) => part.type === "tool-result").length;
-    }
-  }
-  return step;
-}
-function lastUserTextFrom(prompt) {
-  return [...prompt].reverse().flatMap((message) => message.role === "user" ? message.content.flatMap((part) => part.type === "text" ? [part.text] : []) : [])[0];
-}
-function askQuestionCall(prompt, topic) {
-  return {
-    toolName: "ask_question",
-    input: {
-      prompt,
-      options: [
-        {
-          id: "ship",
-          label: `Ship the ${topic}`,
-          style: "primary",
-          description: "Proceed with the happy path."
-        },
-        { id: "hold", label: "Hold for review" },
-        { id: "abort", label: "Abort the run", style: "danger", description: "Stops everything." }
-      ],
-      allowFreeform: true
-    }
-  };
-}
-function scriptActionFor(scenario, step, delegateToolName = "task_fast") {
-  switch (scenario) {
-    case "hitl":
-      if (step === 0) {
-        return {
-          kind: "tool-calls",
-          calls: [askQuestionCall("Mock HITL: how should this test proceed?", "change")]
-        };
-      }
-      return { kind: "text", text: "Answer received — the mock turn resumed and finished cleanly." };
-    case "parallel":
-      if (step === 0) {
-        return {
-          kind: "tool-calls",
-          calls: [
-            askQuestionCall("Mock parallel HITL (1 of 2): which color?", "color"),
-            askQuestionCall("Mock parallel HITL (2 of 2): which size?", "size")
-          ]
-        };
-      }
-      if (step === 1) {
-        return {
-          kind: "text",
-          text: "Only one answer arrived — the parallel HITL scenario ended without the second."
-        };
-      }
-      return {
-        kind: "text",
-        text: "Both answers received — the parallel HITL scenario finished cleanly."
-      };
-    case "todo":
-      if (step === 0) {
-        return {
-          kind: "tool-calls",
-          calls: [
-            {
-              toolName: "todo",
-              input: {
-                todos: [
-                  { content: "Survey the harbor charts", status: "completed", priority: "high" },
-                  { content: "Polish the tower glass", status: "in_progress", priority: "medium" },
-                  { content: "Refill the oil reserves", status: "pending", priority: "medium" },
-                  { content: "Log the evening tide", status: "pending", priority: "low" }
-                ]
-              }
-            }
-          ]
-        };
-      }
-      if (step === 1) {
-        return {
-          kind: "tool-calls",
-          calls: [
-            {
-              toolName: "todo",
-              input: {
-                todos: [
-                  { content: "Survey the harbor charts", status: "completed", priority: "high" },
-                  { content: "Polish the tower glass", status: "completed", priority: "medium" },
-                  { content: "Refill the oil reserves", status: "in_progress", priority: "medium" },
-                  { content: "Log the evening tide", status: "cancelled", priority: "low" }
-                ]
-              }
-            }
-          ]
-        };
-      }
-      return { kind: "text", text: "Todo list written and updated — checklist scenario complete." };
-    case "delegate":
-      if (step === 0) {
-        return {
-          kind: "tool-calls",
-          calls: [
-            {
-              toolName: delegateToolName,
-              input: {
-                message: "Mock delegation: describe the lighthouse keeper's routine. Reply with a short report."
-              }
-            }
-          ]
-        };
-      }
-      return { kind: "text", text: "The delegate reported back — delegation scenario complete." };
-  }
-}
-function toolInputFragments(inputJson, fragmentSize = 24) {
-  if (inputJson.length === 0)
-    return [];
-  const fragments = [];
-  for (let i = 0;i < inputJson.length; i += fragmentSize) {
-    fragments.push(inputJson.slice(i, i + fragmentSize));
-  }
-  return fragments;
-}
-var MOCK_JUDGE_PROMPT_OPENING = "You audit conversation summaries for information loss.";
-var MOCK_COMPACTION_SUMMARY = "Goal: continue the mock conversation. Accomplished: the assistant streamed deterministic story turns. Next steps: keep replying in mock mode.";
-function plantedFactTokens(text) {
-  return [...text.matchAll(/\[fact:([A-Za-z0-9-]+)\]/g)].flatMap((match) => match[1] !== undefined && match[1] !== "" ? [match[1]] : []);
-}
-function userTextFrom(prompt) {
-  const chunks = [];
-  for (const message of prompt) {
-    if (message.role !== "user")
-      continue;
-    for (const part of message.content) {
-      if (part.type === "text")
-        chunks.push(part.text);
-    }
-  }
-  return chunks.join(`
-
-`);
-}
-function mockGenerateReply(prompt) {
-  const first = prompt[0];
-  const system = first !== undefined && first.role === "system" ? first.content : undefined;
-  if (system?.startsWith(COMPACTION_SENTINEL) === true)
-    return MOCK_COMPACTION_SUMMARY;
-  if (system?.startsWith(MOCK_JUDGE_PROMPT_OPENING) === true) {
-    const tokens = plantedFactTokens(userTextFrom(prompt));
-    if (tokens.length === 0)
-      return "NOTHING MISSING";
-    return tokens.map((token) => `- The planted fact token ${token} must be preserved verbatim.`).join(`
-`);
-  }
-  return "(mock model, non-streaming reply)";
-}
-function recallReply(prompt) {
-  for (const message of prompt) {
-    if (message.role !== "assistant" && message.role !== "user")
-      continue;
-    for (const part of message.content) {
-      if (part.type !== "text")
-        continue;
-      const index = part.text.indexOf(RECOVERED_CONTEXT_HEADER);
-      if (index !== -1) {
-        return `Recovered context found in the prompt:
-
-${part.text.slice(index)}`;
-      }
-    }
-  }
-  return "No recovered context in the prompt.";
-}
-function createMockStoryModel(options = {}) {
-  const chunkCount = options.chunkCount ?? 240;
-  const chunkDelayMs = options.chunkDelayMs ?? 250;
-  const burstChunks = options.burstChunks ?? 600;
-  const delegateToolName = options.delegateToolName ?? "task_fast";
-  const now = options.now ?? Date.now;
-  return {
-    specificationVersion: "v4",
-    provider: "anthropic",
-    modelId: "claude-sonnet-4-6",
-    supportedUrls: {},
-    async doGenerate(callOptions) {
-      const text = mockGenerateReply(callOptions.prompt);
-      return {
-        content: [{ type: "text", text }],
-        finishReason: { unified: "stop", raw: "stop" },
-        usage: usageFor(Math.ceil(text.length / 4)),
-        warnings: []
-      };
-    },
-    async doStream(callOptions) {
-      const abortSignal = callOptions.abortSignal;
-      const lastUserText = lastUserTextFrom(callOptions.prompt);
-      const scenario = mockScenarioFrom(lastUserText ?? "");
-      const step = scriptStepFrom(callOptions.prompt);
-      const topic = (lastUserText ?? "an untitled request").slice(0, 60);
-      const stream = new ReadableStream({
-        async start(controller) {
-          controller.enqueue({ type: "stream-start", warnings: [] });
-          controller.enqueue({
-            type: "response-metadata",
-            id: `mock-${now()}`,
-            modelId: "claude-sonnet-4-6",
-            timestamp: new Date(now())
-          });
-          if (scenario === "fail") {
-            controller.enqueue({ type: "text-start", id: "t1" });
-            for (let i = 0;i < 6; i++) {
-              if (abortSignal?.aborted)
-                break;
-              await delay(chunkDelayMs);
-              controller.enqueue({ type: "text-delta", id: "t1", delta: storyChunk(i) });
-            }
-            controller.enqueue({ type: "text-end", id: "t1" });
-            controller.enqueue({
-              type: "error",
-              error: new Error("mock: injected mid-stream failure [mock:fail]")
-            });
-            controller.close();
-            return;
-          }
-          if (scenario === "burst") {
-            controller.enqueue({ type: "text-start", id: "t1" });
-            controller.enqueue({
-              type: "text-delta",
-              id: "t1",
-              delta: `**Burst: ${burstChunks} deltas, no pacing.**
-
-`
-            });
-            for (let i = 0;i < burstChunks; i++) {
-              if (abortSignal?.aborted)
-                break;
-              controller.enqueue({
-                type: "text-delta",
-                id: "t1",
-                delta: i % 8 === 0 ? `${storyChunk(i)} [¶${i / 8 + 1}]` : storyChunk(i)
-              });
-            }
-            controller.enqueue({ type: "text-delta", id: "t1", delta: `
-
-**Burst done.**` });
-            controller.enqueue({ type: "text-end", id: "t1" });
-            controller.enqueue({
-              type: "finish",
-              finishReason: { unified: "stop", raw: "stop" },
-              usage: usageFor(burstChunks * 12)
-            });
-            controller.close();
-            return;
-          }
-          if (scenario === "markdown") {
-            controller.enqueue({ type: "text-start", id: "t1" });
-            for (const chunk of markdownChunks()) {
-              if (abortSignal?.aborted)
-                break;
-              await delay(Math.min(chunkDelayMs, 120));
-              controller.enqueue({ type: "text-delta", id: "t1", delta: chunk });
-            }
-            controller.enqueue({ type: "text-end", id: "t1" });
-            controller.enqueue({
-              type: "finish",
-              finishReason: { unified: "stop", raw: "stop" },
-              usage: usageFor(400)
-            });
-            controller.close();
-            return;
-          }
-          if (scenario === "interleave") {
-            const blocks = [
-              {
-                kind: "reasoning",
-                id: "r1",
-                text: "First thought: check the tide tables before anything else."
-              },
-              {
-                kind: "text",
-                id: "t1",
-                text: `The tide tables say low water at dusk.
-
-That changes the plan.`
-              },
-              {
-                kind: "reasoning",
-                id: "r2",
-                text: "Second thought: the bell only rings when the fog is thick."
-              },
-              {
-                kind: "text",
-                id: "t2",
-                text: "So the keeper waits for the bell — interleave scenario complete."
-              }
-            ];
-            for (const block of blocks) {
-              const startType = block.kind === "reasoning" ? "reasoning-start" : "text-start";
-              const deltaType = block.kind === "reasoning" ? "reasoning-delta" : "text-delta";
-              const endType = block.kind === "reasoning" ? "reasoning-end" : "text-end";
-              controller.enqueue({ type: startType, id: block.id });
-              for (const word of block.text.split(" ")) {
-                if (abortSignal?.aborted)
-                  break;
-                await delay(Math.min(chunkDelayMs, 80));
-                controller.enqueue({ type: deltaType, id: block.id, delta: `${word} ` });
-              }
-              controller.enqueue({ type: endType, id: block.id });
-              if (abortSignal?.aborted)
-                break;
-            }
-            controller.enqueue({
-              type: "finish",
-              finishReason: { unified: "stop", raw: "stop" },
-              usage: usageFor(120)
-            });
-            controller.close();
-            return;
-          }
-          if (scenario === "recall") {
-            const reply = recallReply(callOptions.prompt);
-            controller.enqueue({ type: "text-start", id: "t1" });
-            for (const word of reply.split(" ")) {
-              if (abortSignal?.aborted)
-                break;
-              await delay(Math.min(chunkDelayMs, 40));
-              controller.enqueue({ type: "text-delta", id: "t1", delta: `${word} ` });
-            }
-            controller.enqueue({ type: "text-end", id: "t1" });
-            controller.enqueue({
-              type: "finish",
-              finishReason: { unified: "stop", raw: "stop" },
-              usage: usageFor(reply.length)
-            });
-            controller.close();
-            return;
-          }
-          if (scenario === "empty") {
-            controller.enqueue({
-              type: "finish",
-              finishReason: { unified: "stop", raw: "stop" },
-              usage: usageFor(0)
-            });
-            controller.close();
-            return;
-          }
-          if (scenario !== null) {
-            const action = scriptActionFor(scenario, step, delegateToolName);
-            controller.enqueue({ type: "reasoning-start", id: "r1" });
-            for (const word of `Scripted ${scenario} scenario, step ${step}: deciding the next move.`.split(" ")) {
-              if (abortSignal?.aborted)
-                break;
-              await delay(chunkDelayMs);
-              controller.enqueue({ type: "reasoning-delta", id: "r1", delta: `${word} ` });
-            }
-            controller.enqueue({ type: "reasoning-end", id: "r1" });
-            if (action.kind === "tool-calls") {
-              for (const [callIndex, call] of action.calls.entries()) {
-                const toolCallId = `mock-call-${scenario}-${step}-${callIndex}`;
-                const inputJson = JSON.stringify(call.input);
-                controller.enqueue({
-                  type: "tool-input-start",
-                  id: toolCallId,
-                  toolName: call.toolName
-                });
-                for (const fragment of toolInputFragments(inputJson)) {
-                  if (abortSignal?.aborted)
-                    break;
-                  await delay(Math.min(chunkDelayMs, 80));
-                  controller.enqueue({ type: "tool-input-delta", id: toolCallId, delta: fragment });
-                }
-                controller.enqueue({ type: "tool-input-end", id: toolCallId });
-                controller.enqueue({
-                  type: "tool-call",
-                  toolCallId,
-                  toolName: call.toolName,
-                  input: inputJson
-                });
-              }
-              controller.enqueue({
-                type: "finish",
-                finishReason: { unified: "tool-calls", raw: "tool_use" },
-                usage: usageFor(50 * action.calls.length)
-              });
-              controller.close();
-              return;
-            }
-            controller.enqueue({ type: "text-start", id: "t1" });
-            for (const word of action.text.split(" ")) {
-              if (abortSignal?.aborted)
-                break;
-              await delay(chunkDelayMs);
-              controller.enqueue({ type: "text-delta", id: "t1", delta: `${word} ` });
-            }
-            controller.enqueue({ type: "text-end", id: "t1" });
-            controller.enqueue({
-              type: "finish",
-              finishReason: { unified: "stop", raw: "stop" },
-              usage: usageFor(action.text.length)
-            });
-            controller.close();
-            return;
-          }
-          controller.enqueue({ type: "text-start", id: "t1" });
-          controller.enqueue({
-            type: "text-delta",
-            id: "t1",
-            delta: `**Story for: "${topic}…"**
-
-`
-          });
-          for (let i = 0;i < chunkCount; i++) {
-            if (abortSignal?.aborted)
-              break;
-            await delay(chunkDelayMs);
-            controller.enqueue({
-              type: "text-delta",
-              id: "t1",
-              delta: i % 8 === 0 ? `${storyChunk(i)} [${topic.slice(0, 12)}… ¶${i / 8 + 1}]` : storyChunk(i)
-            });
-          }
-          controller.enqueue({ type: "text-end", id: "t1" });
-          controller.enqueue({
-            type: "finish",
-            finishReason: { unified: "stop", raw: "stop" },
-            usage: usageFor(chunkCount * 12)
-          });
-          controller.close();
-        }
-      });
-      return { stream };
-    }
-  };
-}
-// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/orphaned-turns.ts
-function isOrphanedTurn(input) {
-  if (!input.reconciled || !input.inFlightAfter)
-    return false;
-  if (input.lastEventAtMs === undefined)
-    return false;
-  return input.lastEventAtMs < input.workerEpochMs;
-}
-var WORKER_EPOCH_KEY = Symbol.for("zocomputer.agent-sdk.worker-epoch-ms");
-function workerEpochMs(now = Date.now) {
-  const holder = globalThis;
-  holder[WORKER_EPOCH_KEY] ??= now();
-  return holder[WORKER_EPOCH_KEY];
-}
-
-// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/index.ts
-function createStdlib(options) {
-  const noun = options.workspaceNoun ?? "workspace";
-  const workspace2 = createWorkspace(options.workspaceRoot);
-  const spillDir = join8(options.stateDir, TOOL_OUTPUT_DIRNAME);
-  const runner = createCommandRunner({ workspace: workspace2, spillDir });
-  const registry = createTaskRegistry({
-    storePath: join8(options.stateDir, "tasks.json")
-  });
-  const backgroundables = [
-    createBashOp(runner),
-    ...options.extraBackgroundables?.({ workspace: workspace2, runner }) ?? []
-  ];
-  const conventionsFileName = options.conventionsFileName ?? "AGENTS.md";
-  const dirConventions = options.injectDirConventions ?? true ? {
-    tracker: createDirConventionsTracker({
-      workspaceRoot: workspace2.root,
-      fileName: conventionsFileName
-    }),
-    fileName: conventionsFileName
-  } : undefined;
-  const steerInbox = options.steer ? createSteerInbox({ dir: options.steer.dir }) : null;
-  const steer2 = createSteerWrapper(steerInbox);
-  const oracle = options.mediaOracle !== undefined ? resolveMediaOracle(options.mediaOracle) : null;
-  const readImageHint = oracle ? lookReadImageHint(oracle) : undefined;
-  const readMediaHint = oracle ? lookReadMediaHint(oracle) : undefined;
-  const readOversizeHint = oracle ? lookOversizeHint(oracle) : undefined;
-  const fetchedImageHint = oracle ? lookFetchedImageHint(oracle) : undefined;
-  const fetchedMediaHint = oracle ? lookFetchedMediaHint(oracle) : undefined;
-  return {
-    workspace: workspace2,
-    runner,
-    registry,
-    spillDir,
-    backgroundables,
-    steerInbox,
-    mediaOracle: oracle,
-    tools: {
-      read: steer2(createReadTool({
-        workspace: workspace2,
-        noun,
-        dirConventions,
-        ...readImageHint !== undefined ? { imageUnavailableHint: readImageHint } : {},
-        ...readMediaHint !== undefined ? { mediaUnavailableHint: readMediaHint } : {},
-        ...readOversizeHint !== undefined ? { oversizeHint: readOversizeHint } : {}
-      })),
-      edit: steer2(createEditTool({ workspace: workspace2, noun })),
-      write: steer2(createWriteTool({ workspace: workspace2, noun })),
-      glob: steer2(createGlobTool({ workspace: workspace2, noun })),
-      grep: steer2(createGrepTool({ workspace: workspace2, noun, spillDir })),
-      bash: steer2(createBashTool({
-        workdir: workspace2.root,
-        runner,
-        registry,
-        noun,
-        interactiveHint: options.bashInteractiveHint
-      })),
-      tasks: createTasksTools({ registry, backgroundables, steerInbox }),
-      todo: steer2(createTodoTool()),
-      webfetch: steer2(createWebFetchTool({
-        workspace: workspace2,
-        spillDir,
-        ...fetchedImageHint !== undefined ? { imageUnavailableHint: fetchedImageHint } : {},
-        ...fetchedMediaHint !== undefined ? { mediaUnavailableHint: fetchedMediaHint } : {}
-      })),
-      ...oracle !== null ? { look: steer2(createLookTool({ workspace: workspace2, noun, oracle })) } : {}
-    },
-    instructions: {
-      stack: createInstructionStackInstruction({
-        workspaceRoot: workspace2.root,
-        tier: options.instructionTier,
-        workspaceNoun: noun,
-        verifyCommandHint: options.verifyCommandHint,
-        subagentRoster: options.subagentRoster,
-        media: oracle ? {
-          modelName: oracle.modelName,
-          capabilities: oracle.capabilities,
-          parentCapabilities: options.parentCapabilities
-        } : undefined,
-        omitSections: options.omitInstructionSections,
-        extraSections: options.extraInstructionSections
-      }),
-      parallelTools: createParallelToolsInstruction({ tier: options.instructionTier }),
-      repoConventions: createRepoConventionsInstruction({ workspaceRoot: workspace2.root }),
-      subagents: createSubagentInstruction({
-        workspaceNoun: noun,
-        roster: options.subagentRoster,
-        tier: options.instructionTier
-      }),
-      ...oracle !== null ? {
-        media: createLookInstruction({
-          modelName: oracle.modelName,
-          capabilities: oracle.capabilities,
-          parentCapabilities: options.parentCapabilities,
-          tier: options.instructionTier
-        })
-      } : {},
-      workflow: createWorkflowInstruction({
-        workspaceNoun: noun,
-        verifyCommandHint: options.verifyCommandHint,
-        tier: options.instructionTier
-      }),
-      planning: createPlanningInstruction({ tier: options.instructionTier }),
-      communication: createCommunicationInstruction({ tier: options.instructionTier }),
-      hitl: createHitlInstruction({ tier: options.instructionTier })
-    }
-  };
-}
+// ../../../../../tmp/agent-sdk-mirror-ocVtYJ/repo/src/index.ts
 function createSandboxFileTools(options) {
   const noun = options.workspaceNoun ?? "workspace";
   const workspace2 = createWorkspace(options.workspaceRoot);
@@ -6383,14 +4991,13 @@ function createSandboxFileTools(options) {
     root: workspace2.root,
     ...options.resolveSession !== undefined ? { resolveSession: options.resolveSession } : {}
   });
-  const notifications = options.notifications ?? false;
   const runner = sandboxRunnerProvider({
     root: workspace2.root,
     ...options.resolveSession !== undefined ? { resolveSession: options.resolveSession } : {},
     spillDir: options.spillDir
   });
   const registry = createTaskRegistry({
-    storePath: options.taskStorePath ?? join8(tmpdir(), "agent-sdk", `sandbox-tasks-${process.pid}.json`)
+    storePath: options.taskStorePath ?? join7(tmpdir(), "agent-sdk", `sandbox-tasks-${process.pid}.json`)
   });
   const backgroundables = [createBashOp(runner)];
   const conventionsFileName = options.conventionsFileName ?? "AGENTS.md";
@@ -6405,6 +5012,8 @@ function createSandboxFileTools(options) {
   const readImageHint = oracle ? lookReadImageHint(oracle) : undefined;
   const readMediaHint = oracle ? lookReadMediaHint(oracle) : undefined;
   const readOversizeHint = oracle ? lookOversizeHint(oracle) : undefined;
+  const fetchedImageHint = oracle ? lookFetchedImageHint(oracle) : undefined;
+  const fetchedMediaHint = oracle ? lookFetchedMediaHint(oracle) : undefined;
   return {
     workspace: workspace2,
     io,
@@ -6437,10 +5046,15 @@ function createSandboxFileTools(options) {
         registry,
         noun,
         interactiveHint: options.bashInteractiveHint,
-        execEnv: "sandbox",
-        notifications
+        execEnv: "sandbox"
       }),
-      tasks: createTasksTools({ registry, backgroundables, notifications }),
+      tasks: createTasksTools({ registry, backgroundables }),
+      todo: createTodoTool(),
+      webfetch: createWebFetchTool({
+        workspace: workspace2,
+        ...fetchedImageHint !== undefined ? { imageUnavailableHint: fetchedImageHint } : {},
+        ...fetchedMediaHint !== undefined ? { mediaUnavailableHint: fetchedMediaHint } : {}
+      }),
       ...oracle !== null ? { look: createLookTool({ workspace: workspace2, noun, oracle, io }) } : {}
     },
     instructions: {
@@ -6449,7 +5063,6 @@ function createSandboxFileTools(options) {
         workspaceNoun: noun,
         verifyCommandHint: options.verifyCommandHint,
         subagentRoster: options.subagentRoster,
-        notifications,
         media: oracle ? {
           modelName: oracle.modelName,
           capabilities: oracle.capabilities,
@@ -6457,32 +5070,45 @@ function createSandboxFileTools(options) {
         } : undefined,
         omitSections: options.omitInstructionSections,
         extraSections: options.extraInstructionSections
-      })
+      }),
+      parallelTools: createParallelToolsInstruction({ tier: options.instructionTier }),
+      subagents: createSubagentInstruction({
+        workspaceNoun: noun,
+        roster: options.subagentRoster,
+        tier: options.instructionTier
+      }),
+      ...oracle !== null ? {
+        media: createLookInstruction({
+          modelName: oracle.modelName,
+          capabilities: oracle.capabilities,
+          parentCapabilities: options.parentCapabilities,
+          tier: options.instructionTier
+        })
+      } : {},
+      workflow: createWorkflowInstruction({
+        workspaceNoun: noun,
+        verifyCommandHint: options.verifyCommandHint,
+        tier: options.instructionTier
+      }),
+      planning: createPlanningInstruction({ tier: options.instructionTier }),
+      communication: createCommunicationInstruction({ tier: options.instructionTier }),
+      hitl: createHitlInstruction({ tier: options.instructionTier })
     }
   };
 }
 export {
   xhtmlToText,
   workflowSection,
-  workerEpochMs,
-  withValidatedCompaction,
-  withSteerDelivery,
   walkFiles,
   visibleReasoningModelOptions,
   videoMediaType,
   validateTodoWrite,
-  toolInputFragments,
   toolAuthoringSection,
   subagentSection,
-  stripSteerFromOutput,
   splitBom,
   slideParagraphs,
   shellSingleQuote,
-  setParkNotificationHandler,
-  serializeSteerLine,
   searchLocal,
-  scriptStepFrom,
-  scriptActionFor,
   sandboxRunnerProvider,
   sandboxIoProvider,
   resolveWithin,
@@ -6496,43 +5122,32 @@ export {
   renderPromptSection,
   relativizeWithin,
   readTextForSearch,
-  readSteerMessages,
-  postParkNotification,
   planningSection,
   parseTodoListResult,
   parseTodoItems,
-  parseSteerLine,
   parseSearchOutput,
-  parseJudgeVerdict,
   parseGatewayModelCatalog,
   parallelToolsSection,
   openZip,
   modelFamily,
-  mockScenarioFrom,
-  mergeSteerIntoModelOutput,
-  markdownChunks,
   looksLikeHtml,
   lookSection,
   lookReadMediaHint,
   lookReadImageHint,
+  lookOversizeHint,
   lookFetchedMediaHint,
   lookFetchedImageHint,
   lookAvKindClause,
   localIoProvider,
   loadFileContent,
   listGitFiles,
-  lastUserTextFrom,
   joinBom,
-  isOrphanedTurn,
   isHtmlContentType,
   isDisproportionateMatch,
   imageMediaType,
   hitlSection,
   globToRegExp,
-  formatWatchNotification,
   formatTodoViolations,
-  formatSteerText,
-  formatCompletionNotification,
   fetchWebResource,
   fetchGatewayModelCatalog,
   extractTextFromHtml,
@@ -6563,9 +5178,6 @@ export {
   createTaskInstruction,
   createTaskAgent,
   createSubagentInstruction,
-  createSteerWrapper,
-  createSteerInbox,
-  createStdlib,
   createStatCache,
   createSandboxRunner,
   createSandboxIo,
@@ -6573,11 +5185,7 @@ export {
   createRepoConventionsInstruction,
   createReadTool,
   createPlanningInstruction,
-  createParkDeliveryState,
-  createParkDeliveryHook,
   createParallelToolsInstruction,
-  createOutputWatcher,
-  createMockStoryModel,
   createLookTool,
   createLookInstruction,
   createLocalIo,
@@ -6595,21 +5203,17 @@ export {
   convertHtmlToMarkdown,
   composePromptSections,
   communicationSection,
-  clientContinuationToken,
   capturePreview,
   capabilitiesFromCatalogEntry,
   capabilitiesForModel,
   buildWorkflowMarkdown,
   buildWebFetchHeaders,
-  buildValidationSystemPrompt,
   buildToolAuthoringMarkdown,
   buildTasksToolset,
   buildTaskMarkdown,
   buildTaskDescription,
   buildSubagentMarkdown,
-  buildSteerPayload,
   buildRepoConventionsMarkdown,
-  buildRecoverySection,
   buildPlanningMarkdown,
   buildParallelToolsMarkdown,
   buildLookMarkdown,
@@ -6619,7 +5223,6 @@ export {
   buildFileView,
   buildCommunicationMarkdown,
   audioMediaType,
-  attachSteerToOutput,
   assertHttpUrl,
   __resetTaskRegistryCacheForTests,
   __resetDirConventionsCacheForTests,
@@ -6637,14 +5240,9 @@ export {
   TASK_DISABLED_BUILTINS,
   TAIL_CHARS,
   SimpleReplacer,
-  STEER_WRAPPED_OUTPUT_FIELD,
-  STEER_NOTE,
-  STEER_FIELD,
-  STEER_DIRNAME,
   STDLIB_EXTERNAL_DEPENDENCIES,
   SHEET_ROW_CAP,
   SEARCH_OUTPUT_CAP_BYTES,
-  RECOVERED_CONTEXT_HEADER,
   READ_FILE_MAX_LINE_CHARS,
   READ_FILE_MAX_CONTENT_CHARS,
   READ_FILE_MAX_BYTES,
@@ -6655,7 +5253,6 @@ export {
   PDF_EMPTY_PAGE_NOTE,
   ODP_EMPTY_SLIDE_NOTE,
   MultiOccurrenceReplacer,
-  MOCK_SCENARIOS,
   MEDIA_CAPABILITY_OVERLAY,
   MAX_SPILL_RETAIN_CHARS,
   MAX_SEARCH_FILE_BYTES,
@@ -6672,18 +5269,11 @@ export {
   EditNotFoundError,
   EditDisproportionateError,
   EPUB_SECTION_CAP,
-  DEFAULT_WATCH_DEBOUNCE_MS,
   DEFAULT_MEDIA_ORACLE,
-  DEFAULT_MAX_WATCH_NOTIFICATIONS,
-  DEFAULT_MAX_RECOVERED_FACTS,
-  DEFAULT_MAX_RECOVERED_CHARS,
   DEFAULT_MAX_INLINE_CONTENT_CHARS,
   DEFAULT_LOOK_TIMEOUT_MS,
   DEFAULT_LOOK_MAX_INPUT_BYTES,
-  DEFAULT_JUDGE_TIMEOUT_MS,
-  DEFAULT_JUDGE_MAX_OUTPUT_TOKENS,
   ContextAwareReplacer,
-  COMPACTION_SENTINEL,
   BlockAnchorReplacer,
   BROWSER_USER_AGENT,
   ALWAYS_IGNORED

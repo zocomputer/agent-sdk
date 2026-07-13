@@ -45,9 +45,6 @@ The rule shapes features that look unrelated:
 
 - Nested `AGENTS.md` conventions arrive as read-result riders, never prompt
   mutations ([10](./10-repo-conventions-injection.md)).
-- Mid-turn steering rides tool results ([12](./12-mid-turn-steering.md)).
-- Background-task notifications arrive as a next user turn
-  ([08](./08-park-delivery.md)) — a transcript append, not a prefix change.
 
 Sanctioned exceptions: compaction, and a self-editing agent's hot reload —
 both already re-price the session by design.

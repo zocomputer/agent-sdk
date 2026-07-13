@@ -18,19 +18,13 @@ boundary an external consumer would have.
   (`@zocomputer/result`, `type-fest`) that this package deliberately skips:
   a published SDK that forces a `Result` wrapper or re-exports someone's
   utility types taxes every consumer. The type foundation is plain
-  discriminated unions + strict TS. Where a client-side package needs one of
-  this package's wire constants (chat-core reads the steer field), the
-  constant is *mirrored* and pinned by a devDependency equality test rather
-  than imported — the zero-import rule outranks DRY here.
+  discriminated unions + strict TS.
 - **Raw TS, no build step.** eve projects run TypeScript directly, so the
   package exports `./src/index.ts` as-is. No dist, no bundler drift, and the
   mirror repo is readable source.
 - **Extraction deps are WASM/pure-JS only** (`clawpdf` for PDFium, `mammoth`,
   SheetJS, `defuddle`, `linkedom`) — no native postinstalls, so `bun add`
   works everywhere the agent runs.
-- **Dependency-free subpaths for UI clients.** `./steer` and `./steer-inbox`
-  export just the wire contracts and pure readers, so a frontend that renders
-  steer bubbles doesn't pull the extraction stack into its bundle.
 
 ## The non-obvious constraint: `file:` resolves devDependencies
 
@@ -53,6 +47,5 @@ builder, so the tarball and the mirror can't drift.
 
 - `rib/learnings/18-agent-sdk-extraction.md` — the `file:`-across-the-
   workspace-boundary constraint.
-- `rib/learnings/29-mid-turn-steering.md` — the mirrored-constant seam.
 - `journal/ben/2026-07-03-week-one-in-review.md` — the seams argument: why
   rib sits outside the workspace at all.

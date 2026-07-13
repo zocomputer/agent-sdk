@@ -3,7 +3,6 @@ import { mkdtempSync, realpathSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import type { ToolContext } from "eve/tools";
-import { createStdlib } from "../index";
 import { TEXT_ONLY_CAPABILITIES } from "../model-capabilities";
 import { createWorkspace } from "../workspace";
 import { localIoProvider } from "../workspace-io";
@@ -392,69 +391,4 @@ describe("look hints", () => {
     });
     expect(pdfOnly).toContain("Only if it is a PDF file");
   });
-});
-
-describe("stdlib wiring", () => {
-  test("mediaOracle: true adds tools.look and instructions.media", () => {
-    const stdlib = createStdlib({
-      workspaceRoot: root,
-      stateDir: join(root, ".state"),
-      mediaOracle: true,
-    });
-    expect(stdlib.tools.look).toBeDefined();
-    expect(stdlib.instructions.media).toBeDefined();
-    // The RESOLVED oracle is exposed so task children derive their hints and
-    // media instruction from the exact config the parent's look runs (their
-    // look is a re-export of the parent's instance).
-    expect(stdlib.mediaOracle).toBe(DEFAULT_MEDIA_ORACLE);
-  });
-
-  test("a custom oracle config is exposed as-is", () => {
-    const stdlib = createStdlib({
-      workspaceRoot: root,
-      stateDir: join(root, ".state"),
-      mediaOracle: FULL_ORACLE,
-    });
-    expect(stdlib.mediaOracle).toBe(FULL_ORACLE);
-  });
-
-  test("no mediaOracle → no look tool, no media instruction", () => {
-    const stdlib = createStdlib({
-      workspaceRoot: root,
-      stateDir: join(root, ".state"),
-    });
-    expect(stdlib.tools.look).toBeUndefined();
-    expect(stdlib.instructions.media).toBeUndefined();
-    expect(stdlib.mediaOracle).toBeNull();
-  });
-
-  test("a text-only parent's read note routes to look", async () => {
-    const stdlib = createStdlib({
-      workspaceRoot: root,
-      stateDir: join(root, ".state"),
-      parentCapabilities: TEXT_ONLY_CAPABILITIES,
-      mediaOracle: true,
-    });
-    const result = await stdlib.tools.read.execute({ path: "pic.png" }, ctx);
-    if (!("note" in result) || typeof result.note !== "string") {
-      throw new Error("expected a metadata-only note");
-    }
-    expect(result.note).toContain("text/json only");
-    expect(result.note).toContain("look tool");
-    expect(result.note).not.toContain("ask the user");
-  });
-
-  test("an oversized read's error routes to look when the oracle is wired", async () => {
-    // Over read's byte cap (before kind detection) but within look's 20 MiB.
-    writeFileSync(join(root, "big.mp4"), Buffer.alloc(11 * 1024 * 1024));
-    const stdlib = createStdlib({
-      workspaceRoot: root,
-      stateDir: join(root, ".state"),
-      mediaOracle: true,
-    });
-    await expect(stdlib.tools.read.execute({ path: "big.mp4" }, ctx)).rejects.toThrow(
-      /look tool/,
-    );
-  });
-
 });

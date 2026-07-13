@@ -8,7 +8,7 @@
 
 > **createSandboxRunner**(`opts`): [`CommandRunner`](../interfaces/CommandRunner.md)
 
-Defined in: [packages/agent-sdk/src/sandbox-run.ts:155](https://github.com/zocomputer/zov2-code/blob/440b57200b266cf1c7309b270db9220db760c77a/packages/agent-sdk/src/sandbox-run.ts#L155)
+Defined in: [packages/agent-sdk/src/sandbox-run.ts:155](https://github.com/zocomputer/zov2-code/blob/2f680aef81cf6a147ceac91fe4d066f3e4aff1b6/packages/agent-sdk/src/sandbox-run.ts#L155)
 
 One call's command runner over a sandbox session. The session resolves
 lazily on first command and is shared across the call's commands.

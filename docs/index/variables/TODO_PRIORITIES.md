@@ -8,6 +8,6 @@
 
 > `const` **TODO\_PRIORITIES**: readonly \[`"high"`, `"medium"`, `"low"`\]
 
-Defined in: [packages/agent-sdk/src/todo-discipline.ts:27](https://github.com/zocomputer/zov2-code/blob/440b57200b266cf1c7309b270db9220db760c77a/packages/agent-sdk/src/todo-discipline.ts#L27)
+Defined in: [packages/agent-sdk/src/todo-discipline.ts:27](https://github.com/zocomputer/zov2-code/blob/2f680aef81cf6a147ceac91fe4d066f3e4aff1b6/packages/agent-sdk/src/todo-discipline.ts#L27)
 
 The todo priorities eve's framework `todo` tool accepts.

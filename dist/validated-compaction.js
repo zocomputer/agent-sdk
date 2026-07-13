@@ -1,4 +1,4 @@
-// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/validated-compaction.ts
+// ../../../../../tmp/agent-sdk-mirror-ocVtYJ/repo/platform/runtime-ai/validated-compaction.ts
 var COMPACTION_SENTINEL = "You are a conversation summarizer.";
 var RECOVERED_CONTEXT_HEADER = "## Recovered context (compaction audit)";
 var DEFAULT_MAX_RECOVERED_CHARS = 2000;
@@ -181,7 +181,23 @@ ${section.text}`;
     }
   };
 }
+function withValidatedCompactionProvider(provider, options = {}) {
+  const wrap = (model) => withValidatedCompaction(model, options);
+  return new Proxy(provider, {
+    apply(target, _thisArg, args) {
+      return wrap(target(...args));
+    },
+    get(target, property, receiver) {
+      if (property === "languageModel" || property === "chat") {
+        const mint = target[property].bind(target);
+        return (modelId) => wrap(mint(modelId));
+      }
+      return Reflect.get(target, property, receiver);
+    }
+  });
+}
 export {
+  withValidatedCompactionProvider,
   withValidatedCompaction,
   parseJudgeVerdict,
   buildValidationSystemPrompt,

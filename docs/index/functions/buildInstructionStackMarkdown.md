@@ -8,7 +8,7 @@
 
 > **buildInstructionStackMarkdown**(`opts`): `string`
 
-Defined in: [packages/agent-sdk/src/instructions.ts:776](https://github.com/zocomputer/zov2-code/blob/440b57200b266cf1c7309b270db9220db760c77a/packages/agent-sdk/src/instructions.ts#L776)
+Defined in: [packages/agent-sdk/src/instructions.ts:749](https://github.com/zocomputer/zov2-code/blob/2f680aef81cf6a147ceac91fe4d066f3e4aff1b6/packages/agent-sdk/src/instructions.ts#L749)
 
 The composed stack rendered to one markdown document.
 

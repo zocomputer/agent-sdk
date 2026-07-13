@@ -66,7 +66,7 @@ deliberate one. The stack renders every section in its canonical order:
 | `repo-conventions`| Repository conventions (root AGENTS.md)   | injects the workspace's root `AGENTS.md` |
 | `workflow`        | How to work                               | explore before edit, read before edit, reproduce a bug before fixing it, verify, finish before ending the turn |
 | `planning`        | Planning your work (todo)                 | the `todo` tool contract — when to plan, whole-list writes, one `in_progress`, rewrite on pivots |
-| `parallel-tools`  | Parallel tool calls                       | background tasks, `notify` watchers, await-before-ending |
+| `parallel-tools`  | Parallel tool calls                       | background tasks, explicit polling, await-before-ending |
 | `subagents`       | Delegating with the agent tool            | delegation with eve's built-in `agent` tool (+ roster routing) |
 | `media`           | Media you can't view (look)               | (only with `mediaOracle` set) view natively what the model supports, `look` at the rest |
 | `hitl`            | Asking the user (ask_question)            | the `ask_question` playbook — options, `style: "primary"`, `allowFreeform`, ask independent questions together |
@@ -75,7 +75,7 @@ deliberate one. The stack renders every section in its canonical order:
 **Tiers.** Every section is authored in two depths — `full` (the default:
 numbered rules, worked examples) and `compact` (the same contracts, tighter
 prose, for models that follow instructions well without the redundancy).
-`createStdlib({ instructionTier: "compact" })` switches the whole stack; the
+`createSandboxFileTools({ instructionTier: "compact" })` switches the whole stack; the
 à la carte factories take the same `tier` option. Both tiers of a section
 live in one builder function and tests pin their parity (same load-bearing
 tool names and thresholds in both), so the compact tier can't silently drift
@@ -84,7 +84,7 @@ from the full one — the failure mode of maintaining two prompt files by hand.
 **Extending the stack.** Consumers edit the composition, not the prose:
 
 ```ts
-createStdlib({
+createSandboxFileTools({
   // drop a baseline section by id
   omitInstructionSections: ["planning"],
   // splice your own sections in at a deliberate spot; the function form is
@@ -127,21 +127,6 @@ the model would read the prose twice.
 Persona stays yours: the stdlib ships operational contracts, not voice —
 write your agent's identity as your own instruction file (see the example's
 `coder.ts`).
-
-### The park-delivery hook
-
-One hook file delivers background-task notifications (see
-[Tool behavior](#tool-behavior)):
-
-```ts
-// agent/hooks/park-delivery.ts
-import { createParkDeliveryHook } from "@zocomputer/agent-sdk";
-export default createParkDeliveryHook();
-```
-
-If you enable [Steering](#steering-mid-turn-messages), pass the same inbox
-dir here: `createParkDeliveryHook({ steer: { dir } })`. The hook's
-`serverUrl` defaults to loopback on `$PORT` (eve dev's 2000 otherwise).
 
 ## Tool behavior
 
@@ -202,7 +187,7 @@ The names are deliberately boring; the behavior behind them is the point:
   PPTX/ODP, spreadsheets, EPUB, notebooks) route through the same extractors
   as `read` (`.pdf` URLs get a longer default timeout); images return
   metadata and attach to the chat like `read`. Overflow has **two modes**:
-  with `spillDir` (what `createStdlib` wires — right wherever `read` shares a
+  with `spillDir` (what the composed toolset wires — wherever `read` shares a
   filesystem with the tool), content past ~50k chars truncates head+tail and
   the complete output spills to a file the marker names; **without it**
   (inline-first — the split-topology mode, where a spill would land on the
@@ -225,13 +210,6 @@ The names are deliberately boring; the behavior behind them is the point:
 - **`run_async` / `check_tasks` / `await_task`** persist the task registry
   across restarts (tasks running across a restart report as `lost`); any
   `defineOp` op becomes `run_async`-able via `extraBackgroundables`.
-- **Background notifications**: `bash` and `run_async` take an optional
-  `notify` watcher (`{ pattern, reason }`) — output lines matching the regex
-  (debounced, capped) are delivered to the model as a message while the
-  session is idle, instead of it polling `check_tasks`; `run_async` also takes
-  `notify_on_complete` for a settle notice. Delivery rides the park-delivery
-  hook: notifications queue until the session parks and then start its next
-  turn, exactly like a user message.
 
 ## Media reads (images, video, audio)
 
@@ -257,7 +235,7 @@ reads the bytes through the workspace IO and calls the AI SDK's
 entirely (text-only subagent input, text/json tool results, the hydration
 whitelist) and works in task children too.
 
-- **Wire it with `createStdlib({ mediaOracle: true })`** (or on
+- **Wire it with `createSandboxFileTools({ mediaOracle: true })`** (or on
   `createSandboxFileTools`) and one `agent/tools/look.ts` re-export. `true`
   selects `DEFAULT_MEDIA_ORACLE` — `google/gemini-3-flash`, the recommended
   default because the oracle's capability set must cover every kind the copy
@@ -279,32 +257,6 @@ whitelist) and works in task children too.
   under-reports (google → video+audio). Resolve in a one-shot refresh script
   and check the result in — capability text lands in tool descriptions, part
   of the cached prompt prefix, so it must be static and offline-safe.
-
-## Steering (mid-turn messages)
-
-eve queues a message sent to a busy session until the turn ends — hooks are
-observe-only and a mid-turn `send()` is rejected, so there's no framework
-channel into a running turn. The SDK's channel rides the tool results:
-
-- **Enable it with `createStdlib({ steer: { dir } })`.** The stdlib builds a
-  steer **inbox** — one NDJSON file per session under `dir` (exposed as
-  `stdlib.steerInbox`) — and wraps every stdlib tool so a completing call
-  drains the inbox and attaches the queued messages to its result under
-  `user_steer`, with a note telling the model to adjust course now. On a long
-  turn, `await_task` is the highest-value delivery window.
-- **A UI queues a steer by appending to the inbox**:
-  `createSteerInbox({ dir }).append(sessionId, text)`
-  (`@zocomputer/agent-sdk/steer-inbox`), typically behind a small HTTP route.
-  Drain-vs-append races are safe (rename-first drain).
-- **Wrap your own tools** with `createSteerWrapper(stdlib.steerInbox)` (or
-  `withSteerDelivery(tool, inbox)`) so they deliver steers too.
-- **Messages that miss every tool window drain on park**: with
-  `createParkDeliveryHook({ steer: { dir } })`, leftovers start the session's
-  next turn — delivered first, verbatim.
-- **The wire contract is dependency-free at `@zocomputer/agent-sdk/steer`**
-  (`STEER_FIELD`, `SteerMessage`, `readSteerMessages`, …), so UI clients can
-  project delivered steers into user-message bubbles without pulling in the
-  extraction deps.
 
 ## Model-tier task subagents
 
@@ -387,7 +339,7 @@ Finally, tell the parent when to route to each tier — pass a roster to the
 stdlib and the `subagents` instruction grows a "Choosing a subagent" section:
 
 ```ts
-const stdlib = createStdlib({
+const stdlib = createSandboxFileTools({
   // …
   subagentRoster: [
     { name: "task_fast", when: "quick, well-scoped subtasks on a fast, cheap model" },
@@ -396,19 +348,17 @@ const stdlib = createStdlib({
 });
 ```
 
-Instructions aren't inherited either — re-export the stdlib instructions the
-child needs (`repoConventions`, `workflow`, `parallelTools`) beside the task
-contract. Same for hooks: if your agent logs sessions via a hook, re-export it
+Instructions aren't inherited either — re-export the hosted-safe instructions
+the child needs (`workflow`, `parallelTools`, and `media` when wired) beside
+the task contract. Sandbox reads carry nested `AGENTS.md` riders; the hosted
+composition omits process-local root injection. Same for hooks: if your agent logs sessions via a hook, re-export it
 under `agent/subagents/task_fast/hooks/` or child sessions won't be recorded.
 
 ## Sandbox-backed file tools (split topologies)
 
-`createStdlib`'s file tools do `node:fs` against the process's own disk —
-right when the eve process and the workspace share a machine (a local coding
-agent, the coder example). On a **split topology** — eve on a serverless
-function, the workspace in a remote sandbox (`ctx.getSandbox()`) — that would
-read the harness's filesystem, not the workspace. For that case the same
-tools run over the sandbox session:
+Hosted agents run eve separately from their workspace. The standard
+composition therefore routes file and command effects through the session's
+remote sandbox (`ctx.getSandbox()`):
 
 ```ts
 // agent/lib/file-tools.ts
@@ -639,7 +589,7 @@ never set that flag in a normal run:
 ```ts
 // agent/agent.ts
 import { defineAgent } from "eve";
-import { createMockStoryModel } from "@zocomputer/agent-sdk";
+import { createMockStoryModel } from "@zocomputer/agent-sdk/testing";
 
 export default function agent() {
   if (process.env.MY_AGENT_MOCK_MODEL === "1") {
@@ -648,8 +598,6 @@ export default function agent() {
   return defineAgent({ model: "anthropic/claude-opus-4.8" });
 }
 ```
-
-(The coder example wires this as `CODER_MOCK_MODEL=1`.)
 
 A turn with no directive streams a long, paced deterministic story — a turn
 that stays in-flight exactly as long as your test needs (`chunkCount` ×
@@ -676,10 +624,8 @@ renders, and every stream — including aborted ones — is grammatical (blocks
 close, a terminal part ends the stream; pinned by the package's conformance
 tests, which also validate the scripted `ask_question`/`todo` inputs against
 the installed eve's own framework-tool schemas). Inject `now` for
-byte-deterministic streams. Because the mock is credential-free, `eve eval`
-suites built on it can run end-to-end in CI — the coder example's
-[`evals-mock/`](./examples/coder/evals-mock) suite (run via its
-`scripts/eval.ts`) is the reference setup.
+byte-deterministic streams. Because the mock is credential-free, consumers
+can build `eve eval` suites on it without provider credentials.
 
 The mock's `doGenerate` is **compaction-aware**, so the validated-compaction
 loop is testable without credentials too: eve's compaction call gets a
@@ -688,9 +634,7 @@ default judge call gets a deterministic verdict — one bullet per
 `[fact:<token>]` marker planted anywhere in the transcript, or
 `NOTHING MISSING` when none are. Plant a fact in turn 1, force a compaction
 (a tiny `modelContextWindowTokens`), then send `[mock:recall]` — if the
-repaired summary reached the prompt, the reply names the token. The coder
-example's [`evals-compaction/`](./examples/coder/evals-compaction) suite
-(`bun run eval:compaction`) runs exactly that through a real eve server.
+repaired summary reached the prompt, the reply names the token.
 
 ## Zo platform modules (`platform/`)
 
@@ -738,7 +682,7 @@ version:
   corrects on: every error names what happened, states that nothing changed
   ("nothing was written/started"), and says exactly what to resend — never a
   raw fs/zod/regex error. Tools you add to an agent built on this SDK (the
-  `examples/coder` agent included) should follow the same shape.
+  any consumer tool included) should follow the same shape.
 - **No house types.** The package imports nothing repo-specific — plain
   discriminated unions, `eve` + `zod` as peers, WASM/pure-JS extraction deps
   (no native postinstalls).

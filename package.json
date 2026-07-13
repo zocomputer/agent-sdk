@@ -1,7 +1,7 @@
 {
   "name": "@zocomputer/agent-sdk",
-  "version": "0.11.0",
-  "description": "A standard library for eve agents: workspace file tools (read/edit/write/glob/grep), a backgroundable bash with bounded output, async task orchestration, and rich-filetype reads (PDF, DOCX/PPTX/ODT/ODP, spreadsheets, EPUB, notebooks, RTF) — one createStdlib call.",
+  "version": "0.12.0",
+  "description": "A standard library for eve agents: sandbox-backed workspace tools, async task orchestration, and rich-filetype reads.",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -45,13 +45,9 @@
       "types": "./src/state-sandbox.ts",
       "import": "./dist/state-sandbox.js"
     },
-    "./steer": {
-      "types": "./src/steer.ts",
-      "import": "./dist/steer.js"
-    },
-    "./steer-inbox": {
-      "types": "./src/steer-inbox.ts",
-      "import": "./dist/steer-inbox.js"
+    "./testing": {
+      "types": "./src/testing.ts",
+      "import": "./dist/testing.js"
     },
     "./validated-compaction": {
       "types": "./src/validated-compaction.ts",

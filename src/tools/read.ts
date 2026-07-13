@@ -77,7 +77,7 @@ export function createReadTool(opts: {
     ? ` When a read first enters a directory with its own ${dirConventions.fileName} conventions file, the result includes it under directory_conventions (once per directory per session) — honor those conventions for work in that directory.`
     : "";
   // Only promise the attachment path for kinds a client actually delivers
-  // (attach option + the park-delivery hook); otherwise be honest that the
+  // (attach option + the media follow-up delivery); otherwise be honest that the
   // read is metadata-only.
   const mediaHint = buildMediaHint("reading");
   const editHint =

@@ -1,12 +1,4 @@
-/**
- * Drift pin: this package's vendored stream-guards copy stays in lockstep with
- * `@zocomputer/agent-sdk/gateway-fetch` (the canonical implementation). The
- * module is duplicated because the vendored agent copy resolves only `ai` +
- * Node built-ins; this suite fails loudly when the two copies diverge —
- * defaults or behavior. Change them together.
- */
 import { describe, expect, test } from "bun:test";
-import * as sdk from "@zocomputer/agent-sdk/gateway-fetch";
 import * as local from "./stream-guards";
 
 const GUARDS = { firstByteMs: 50, idleMs: 50 } as const;
@@ -17,8 +9,7 @@ type Wrap = (
 ) => local.FetchLike;
 
 const IMPLEMENTATIONS: readonly { name: string; wrap: Wrap }[] = [
-  { name: "local", wrap: local.withStreamGuards },
-  { name: "sdk", wrap: sdk.withStreamGuards },
+  { name: "runtime-ai", wrap: local.withStreamGuards },
 ];
 
 function streamOf(
@@ -54,13 +45,7 @@ async function readAll(body: ReadableStream<Uint8Array> | null): Promise<string>
   return text;
 }
 
-describe("constants match agent-sdk", () => {
-  test("default guard timeouts are equal", () => {
-    expect(local.DEFAULT_STREAM_GUARDS).toEqual(sdk.DEFAULT_STREAM_GUARDS);
-  });
-});
-
-describe("behavior matches agent-sdk", () => {
+describe("stream guard behavior", () => {
   for (const { name, wrap } of IMPLEMENTATIONS) {
     describe(name, () => {
       test("a healthy streaming response passes through with status and headers", async () => {

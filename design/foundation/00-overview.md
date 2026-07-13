@@ -53,7 +53,7 @@ make.
 ## The decisions
 
 - [01 — Extracted from a working agent](./01-extracted-from-a-working-agent.md):
-  ship what rib proved, as `createStdlib` plus à la carte factories, wired by
+  ship what rib proved, as hosted-first composition plus à la carte factories, wired by
   re-export.
 - [02 — Standalone by construction](./02-standalone-by-construction.md): zero
   house imports, raw TypeScript, peers not bundles, and the `file:` boundary
@@ -67,11 +67,8 @@ make.
 - [06 — Rich reads through one tool](./06-rich-reads-one-tool.md): PDFs, DOCX,
   and spreadsheets are text extraction through the existing `read` window —
   the winning interface is no new interface.
-- [07 — Background tasks](./07-background-tasks.md): adaptive backgrounding,
-  a persisted task registry, and `notify` watchers instead of polling.
-- [08 — Park delivery](./08-park-delivery.md): the
-  queue-and-send-as-next-user-turn channel for anything that must reach a
-  parked session.
+- [07 — Background tasks](./07-background-tasks.md): adaptive backgrounding
+  and a persisted task registry with explicit polling and awaiting.
 - [09 — The instruction stack](./09-instruction-stack.md): ship the
   operational prose with the tools — composed into one section-ordered
   instruction with full/compact tiers and consumer omit/extra section edits;
@@ -81,8 +78,6 @@ make.
 - [11 — The model-tier task subagent kit](./11-task-subagents.md): full parent
   parity by construction, model choice = tool choice, pinned by a manifest
   test, routed by a roster.
-- [12 — Mid-turn steering](./12-mid-turn-steering.md): user messages delivered
-  into a running turn over tool results.
 - [13 — Work with the grain of eve](./13-work-with-the-grain-of-eve.md): build
   workarounds app-side, document every gap as an upstream ask.
 - [14 — Validated compaction](./14-validated-compaction.md): judge eve's

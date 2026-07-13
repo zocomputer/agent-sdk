@@ -444,7 +444,7 @@ export function createMockStoryModel(options: MockStoryModelOptions = {}): Langu
     // catalog identity so the mock compiles; routing stays "external", so no
     // request ever reaches Anthropic.
     provider: "anthropic",
-    modelId: "claude-sonnet-4-6",
+    modelId: "claude-opus-4-8",
     supportedUrls: {},
     async doGenerate(callOptions: LanguageModelV4CallOptions) {
       // Compaction-aware: eve's compaction call gets a canned generic summary,
@@ -472,7 +472,7 @@ export function createMockStoryModel(options: MockStoryModelOptions = {}): Langu
           controller.enqueue({
             type: "response-metadata",
             id: `mock-${now()}`,
-            modelId: "claude-sonnet-4-6",
+            modelId: "claude-opus-4-8",
             timestamp: new Date(now()),
           });
 

@@ -102,7 +102,7 @@ export const DEFAULT_MEDIA_ORACLE: LookOracleConfig = {
 };
 
 /**
- * The consumer-facing oracle option on `createStdlib` and
+ * The consumer-facing oracle option on `createSandboxFileTools` and
  * `createSandboxFileTools`: `true` selects {@link DEFAULT_MEDIA_ORACLE}, an
  * object pins a custom oracle. Absent = no `look` tool.
  */
@@ -442,4 +442,3 @@ export function lookOversizeHint(
   const capMb = Math.floor(maxInputBytes / (1024 * 1024));
   return `For text, use bash (head, sed -n, rg) to extract the part you need. Only if it is ${article} ${kindList} file up to ${capMb} MB, pass the path and a question to the look tool to have ${oracle.modelName} examine it (look sends files read cannot; over ${capMb} MB, shrink it first, e.g. ffmpeg extraction).`;
 }
-

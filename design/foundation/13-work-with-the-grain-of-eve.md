@@ -15,11 +15,9 @@ eve's core bets are right for this package's consumers: durable sessions, a
 replayable stream, filename-as-wire-name tool loading, observe-only hooks,
 serious prompt-cache plumbing. An SDK that fought those bets — monkey-patching
 the harness, private APIs, a forked runtime — would break on every eve release
-and teach its consumers nothing transferable. Constraints also breed better
-designs than escape hatches: park delivery's "act like a user"
-([08](./08-park-delivery.md)) fell out of accepting that hooks can't inject
-context, and it came back durable, replayable, and rendered by every client
-for free — properties a privileged side channel wouldn't have had.
+and teach its consumers nothing transferable. A workaround that only fits a
+local topology is deleted once it becomes clear that hosted consumers cannot
+share its semantics; the upstream ask remains as the portable target.
 
 The posture has three rules:
 

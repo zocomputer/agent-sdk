@@ -8,8 +8,9 @@
     "src/state-consent.ts",
     "src/state-files.ts",
     "src/state-sandbox.ts",
-    "src/steer.ts",
-    "src/steer-inbox.ts"
+    "src/testing.ts",
+    "src/validated-compaction.ts",
+    "src/visible-reasoning.ts"
   ],
   "tsconfig": "tsconfig.json",
   "readme": "none",

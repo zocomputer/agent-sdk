@@ -35,17 +35,8 @@
 - [IoToolContext](interfaces/IoToolContext.md)
 - [LookOracleConfig](interfaces/LookOracleConfig.md)
 - [LookToolOptions](interfaces/LookToolOptions.md)
-- [MockStoryModelOptions](interfaces/MockStoryModelOptions.md)
-- [MockToolCall](interfaces/MockToolCall.md)
 - [ModelInputCapabilities](interfaces/ModelInputCapabilities.md)
 - [OpStartExtras](interfaces/OpStartExtras.md)
-- [OrphanedTurnInput](interfaces/OrphanedTurnInput.md)
-- [OutputWatcher](interfaces/OutputWatcher.md)
-- [OutputWatcherOptions](interfaces/OutputWatcherOptions.md)
-- [ParkDeliveryItem](interfaces/ParkDeliveryItem.md)
-- [ParkDeliveryOptions](interfaces/ParkDeliveryOptions.md)
-- [ParkDeliveryRequest](interfaces/ParkDeliveryRequest.md)
-- [ParkNotification](interfaces/ParkNotification.md)
 - [PlacedPromptSection](interfaces/PlacedPromptSection.md)
 - [PromptSection](interfaces/PromptSection.md)
 - [RenderedWebText](interfaces/RenderedWebText.md)
@@ -62,15 +53,12 @@
 - [StartCommandOptions](interfaces/StartCommandOptions.md)
 - [StatCache](interfaces/StatCache.md)
 - [StatIdentity](interfaces/StatIdentity.md)
-- [StdlibOptions](interfaces/StdlibOptions.md)
 - [SubagentRosterEntry](interfaces/SubagentRosterEntry.md)
 - [TaskAgentOptions](interfaces/TaskAgentOptions.md)
 - [TaskDescriptionOptions](interfaces/TaskDescriptionOptions.md)
 - [TaskRegistry](interfaces/TaskRegistry.md)
 - [TaskToolManifestOptions](interfaces/TaskToolManifestOptions.md)
 - [TodoItem](interfaces/TodoItem.md)
-- [ValidatedCompactionOptions](interfaces/ValidatedCompactionOptions.md)
-- [VisibleReasoningModelOptions](interfaces/VisibleReasoningModelOptions.md)
 - [Workspace](interfaces/Workspace.md)
 - [WorkspaceIO](interfaces/WorkspaceIO.md)
 - [ZipArchive](interfaces/ZipArchive.md)
@@ -80,7 +68,6 @@
 - [AudioFormat](type-aliases/AudioFormat.md)
 - [BashExecEnv](type-aliases/BashExecEnv.md)
 - [CommandRunnerProvider](type-aliases/CommandRunnerProvider.md)
-- [CompactionValidationReport](type-aliases/CompactionValidationReport.md)
 - [DirConventionsRider](type-aliases/DirConventionsRider.md)
 - [DocxExtraction](type-aliases/DocxExtraction.md)
 - [EpubExtraction](type-aliases/EpubExtraction.md)
@@ -93,13 +80,9 @@
 - [LookGenerateFn](type-aliases/LookGenerateFn.md)
 - [MatchStrategy](type-aliases/MatchStrategy.md)
 - [MediaOracleOption](type-aliases/MediaOracleOption.md)
-- [MockScenario](type-aliases/MockScenario.md)
-- [MockScriptAction](type-aliases/MockScriptAction.md)
-- [MockScriptedScenario](type-aliases/MockScriptedScenario.md)
 - [NotebookExtraction](type-aliases/NotebookExtraction.md)
 - [OdpExtraction](type-aliases/OdpExtraction.md)
 - [OdtExtraction](type-aliases/OdtExtraction.md)
-- [ParkDeliveryState](type-aliases/ParkDeliveryState.md)
 - [PdfExtraction](type-aliases/PdfExtraction.md)
 - [PptxExtraction](type-aliases/PptxExtraction.md)
 - [Replacer](type-aliases/Replacer.md)
@@ -109,15 +92,12 @@
 - [SectionPlacement](type-aliases/SectionPlacement.md)
 - [SheetExtraction](type-aliases/SheetExtraction.md)
 - [SheetFormat](type-aliases/SheetFormat.md)
-- [Stdlib](type-aliases/Stdlib.md)
-- [SteerSource](type-aliases/SteerSource.md)
 - [Task](type-aliases/Task.md)
 - [TextEncoding](type-aliases/TextEncoding.md)
 - [TodoPriority](type-aliases/TodoPriority.md)
 - [TodoStatus](type-aliases/TodoStatus.md)
 - [TodoViolation](type-aliases/TodoViolation.md)
 - [VideoFormat](type-aliases/VideoFormat.md)
-- [VisibleReasoningJsonValue](type-aliases/VisibleReasoningJsonValue.md)
 - [WebFetchFormat](type-aliases/WebFetchFormat.md)
 - [WorkspaceIoProvider](type-aliases/WorkspaceIoProvider.md)
 
@@ -126,18 +106,11 @@
 - [ALWAYS\_IGNORED](variables/ALWAYS_IGNORED.md)
 - [BlockAnchorReplacer](variables/BlockAnchorReplacer.md)
 - [BROWSER\_USER\_AGENT](variables/BROWSER_USER_AGENT.md)
-- [COMPACTION\_SENTINEL](variables/COMPACTION_SENTINEL.md)
 - [ContextAwareReplacer](variables/ContextAwareReplacer.md)
-- [DEFAULT\_JUDGE\_MAX\_OUTPUT\_TOKENS](variables/DEFAULT_JUDGE_MAX_OUTPUT_TOKENS.md)
-- [DEFAULT\_JUDGE\_TIMEOUT\_MS](variables/DEFAULT_JUDGE_TIMEOUT_MS.md)
 - [DEFAULT\_LOOK\_MAX\_INPUT\_BYTES](variables/DEFAULT_LOOK_MAX_INPUT_BYTES.md)
 - [DEFAULT\_LOOK\_TIMEOUT\_MS](variables/DEFAULT_LOOK_TIMEOUT_MS.md)
 - [DEFAULT\_MAX\_INLINE\_CONTENT\_CHARS](variables/DEFAULT_MAX_INLINE_CONTENT_CHARS.md)
-- [DEFAULT\_MAX\_RECOVERED\_CHARS](variables/DEFAULT_MAX_RECOVERED_CHARS.md)
-- [DEFAULT\_MAX\_RECOVERED\_FACTS](variables/DEFAULT_MAX_RECOVERED_FACTS.md)
-- [DEFAULT\_MAX\_WATCH\_NOTIFICATIONS](variables/DEFAULT_MAX_WATCH_NOTIFICATIONS.md)
 - [DEFAULT\_MEDIA\_ORACLE](variables/DEFAULT_MEDIA_ORACLE.md)
-- [DEFAULT\_WATCH\_DEBOUNCE\_MS](variables/DEFAULT_WATCH_DEBOUNCE_MS.md)
 - [EPUB\_SECTION\_CAP](variables/EPUB_SECTION_CAP.md)
 - [EscapeNormalizedReplacer](variables/EscapeNormalizedReplacer.md)
 - [FALLBACK\_USER\_AGENT](variables/FALLBACK_USER_AGENT.md)
@@ -151,7 +124,6 @@
 - [MAX\_SEARCH\_FILE\_BYTES](variables/MAX_SEARCH_FILE_BYTES.md)
 - [MAX\_SPILL\_RETAIN\_CHARS](variables/MAX_SPILL_RETAIN_CHARS.md)
 - [MEDIA\_CAPABILITY\_OVERLAY](variables/MEDIA_CAPABILITY_OVERLAY.md)
-- [MOCK\_SCENARIOS](variables/MOCK_SCENARIOS.md)
 - [MultiOccurrenceReplacer](variables/MultiOccurrenceReplacer.md)
 - [ODP\_EMPTY\_SLIDE\_NOTE](variables/ODP_EMPTY_SLIDE_NOTE.md)
 - [PDF\_EMPTY\_PAGE\_NOTE](variables/PDF_EMPTY_PAGE_NOTE.md)
@@ -162,7 +134,6 @@
 - [READ\_FILE\_MAX\_BYTES](variables/READ_FILE_MAX_BYTES.md)
 - [READ\_FILE\_MAX\_CONTENT\_CHARS](variables/READ_FILE_MAX_CONTENT_CHARS.md)
 - [READ\_FILE\_MAX\_LINE\_CHARS](variables/READ_FILE_MAX_LINE_CHARS.md)
-- [RECOVERED\_CONTEXT\_HEADER](variables/RECOVERED_CONTEXT_HEADER.md)
 - [SEARCH\_OUTPUT\_CAP\_BYTES](variables/SEARCH_OUTPUT_CAP_BYTES.md)
 - [SHEET\_ROW\_CAP](variables/SHEET_ROW_CAP.md)
 - [SimpleReplacer](variables/SimpleReplacer.md)
@@ -195,20 +166,17 @@
 - [buildLookMarkdown](functions/buildLookMarkdown.md)
 - [buildParallelToolsMarkdown](functions/buildParallelToolsMarkdown.md)
 - [buildPlanningMarkdown](functions/buildPlanningMarkdown.md)
-- [buildRecoverySection](functions/buildRecoverySection.md)
 - [buildRepoConventionsMarkdown](functions/buildRepoConventionsMarkdown.md)
 - [buildSubagentMarkdown](functions/buildSubagentMarkdown.md)
 - [buildTaskDescription](functions/buildTaskDescription.md)
 - [buildTaskMarkdown](functions/buildTaskMarkdown.md)
 - [buildTasksToolset](functions/buildTasksToolset.md)
 - [buildToolAuthoringMarkdown](functions/buildToolAuthoringMarkdown.md)
-- [buildValidationSystemPrompt](functions/buildValidationSystemPrompt.md)
 - [buildWebFetchHeaders](functions/buildWebFetchHeaders.md)
 - [buildWorkflowMarkdown](functions/buildWorkflowMarkdown.md)
 - [capabilitiesForModel](functions/capabilitiesForModel.md)
 - [capabilitiesFromCatalogEntry](functions/capabilitiesFromCatalogEntry.md)
 - [capturePreview](functions/capturePreview.md)
-- [clientContinuationToken](functions/clientContinuationToken.md)
 - [communicationSection](functions/communicationSection.md)
 - [composePromptSections](functions/composePromptSections.md)
 - [convertHtmlToMarkdown](functions/convertHtmlToMarkdown.md)
@@ -226,11 +194,7 @@
 - [createLocalIo](functions/createLocalIo.md)
 - [createLookInstruction](functions/createLookInstruction.md)
 - [createLookTool](functions/createLookTool.md)
-- [createMockStoryModel](functions/createMockStoryModel.md)
-- [createOutputWatcher](functions/createOutputWatcher.md)
 - [createParallelToolsInstruction](functions/createParallelToolsInstruction.md)
-- [createParkDeliveryHook](functions/createParkDeliveryHook.md)
-- [createParkDeliveryState](functions/createParkDeliveryState.md)
 - [createPlanningInstruction](functions/createPlanningInstruction.md)
 - [createReadTool](functions/createReadTool.md)
 - [createRepoConventionsInstruction](functions/createRepoConventionsInstruction.md)
@@ -238,8 +202,6 @@
 - [createSandboxIo](functions/createSandboxIo.md)
 - [createSandboxRunner](functions/createSandboxRunner.md)
 - [createStatCache](functions/createStatCache.md)
-- [createStdlib](functions/createStdlib.md)
-- [createSteerWrapper](functions/createSteerWrapper.md)
 - [createSubagentInstruction](functions/createSubagentInstruction.md)
 - [createTaskAgent](functions/createTaskAgent.md)
 - [createTaskInstruction](functions/createTaskInstruction.md)
@@ -270,39 +232,32 @@
 - [extractTextFromHtml](functions/extractTextFromHtml.md)
 - [fetchGatewayModelCatalog](functions/fetchGatewayModelCatalog.md)
 - [fetchWebResource](functions/fetchWebResource.md)
-- [formatCompletionNotification](functions/formatCompletionNotification.md)
 - [formatTodoViolations](functions/formatTodoViolations.md)
-- [formatWatchNotification](functions/formatWatchNotification.md)
 - [globToRegExp](functions/globToRegExp.md)
 - [hitlSection](functions/hitlSection.md)
 - [imageMediaType](functions/imageMediaType.md)
 - [isDisproportionateMatch](functions/isDisproportionateMatch.md)
 - [isHtmlContentType](functions/isHtmlContentType.md)
-- [isOrphanedTurn](functions/isOrphanedTurn.md)
 - [joinBom](functions/joinBom.md)
-- [lastUserTextFrom](functions/lastUserTextFrom.md)
 - [listGitFiles](functions/listGitFiles.md)
 - [loadFileContent](functions/loadFileContent.md)
 - [localIoProvider](functions/localIoProvider.md)
 - [lookAvKindClause](functions/lookAvKindClause.md)
 - [lookFetchedImageHint](functions/lookFetchedImageHint.md)
 - [lookFetchedMediaHint](functions/lookFetchedMediaHint.md)
+- [lookOversizeHint](functions/lookOversizeHint.md)
 - [lookReadImageHint](functions/lookReadImageHint.md)
 - [lookReadMediaHint](functions/lookReadMediaHint.md)
 - [lookSection](functions/lookSection.md)
 - [looksLikeHtml](functions/looksLikeHtml.md)
-- [markdownChunks](functions/markdownChunks.md)
-- [mockScenarioFrom](functions/mockScenarioFrom.md)
 - [modelFamily](functions/modelFamily.md)
 - [openZip](functions/openZip.md)
 - [parallelToolsSection](functions/parallelToolsSection.md)
 - [parseGatewayModelCatalog](functions/parseGatewayModelCatalog.md)
-- [parseJudgeVerdict](functions/parseJudgeVerdict.md)
 - [parseSearchOutput](functions/parseSearchOutput.md)
 - [parseTodoItems](functions/parseTodoItems.md)
 - [parseTodoListResult](functions/parseTodoListResult.md)
 - [planningSection](functions/planningSection.md)
-- [postParkNotification](functions/postParkNotification.md)
 - [readTextForSearch](functions/readTextForSearch.md)
 - [relativizeWithin](functions/relativizeWithin.md)
 - [renderPromptSection](functions/renderPromptSection.md)
@@ -316,130 +271,32 @@
 - [resolveWithin](functions/resolveWithin.md)
 - [sandboxIoProvider](functions/sandboxIoProvider.md)
 - [sandboxRunnerProvider](functions/sandboxRunnerProvider.md)
-- [scriptActionFor](functions/scriptActionFor.md)
-- [scriptStepFrom](functions/scriptStepFrom.md)
 - [searchLocal](functions/searchLocal.md)
-- [setParkNotificationHandler](functions/setParkNotificationHandler.md)
 - [shellSingleQuote](functions/shellSingleQuote.md)
 - [slideParagraphs](functions/slideParagraphs.md)
 - [splitBom](functions/splitBom.md)
 - [subagentSection](functions/subagentSection.md)
 - [toolAuthoringSection](functions/toolAuthoringSection.md)
-- [toolInputFragments](functions/toolInputFragments.md)
 - [validateTodoWrite](functions/validateTodoWrite.md)
 - [videoMediaType](functions/videoMediaType.md)
-- [visibleReasoningModelOptions](functions/visibleReasoningModelOptions.md)
 - [walkFiles](functions/walkFiles.md)
-- [withSteerDelivery](functions/withSteerDelivery.md)
-- [withValidatedCompaction](functions/withValidatedCompaction.md)
-- [workerEpochMs](functions/workerEpochMs.md)
 - [workflowSection](functions/workflowSection.md)
 - [xhtmlToText](functions/xhtmlToText.md)
 
 ## References
 
-### attachSteerToOutput
+### VisibleReasoningJsonValue
 
-Re-exports [attachSteerToOutput](../steer/functions/attachSteerToOutput.md)
-
-***
-
-### buildSteerPayload
-
-Re-exports [buildSteerPayload](../steer/functions/buildSteerPayload.md)
+Re-exports [VisibleReasoningJsonValue](../visible-reasoning/type-aliases/VisibleReasoningJsonValue.md)
 
 ***
 
-### createSteerInbox
+### visibleReasoningModelOptions
 
-Re-exports [createSteerInbox](../steer-inbox/functions/createSteerInbox.md)
-
-***
-
-### formatSteerText
-
-Re-exports [formatSteerText](../steer/functions/formatSteerText.md)
+Re-exports [visibleReasoningModelOptions](../visible-reasoning/functions/visibleReasoningModelOptions.md)
 
 ***
 
-### mergeSteerIntoModelOutput
+### VisibleReasoningModelOptions
 
-Re-exports [mergeSteerIntoModelOutput](../steer/functions/mergeSteerIntoModelOutput.md)
-
-***
-
-### parseSteerLine
-
-Re-exports [parseSteerLine](../steer/functions/parseSteerLine.md)
-
-***
-
-### readSteerMessages
-
-Re-exports [readSteerMessages](../steer/functions/readSteerMessages.md)
-
-***
-
-### serializeSteerLine
-
-Re-exports [serializeSteerLine](../steer/functions/serializeSteerLine.md)
-
-***
-
-### STEER\_DIRNAME
-
-Re-exports [STEER_DIRNAME](../steer/variables/STEER_DIRNAME.md)
-
-***
-
-### STEER\_FIELD
-
-Re-exports [STEER_FIELD](../steer/variables/STEER_FIELD.md)
-
-***
-
-### STEER\_NOTE
-
-Re-exports [STEER_NOTE](../steer/variables/STEER_NOTE.md)
-
-***
-
-### STEER\_WRAPPED\_OUTPUT\_FIELD
-
-Re-exports [STEER_WRAPPED_OUTPUT_FIELD](../steer/variables/STEER_WRAPPED_OUTPUT_FIELD.md)
-
-***
-
-### SteerInbox
-
-Re-exports [SteerInbox](../steer-inbox/interfaces/SteerInbox.md)
-
-***
-
-### SteerInboxOptions
-
-Re-exports [SteerInboxOptions](../steer-inbox/interfaces/SteerInboxOptions.md)
-
-***
-
-### SteerMessage
-
-Re-exports [SteerMessage](../steer/interfaces/SteerMessage.md)
-
-***
-
-### SteerModelOutput
-
-Re-exports [SteerModelOutput](../steer/type-aliases/SteerModelOutput.md)
-
-***
-
-### SteerPayload
-
-Re-exports [SteerPayload](../steer/interfaces/SteerPayload.md)
-
-***
-
-### stripSteerFromOutput
-
-Re-exports [stripSteerFromOutput](../steer/functions/stripSteerFromOutput.md)
+Re-exports [VisibleReasoningModelOptions](../visible-reasoning/interfaces/VisibleReasoningModelOptions.md)

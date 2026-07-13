@@ -11,12 +11,12 @@ never speculative — its APIs are shaped by the call sites that already exist.
 
 ## The shape it produced
 
-- **One `createStdlib` call, everything à la carte too.** `createStdlib`
-  returns the full prescribed wiring (tools + instructions + the task-kit
-  options), but every factory (`createReadTool`, `createCommandRunner`,
+- **One hosted composition, everything à la carte too.**
+  `createSandboxFileTools` returns the prescribed hosted wiring (tools,
+  instructions, and task-kit options), but every factory (`createReadTool`, `createCommandRunner`,
   `createWorkflowInstruction`, …) and every lib module is exported
-  individually. Consumers who want a subset compose it; consumers who want
-  the whole thing make one call. This is the pi lesson — a harness earns
+  individually. Rib keeps its process-local composition in Rib. Consumers who
+  want a subset compose it; hosted consumers make one call. This is the pi lesson — a harness earns
   adoption by staying reshapeable — applied to a library surface.
 - **Wiring stays in the agent, one line per tool.** eve resolves
   `agent/tools/<name>.ts` by filename — the filename *is* the wire name the

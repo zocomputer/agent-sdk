@@ -13,5 +13,6 @@
 - [state-consent](state-consent/README.md)
 - [state-files](state-files/README.md)
 - [state-sandbox](state-sandbox/README.md)
-- [steer](steer/README.md)
-- [steer-inbox](steer-inbox/README.md)
+- [testing](testing/README.md)
+- [validated-compaction](validated-compaction/README.md)
+- [visible-reasoning](visible-reasoning/README.md)

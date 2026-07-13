@@ -186,6 +186,8 @@ export function buildTaskDescription(options: TaskDescriptionOptions): string {
 export interface TaskAgentOptions extends TaskDescriptionOptions {
   /** The child's pinned model — the tier this subagent encodes. */
   model: AgentDefinition["model"];
+  /** Explicit context window for authored model instances. */
+  modelContextWindowTokens?: AgentDefinition["modelContextWindowTokens"];
   /**
    * Parent-facing tool description override (eve requires one on a declared
    * subagent). Defaults to {@link buildTaskDescription} over the other
@@ -227,6 +229,9 @@ export function createTaskAgent(options: TaskAgentOptions) {
   return defineAgent({
     description: options.description ?? buildTaskDescription(options),
     model: options.model,
+    ...(options.modelContextWindowTokens !== undefined
+      ? { modelContextWindowTokens: options.modelContextWindowTokens }
+      : {}),
     ...(options.reasoning !== undefined ? { reasoning: options.reasoning } : {}),
     ...(options.build !== undefined ? { build: options.build } : {}),
     ...(modelOptions !== undefined ? { modelOptions } : {}),

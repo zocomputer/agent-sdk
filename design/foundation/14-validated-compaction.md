@@ -47,8 +47,8 @@ can't blow the token budget compaction exists to protect.
 - **Hosted/seeded agents** get it from `@zocomputer/runtime-ai`'s `/register`
   side effect: the default provider is wrapped at the provider seam
   (`withValidatedCompactionProvider`), so bare catalog slugs are covered
-  without touching agent code. The facade is deliberately duplicated there
-  (with a drift-pin test) because runtime-ai can't import agent-sdk.
+  without touching agent code. `runtime-ai` owns the implementation; the
+  composed SDK subpath re-exports its vendored canonical file.
 - **The coder example** wraps its mock branch, and the `evals-compaction`
   suite forces a real compaction through a real eve server (256-token
   window) to prove the repaired summary reaches the next turn's prompt.
@@ -72,11 +72,10 @@ compaction-validation hook) rather than patched.
 
 ## Sources
 
-- `src/validated-compaction.ts` — the facade, judge, and repair mechanics.
+- `src/validated-compaction.ts` — the SDK compatibility re-export.
 - `src/mock-model.ts` — the deterministic compaction/judge answers +
   `[mock:recall]` that make the e2e eval credential-free.
-- `examples/coder/evals-compaction/` — the forced-compaction eval suite.
-- `packages/runtime-ai/src/validated-compaction.ts` — the duplicated
-  provider-seam wrap for hosted agents.
+- `packages/runtime-ai/src/validated-compaction.ts` — the canonical facade,
+  judge, repair mechanics, and hosted provider wrap.
 - [`../upstream-asks.md`](../upstream-asks.md) — the `compaction.model`
   resolution bug + validation-hook asks.

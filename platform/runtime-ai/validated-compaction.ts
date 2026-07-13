@@ -1,15 +1,9 @@
 /**
  * Validated compaction: judge-and-repair for eve's context-compaction summaries.
  *
- * A deliberate line-for-line duplicate of
- * `@zocomputer/agent-sdk/validated-compaction` — this package is vendored
- * self-contained into the agent working copy (same rationale as
- * `ZO_TOOL_HEADER` and session-fetch's header constants), and the vendored
- * copy resolves only `ai` + Node built-ins, not `@ai-sdk/provider`, so the
- * model types are derived from `createGateway` instead of imported. The
- * sibling drift-pin test (`validated-compaction.test.ts`) locks the constants,
- * the prompt, and the behavior to the agent-sdk implementation — change them
- * together.
+ * This hosted runtime implementation is the source of truth. The composed
+ * agent SDK exposes it through a compatibility subpath, so hosted and SDK
+ * consumers run the same code.
  *
  * Why this exists (see the agent-sdk module for the full story): eve compacts
  * a long conversation by asking the turn model for a summary of the older

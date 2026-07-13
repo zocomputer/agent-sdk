@@ -1,10 +1,6 @@
-import { afterAll, describe, expect, test } from "bun:test";
-import { mkdtempSync, realpathSync, rmSync } from "node:fs";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
-import { todo as eveTodo } from "eve/tools/defaults";
+import { describe, expect, test } from "bun:test";
 import { z } from "zod";
-import { createSandboxFileTools, createStdlib } from "./index";
+import { createSandboxFileTools } from "./index";
 import { buildTasksToolset } from "./tools/tasks";
 
 // Model-facing schema shape is a contract (design/foundation/03, extended by
@@ -24,21 +20,12 @@ import { buildTasksToolset } from "./tools/tasks";
 // mode; these assertions target the zod source of truth, not the advertised
 // form.)
 
-const root = realpathSync(mkdtempSync(join(tmpdir(), "agent-sdk-schema-")));
-afterAll(() => rmSync(root, { recursive: true, force: true }));
-
-// mediaOracle on so the sweep covers `look` in both toolsets.
-const stdlib = createStdlib({
-  workspaceRoot: root,
-  stateDir: join(root, ".agent"),
-  mediaOracle: true,
-});
-const tasks = buildTasksToolset({
-  registry: stdlib.registry,
-  backgroundables: stdlib.backgroundables,
-});
-if (tasks === null) throw new Error("stdlib always has the bash backgroundable");
 const sandbox = createSandboxFileTools({ workspaceRoot: "/workspace", mediaOracle: true });
+const tasks = buildTasksToolset({
+  registry: sandbox.registry,
+  backgroundables: sandbox.backgroundables,
+});
+if (tasks === null) throw new Error("sandbox tools always include bash");
 
 // `todo` is exempt from the zod sweep by design: it wraps eve's framework
 // tool and passes eve's own JSON schema through byte-identical — an array of
@@ -46,11 +33,13 @@ const sandbox = createSandboxFileTools({ workspaceRoot: "/workspace", mediaOracl
 // prior here (Claude Code's TodoWrite ships the same shape), and rewriting
 // it would drift the wrapper from the state contract eve validates against.
 // The dedicated pass-through pin below keeps the exemption honest.
-const { tasks: _tasksDynamic, todo: todoTool, ...stdlibStatic } = stdlib.tools;
 // The sandbox toolset ships its own dynamic tasks toolset now; same exemption.
-const { tasks: _sandboxTasksDynamic, ...sandboxStatic } = sandbox.tools;
+const {
+  tasks: _sandboxTasksDynamic,
+  todo: _sandboxTodoDynamic,
+  ...sandboxStatic
+} = sandbox.tools;
 const allTools: Record<string, { inputSchema: unknown }> = {
-  ...prefixed("stdlib", stdlibStatic),
   ...prefixed("tasks", tasks),
   ...prefixed("sandbox", sandboxStatic),
 };
@@ -115,9 +104,6 @@ describe("model-facing schema shape", () => {
   // would make every assertion below vacuously pass (the notCalledTool trap
   // from rib/learnings/20).
   test("covers the full shipped toolset", () => {
-    // `todo` is deliberately outside allTools (the exemption above) but must
-    // still exist — the roster can't silently shrink.
-    expect(todoTool).toBeDefined();
     expect(Object.keys(allTools).sort()).toEqual(
       [
         "sandbox.bash",
@@ -126,15 +112,8 @@ describe("model-facing schema shape", () => {
         "sandbox.grep",
         "sandbox.look",
         "sandbox.read",
+        "sandbox.webfetch",
         "sandbox.write",
-        "stdlib.bash",
-        "stdlib.edit",
-        "stdlib.glob",
-        "stdlib.grep",
-        "stdlib.look",
-        "stdlib.read",
-        "stdlib.webfetch",
-        "stdlib.write",
         "tasks.await_task",
         "tasks.check_tasks",
         "tasks.run_async",
@@ -158,7 +137,7 @@ describe("model-facing schema shape", () => {
     // The exact failure documented on newer Claude models: a byte-correct edit
     // call plus an invented trailing key. It must parse, and the key must be
     // gone — a reject here would turn model slop into a visible retry loop.
-    const schema = stdlib.tools.edit.inputSchema;
+    const schema = sandbox.tools.edit.inputSchema;
     if (!isZodSchema(schema)) throw new Error("edit's inputSchema is a zod schema");
     const parsed = schema.safeParse({
       path: "src/app.ts",
@@ -174,13 +153,5 @@ describe("model-facing schema shape", () => {
         new_string: "after",
       });
     }
-  });
-
-  test("todo passes eve's own schemas through untouched (the exemption's contract)", () => {
-    // The wrapper adds validation in execute, never a schema of its own: the
-    // model-facing input/output contracts stay whatever the installed eve
-    // ships, so an eve schema change flows through instead of drifting.
-    expect(todoTool.inputSchema).toBe(eveTodo.inputSchema);
-    expect(todoTool.outputSchema).toBe(eveTodo.outputSchema);
   });
 });

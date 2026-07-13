@@ -71,18 +71,12 @@ test("planning playbook covers the todo status discipline", () => {
   expect(markdown).toContain("specific and verifiable");
 });
 
-test("parallel-tools with notifications off drops every notify mention, in both tiers", () => {
+test("parallel-tools requires explicit task polling, in both tiers", () => {
   for (const tier of ["full", "compact"] as const) {
-    const markdown = buildParallelToolsMarkdown({ tier, notifications: false });
+    const markdown = buildParallelToolsMarkdown({ tier });
     expect(markdown).toContain("`run_async`");
     expect(markdown).not.toContain("notify");
   }
-});
-
-test("parallel-tools default is byte-identical to notifications: true", () => {
-  expect(buildParallelToolsMarkdown()).toBe(
-    buildParallelToolsMarkdown({ notifications: true }),
-  );
 });
 
 test("communication contract covers the load-bearing rules", () => {
@@ -210,8 +204,6 @@ describe("compact tier", () => {
         "`check_tasks`",
         "`await_task`",
         "`task_id`",
-        "`notify`",
-        "`notify_on_complete`",
         "~4 minutes",
         "`lost`",
       ],
