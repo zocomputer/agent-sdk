@@ -6,7 +6,7 @@
 
 # Interface: LookToolOptions
 
-Defined in: [packages/agent-sdk/src/tools/look.ts:154](https://github.com/zocomputer/zov2-code/blob/71f3c28acf6f43bb252eb9f351caca137d9922f9/packages/agent-sdk/src/tools/look.ts#L154)
+Defined in: [packages/agent-sdk/src/tools/look.ts:157](https://github.com/zocomputer/zov2-code/blob/760605b8ac267b8d97156760bb2d6e6d1b69ada8/packages/agent-sdk/src/tools/look.ts#L157)
 
 Options for `createLookTool`: the workspace, the oracle config, and the injectable seams.
 
@@ -16,7 +16,7 @@ Options for `createLookTool`: the workspace, the oracle config, and the injectab
 
 > `optional` **generateFn?**: [`LookGenerateFn`](../type-aliases/LookGenerateFn.md)
 
-Defined in: [packages/agent-sdk/src/tools/look.ts:173](https://github.com/zocomputer/zov2-code/blob/71f3c28acf6f43bb252eb9f351caca137d9922f9/packages/agent-sdk/src/tools/look.ts#L173)
+Defined in: [packages/agent-sdk/src/tools/look.ts:176](https://github.com/zocomputer/zov2-code/blob/760605b8ac267b8d97156760bb2d6e6d1b69ada8/packages/agent-sdk/src/tools/look.ts#L176)
 
 The generate seam; defaults to `ai`'s `generateText`.
 
@@ -26,7 +26,7 @@ The generate seam; defaults to `ai`'s `generateText`.
 
 > `optional` **io?**: [`WorkspaceIoProvider`](../type-aliases/WorkspaceIoProvider.md)
 
-Defined in: [packages/agent-sdk/src/tools/look.ts:163](https://github.com/zocomputer/zov2-code/blob/71f3c28acf6f43bb252eb9f351caca137d9922f9/packages/agent-sdk/src/tools/look.ts#L163)
+Defined in: [packages/agent-sdk/src/tools/look.ts:166](https://github.com/zocomputer/zov2-code/blob/760605b8ac267b8d97156760bb2d6e6d1b69ada8/packages/agent-sdk/src/tools/look.ts#L166)
 
 The I/O backend resolved per call (see ../workspace-io.ts). Defaults to
 the local node:fs backend; hosted agents pass the sandbox provider so
@@ -38,7 +38,7 @@ the oracle sees the session workspace's bytes.
 
 > `optional` **maxInputBytes?**: `number`
 
-Defined in: [packages/agent-sdk/src/tools/look.ts:171](https://github.com/zocomputer/zov2-code/blob/71f3c28acf6f43bb252eb9f351caca137d9922f9/packages/agent-sdk/src/tools/look.ts#L171)
+Defined in: [packages/agent-sdk/src/tools/look.ts:174](https://github.com/zocomputer/zov2-code/blob/760605b8ac267b8d97156760bb2d6e6d1b69ada8/packages/agent-sdk/src/tools/look.ts#L174)
 
 Max file size (bytes) to send. Defaults to
 [DEFAULT\_LOOK\_MAX\_INPUT\_BYTES](../variables/DEFAULT_LOOK_MAX_INPUT_BYTES.md) (the Gemini inline-data budget —
@@ -50,7 +50,7 @@ the binding constraint is the gateway request size, not the medium).
 
 > `optional` **noun?**: `string`
 
-Defined in: [packages/agent-sdk/src/tools/look.ts:157](https://github.com/zocomputer/zov2-code/blob/71f3c28acf6f43bb252eb9f351caca137d9922f9/packages/agent-sdk/src/tools/look.ts#L157)
+Defined in: [packages/agent-sdk/src/tools/look.ts:160](https://github.com/zocomputer/zov2-code/blob/760605b8ac267b8d97156760bb2d6e6d1b69ada8/packages/agent-sdk/src/tools/look.ts#L160)
 
 What the description calls the workspace. Defaults to "workspace".
 
@@ -60,7 +60,7 @@ What the description calls the workspace. Defaults to "workspace".
 
 > **oracle**: [`LookOracleConfig`](LookOracleConfig.md)
 
-Defined in: [packages/agent-sdk/src/tools/look.ts:165](https://github.com/zocomputer/zov2-code/blob/71f3c28acf6f43bb252eb9f351caca137d9922f9/packages/agent-sdk/src/tools/look.ts#L165)
+Defined in: [packages/agent-sdk/src/tools/look.ts:168](https://github.com/zocomputer/zov2-code/blob/760605b8ac267b8d97156760bb2d6e6d1b69ada8/packages/agent-sdk/src/tools/look.ts#L168)
 
 The oracle: model, display name, capabilities, optional headers.
 
@@ -70,4 +70,4 @@ The oracle: model, display name, capabilities, optional headers.
 
 > **workspace**: [`Workspace`](Workspace.md)
 
-Defined in: [packages/agent-sdk/src/tools/look.ts:155](https://github.com/zocomputer/zov2-code/blob/71f3c28acf6f43bb252eb9f351caca137d9922f9/packages/agent-sdk/src/tools/look.ts#L155)
+Defined in: [packages/agent-sdk/src/tools/look.ts:158](https://github.com/zocomputer/zov2-code/blob/760605b8ac267b8d97156760bb2d6e6d1b69ada8/packages/agent-sdk/src/tools/look.ts#L158)

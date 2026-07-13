@@ -17,6 +17,11 @@ import type { IoToolContext } from "../workspace-io";
 const DEFAULT_INTERACTIVE_HINT =
   "This is a piped shell with NO tty: avoid interactive or full-screen CLIs (a REPL, vim, an interactive installer/prompt) — those programs hang or degrade without a real terminal.";
 
+function abortReason(signal: AbortSignal): Error {
+  if (signal.reason instanceof Error) return signal.reason;
+  return new DOMException("The tool call was cancelled", "AbortError");
+}
+
 /**
  * Where the bash tool's commands execute. Wording only — the actual backend
  * is whatever `runner` does; this keeps the description honest about it.
@@ -88,10 +93,46 @@ export function createBashTool(opts: {
       cwd,
       timeoutMs: timeout_ms ?? 600_000,
     });
-    const result = await Promise.race([
-      running.result,
-      new Promise<null>((resolve) => setTimeout(() => resolve(null), foreground_ms ?? 2_000)),
-    ]);
+    const signal = ctx?.abortSignal;
+    const result = await new Promise<Awaited<typeof running.result> | null>((resolve, reject) => {
+      let settled = false;
+      let removeAbortListener = () => {};
+      const foregroundTimer = setTimeout(() => {
+        if (settled) return;
+        settled = true;
+        removeAbortListener();
+        resolve(null);
+      }, foreground_ms ?? 2_000);
+      const settle = () => {
+        if (settled) return false;
+        settled = true;
+        clearTimeout(foregroundTimer);
+        removeAbortListener();
+        return true;
+      };
+      const onAbort = (abortedSignal: AbortSignal) => {
+        if (!settle()) return;
+        running.kill();
+        reject(abortReason(abortedSignal));
+      };
+      if (signal !== undefined) {
+        if (signal.aborted) {
+          onAbort(signal);
+        } else {
+          const handleAbort = () => onAbort(signal);
+          signal.addEventListener("abort", handleAbort, { once: true });
+          removeAbortListener = () => signal.removeEventListener("abort", handleAbort);
+        }
+      }
+      void running.result.then(
+        (completed) => {
+          if (settle()) resolve(completed);
+        },
+        (error: unknown) => {
+          if (settle()) reject(error);
+        },
+      );
+    });
     if (result !== null) {
       return {
         workdir,

@@ -260,6 +260,8 @@ describe("sandboxRunnerProvider", () => {
 
   test("the default resolver uses ctx.getSandbox", async () => {
     const ctx: IoToolContext = {
+      abortSignal: new AbortController().signal,
+      callId: "call-1",
       getSandbox: async () => createFakeSandboxSession(root),
     };
     const provider = sandboxRunnerProvider({ root });

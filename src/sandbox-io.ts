@@ -67,6 +67,12 @@ function defaultResolveSession(
   return ctx.getSandbox();
 }
 
+function throwIfAborted(signal: AbortSignal | undefined): void {
+  if (signal?.aborted !== true) return;
+  if (signal.reason instanceof Error) throw signal.reason;
+  throw new DOMException("The tool call was cancelled", "AbortError");
+}
+
 /**
  * A `WorkspaceIoProvider` over the session sandbox — pass as the `io` option
  * of the file-tool factories (or use `createSandboxFileTools`, which wires
@@ -75,7 +81,11 @@ function defaultResolveSession(
 export function sandboxIoProvider(options: SandboxIoOptions): WorkspaceIoProvider {
   const resolve = options.resolveSession ?? defaultResolveSession;
   return (ctx) =>
-    createSandboxIo({ root: options.root, session: () => resolve(ctx) });
+    createSandboxIo({
+      root: options.root,
+      session: () => resolve(ctx),
+      ...(ctx === undefined ? {} : { abortSignal: ctx.abortSignal }),
+    });
 }
 
 /**
@@ -85,6 +95,7 @@ export function sandboxIoProvider(options: SandboxIoOptions): WorkspaceIoProvide
 export function createSandboxIo(opts: {
   root: string;
   session: () => PromiseLike<SandboxSessionLike>;
+  abortSignal?: AbortSignal;
 }): WorkspaceIO {
   const { root } = opts;
   let resolved: Promise<SandboxSessionLike> | null = null;
@@ -98,8 +109,11 @@ export function createSandboxIo(opts: {
     stdout: string;
     stderr: string;
   }> {
+    throwIfAborted(opts.abortSignal);
     const sb = await session();
-    return await sb.run({ command, workingDirectory: root });
+    const result = await sb.run({ command, workingDirectory: root });
+    throwIfAborted(opts.abortSignal);
+    return result;
   }
 
   return {
@@ -124,18 +138,25 @@ export function createSandboxIo(opts: {
     },
 
     async readFile(abs) {
+      throwIfAborted(opts.abortSignal);
       const sb = await session();
       const bytes = await sb.readBinaryFile({ path: abs });
+      throwIfAborted(opts.abortSignal);
       return bytes === null ? null : Buffer.from(bytes);
     },
 
     async writeFile(abs, content) {
+      throwIfAborted(opts.abortSignal);
       const sb = await session();
       const bytes =
         typeof content === "string" ? new TextEncoder().encode(content) : content;
       // Parent directories are the backend's job (the AI SDK sandbox write
       // contract creates them recursively).
       await sb.writeBinaryFile({ path: abs, content: bytes });
+      // The remote write may have committed before cancellation arrived; it
+      // cannot be rolled back, but the cancelled turn must not publish a
+      // successful tool result and continue from an uncertain mutation.
+      throwIfAborted(opts.abortSignal);
     },
 
     async listFiles(scope) {
@@ -171,6 +192,7 @@ export function createSandboxIo(opts: {
         .filter((line) => line.length > 0);
       const sb = await session();
       const rootIgnore = await sb.readBinaryFile({ path: `${root}/.gitignore` });
+      throwIfAborted(opts.abortSignal);
       if (rootIgnore === null) return files;
       const matcher = ignore().add(Buffer.from(rootIgnore).toString("utf8"));
       return files.filter((file) => !matcher.ignores(file));
@@ -206,6 +228,7 @@ export function createSandboxIo(opts: {
         const globRe = options.glob === undefined ? null : globToRegExp(options.glob);
         const sb = await session();
         const rootIgnore = await sb.readBinaryFile({ path: `${root}/.gitignore` });
+        throwIfAborted(opts.abortSignal);
         const matcher =
           rootIgnore === null
             ? null

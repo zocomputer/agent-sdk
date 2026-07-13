@@ -1,4 +1,4 @@
-import { afterAll, expect, test } from "bun:test";
+import { afterAll, expect, spyOn, test } from "bun:test";
 import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -38,6 +38,33 @@ test("awaitTask returns a still-running task when the wait times out", async () 
   const task = await registry.awaitTask(id, 10);
   expect(task?.status).toBe("running");
   expect(registry.getTask("task_999")).toBeUndefined();
+});
+
+test("awaitTask stops waiting when its tool call is cancelled", async () => {
+  const registry = createTaskRegistry({ storePath: freshStore() });
+  const id = registry.spawnTask("bash", "slow", new Promise(() => {}));
+  const controller = new AbortController();
+  const waiting = registry.awaitTask(id, 5_000, controller.signal);
+  controller.abort(new Error("turn cancelled"));
+  await expect(waiting).rejects.toThrow("turn cancelled");
+  expect(registry.getTask(id)?.status).toBe("running");
+});
+
+test("awaitTask removes its abort listener when work wins the race", async () => {
+  const registry = createTaskRegistry({ storePath: freshStore() });
+  let finish: (() => void) | undefined;
+  const work = new Promise<void>((resolve) => {
+    finish = resolve;
+  });
+  const id = registry.spawnTask("bash", "quick", work);
+  const controller = new AbortController();
+  const remove = spyOn(controller.signal, "removeEventListener");
+  const waiting = registry.awaitTask(id, 5_000, controller.signal);
+  finish?.();
+  await waiting;
+  expect(remove).toHaveBeenCalledWith("abort", expect.any(Function));
+  controller.abort(new Error("late cancellation"));
+  expect(registry.getTask(id)?.status).toBe("done");
 });
 
 test("settled tasks persist across registries; running ones reload as lost", async () => {

@@ -92,7 +92,8 @@ Consequences, all deliberate:
 - **The model "forgets" on any process boundary.** A worker restart mid-turn,
   a session resume on another machine, a replay, or compaction all degrade
   the part to its stub — the same graceful shape as eve's existing
-  missing-attachment-bytes degrade (eve #325). The tool's result text should
+  missing-attachment-bytes degrade (shipped in Eve 0.22: historical user-file
+  bytes become a model-readable `FileNotFound` notice). The tool's result text should
   say the media can be re-read (this package's `read` note already does).
 - **Same-turn visibility**, the thing removed follow-up delivery workaround can never give: the model
   sees the image on the very next step of the turn that read it.

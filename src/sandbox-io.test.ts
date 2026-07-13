@@ -29,6 +29,19 @@ const session = createFakeSandboxSession(root, log);
 const io = createSandboxIo({ root, session: () => Promise.resolve(session) });
 
 describe("createSandboxIo", () => {
+  test("a signal-bound sandbox IO rejects before starting remote work", async () => {
+    const controller = new AbortController();
+    controller.abort();
+    const cancelled = createSandboxIo({
+      root,
+      session: () => Promise.resolve(session),
+      abortSignal: controller.signal,
+    });
+    const before = log.commands.length;
+    await expect(cancelled.listFiles()).rejects.toMatchObject({ name: "AbortError" });
+    expect(log.commands).toHaveLength(before);
+  });
+
   test("stat reports size, mtime, and file-ness; null for a missing path", async () => {
     const stat = await io.stat(join(root, "hello.txt"));
     if (stat === null) throw new Error("expected a stat");
@@ -58,12 +71,62 @@ describe("createSandboxIo", () => {
     expect(readFileSync(target, "utf8")).toBe("written remotely");
   });
 
+  test("writeFile rejects when cancellation arrives during the remote write", async () => {
+    const controller = new AbortController();
+    let finish: (() => void) | undefined;
+    const writing = new Promise<void>((resolve) => {
+      finish = resolve;
+    });
+    const cancelled = createSandboxIo({
+      root,
+      abortSignal: controller.signal,
+      session: () =>
+        Promise.resolve({
+          ...session,
+          writeBinaryFile: () => writing,
+        }),
+    });
+    const pending = cancelled.writeFile(join(root, "cancelled.txt"), "uncertain");
+    controller.abort(new Error("turn cancelled"));
+    finish?.();
+    await expect(pending).rejects.toThrow("turn cancelled");
+  });
+
   test("listFiles falls back to find outside a git checkout", async () => {
     const files = [...(await io.listFiles())];
     expect(files).toContain("hello.txt");
     expect(files).toContain("src/app.ts");
     const scoped = [...(await io.listFiles(join(root, "src")))];
     expect(scoped).toEqual(["src/app.ts"]);
+  });
+
+  test("listFiles rejects when cancellation arrives during the fallback ignore read", async () => {
+    const controller = new AbortController();
+    let markStarted: (() => void) | undefined;
+    const started = new Promise<void>((resolve) => {
+      markStarted = resolve;
+    });
+    let finish: ((value: Uint8Array | null) => void) | undefined;
+    const reading = new Promise<Uint8Array | null>((resolve) => {
+      finish = resolve;
+    });
+    const cancelled = createSandboxIo({
+      root,
+      abortSignal: controller.signal,
+      session: () =>
+        Promise.resolve({
+          ...session,
+          readBinaryFile: () => {
+            markStarted?.();
+            return reading;
+          },
+        }),
+    });
+    const pending = cancelled.listFiles();
+    await started;
+    controller.abort(new Error("turn cancelled"));
+    finish?.(null);
+    await expect(pending).rejects.toThrow("turn cancelled");
   });
 
   test("listFiles uses git when the workspace is a checkout, subtracting deleted files", async () => {
@@ -275,6 +338,52 @@ describe("createSandboxIo", () => {
     }
   });
 
+  test("the grep fallback rejects when cancellation arrives during the ignore read", async () => {
+    const controller = new AbortController();
+    let markStarted: (() => void) | undefined;
+    const started = new Promise<void>((resolve) => {
+      markStarted = resolve;
+    });
+    let finish: ((value: Uint8Array | null) => void) | undefined;
+    const reading = new Promise<Uint8Array | null>((resolve) => {
+      finish = resolve;
+    });
+    const noRg: SandboxSessionLike = {
+      ...session,
+      run: ({ command, workingDirectory }) => {
+        if (command.includes("{ rg ")) {
+          return Promise.resolve({
+            exitCode: 0,
+            stdout: "\n__ZO_SEARCH_EXIT__:127\n",
+            stderr: "sh: rg: not found",
+          });
+        }
+        return session.run({
+          command,
+          ...(workingDirectory !== undefined ? { workingDirectory } : {}),
+        });
+      },
+      readBinaryFile: () => {
+        markStarted?.();
+        return reading;
+      },
+    };
+    const cancelled = createSandboxIo({
+      root,
+      abortSignal: controller.signal,
+      session: () => Promise.resolve(noRg),
+    });
+    const pending = cancelled.search({
+      pattern: "alpha",
+      ignoreCase: false,
+      maxMatches: 5,
+    });
+    await started;
+    controller.abort(new Error("turn cancelled"));
+    finish?.(null);
+    await expect(pending).rejects.toThrow("turn cancelled");
+  });
+
   test("a byte-capped (flooded) search returns what it got, marked stopped", async () => {
     // head cut the stream: no sentinel, clean shell exit.
     const flooding: SandboxSessionLike = {
@@ -349,6 +458,8 @@ describe("createSandboxIo", () => {
     let asked = 0;
     const provider = sandboxIoProvider({ root });
     const ctx = {
+      abortSignal: new AbortController().signal,
+      callId: "call-1",
       getSandbox: () => {
         asked += 1;
         return Promise.resolve(session);

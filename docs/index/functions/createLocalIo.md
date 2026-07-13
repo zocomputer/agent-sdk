@@ -6,9 +6,9 @@
 
 # Function: createLocalIo()
 
-> **createLocalIo**(`root`): [`WorkspaceIO`](../interfaces/WorkspaceIO.md)
+> **createLocalIo**(`root`, `abortSignal?`): [`WorkspaceIO`](../interfaces/WorkspaceIO.md)
 
-Defined in: [packages/agent-sdk/src/workspace-io.ts:141](https://github.com/zocomputer/zov2-code/blob/71f3c28acf6f43bb252eb9f351caca137d9922f9/packages/agent-sdk/src/workspace-io.ts#L141)
+Defined in: [packages/agent-sdk/src/workspace-io.ts:145](https://github.com/zocomputer/zov2-code/blob/760605b8ac267b8d97156760bb2d6e6d1b69ada8/packages/agent-sdk/src/workspace-io.ts#L145)
 
 The local backend: node:fs against the harness process's own disk.
 
@@ -17,6 +17,10 @@ The local backend: node:fs against the harness process's own disk.
 ### root
 
 `string`
+
+### abortSignal?
+
+`AbortSignal`
 
 ## Returns
 

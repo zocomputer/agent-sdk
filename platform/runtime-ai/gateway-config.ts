@@ -82,8 +82,9 @@ export function zoGatewaySettings(options: ZoGatewayOptions = {}): GatewaySettin
     // Stamp the ambient eve session id on every call (see session-fetch.ts) — the
     // join key apps/api uses to recover the session's owner when persisting usage.
     // A caller-supplied fetch still gets wrapped, so custom fetches keep the stamp.
-    // Stream guards wrap outermost (see stream-guards.ts): a dead or stalled
-    // connection errors into the AI SDK's retry instead of hanging the turn.
+    // Stream guards wrap outermost (see stream-guards.ts): Eve 0.22 handles
+    // provider-reported transient failures, while this layer turns a silent
+    // connection into an error the Eve/Workflow recovery path can handle.
     fetch: withStreamGuards(eveSessionFetch(undefined, options.fetch)),
   };
 }

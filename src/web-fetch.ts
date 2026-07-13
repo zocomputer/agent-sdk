@@ -247,6 +247,8 @@ export async function fetchWebResource(opts: {
    */
   pdfTimeoutMs?: number;
   fetchImpl?: FetchLike;
+  /** Cancels the fetch when the owning tool call is stopped. */
+  abortSignal?: AbortSignal;
 }): Promise<FetchedWebResource> {
   const { url, format, timeoutMs, pdfTimeoutMs } = opts;
   const fetchImpl = opts.fetchImpl ?? fetch;
@@ -255,6 +257,12 @@ export async function fetchWebResource(opts: {
   // An AbortController (not AbortSignal.timeout) so the deadline can extend
   // once the headers show the resource is a PDF.
   const controller = new AbortController();
+  const abortFromCaller = () => controller.abort(opts.abortSignal?.reason);
+  if (opts.abortSignal?.aborted) {
+    abortFromCaller();
+  } else {
+    opts.abortSignal?.addEventListener("abort", abortFromCaller, { once: true });
+  }
   const startedAt = Date.now();
   let deadlineMs = timeoutMs;
   let timer = setTimeout(() => controller.abort(), deadlineMs);
@@ -274,6 +282,7 @@ export async function fetchWebResource(opts: {
         });
       }
     } catch (error) {
+      if (opts.abortSignal?.aborted) throw abortReason(opts.abortSignal);
       if (controller.signal.aborted) throw timedOut();
       throw error;
     }
@@ -306,6 +315,7 @@ export async function fetchWebResource(opts: {
     try {
       arrayBuffer = await response.arrayBuffer();
     } catch (error) {
+      if (opts.abortSignal?.aborted) throw abortReason(opts.abortSignal);
       if (controller.signal.aborted) throw timedOut();
       throw error;
     }
@@ -321,7 +331,13 @@ export async function fetchWebResource(opts: {
     };
   } finally {
     clearTimeout(timer);
+    opts.abortSignal?.removeEventListener("abort", abortFromCaller);
   }
+}
+
+function abortReason(signal: AbortSignal): Error {
+  if (signal.reason instanceof Error) return signal.reason;
+  return new DOMException("The tool call was cancelled", "AbortError");
 }
 
 function responseLooksLikePdf(contentType: string, finalUrl: string): boolean {

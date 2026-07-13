@@ -126,6 +126,10 @@ export interface SandboxSessionLike {
  */
 export interface IoToolContext {
   readonly session?: { readonly id: string };
+  /** Eve's stable id for this tool execution. */
+  readonly callId: string;
+  /** Aborts when the owning turn is cancelled. */
+  readonly abortSignal: AbortSignal;
   /** Resolve the sandbox session for the current tool call. */
   getSandbox(): PromiseLike<SandboxSessionLike>;
 }
@@ -138,45 +142,74 @@ export interface IoToolContext {
 export type WorkspaceIoProvider = (ctx: IoToolContext | undefined) => WorkspaceIO;
 
 /** The local backend: node:fs against the harness process's own disk. */
-export function createLocalIo(root: string): WorkspaceIO {
+export function createLocalIo(root: string, abortSignal?: AbortSignal): WorkspaceIO {
   return {
     async stat(abs) {
+      throwIfAborted(abortSignal);
+      let st;
       try {
-        const st = statSync(abs);
-        return { isFile: st.isFile(), size: st.size, mtimeMs: st.mtimeMs };
+        st = statSync(abs);
       } catch {
         return null;
       }
+      throwIfAborted(abortSignal);
+      return { isFile: st.isFile(), size: st.size, mtimeMs: st.mtimeMs };
     },
     async readFile(abs) {
+      throwIfAborted(abortSignal);
       try {
-        return readFileSync(abs);
+        const content = readFileSync(abs);
+        throwIfAborted(abortSignal);
+        return content;
       } catch (err) {
         if (isMissingFileError(err)) return null;
         throw err;
       }
     },
     async writeFile(abs, content) {
+      throwIfAborted(abortSignal);
       mkdirSync(dirname(abs), { recursive: true });
       writeFileSync(abs, content);
+      // The bytes are already committed, but yield once so cancellation that
+      // arrived during this operation prevents the tool from publishing an
+      // `ok` result and continuing from an uncertain mutation.
+      await cancellationCheckpoint(abortSignal);
     },
     async listFiles(scope) {
+      await cancellationCheckpoint(abortSignal);
       if (scope === undefined) {
-        return listGitFiles(root) ?? walkFiles(root);
+        const files = listGitFiles(root) ?? walkFiles(root);
+        await cancellationCheckpoint(abortSignal);
+        return files;
       }
       const rel = relativizeWithin(root, scope);
-      return listGitFiles(root, rel) ?? walkFiles(scope, root);
+      const files = listGitFiles(root, rel) ?? walkFiles(scope, root);
+      await cancellationCheckpoint(abortSignal);
+      return files;
     },
     async search(options) {
-      return searchLocal(root, options);
+      return searchLocal(root, options, abortSignal);
     },
   };
 }
 
-/** A provider over one shared local IO — every call gets the same instance. */
+/** A local provider. Eve calls get a signal-bound IO; direct calls share the inert instance. */
 export function localIoProvider(root: string): WorkspaceIoProvider {
   const io = createLocalIo(root);
-  return () => io;
+  return (ctx) => ctx === undefined ? io : createLocalIo(root, ctx.abortSignal);
+}
+
+function throwIfAborted(signal: AbortSignal | undefined): void {
+  if (signal?.aborted !== true) return;
+  if (signal.reason instanceof Error) throw signal.reason;
+  throw new DOMException("The tool call was cancelled", "AbortError");
+}
+
+async function cancellationCheckpoint(signal: AbortSignal | undefined): Promise<void> {
+  throwIfAborted(signal);
+  if (signal === undefined) return;
+  await new Promise<void>((resolve) => setImmediate(resolve));
+  throwIfAborted(signal);
 }
 
 function isMissingFileError(err: unknown): boolean {
@@ -192,7 +225,9 @@ function isMissingFileError(err: unknown): boolean {
 export async function searchLocal(
   root: string,
   options: IoSearchOptions,
+  abortSignal?: AbortSignal,
 ): Promise<IoSearchResult> {
+  await cancellationCheckpoint(abortSignal);
   const re = new RegExp(options.pattern, options.ignoreCase ? "i" : "");
   const globRe = options.glob ? globToRegExp(options.glob) : null;
 
@@ -215,7 +250,9 @@ export async function searchLocal(
   const matches: IoSearchMatch[] = [];
   let stopped: false | "max-matches" = false;
   let skippedLargeFiles = 0;
+  let scannedLines = 0;
   scan: for (const file of candidates) {
+    throwIfAborted(abortSignal);
     if (globRe && !globRe.test(file)) continue;
     const read = readTextForSearch(join(root, file));
     if (read.kind === "too-large") {
@@ -225,6 +262,11 @@ export async function searchLocal(
     if (read.kind !== "text") continue;
     const lines = read.content.split("\n");
     for (const [index, line] of lines.entries()) {
+      throwIfAborted(abortSignal);
+      scannedLines += 1;
+      if (scannedLines % 2048 === 0) {
+        await cancellationCheckpoint(abortSignal);
+      }
       if (!re.test(line)) continue;
       matches.push({ file, line: index + 1, text: line });
       if (matches.length >= options.maxMatches) {

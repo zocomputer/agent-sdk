@@ -41,6 +41,15 @@ describe("createLocalIo", () => {
     expect(readFileSync(target, "utf8")).toBe("two");
   });
 
+  test("writeFile rejects when cancellation arrives after the local mutation", async () => {
+    const controller = new AbortController();
+    const target = join(root, "cancelled-write.txt");
+    const writing = createLocalIo(root, controller.signal).writeFile(target, "committed");
+    controller.abort(new Error("turn cancelled"));
+    await expect(writing).rejects.toThrow("turn cancelled");
+    expect(readFileSync(target, "utf8")).toBe("committed");
+  });
+
   test("listFiles yields root-relative paths, scoped when asked", async () => {
     const all = [...(await io.listFiles())];
     expect(all).toContain("hello.txt");
@@ -108,5 +117,38 @@ describe("createLocalIo", () => {
   test("the provider ignores ctx and reuses one IO", () => {
     const provider = localIoProvider(root);
     expect(provider(undefined)).toBe(provider(undefined));
+  });
+
+  test("a signal-bound provider rejects file work after turn cancellation", async () => {
+    const controller = new AbortController();
+    const provider = localIoProvider(root);
+    const bound = provider({
+      abortSignal: controller.signal,
+      callId: "call-cancelled",
+      getSandbox: () => Promise.reject(new Error("local IO does not use a sandbox")),
+    });
+    controller.abort();
+    await expect(bound.stat(join(root, "hello.txt"))).rejects.toMatchObject({
+      name: "AbortError",
+    });
+    await expect(bound.listFiles()).rejects.toMatchObject({ name: "AbortError" });
+    await expect(
+      bound.search({ pattern: "alpha", ignoreCase: false, maxMatches: 10 }),
+    ).rejects.toMatchObject({ name: "AbortError" });
+  });
+
+  test("a large local search yields so cancellation can arrive mid-scan", async () => {
+    writeFileSync(
+      join(root, "cancel-search.txt"),
+      Array.from({ length: 10_000 }, (_, index) => `line ${index}`).join("\n"),
+    );
+    const controller = new AbortController();
+    const searching = searchLocal(
+      root,
+      { pattern: "never-matches", ignoreCase: false, maxMatches: 10 },
+      controller.signal,
+    );
+    setImmediate(() => controller.abort());
+    await expect(searching).rejects.toMatchObject({ name: "AbortError" });
   });
 });

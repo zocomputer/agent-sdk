@@ -112,6 +112,15 @@ directory). It's deliberately not in the baseline — most agents never author
 tools — so wire it through `extraInstructionSections` (or à la carte via
 `createToolAuthoringInstruction`).
 
+Eve 0.22 now returns schema-invalid inputs and thrown execution failures to the
+model as failed tool results, so either can be corrected within the same turn.
+That makes the SDK contract's error text more important, not redundant: eve
+transports the message, while the tool still has to replace raw backend errors
+with the field, unchanged-state guarantee, and resend instruction the model
+needs. `run_async` also keeps its inner `safeParse`; its selected operation and
+operation-specific schema are dynamic data inside the outer tool call, beyond
+eve's model-facing schema validator.
+
 On a split topology, `createSandboxFileTools` returns the same stack
 pre-configured for the sandbox — see
 [Sandbox-backed file tools](#sandbox-backed-file-tools-split-topologies).
@@ -299,8 +308,9 @@ parent-session-coupled tools you exclude, plus a `disableTool()` shim per
 parent's turn, so the task contract is decide-and-report). Do **not** shim the
 `agent` clone tool: eve injects it at the harness layer rather than as a
 framework tool, so a shim for it fails runtime agent-graph resolution and
-breaks every session; the task instruction bounds onward delegation instead
-(see [`design/upstream-asks.md`](./design/upstream-asks.md)):
+breaks every session. Eve's default `maxSubagentDepth: 1` rejects delegation
+from a task child, and the task instruction says not to try it (see
+[`design/upstream-asks.md`](./design/upstream-asks.md)):
 
 ```ts
 // agent/subagents/task_fast/tools/ask_question.ts
@@ -382,6 +392,15 @@ local backend — a shared conformance suite pins the two together. `bash` and
 the task machinery stay host-side by design: on a sandboxed runtime, keep
 eve's built-in `bash` (already sandbox-native).
 
+Eve 0.22 supplies a required `ctx.callId` and `ctx.abortSignal` on every
+authored tool execution. The SDK's structural context keeps both fields
+required whenever a context is present: `callId` is the join key if a custom
+tool records proposal/execution state, while the signal is bound into local
+and sandbox file I/O, foreground shell commands, fetch/media calls, and task
+waits. Detached background commands remain detached deliberately; cancelling
+the turn stops waiting for them, not the work the tool explicitly moved out
+of the turn.
+
 Under the hood this is one seam: every file tool takes an `io:
 WorkspaceIoProvider` (default local `node:fs`), and `createSandboxIo` /
 `sandboxIoProvider` implement it over a structural `SandboxSessionLike` that
@@ -412,8 +431,11 @@ two guards a streaming call needs:
 - **idle** — abort when the response body goes quiet between chunks (a dead
   connection the TCP stack never surfaces).
 
-A guard firing rejects like any network failure, so the AI SDK's normal
-retry-with-backoff takes over instead of waiting on a dead socket:
+Eve 0.22 retries classified transient failures reported inside a live provider
+stream and no longer lets durable event writes block token flow. Those fixes do
+not detect a connection that produces no headers or stops producing bytes. A
+guard turns that silence into a network error for Eve/Workflow's recovery path
+instead of waiting on a dead socket:
 
 ```ts
 import { createGateway } from "ai";
@@ -482,6 +504,11 @@ and gateway prompt caching, both of which a wrapped model instance forfeits —
 so wrap a gateway *instance*, set `modelContextWindowTokens`, and (for a
 plain `createGateway` wrap) re-enable caching via
 `providerOptions: { gateway: { caching: "auto" } }`.
+
+Eve 0.22 fixed direct Anthropic caching's final breakpoint so a fresh tool
+result enters the cached prefix on the next request. That fix does not change
+this wiring rule: a wrapped gateway model still needs gateway caching enabled
+explicitly.
 
 ## Visible reasoning (the invisible-thinking gotcha)
 
@@ -688,7 +715,8 @@ version:
   (no native postinstalls).
 
 Where eve has a gap the SDK works around (multimodal tool results, HITL
-replay, tool naming, turn cancellation, …), the workaround lives app-side and
+client replay, tool naming, a public turn-cancellation trigger, …), the
+workaround lives app-side and
 the gap becomes a written upstream ask: the maintained list is
 [`design/upstream-asks.md`](./design/upstream-asks.md), and asks worked out
 to PR precision — several with built, verified patches — live in

@@ -1,6 +1,6 @@
 {
   "name": "@zocomputer/agent-sdk",
-  "version": "0.13.0",
+  "version": "0.14.0",
   "description": "A standard library for eve agents: sandbox-backed workspace tools, async task orchestration, and rich-filetype reads.",
   "license": "MIT",
   "repository": {

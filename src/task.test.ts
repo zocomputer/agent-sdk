@@ -63,8 +63,9 @@ describe("the task instruction", () => {
     expect(markdown).toContain("report the blocker as your result");
     // Write-capable children share the write-scope rule.
     expect(markdown).toContain("write scope");
-    // The `agent` clone can't be shimmed away; the instruction bounds it.
-    expect(markdown).toContain("never chain delegations more than one level");
+    // The `agent` clone can't be shimmed away, but Eve's depth limit rejects it.
+    expect(markdown).toContain("Do not delegate onward");
+    expect(markdown).toContain("default delegation depth");
     // Default noun.
     expect(buildTaskMarkdown()).toContain("task in this workspace");
   });

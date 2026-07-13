@@ -77,7 +77,7 @@ export interface TaskRegistry {
    * Block until the task settles or `waitMs` elapses, then return its current
    * state (still "running" if the wait timed out). Undefined for an unknown id.
    */
-  awaitTask(id: string, waitMs: number): Promise<Task | undefined>;
+  awaitTask(id: string, waitMs: number, abortSignal?: AbortSignal): Promise<Task | undefined>;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -134,6 +134,67 @@ export function __resetTaskRegistryCacheForTests(): void {
 
 /** How often awaitTask re-reads the store for a task another instance owns. */
 const STORE_POLL_MS = 500;
+
+function abortReason(signal: AbortSignal): Error {
+  if (signal.reason instanceof Error) return signal.reason;
+  return new DOMException("The tool call was cancelled", "AbortError");
+}
+
+interface WaitHandle {
+  readonly promise: Promise<void>;
+  cancel(): void;
+}
+
+function createWait(ms: number, abortSignal?: AbortSignal): WaitHandle {
+  if (abortSignal === undefined) {
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const promise = new Promise<void>((resolve) => {
+      timer = setTimeout(resolve, ms);
+    });
+    return {
+      promise,
+      cancel() {
+        if (timer !== undefined) clearTimeout(timer);
+        timer = undefined;
+      },
+    };
+  }
+  if (abortSignal.aborted) {
+    return {
+      promise: Promise.reject(abortReason(abortSignal)),
+      cancel() {},
+    };
+  }
+  let cancel = () => {};
+  const promise = new Promise<void>((resolve, reject) => {
+    let settled = false;
+    const cleanup = () => {
+      if (settled) return false;
+      settled = true;
+      clearTimeout(timer);
+      abortSignal.removeEventListener("abort", onAbort);
+      return true;
+    };
+    const onAbort = () => {
+      if (!cleanup()) return;
+      reject(abortReason(abortSignal));
+    };
+    const timer = setTimeout(() => {
+      if (!cleanup()) return;
+      resolve();
+    }, ms);
+    abortSignal.addEventListener("abort", onAbort, { once: true });
+    cancel = () => {
+      if (!cleanup()) return;
+      resolve();
+    };
+  });
+  return { promise, cancel: () => cancel() };
+}
+
+function waitFor(ms: number, abortSignal?: AbortSignal): Promise<void> {
+  return createWait(ms, abortSignal).promise;
+}
 
 /**
  * Create a task registry backed by a JSON store. Registries are deduped per
@@ -282,19 +343,26 @@ function buildTaskRegistry(opts: { storePath: string }): TaskRegistry {
     getTask(id) {
       return tasks.get(id) ?? storeTask(id);
     },
-    async awaitTask(id, waitMs) {
+    async awaitTask(id, waitMs, abortSignal) {
       const current = tasks.get(id);
       if (current) {
         if (current.status !== "running") return current;
         const work = pending.get(id);
         if (work) {
-          await Promise.race([
-            work.then(
-              () => undefined,
-              () => undefined,
-            ),
-            new Promise<void>((resolve) => setTimeout(resolve, waitMs)),
-          ]);
+          const wait = createWait(waitMs, abortSignal);
+          try {
+            await Promise.race([
+              work.then(
+                () => undefined,
+                () => undefined,
+              ),
+              wait.promise,
+            ]);
+          } finally {
+            // If work wins, remove the timeout + abort listener immediately;
+            // a later turn cancellation must not reject an orphaned waiter.
+            wait.cancel();
+          }
         }
         return tasks.get(id);
       }
@@ -306,9 +374,7 @@ function buildTaskRegistry(opts: { storePath: string }): TaskRegistry {
         if (!saved || saved.status !== "running") return saved;
         const remaining = deadline - Date.now();
         if (remaining <= 0) return saved;
-        await new Promise<void>((resolve) =>
-          setTimeout(resolve, Math.min(STORE_POLL_MS, remaining)),
-        );
+        await waitFor(Math.min(STORE_POLL_MS, remaining), abortSignal);
       }
     },
   };

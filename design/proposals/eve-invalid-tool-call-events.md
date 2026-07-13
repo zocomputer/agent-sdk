@@ -13,6 +13,14 @@ Filed upstream as [vercel/eve#542](https://github.com/vercel/eve/issues/542)
 on maintainer go-ahead. Tracked internally on
 [zov2-code#319](https://github.com/zocomputer/zov2-code/issues/319).
 
+**Eve 0.22 audit.** The model-recovery half has shipped: execution failures
+have returned failed tool results since 0.19, and 0.22 also converts invalid
+tool input into model-visible failure history. Eve 0.22.6 still has no
+`action.invalid` protocol event and still excludes AI SDK calls marked
+`invalid` from both emission passes. This proposal remains an observability
+change; its patch predates those harness changes and must be rebased before
+submission.
+
 Today a tool call that fails schema validation (or names a tool that doesn't
 exist) is handled correctly for the *model* — the AI SDK feeds the validation
 error back and the model retries — but emits **no event**: clients render

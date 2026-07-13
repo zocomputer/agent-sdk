@@ -246,7 +246,7 @@ export function createWebFetchTool(opts: {
           `Timeout in seconds (default ${WEB_FETCH_DEFAULT_TIMEOUT_SECONDS}, max ${WEB_FETCH_MAX_TIMEOUT_SECONDS}).`,
         ),
     }),
-    async execute({ url, format, timeout }) {
+    async execute({ url, format, timeout }, ctx) {
       const renderFormat: WebFetchFormat = format ?? "markdown";
       const fetched = await fetchWebResource({
         url,
@@ -259,6 +259,7 @@ export function createWebFetchTool(opts: {
           ? { pdfTimeoutMs: WEB_FETCH_PDF_DEFAULT_TIMEOUT_SECONDS * 1000 }
           : {}),
         ...(fetchImpl !== undefined ? { fetchImpl } : {}),
+        ...(ctx?.abortSignal !== undefined ? { abortSignal: ctx.abortSignal } : {}),
       });
       const { body, contentType, finalUrl } = fetched;
       // Surface cross-URL redirects so the model knows where the content

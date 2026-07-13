@@ -1,8 +1,8 @@
-// ../../../../../tmp/agent-sdk-mirror-81kny2/repo/src/index.ts
+// ../../../../../tmp/agent-sdk-mirror-Fnxb0w/repo/src/index.ts
 import { tmpdir } from "node:os";
 import { join as join7 } from "node:path";
 
-// ../../../../../tmp/agent-sdk-mirror-81kny2/repo/src/async-tasks.ts
+// ../../../../../tmp/agent-sdk-mirror-Fnxb0w/repo/src/async-tasks.ts
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname } from "node:path";
 function isRecord(value) {
@@ -39,6 +39,65 @@ function __resetTaskRegistryCacheForTests() {
   registryCache().clear();
 }
 var STORE_POLL_MS = 500;
+function abortReason(signal) {
+  if (signal.reason instanceof Error)
+    return signal.reason;
+  return new DOMException("The tool call was cancelled", "AbortError");
+}
+function createWait(ms, abortSignal) {
+  if (abortSignal === undefined) {
+    let timer;
+    const promise2 = new Promise((resolve) => {
+      timer = setTimeout(resolve, ms);
+    });
+    return {
+      promise: promise2,
+      cancel() {
+        if (timer !== undefined)
+          clearTimeout(timer);
+        timer = undefined;
+      }
+    };
+  }
+  if (abortSignal.aborted) {
+    return {
+      promise: Promise.reject(abortReason(abortSignal)),
+      cancel() {}
+    };
+  }
+  let cancel = () => {};
+  const promise = new Promise((resolve, reject) => {
+    let settled = false;
+    const cleanup = () => {
+      if (settled)
+        return false;
+      settled = true;
+      clearTimeout(timer);
+      abortSignal.removeEventListener("abort", onAbort);
+      return true;
+    };
+    const onAbort = () => {
+      if (!cleanup())
+        return;
+      reject(abortReason(abortSignal));
+    };
+    const timer = setTimeout(() => {
+      if (!cleanup())
+        return;
+      resolve();
+    }, ms);
+    abortSignal.addEventListener("abort", onAbort, { once: true });
+    cancel = () => {
+      if (!cleanup())
+        return;
+      resolve();
+    };
+  });
+  return { promise, cancel: () => cancel() };
+}
+function waitFor(ms, abortSignal) {
+  return createWait(ms, abortSignal).promise;
+}
 function createTaskRegistry(opts) {
   const cache = registryCache();
   const cached = cache.get(opts.storePath);
@@ -159,21 +218,26 @@ function buildTaskRegistry(opts) {
     getTask(id) {
       return tasks.get(id) ?? storeTask(id);
     },
-    async awaitTask(id, waitMs) {
+    async awaitTask(id, waitMs, abortSignal) {
       const current = tasks.get(id);
       if (current) {
         if (current.status !== "running")
           return current;
         const work = pending.get(id);
         if (work) {
-          await Promise.race([
-            work.then(() => {
-              return;
-            }, () => {
-              return;
-            }),
-            new Promise((resolve) => setTimeout(resolve, waitMs))
-          ]);
+          const wait = createWait(waitMs, abortSignal);
+          try {
+            await Promise.race([
+              work.then(() => {
+                return;
+              }, () => {
+                return;
+              }),
+              wait.promise
+            ]);
+          } finally {
+            wait.cancel();
+          }
         }
         return tasks.get(id);
       }
@@ -185,13 +249,13 @@ function buildTaskRegistry(opts) {
         const remaining = deadline - Date.now();
         if (remaining <= 0)
           return saved;
-        await new Promise((resolve) => setTimeout(resolve, Math.min(STORE_POLL_MS, remaining)));
+        await waitFor(Math.min(STORE_POLL_MS, remaining), abortSignal);
       }
     }
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-81kny2/repo/src/backgroundable.ts
+// ../../../../../tmp/agent-sdk-mirror-Fnxb0w/repo/src/backgroundable.ts
 import { z } from "zod";
 function defineOp(cfg) {
   return {
@@ -237,7 +301,7 @@ function createBashOp(runner) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-81kny2/repo/src/dir-conventions.ts
+// ../../../../../tmp/agent-sdk-mirror-Fnxb0w/repo/src/dir-conventions.ts
 import { readFileSync as readFileSync2 } from "node:fs";
 import { join } from "node:path";
 var DEFAULT_MAX_BYTES_PER_FILE = 16 * 1024;
@@ -349,12 +413,12 @@ function createDirConventionsTracker(options) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-81kny2/repo/src/instructions.ts
+// ../../../../../tmp/agent-sdk-mirror-Fnxb0w/repo/src/instructions.ts
 import { readFileSync as readFileSync3 } from "node:fs";
 import { resolve } from "node:path";
 import { defineDynamic, defineInstructions } from "eve/instructions";
 
-// ../../../../../tmp/agent-sdk-mirror-81kny2/repo/src/model-capabilities.ts
+// ../../../../../tmp/agent-sdk-mirror-Fnxb0w/repo/src/model-capabilities.ts
 var TEXT_ONLY_CAPABILITIES = {
   image: false,
   pdf: false,
@@ -413,7 +477,7 @@ function describeCapabilities(caps) {
   return `can view ${joinList(can, "and")}, but not ${joinList(cannot, "or")}`;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-81kny2/repo/src/prompt-sections.ts
+// ../../../../../tmp/agent-sdk-mirror-Fnxb0w/repo/src/prompt-sections.ts
 function renderPromptSection(section) {
   const body = section.body.trim();
   if (body === "")
@@ -456,7 +520,7 @@ function composePromptSections(baseline, options) {
   return composed;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-81kny2/repo/src/instructions.ts
+// ../../../../../tmp/agent-sdk-mirror-Fnxb0w/repo/src/instructions.ts
 function repoConventionsSection(opts) {
   let agents = "";
   try {
@@ -774,10 +838,15 @@ function createInstructionStackInstruction(opts) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-81kny2/repo/src/tools/bash.ts
+// ../../../../../tmp/agent-sdk-mirror-Fnxb0w/repo/src/tools/bash.ts
 import { defineTool } from "eve/tools";
 import { z as z2 } from "zod";
 var DEFAULT_INTERACTIVE_HINT = "This is a piped shell with NO tty: avoid interactive or full-screen CLIs (a REPL, vim, an interactive installer/prompt) — those programs hang or degrade without a real terminal.";
+function abortReason2(signal) {
+  if (signal.reason instanceof Error)
+    return signal.reason;
+  return new DOMException("The tool call was cancelled", "AbortError");
+}
 function createBashTool(opts) {
   const { workdir, registry, noun } = opts;
   const execEnv = opts.execEnv ?? "host";
@@ -803,10 +872,48 @@ function createBashTool(opts) {
       cwd,
       timeoutMs: timeout_ms ?? 600000
     });
-    const result = await Promise.race([
-      running.result,
-      new Promise((resolve2) => setTimeout(() => resolve2(null), foreground_ms ?? 2000))
-    ]);
+    const signal = ctx?.abortSignal;
+    const result = await new Promise((resolve2, reject) => {
+      let settled = false;
+      let removeAbortListener = () => {};
+      const foregroundTimer = setTimeout(() => {
+        if (settled)
+          return;
+        settled = true;
+        removeAbortListener();
+        resolve2(null);
+      }, foreground_ms ?? 2000);
+      const settle = () => {
+        if (settled)
+          return false;
+        settled = true;
+        clearTimeout(foregroundTimer);
+        removeAbortListener();
+        return true;
+      };
+      const onAbort = (abortedSignal) => {
+        if (!settle())
+          return;
+        running.kill();
+        reject(abortReason2(abortedSignal));
+      };
+      if (signal !== undefined) {
+        if (signal.aborted) {
+          onAbort(signal);
+        } else {
+          const handleAbort = () => onAbort(signal);
+          signal.addEventListener("abort", handleAbort, { once: true });
+          removeAbortListener = () => signal.removeEventListener("abort", handleAbort);
+        }
+      }
+      running.result.then((completed) => {
+        if (settle())
+          resolve2(completed);
+      }, (error) => {
+        if (settle())
+          reject(error);
+      });
+    });
     if (result !== null) {
       return {
         workdir,
@@ -839,11 +946,11 @@ function createBashTool(opts) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-81kny2/repo/src/tools/edit.ts
+// ../../../../../tmp/agent-sdk-mirror-Fnxb0w/repo/src/tools/edit.ts
 import { defineTool as defineTool2 } from "eve/tools";
 import { z as z3 } from "zod";
 
-// ../../../../../tmp/agent-sdk-mirror-81kny2/repo/src/edit-match.ts
+// ../../../../../tmp/agent-sdk-mirror-Fnxb0w/repo/src/edit-match.ts
 class EditNotFoundError extends Error {
   constructor() {
     super("old_string not found. It must match the file contents exactly, including whitespace and indentation.");
@@ -1290,7 +1397,7 @@ function joinBom(text, bom) {
   return bom ? BOM + stripped : stripped;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-81kny2/repo/src/path-locks.ts
+// ../../../../../tmp/agent-sdk-mirror-Fnxb0w/repo/src/path-locks.ts
 var LOCKS_KEY = Symbol.for("zocomputer.agent-sdk.path-locks");
 function lockChains() {
   const holder = globalThis;
@@ -1316,18 +1423,18 @@ async function withPathLock(path, fn) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-81kny2/repo/src/workspace-io.ts
+// ../../../../../tmp/agent-sdk-mirror-Fnxb0w/repo/src/workspace-io.ts
 import { mkdirSync as mkdirSync2, readFileSync as readFileSync6, statSync as statSync2, writeFileSync as writeFileSync2 } from "node:fs";
 import { dirname as dirname2, join as join3 } from "node:path";
 
-// ../../../../../tmp/agent-sdk-mirror-81kny2/repo/src/glob-match.ts
+// ../../../../../tmp/agent-sdk-mirror-Fnxb0w/repo/src/glob-match.ts
 function globToRegExp(glob) {
   const escaped = glob.replace(/[.+^${}()|[\]\\]/g, "\\$&");
   const body = escaped.replace(/\*\*\/?/g, "\x00").replace(/\*/g, "[^/]*").replace(/\?/g, "[^/]").replace(/\u0000/g, "(?:.*/)?");
   return new RegExp(`^${body}$`);
 }
 
-// ../../../../../tmp/agent-sdk-mirror-81kny2/repo/src/list-files.ts
+// ../../../../../tmp/agent-sdk-mirror-Fnxb0w/repo/src/list-files.ts
 import { spawnSync } from "node:child_process";
 var MAX_BUFFER = 64 * 1024 * 1024;
 function gitPaths(root, args) {
@@ -1355,7 +1462,7 @@ function listGitFiles(root, scope) {
   return files.filter((path) => !gone.has(path));
 }
 
-// ../../../../../tmp/agent-sdk-mirror-81kny2/repo/src/read-text.ts
+// ../../../../../tmp/agent-sdk-mirror-Fnxb0w/repo/src/read-text.ts
 import { readFileSync as readFileSync4, statSync } from "node:fs";
 var MAX_SEARCH_FILE_BYTES = 1500000;
 var BINARY_SNIFF_BYTES = 8192;
@@ -1382,7 +1489,7 @@ function readTextForSearch(abs, maxBytes = MAX_SEARCH_FILE_BYTES) {
   return { kind: "text", content: buf.toString("utf8") };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-81kny2/repo/src/walk.ts
+// ../../../../../tmp/agent-sdk-mirror-Fnxb0w/repo/src/walk.ts
 import { readFileSync as readFileSync5, readdirSync } from "node:fs";
 import { join as join2, relative, sep } from "node:path";
 import ignore from "ignore";
@@ -1464,7 +1571,7 @@ function* walkFiles(root, base = root) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-81kny2/repo/src/workspace.ts
+// ../../../../../tmp/agent-sdk-mirror-Fnxb0w/repo/src/workspace.ts
 import { isAbsolute, relative as relative2, resolve as resolve2, sep as sep2 } from "node:path";
 function resolveWithin(root, path) {
   const abs = isAbsolute(path) ? resolve2(path) : resolve2(root, path);
@@ -1486,20 +1593,26 @@ function createWorkspace(root) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-81kny2/repo/src/workspace-io.ts
-function createLocalIo(root) {
+// ../../../../../tmp/agent-sdk-mirror-Fnxb0w/repo/src/workspace-io.ts
+function createLocalIo(root, abortSignal) {
   return {
     async stat(abs) {
+      throwIfAborted(abortSignal);
+      let st;
       try {
-        const st = statSync2(abs);
-        return { isFile: st.isFile(), size: st.size, mtimeMs: st.mtimeMs };
+        st = statSync2(abs);
       } catch {
         return null;
       }
+      throwIfAborted(abortSignal);
+      return { isFile: st.isFile(), size: st.size, mtimeMs: st.mtimeMs };
     },
     async readFile(abs) {
+      throwIfAborted(abortSignal);
       try {
-        return readFileSync6(abs);
+        const content = readFileSync6(abs);
+        throwIfAborted(abortSignal);
+        return content;
       } catch (err) {
         if (isMissingFileError(err))
           return null;
@@ -1507,29 +1620,51 @@ function createLocalIo(root) {
       }
     },
     async writeFile(abs, content) {
+      throwIfAborted(abortSignal);
       mkdirSync2(dirname2(abs), { recursive: true });
       writeFileSync2(abs, content);
+      await cancellationCheckpoint(abortSignal);
     },
     async listFiles(scope) {
+      await cancellationCheckpoint(abortSignal);
       if (scope === undefined) {
-        return listGitFiles(root) ?? walkFiles(root);
+        const files2 = listGitFiles(root) ?? walkFiles(root);
+        await cancellationCheckpoint(abortSignal);
+        return files2;
       }
       const rel = relativizeWithin(root, scope);
-      return listGitFiles(root, rel) ?? walkFiles(scope, root);
+      const files = listGitFiles(root, rel) ?? walkFiles(scope, root);
+      await cancellationCheckpoint(abortSignal);
+      return files;
     },
     async search(options) {
-      return searchLocal(root, options);
+      return searchLocal(root, options, abortSignal);
     }
   };
 }
 function localIoProvider(root) {
   const io = createLocalIo(root);
-  return () => io;
+  return (ctx) => ctx === undefined ? io : createLocalIo(root, ctx.abortSignal);
+}
+function throwIfAborted(signal) {
+  if (signal?.aborted !== true)
+    return;
+  if (signal.reason instanceof Error)
+    throw signal.reason;
+  throw new DOMException("The tool call was cancelled", "AbortError");
+}
+async function cancellationCheckpoint(signal) {
+  throwIfAborted(signal);
+  if (signal === undefined)
+    return;
+  await new Promise((resolve3) => setImmediate(resolve3));
+  throwIfAborted(signal);
 }
 function isMissingFileError(err) {
   return typeof err === "object" && err !== null && "code" in err && err.code === "ENOENT";
 }
-async function searchLocal(root, options) {
+async function searchLocal(root, options, abortSignal) {
+  await cancellationCheckpoint(abortSignal);
   const re = new RegExp(options.pattern, options.ignoreCase ? "i" : "");
   const globRe = options.glob ? globToRegExp(options.glob) : null;
   let candidates;
@@ -1548,8 +1683,10 @@ async function searchLocal(root, options) {
   const matches = [];
   let stopped = false;
   let skippedLargeFiles = 0;
+  let scannedLines = 0;
   scan:
     for (const file of candidates) {
+      throwIfAborted(abortSignal);
       if (globRe && !globRe.test(file))
         continue;
       const read = readTextForSearch(join3(root, file));
@@ -1562,6 +1699,11 @@ async function searchLocal(root, options) {
       const lines = read.content.split(`
 `);
       for (const [index, line] of lines.entries()) {
+        throwIfAborted(abortSignal);
+        scannedLines += 1;
+        if (scannedLines % 2048 === 0) {
+          await cancellationCheckpoint(abortSignal);
+        }
         if (!re.test(line))
           continue;
         matches.push({ file, line: index + 1, text: line });
@@ -1574,7 +1716,7 @@ async function searchLocal(root, options) {
   return { matches, stopped, skippedLargeFiles };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-81kny2/repo/src/tools/edit.ts
+// ../../../../../tmp/agent-sdk-mirror-Fnxb0w/repo/src/tools/edit.ts
 function createEditTool(opts) {
   const { workspace, noun } = opts;
   const io = opts.io ?? localIoProvider(workspace.root);
@@ -1628,7 +1770,7 @@ ${hint.preview}`;
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-81kny2/repo/src/tools/glob.ts
+// ../../../../../tmp/agent-sdk-mirror-Fnxb0w/repo/src/tools/glob.ts
 import { defineTool as defineTool3 } from "eve/tools";
 import { z as z4 } from "zod";
 function createGlobTool(opts) {
@@ -1667,7 +1809,7 @@ function createGlobTool(opts) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-81kny2/repo/src/tools/grep.ts
+// ../../../../../tmp/agent-sdk-mirror-Fnxb0w/repo/src/tools/grep.ts
 import { defineTool as defineTool4 } from "eve/tools";
 import { z as z5 } from "zod";
 import { join as join4 } from "node:path";
@@ -1760,12 +1902,12 @@ function createGrepTool(opts) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-81kny2/repo/src/tools/look.ts
+// ../../../../../tmp/agent-sdk-mirror-Fnxb0w/repo/src/tools/look.ts
 import { defineTool as defineTool5 } from "eve/tools";
 import { basename } from "node:path";
 import { z as z6 } from "zod";
 
-// ../../../../../tmp/agent-sdk-mirror-81kny2/repo/src/file-kind.ts
+// ../../../../../tmp/agent-sdk-mirror-Fnxb0w/repo/src/file-kind.ts
 import { extname } from "node:path";
 function imageMediaType(format) {
   return `image/${format}`;
@@ -1963,7 +2105,7 @@ function detectFileKind(buf, path) {
   return { kind: "text", encoding: "utf8" };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-81kny2/repo/src/tools/look.ts
+// ../../../../../tmp/agent-sdk-mirror-Fnxb0w/repo/src/tools/look.ts
 var DEFAULT_LOOK_MAX_INPUT_BYTES = 20 * 1024 * 1024;
 var DEFAULT_LOOK_TIMEOUT_MS = 180000;
 var LOOK_MAX_ANSWER_CHARS = 30000;
@@ -1982,6 +2124,7 @@ var defaultGenerate = async (options) => {
     model: options.model,
     messages: options.messages,
     timeout: options.timeoutMs,
+    ...options.abortSignal !== undefined ? { abortSignal: options.abortSignal } : {},
     ...options.headers !== undefined ? { headers: options.headers } : {}
   });
 };
@@ -2041,7 +2184,8 @@ function createLookTool(opts) {
         model: oracle.model,
         messages: [message],
         timeoutMs: oracle.timeoutMs ?? DEFAULT_LOOK_TIMEOUT_MS,
-        ...oracle.headers !== undefined ? { headers: oracle.headers } : {}
+        ...oracle.headers !== undefined ? { headers: oracle.headers } : {},
+        ...ctx?.abortSignal !== undefined ? { abortSignal: ctx.abortSignal } : {}
       });
       return {
         path: rel,
@@ -2152,11 +2296,11 @@ function lookOversizeHint(oracle, maxInputBytes = DEFAULT_LOOK_MAX_INPUT_BYTES) 
   return `For text, use bash (head, sed -n, rg) to extract the part you need. Only if it is ${article} ${kindList} file up to ${capMb} MB, pass the path and a question to the look tool to have ${oracle.modelName} examine it (look sends files read cannot; over ${capMb} MB, shrink it first, e.g. ffmpeg extraction).`;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-81kny2/repo/src/tools/read.ts
+// ../../../../../tmp/agent-sdk-mirror-Fnxb0w/repo/src/tools/read.ts
 import { defineTool as defineTool6 } from "eve/tools";
 import { z as z7 } from "zod";
 
-// ../../../../../tmp/agent-sdk-mirror-81kny2/repo/src/file-view.ts
+// ../../../../../tmp/agent-sdk-mirror-Fnxb0w/repo/src/file-view.ts
 var READ_FILE_DEFAULT_LINE_LIMIT = 2000;
 var READ_FILE_MAX_LINE_CHARS = 2000;
 var READ_FILE_MAX_CONTENT_CHARS = 50000;
@@ -2200,10 +2344,10 @@ function buildFileView(text, opts = {}) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-81kny2/repo/src/read-file-content.ts
+// ../../../../../tmp/agent-sdk-mirror-Fnxb0w/repo/src/read-file-content.ts
 import { imageSize } from "image-size";
 
-// ../../../../../tmp/agent-sdk-mirror-81kny2/repo/src/extract/cache.ts
+// ../../../../../tmp/agent-sdk-mirror-Fnxb0w/repo/src/extract/cache.ts
 function createStatCache(limit) {
   const entries = new Map;
   return {
@@ -2228,7 +2372,7 @@ function createStatCache(limit) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-81kny2/repo/src/extract/docx.ts
+// ../../../../../tmp/agent-sdk-mirror-Fnxb0w/repo/src/extract/docx.ts
 import mammoth from "mammoth";
 async function extractDocx(buffer) {
   try {
@@ -2240,10 +2384,10 @@ async function extractDocx(buffer) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-81kny2/repo/src/extract/epub.ts
+// ../../../../../tmp/agent-sdk-mirror-Fnxb0w/repo/src/extract/epub.ts
 import { Parser } from "htmlparser2";
 
-// ../../../../../tmp/agent-sdk-mirror-81kny2/repo/src/extract/zip.ts
+// ../../../../../tmp/agent-sdk-mirror-Fnxb0w/repo/src/extract/zip.ts
 import { inflateRawSync } from "node:zlib";
 var EOCD_SIGNATURE = 101010256;
 var CENTRAL_SIGNATURE = 33639248;
@@ -2331,7 +2475,7 @@ function openZip(buffer) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-81kny2/repo/src/extract/epub.ts
+// ../../../../../tmp/agent-sdk-mirror-Fnxb0w/repo/src/extract/epub.ts
 var EPUB_SECTION_CAP = 200;
 var BLOCK_TAGS = new Set([
   "p",
@@ -2467,7 +2611,7 @@ function extractEpub(bytes, options = {}) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-81kny2/repo/src/extract/ipynb.ts
+// ../../../../../tmp/agent-sdk-mirror-Fnxb0w/repo/src/extract/ipynb.ts
 function joinSource(value) {
   if (typeof value === "string")
     return value;
@@ -2578,7 +2722,7 @@ function extractNotebook(bytes) {
 `), cells: cells.length };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-81kny2/repo/src/extract/odf.ts
+// ../../../../../tmp/agent-sdk-mirror-Fnxb0w/repo/src/extract/odf.ts
 import { Parser as Parser2 } from "htmlparser2";
 var ODP_EMPTY_SLIDE_NOTE = "[no text on this slide — likely image-only; images cannot be extracted]";
 function parseContentXml(xml) {
@@ -2665,7 +2809,7 @@ function extractOdp(bytes) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-81kny2/repo/src/extract/pdf.ts
+// ../../../../../tmp/agent-sdk-mirror-Fnxb0w/repo/src/extract/pdf.ts
 import { openPdf } from "clawpdf";
 var PDF_EMPTY_PAGE_NOTE = "[no text on this page — likely scanned or image-only; rendered pages cannot be attached]";
 var PDF_PAGE_CAP = 200;
@@ -2700,7 +2844,7 @@ async function extractPdf(bytes, options = {}) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-81kny2/repo/src/extract/pptx.ts
+// ../../../../../tmp/agent-sdk-mirror-Fnxb0w/repo/src/extract/pptx.ts
 import { Parser as Parser3 } from "htmlparser2";
 var PPTX_EMPTY_SLIDE_NOTE = "[no text on this slide — likely image-only; images cannot be extracted]";
 var PPTX_SLIDE_CAP = 200;
@@ -2856,7 +3000,7 @@ function extractPptx(bytes, options = {}) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-81kny2/repo/src/extract/rtf.ts
+// ../../../../../tmp/agent-sdk-mirror-Fnxb0w/repo/src/extract/rtf.ts
 var SKIP_DESTINATIONS = new Set([
   "fonttbl",
   "colortbl",
@@ -3054,7 +3198,7 @@ function extractRtf(bytes) {
   return { ok: true, text: text.replace(/\n+$/, "") };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-81kny2/repo/src/extract/sheet.ts
+// ../../../../../tmp/agent-sdk-mirror-Fnxb0w/repo/src/extract/sheet.ts
 import { read, utils } from "xlsx";
 var SHEET_ROW_CAP = 5000;
 function extractSheets(buffer, rowCap = SHEET_ROW_CAP) {
@@ -3095,7 +3239,7 @@ function extractSheets(buffer, rowCap = SHEET_ROW_CAP) {
 `), sheets };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-81kny2/repo/src/read-file-content.ts
+// ../../../../../tmp/agent-sdk-mirror-Fnxb0w/repo/src/read-file-content.ts
 var EXTRACTION_CACHE_LIMIT = 20;
 var extractionCache = createStatCache(EXTRACTION_CACHE_LIMIT);
 function decodeText(buffer, encoding) {
@@ -3214,7 +3358,7 @@ async function loadFileContent(buffer, path, id) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-81kny2/repo/src/tools/read.ts
+// ../../../../../tmp/agent-sdk-mirror-Fnxb0w/repo/src/tools/read.ts
 function buildMediaHint(verb) {
   return `${verb} media (images, video, audio) returns metadata only`;
 }
@@ -3366,7 +3510,7 @@ function createReadTool(opts) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-81kny2/repo/src/tools/tasks.ts
+// ../../../../../tmp/agent-sdk-mirror-Fnxb0w/repo/src/tools/tasks.ts
 import { defineDynamic as defineDynamic2, defineTool as defineTool7 } from "eve/tools";
 import { z as z8 } from "zod";
 var DEFAULT_WAIT_MS = 120000;
@@ -3458,8 +3602,8 @@ Backgroundable tools (pass \`input\` matching the tool's own schema):
         task_id: z8.string().min(1).describe("Task id returned by run_async or a backgrounded bash call."),
         wait_ms: z8.number().int().positive().optional().describe(`Max time to block in ms (default ${DEFAULT_WAIT_MS}).`)
       }),
-      async execute({ task_id, wait_ms }) {
-        const task = await registry.awaitTask(task_id, wait_ms ?? DEFAULT_WAIT_MS);
+      async execute({ task_id, wait_ms }, ctx) {
+        const task = await registry.awaitTask(task_id, wait_ms ?? DEFAULT_WAIT_MS, ctx?.abortSignal);
         if (!task) {
           throw new Error(`No such task: ${task_id}. Call check_tasks to list the current tasks and their ids, then resend with a real one.`);
         }
@@ -3476,11 +3620,11 @@ function createTasksTools(opts) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-81kny2/repo/src/tools/todo.ts
+// ../../../../../tmp/agent-sdk-mirror-Fnxb0w/repo/src/tools/todo.ts
 import { defineTool as defineTool8 } from "eve/tools";
 import { todo as eveTodo } from "eve/tools/defaults";
 
-// ../../../../../tmp/agent-sdk-mirror-81kny2/repo/src/todo-discipline.ts
+// ../../../../../tmp/agent-sdk-mirror-Fnxb0w/repo/src/todo-discipline.ts
 function isRecord3(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
@@ -3588,7 +3732,7 @@ var TODO_DISCIPLINE_RIDER = [
 ].join(`
 `);
 
-// ../../../../../tmp/agent-sdk-mirror-81kny2/repo/src/tools/todo.ts
+// ../../../../../tmp/agent-sdk-mirror-Fnxb0w/repo/src/tools/todo.ts
 function isRecord4(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
@@ -3615,12 +3759,12 @@ ${TODO_DISCIPLINE_RIDER}`,
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-81kny2/repo/src/tools/webfetch.ts
+// ../../../../../tmp/agent-sdk-mirror-Fnxb0w/repo/src/tools/webfetch.ts
 import { defineTool as defineTool9 } from "eve/tools";
 import { z as z9 } from "zod";
 import { join as join5 } from "node:path";
 
-// ../../../../../tmp/agent-sdk-mirror-81kny2/repo/src/bounded-output.ts
+// ../../../../../tmp/agent-sdk-mirror-Fnxb0w/repo/src/bounded-output.ts
 import { appendFileSync, mkdirSync as mkdirSync3, writeFileSync as writeFileSync3 } from "node:fs";
 import { dirname as dirname3 } from "node:path";
 var HEAD_CHARS = 25000;
@@ -3731,12 +3875,12 @@ function createBoundedCapture(opts = {}) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-81kny2/repo/src/web-fetch.ts
+// ../../../../../tmp/agent-sdk-mirror-Fnxb0w/repo/src/web-fetch.ts
 import { Parser as Parser4 } from "htmlparser2";
 import { parseHTML as parseHTML2 } from "linkedom";
 import TurndownService from "turndown";
 
-// ../../../../../tmp/agent-sdk-mirror-81kny2/repo/src/web-page.ts
+// ../../../../../tmp/agent-sdk-mirror-Fnxb0w/repo/src/web-page.ts
 import Defuddle from "defuddle";
 import { parseHTML } from "linkedom";
 var asField = (value) => {
@@ -3847,7 +3991,7 @@ function looksLikeRawHtmlOutput(rendered) {
   return tagChars / rendered.length > 0.1;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-81kny2/repo/src/web-fetch.ts
+// ../../../../../tmp/agent-sdk-mirror-Fnxb0w/repo/src/web-fetch.ts
 var WEB_FETCH_MAX_RESPONSE_BYTES = 5 * 1024 * 1024;
 var WEB_FETCH_DEFAULT_TIMEOUT_SECONDS = 30;
 var WEB_FETCH_PDF_DEFAULT_TIMEOUT_SECONDS = 60;
@@ -3963,6 +4107,12 @@ async function fetchWebResource(opts) {
   const fetchImpl = opts.fetchImpl ?? fetch;
   assertHttpUrl(url);
   const controller = new AbortController;
+  const abortFromCaller = () => controller.abort(opts.abortSignal?.reason);
+  if (opts.abortSignal?.aborted) {
+    abortFromCaller();
+  } else {
+    opts.abortSignal?.addEventListener("abort", abortFromCaller, { once: true });
+  }
   const startedAt = Date.now();
   let deadlineMs = timeoutMs;
   let timer = setTimeout(() => controller.abort(), deadlineMs);
@@ -3979,6 +4129,8 @@ async function fetchWebResource(opts) {
         });
       }
     } catch (error) {
+      if (opts.abortSignal?.aborted)
+        throw abortReason3(opts.abortSignal);
       if (controller.signal.aborted)
         throw timedOut();
       throw error;
@@ -4002,6 +4154,8 @@ async function fetchWebResource(opts) {
     try {
       arrayBuffer = await response.arrayBuffer();
     } catch (error) {
+      if (opts.abortSignal?.aborted)
+        throw abortReason3(opts.abortSignal);
       if (controller.signal.aborted)
         throw timedOut();
       throw error;
@@ -4016,7 +4170,13 @@ async function fetchWebResource(opts) {
     };
   } finally {
     clearTimeout(timer);
+    opts.abortSignal?.removeEventListener("abort", abortFromCaller);
   }
+}
+function abortReason3(signal) {
+  if (signal.reason instanceof Error)
+    return signal.reason;
+  return new DOMException("The tool call was cancelled", "AbortError");
 }
 function responseLooksLikePdf(contentType, finalUrl) {
   const mime = contentType.split(";", 1)[0]?.trim().toLowerCase() ?? "";
@@ -4037,7 +4197,7 @@ function urlLooksLikePdf(url) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-81kny2/repo/src/tools/webfetch.ts
+// ../../../../../tmp/agent-sdk-mirror-Fnxb0w/repo/src/tools/webfetch.ts
 var SPILL_EXTENSION = {
   markdown: "md",
   text: "txt",
@@ -4152,14 +4312,15 @@ function createWebFetchTool(opts) {
       format: z9.enum(["markdown", "text", "html"]).optional().describe('How to render HTML responses: "markdown" (default), "text", or "html" (raw). Non-HTML content is unaffected.'),
       timeout: z9.number().int().positive().optional().describe(`Timeout in seconds (default ${WEB_FETCH_DEFAULT_TIMEOUT_SECONDS}, max ${WEB_FETCH_MAX_TIMEOUT_SECONDS}).`)
     }),
-    async execute({ url, format, timeout }) {
+    async execute({ url, format, timeout }, ctx) {
       const renderFormat = format ?? "markdown";
       const fetched = await fetchWebResource({
         url,
         format: renderFormat,
         timeoutMs: resolveWebFetchTimeoutMs(timeout, url),
         ...timeout === undefined ? { pdfTimeoutMs: WEB_FETCH_PDF_DEFAULT_TIMEOUT_SECONDS * 1000 } : {},
-        ...fetchImpl !== undefined ? { fetchImpl } : {}
+        ...fetchImpl !== undefined ? { fetchImpl } : {},
+        ...ctx?.abortSignal !== undefined ? { abortSignal: ctx.abortSignal } : {}
       });
       const { body, contentType, finalUrl } = fetched;
       const redirect = finalUrl !== url ? { finalUrl } : {};
@@ -4268,7 +4429,7 @@ function createWebFetchTool(opts) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-81kny2/repo/src/tools/write.ts
+// ../../../../../tmp/agent-sdk-mirror-Fnxb0w/repo/src/tools/write.ts
 import { defineTool as defineTool10 } from "eve/tools";
 import { z as z10 } from "zod";
 function createWriteTool(opts) {
@@ -4304,7 +4465,7 @@ function createWriteTool(opts) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-81kny2/repo/src/sandbox-io.ts
+// ../../../../../tmp/agent-sdk-mirror-Fnxb0w/repo/src/sandbox-io.ts
 import ignore2 from "ignore";
 function shellSingleQuote(value) {
   return `'${value.replaceAll("'", `'\\''`)}'`;
@@ -4315,9 +4476,20 @@ function defaultResolveSession(ctx) {
   }
   return ctx.getSandbox();
 }
+function throwIfAborted2(signal) {
+  if (signal?.aborted !== true)
+    return;
+  if (signal.reason instanceof Error)
+    throw signal.reason;
+  throw new DOMException("The tool call was cancelled", "AbortError");
+}
 function sandboxIoProvider(options) {
   const resolve3 = options.resolveSession ?? defaultResolveSession;
-  return (ctx) => createSandboxIo({ root: options.root, session: () => resolve3(ctx) });
+  return (ctx) => createSandboxIo({
+    root: options.root,
+    session: () => resolve3(ctx),
+    ...ctx === undefined ? {} : { abortSignal: ctx.abortSignal }
+  });
 }
 function createSandboxIo(opts) {
   const { root } = opts;
@@ -4327,8 +4499,11 @@ function createSandboxIo(opts) {
     return resolved;
   };
   async function run(command) {
+    throwIfAborted2(opts.abortSignal);
     const sb = await session();
-    return await sb.run({ command, workingDirectory: root });
+    const result = await sb.run({ command, workingDirectory: root });
+    throwIfAborted2(opts.abortSignal);
+    return result;
   }
   return {
     async stat(abs) {
@@ -4349,14 +4524,18 @@ function createSandboxIo(opts) {
       };
     },
     async readFile(abs) {
+      throwIfAborted2(opts.abortSignal);
       const sb = await session();
       const bytes = await sb.readBinaryFile({ path: abs });
+      throwIfAborted2(opts.abortSignal);
       return bytes === null ? null : Buffer.from(bytes);
     },
     async writeFile(abs, content) {
+      throwIfAborted2(opts.abortSignal);
       const sb = await session();
       const bytes = typeof content === "string" ? new TextEncoder().encode(content) : content;
       await sb.writeBinaryFile({ path: abs, content: bytes });
+      throwIfAborted2(opts.abortSignal);
     },
     async listFiles(scope) {
       const rel = scope === undefined ? undefined : relativizeWithin(root, scope);
@@ -4380,6 +4559,7 @@ function createSandboxIo(opts) {
 `).map((line) => line.startsWith("./") ? line.slice(2) : line).filter((line) => line.length > 0);
       const sb = await session();
       const rootIgnore = await sb.readBinaryFile({ path: `${root}/.gitignore` });
+      throwIfAborted2(opts.abortSignal);
       if (rootIgnore === null)
         return files;
       const matcher = ignore2().add(Buffer.from(rootIgnore).toString("utf8"));
@@ -4400,6 +4580,7 @@ function createSandboxIo(opts) {
         const globRe = options.glob === undefined ? null : globToRegExp(options.glob);
         const sb = await session();
         const rootIgnore = await sb.readBinaryFile({ path: `${root}/.gitignore` });
+        throwIfAborted2(opts.abortSignal);
         const matcher = rootIgnore === null ? null : ignore2().add(Buffer.from(rootIgnore).toString("utf8"));
         const kept = parsed.matches.filter((m) => (globRe === null || globRe.test(m.file)) && (matcher === null || !matcher.ignores(m.file)));
         return {
@@ -4520,7 +4701,7 @@ function parseSearchOutput(stdout, maxMatches, flooded = false) {
   return { matches, stopped, skippedLargeFiles: null };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-81kny2/repo/src/run.ts
+// ../../../../../tmp/agent-sdk-mirror-Fnxb0w/repo/src/run.ts
 import { spawn } from "node:child_process";
 import { join as join6 } from "node:path";
 var MAX_PREVIEW = 20000;
@@ -4621,7 +4802,7 @@ function createCommandRunner(opts) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-81kny2/repo/src/sandbox-run.ts
+// ../../../../../tmp/agent-sdk-mirror-Fnxb0w/repo/src/sandbox-run.ts
 var MAX_SPILL_RETAIN_CHARS = 5 * 1024 * 1024;
 var STREAM_DRAIN_GRACE_MS = 1000;
 function defaultResolveSession2(ctx) {
@@ -4836,7 +5017,7 @@ function createSandboxRunner(opts) {
     runCommand: (command, runOpts) => startCommand(command, runOpts).result
   };
 }
-// ../../../../../tmp/agent-sdk-mirror-81kny2/repo/src/build-externals.ts
+// ../../../../../tmp/agent-sdk-mirror-Fnxb0w/repo/src/build-externals.ts
 var STDLIB_EXTERNAL_DEPENDENCIES = [
   "ai",
   "clawpdf",
@@ -4850,11 +5031,11 @@ var STDLIB_EXTERNAL_DEPENDENCIES = [
   "xlsx",
   "zod"
 ];
-// ../../../../../tmp/agent-sdk-mirror-81kny2/repo/src/task.ts
+// ../../../../../tmp/agent-sdk-mirror-Fnxb0w/repo/src/task.ts
 import { defineAgent } from "eve";
 import { defineDynamic as defineDynamic3, defineInstructions as defineInstructions2 } from "eve/instructions";
 
-// ../../../../../tmp/agent-sdk-mirror-81kny2/repo/src/visible-reasoning.ts
+// ../../../../../tmp/agent-sdk-mirror-Fnxb0w/repo/src/visible-reasoning.ts
 var ANTHROPIC_ADAPTIVE_THINKING_MODELS = [
   /^anthropic\/claude-fable-/,
   /^anthropic\/claude-mythos-/,
@@ -4880,7 +5061,7 @@ function visibleReasoningModelOptions(modelId) {
   return;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-81kny2/repo/src/task.ts
+// ../../../../../tmp/agent-sdk-mirror-Fnxb0w/repo/src/task.ts
 var TASK_DISABLED_BUILTINS = ["ask_question"];
 function expectedTaskToolNames(options) {
   const parent = new Set(options.parentToolNames);
@@ -4909,7 +5090,7 @@ You are a delegated worker: a copy of the parent agent, handed one self-containe
 - **Decide, don't ask.** You cannot ask the user anything: make the reasonable call yourself and note it in your report. If you're genuinely blocked, report the blocker as your result — never guess silently.
 - **Stay in your write scope.** Touch only the files your task calls for; the caller may be running sibling workers in parallel with their own scopes, and overlapping edits clobber.
 - **Honor the requested thoroughness.** "quick" means the first solid result and stop; "very thorough" means check every plausible angle before concluding; "medium" sits between. Unspecified means medium.
-- **Delegate onward sparingly.** You have your own \`agent\` clone for genuinely independent subtasks, but never chain delegations more than one level deeper.
+- **Do not delegate onward.** Eve's default delegation depth stops task children from spawning grandchildren. Finish the assigned task yourself and report any blocker to the caller.
 - **Background tasks work, but \`notify\` doesn't.** You can \`run_async\` and \`await_task\`, but \`notify\` watchers queue matches that never deliver — you don't idle waiting for user input, so use \`await_task\` or \`check_tasks\` to poll instead.
 - **Report outcomes, not process.** Skip the narration of your work; include what changed, what you verified, and only what changes what the caller does next.
 
@@ -4983,7 +5164,7 @@ async function fetchGatewayModelCatalog(options) {
   return parsed;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-81kny2/repo/src/index.ts
+// ../../../../../tmp/agent-sdk-mirror-Fnxb0w/repo/src/index.ts
 function createSandboxFileTools(options) {
   const noun = options.workspaceNoun ?? "workspace";
   const workspace2 = createWorkspace(options.workspaceRoot);

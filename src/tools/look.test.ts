@@ -70,6 +70,7 @@ interface CapturedCall {
   messages: unknown[];
   headers: Record<string, string> | undefined;
   timeoutMs: number;
+  abortSignal: AbortSignal | undefined;
 }
 
 function fakeGenerate(answer: string): { calls: CapturedCall[]; fn: LookGenerateFn } {
@@ -80,6 +81,7 @@ function fakeGenerate(answer: string): { calls: CapturedCall[]; fn: LookGenerate
       messages: options.messages,
       headers: options.headers,
       timeoutMs: options.timeoutMs,
+      abortSignal: options.abortSignal,
     });
     return { text: answer };
   };
@@ -120,6 +122,7 @@ describe("createLookTool", () => {
     // The stream-guard substitute: every generate call carries a total
     // timeout so a dead gateway connection errors instead of hanging.
     expect(call.timeoutMs).toBe(DEFAULT_LOOK_TIMEOUT_MS);
+    expect(call.abortSignal).toBe(ctx.abortSignal);
     expect(call.messages).toHaveLength(1);
     const message = call.messages[0];
     expect(message).toEqual({

@@ -302,11 +302,12 @@ Gateway add-on and leaves every other mismatch on the Gateway-reported basis.
 - **HITL replay.** eve persists `input.requested` but has no durable
   `input.responded` event, so replaying the server stream reopens answered
   prompts as pending. The React/Vue/Svelte stores project a
-  `client.input.responded` event locally, and vercel/eve#588 fixed approval
-  results in model history, but neither closes the durable client-replay gap
-  for `ask_question`. Our clients append synthetic responded-events from
-  client-side storage; persisting the response in the stream would fix every
-  client at once.
+  `client.input.responded` event locally. Eve 0.22 persists approval-resume
+  result messages in model history, so an approved local tool result survives
+  later provider requests; that does not persist the client projection, cover
+  `ask_question`, or close the reload window between response and tool result.
+  Our clients append synthetic responded-events from client-side storage;
+  persisting the response in the stream would fix every client at once.
 - **Continuation-token scoping.** A hook's `ctx.channel.continuationToken` is
   the runtime-namespaced form (`eve:eve:<uuid>`), but `ClientSession.send`
   needs the client-facing token (`eve:<uuid>`) — and posting the namespaced
@@ -323,21 +324,20 @@ Gateway add-on and leaves every other mismatch on the Gateway-reported basis.
   would make it a one-line opt-in; the change-list design is
   [`proposals/eve-strict-tool-passthrough.md`](./proposals/eve-strict-tool-passthrough.md).
   Same seam: `experimental_repairToolCall` is unwired.
-- **Invalid tool calls never reach the event stream.** When a call fails
-  schema validation the AI SDK marks it `invalid` and feeds the error back
-  to the model, but `emitStreamContent` and `emitStepActions` both skip
-  invalid calls — no event is emitted, so clients can't render the retry
-  and harnesses can't measure schema-misuse rates (the regression newer
-  Anthropic models show on off-prior schemas). An `action.invalid` event
+- **Invalid tool calls never reach the event stream.** Eve 0.22 fixed the
+  model-facing path: schema-invalid input now becomes a failed tool result the
+  model can correct in the same turn. The installed 0.22.6 emission paths still
+  skip AI SDK calls marked `invalid`, so clients can't render the retry and
+  harnesses can't measure schema-misuse rates (the regression newer Anthropic
+  models show on off-prior schemas). An `action.invalid` event
   with the tool name and error class closes the gap. We built and tested
   exactly that patch against `vercel/eve` (all suites green): the PR-grade
   writeup is
   [`proposals/eve-invalid-tool-call-events.md`](./proposals/eve-invalid-tool-call-events.md)
   and the DCO-signed patch sits beside it
   (`eve-invalid-tool-call-events.patch`). Filed by 0thernet as open
-  [vercel/eve#542](https://github.com/vercel/eve/issues/542); implemented in
-  open [vercel/eve#665](https://github.com/vercel/eve/pull/665), currently
-  conflicting with main.
+  [vercel/eve#542](https://github.com/vercel/eve/issues/542); no upstream PR
+  is linked as of 2026-07-13.
 - **No public turn-cancellation API.** eve's durable runtime now propagates
   cancellation through the turn workflow and exposes `ctx.abortSignal` to
   tools, but the HTTP client has no cancel route/method. Aborting the client

@@ -50,8 +50,9 @@ The shim list is one entry, and it carries the delegation contract:
 says decide-and-report — make the reasonable call and note it, or report the
 blocker as the result. One built-in the kit *wants* to shim but can't: the
 `agent` clone tool. eve injects it at the harness layer, so a `disableTool()`
-shim for it fails runtime agent-graph resolution; the instruction bounds
-onward delegation ("never chain more than one level deeper") instead.
+shim for it fails runtime agent-graph resolution. Eve 0.22 defaults
+`maxSubagentDepth` to 1, so a task child cannot use the clone; the instruction
+says to finish its assigned task without delegating onward.
 
 ## Why blurbs are fetched once and checked in
 

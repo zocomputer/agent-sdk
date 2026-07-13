@@ -6,9 +6,9 @@
 
 # Function: searchLocal()
 
-> **searchLocal**(`root`, `options`): `Promise`\<[`IoSearchResult`](../interfaces/IoSearchResult.md)\>
+> **searchLocal**(`root`, `options`, `abortSignal?`): `Promise`\<[`IoSearchResult`](../interfaces/IoSearchResult.md)\>
 
-Defined in: [packages/agent-sdk/src/workspace-io.ts:192](https://github.com/zocomputer/zov2-code/blob/71f3c28acf6f43bb252eb9f351caca137d9922f9/packages/agent-sdk/src/workspace-io.ts#L192)
+Defined in: [packages/agent-sdk/src/workspace-io.ts:225](https://github.com/zocomputer/zov2-code/blob/760605b8ac267b8d97156760bb2d6e6d1b69ada8/packages/agent-sdk/src/workspace-io.ts#L225)
 
 The in-process scan the local grep has always run; exported for tests.
 
@@ -21,6 +21,10 @@ The in-process scan the local grep has always run; exported for tests.
 ### options
 
 [`IoSearchOptions`](../interfaces/IoSearchOptions.md)
+
+### abortSignal?
+
+`AbortSignal`
 
 ## Returns
 

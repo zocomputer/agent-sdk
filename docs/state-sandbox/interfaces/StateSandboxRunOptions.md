@@ -6,7 +6,7 @@
 
 # Interface: StateSandboxRunOptions
 
-Defined in: [packages/agent-sdk/src/state-sandbox.ts:245](https://github.com/zocomputer/zov2-code/blob/71f3c28acf6f43bb252eb9f351caca137d9922f9/packages/agent-sdk/src/state-sandbox.ts#L245)
+Defined in: [packages/agent-sdk/src/state-sandbox.ts:245](https://github.com/zocomputer/zov2-code/blob/760605b8ac267b8d97156760bb2d6e6d1b69ada8/packages/agent-sdk/src/state-sandbox.ts#L245)
 
 Options for running a command in a state sandbox.
 Specifies working directory, environment variables, and an optional abort signal.
@@ -17,7 +17,7 @@ Specifies working directory, environment variables, and an optional abort signal
 
 > `readonly` `optional` **abortSignal?**: `AbortSignal`
 
-Defined in: [packages/agent-sdk/src/state-sandbox.ts:249](https://github.com/zocomputer/zov2-code/blob/71f3c28acf6f43bb252eb9f351caca137d9922f9/packages/agent-sdk/src/state-sandbox.ts#L249)
+Defined in: [packages/agent-sdk/src/state-sandbox.ts:249](https://github.com/zocomputer/zov2-code/blob/760605b8ac267b8d97156760bb2d6e6d1b69ada8/packages/agent-sdk/src/state-sandbox.ts#L249)
 
 ***
 
@@ -25,7 +25,7 @@ Defined in: [packages/agent-sdk/src/state-sandbox.ts:249](https://github.com/zoc
 
 > `readonly` `optional` **env?**: `Readonly`\<`Record`\<`string`, `string`\>\>
 
-Defined in: [packages/agent-sdk/src/state-sandbox.ts:248](https://github.com/zocomputer/zov2-code/blob/71f3c28acf6f43bb252eb9f351caca137d9922f9/packages/agent-sdk/src/state-sandbox.ts#L248)
+Defined in: [packages/agent-sdk/src/state-sandbox.ts:248](https://github.com/zocomputer/zov2-code/blob/760605b8ac267b8d97156760bb2d6e6d1b69ada8/packages/agent-sdk/src/state-sandbox.ts#L248)
 
 Extra env for this command. Ambient process env is never read implicitly.
 
@@ -35,4 +35,4 @@ Extra env for this command. Ambient process env is never read implicitly.
 
 > `readonly` `optional` **workingDirectory?**: `string`
 
-Defined in: [packages/agent-sdk/src/state-sandbox.ts:246](https://github.com/zocomputer/zov2-code/blob/71f3c28acf6f43bb252eb9f351caca137d9922f9/packages/agent-sdk/src/state-sandbox.ts#L246)
+Defined in: [packages/agent-sdk/src/state-sandbox.ts:246](https://github.com/zocomputer/zov2-code/blob/760605b8ac267b8d97156760bb2d6e6d1b69ada8/packages/agent-sdk/src/state-sandbox.ts#L246)

@@ -1,12 +1,12 @@
-// ../../../../../tmp/agent-sdk-mirror-81kny2/repo/platform/cloud-tools/web-search.ts
+// ../../../../../tmp/agent-sdk-mirror-Fnxb0w/repo/platform/cloud-tools/web-search.ts
 import { generateText } from "ai";
 import { defineTool } from "eve/tools";
 import { z } from "zod";
 
-// ../../../../../tmp/agent-sdk-mirror-81kny2/repo/platform/runtime-ai/gateway.ts
+// ../../../../../tmp/agent-sdk-mirror-Fnxb0w/repo/platform/runtime-ai/gateway.ts
 import { createGateway } from "ai";
 
-// ../../../../../tmp/agent-sdk-mirror-81kny2/repo/platform/runtime-ai/session-fetch.ts
+// ../../../../../tmp/agent-sdk-mirror-Fnxb0w/repo/platform/runtime-ai/session-fetch.ts
 var EVE_SESSION_HEADER = "x-zo-eve-session";
 var EVE_TURN_HEADER = "x-zo-eve-turn";
 var EVE_SUBAGENT_SESSION_HEADER = "x-zo-eve-subagent-session";
@@ -73,7 +73,7 @@ function eveSessionFetch(getSessionId = ambientEveSessionId, baseFetch = globalT
   }, baseFetch);
 }
 
-// ../../../../../tmp/agent-sdk-mirror-81kny2/repo/platform/runtime-ai/stream-guards.ts
+// ../../../../../tmp/agent-sdk-mirror-Fnxb0w/repo/platform/runtime-ai/stream-guards.ts
 var DEFAULT_STREAM_GUARDS = {
   firstByteMs: 60000,
   idleMs: 180000
@@ -137,7 +137,7 @@ function withStreamGuards(baseFetch, options = DEFAULT_STREAM_GUARDS) {
   return Object.assign(guarded, { preconnect: globalThis.fetch.preconnect });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-81kny2/repo/platform/runtime-ai/gateway-config.ts
+// ../../../../../tmp/agent-sdk-mirror-Fnxb0w/repo/platform/runtime-ai/gateway-config.ts
 var ZO_TOOL_HEADER = "x-zo-tool";
 var DEFAULT_ZO_AI_BASE_URL = "http://localhost:4000/runtime/ai/v4/ai";
 var DEFAULT_ZO_AI_KEY = "dev-proxy";
@@ -165,11 +165,11 @@ function zoGatewaySettings(options = {}) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-81kny2/repo/platform/runtime-ai/gateway.ts
+// ../../../../../tmp/agent-sdk-mirror-Fnxb0w/repo/platform/runtime-ai/gateway.ts
 function zoGateway(options = {}) {
   return createGateway(zoGatewaySettings(options));
 }
-// ../../../../../tmp/agent-sdk-mirror-81kny2/repo/platform/cloud-tools/media-lineage.ts
+// ../../../../../tmp/agent-sdk-mirror-Fnxb0w/repo/platform/cloud-tools/media-lineage.ts
 var ZO_MEDIA_LINEAGE_HEADER = "x-zo-media-lineage";
 var MAX_MEDIA_LINEAGE_HEADER_LENGTH = 1024;
 function serializeMediaInvocationLineage(lineage) {
@@ -183,10 +183,10 @@ function mediaInvocationHeaders(lineage) {
   return { [ZO_MEDIA_LINEAGE_HEADER]: serializeMediaInvocationLineage(lineage) };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-81kny2/repo/platform/cloud-tools/search-adapters.ts
+// ../../../../../tmp/agent-sdk-mirror-Fnxb0w/repo/platform/cloud-tools/search-adapters.ts
 import { gateway } from "@ai-sdk/gateway";
 
-// ../../../../../tmp/agent-sdk-mirror-81kny2/repo/platform/cloud-tools/search-contracts.ts
+// ../../../../../tmp/agent-sdk-mirror-Fnxb0w/repo/platform/cloud-tools/search-contracts.ts
 function validateSearchSettings(settings, definitions, providerId) {
   const declared = new Map(definitions.map((definition) => [definition.name, definition]));
   for (const [name, value] of Object.entries(settings)) {
@@ -247,7 +247,7 @@ function boundSearchResults(items) {
   return bounded;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-81kny2/repo/platform/cloud-tools/search-adapters.ts
+// ../../../../../tmp/agent-sdk-mirror-Fnxb0w/repo/platform/cloud-tools/search-adapters.ts
 var gatewayTools = gateway.tools;
 var DEFAULT_SEARCH_PROVIDER = "exa";
 var SHARED_SETTINGS = [
@@ -432,7 +432,7 @@ function isRecord(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-// ../../../../../tmp/agent-sdk-mirror-81kny2/repo/platform/cloud-tools/tool-meta.ts
+// ../../../../../tmp/agent-sdk-mirror-Fnxb0w/repo/platform/cloud-tools/tool-meta.ts
 var CLOUD_TOOL_META = {
   image: {
     description: "Generate images from text and optional durable references. Use media_models to inspect model-specific settings and prices."
@@ -469,7 +469,7 @@ var CLOUD_TOOL_META = {
   }
 };
 
-// ../../../../../tmp/agent-sdk-mirror-81kny2/repo/platform/cloud-tools/web-search.ts
+// ../../../../../tmp/agent-sdk-mirror-Fnxb0w/repo/platform/cloud-tools/web-search.ts
 var DEFAULT_SEARCH_DRIVER_MODEL = "google/gemini-3-flash";
 var WebSearchInputSchema = z.object({
   query: z.string().trim().min(1).max(2000).describe("What to search the web for."),

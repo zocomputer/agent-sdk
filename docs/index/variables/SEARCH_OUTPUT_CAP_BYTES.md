@@ -8,7 +8,7 @@
 
 > `const` **SEARCH\_OUTPUT\_CAP\_BYTES**: `number`
 
-Defined in: [packages/agent-sdk/src/sandbox-io.ts:243](https://github.com/zocomputer/zov2-code/blob/71f3c28acf6f43bb252eb9f351caca137d9922f9/packages/agent-sdk/src/sandbox-io.ts#L243)
+Defined in: [packages/agent-sdk/src/sandbox-io.ts:266](https://github.com/zocomputer/zov2-code/blob/760605b8ac267b8d97156760bb2d6e6d1b69ada8/packages/agent-sdk/src/sandbox-io.ts#L266)
 
 Total-output cap on a remote search. `--max-count` only bounds matches per
 FILE, so many matching files could otherwise stream an unbounded stdout

@@ -135,8 +135,12 @@ export function buildTasksToolset(opts: {
           .optional()
           .describe(`Max time to block in ms (default ${DEFAULT_WAIT_MS}).`),
       }),
-      async execute({ task_id, wait_ms }) {
-        const task = await registry.awaitTask(task_id, wait_ms ?? DEFAULT_WAIT_MS);
+      async execute({ task_id, wait_ms }, ctx) {
+        const task = await registry.awaitTask(
+          task_id,
+          wait_ms ?? DEFAULT_WAIT_MS,
+          ctx?.abortSignal,
+        );
         if (!task) {
           throw new Error(
             `No such task: ${task_id}. Call check_tasks to list the current tasks and their ids, then resend with a real one.`,

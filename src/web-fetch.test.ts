@@ -165,6 +165,27 @@ function stubFetch(responses: Response[]) {
 }
 
 describe("fetchWebResource", () => {
+  test("cancels the request with the owning tool call", async () => {
+    const controller = new AbortController();
+    const fetchImpl: FetchLike = (_input, init) =>
+      new Promise((_resolve, reject) => {
+        init?.signal?.addEventListener(
+          "abort",
+          () => reject(init.signal?.reason),
+          { once: true },
+        );
+      });
+    const pending = fetchWebResource({
+      url: "https://example.com/slow",
+      format: "markdown",
+      timeoutMs: 5_000,
+      fetchImpl,
+      abortSignal: controller.signal,
+    });
+    controller.abort(new Error("turn cancelled"));
+    await expect(pending).rejects.toThrow("turn cancelled");
+  });
+
   test("returns body, content type, and the request url as finalUrl fallback", async () => {
     const { impl, calls } = stubFetch([
       new Response("hello", { status: 200, headers: { "content-type": "text/plain" } }),

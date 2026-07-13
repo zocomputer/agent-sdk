@@ -124,6 +124,8 @@ export type LookGenerateFn = (options: {
   headers?: Record<string, string>;
   /** Total timeout for the call, ms (the AI SDK's `timeout` setting). */
   timeoutMs: number;
+  /** Cancels the oracle call when the owning turn is stopped. */
+  abortSignal?: AbortSignal;
 }) => Promise<{ text: string }>;
 
 // The `ai` runtime import is LAZY and behind an opaque specifier, on purpose.
@@ -146,6 +148,7 @@ const defaultGenerate: LookGenerateFn = async (options) => {
     model: options.model,
     messages: options.messages,
     timeout: options.timeoutMs,
+    ...(options.abortSignal !== undefined ? { abortSignal: options.abortSignal } : {}),
     ...(options.headers !== undefined ? { headers: options.headers } : {}),
   });
 };
@@ -251,6 +254,7 @@ export function createLookTool(opts: LookToolOptions) {
         messages: [message],
         timeoutMs: oracle.timeoutMs ?? DEFAULT_LOOK_TIMEOUT_MS,
         ...(oracle.headers !== undefined ? { headers: oracle.headers } : {}),
+        ...(ctx?.abortSignal !== undefined ? { abortSignal: ctx.abortSignal } : {}),
       });
       return {
         path: rel,

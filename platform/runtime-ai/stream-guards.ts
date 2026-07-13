@@ -12,8 +12,10 @@
 // - **idle**: abort when the response body goes quiet between chunks (the
 //   mid-stream hang — a dropped connection the TCP stack never surfaces).
 //
-// A guard firing rejects/errors like any network failure, so the AI SDK's
-// normal retry-with-backoff takes over instead of waiting on a dead socket.
+// Eve 0.22 retries classified provider errors delivered by a live stream and
+// keeps durable event writes off the provider's token path. Neither change can
+// detect a socket that emits nothing. A guard turns that silence into a network
+// error that Eve/Workflow can recover from instead of waiting forever.
 
 /** The full global fetch type, as the AI SDK's gateway provider expects. */
 export type FetchLike = typeof globalThis.fetch;
