@@ -8,7 +8,7 @@
 
 > **workerEpochMs**(`now?`): `number`
 
-Defined in: [packages/agent-sdk/src/orphaned-turns.ts:83](https://github.com/zocomputer/zov2-code/blob/61dc346b545160acfebf6cc02d8729e8a18c78ba/packages/agent-sdk/src/orphaned-turns.ts#L83)
+Defined in: [packages/agent-sdk/src/orphaned-turns.ts:83](https://github.com/zocomputer/zov2-code/blob/440b57200b266cf1c7309b270db9220db760c77a/packages/agent-sdk/src/orphaned-turns.ts#L83)
 
 When the current worker realm started (ms since the Unix epoch), captured
 on first call and stable for the realm's lifetime.

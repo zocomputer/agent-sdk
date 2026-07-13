@@ -442,6 +442,17 @@ function buildStateFilesHandleHeaders(options: RequestStateFilesHandleOptions): 
   return headers;
 }
 
+// A scoped guard instead of a bare `Array.isArray(init)`: consumers that load
+// ts-reset (e.g. apps/api compiling this source through the workspace exports
+// map) get its `isArray(value): value is unknown[]` override, under which the
+// readonly entry array doesn't survive narrowing and the loop element degrades
+// to `unknown` (TS2488). Within the union, only the entry array is an array.
+function isHeaderEntryArray(
+  value: StateFilesHeadersInit,
+): value is ReadonlyArray<readonly [string, string]> {
+  return Array.isArray(value);
+}
+
 function createHeaders(init: StateFilesHeadersInit | undefined): Headers {
   const headers = new Headers();
   if (init === undefined) {
@@ -451,7 +462,7 @@ function createHeaders(init: StateFilesHeadersInit | undefined): Headers {
     init.forEach((value, key) => headers.set(key, value));
     return headers;
   }
-  if (Array.isArray(init)) {
+  if (isHeaderEntryArray(init)) {
     for (const [key, value] of init) {
       headers.set(key, value);
     }

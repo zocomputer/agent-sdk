@@ -1,4 +1,4 @@
-// ../../../../../tmp/agent-sdk-mirror-QNeF7s/repo/src/state-consent-envelope.ts
+// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/state-consent-envelope.ts
 import { z } from "zod";
 var consentPartySchema = z.object({
   handle: z.string().min(1),
@@ -16,7 +16,7 @@ function parseConsentEnvelope(value) {
   return result.success ? result.data : null;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-QNeF7s/repo/src/state-files.ts
+// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/state-files.ts
 var STATE_FILES_HANDLE_PATH = "/state/handles";
 var ZO_AGENT_TOKEN_HEADER = "x-zo-agent-token";
 var ZO_EVE_SESSION_HEADER = "x-zo-eve-session";
@@ -213,6 +213,9 @@ function buildStateFilesHandleHeaders(options) {
   }
   return headers;
 }
+function isHeaderEntryArray(value) {
+  return Array.isArray(value);
+}
 function createHeaders(init) {
   const headers = new Headers;
   if (init === undefined) {
@@ -222,7 +225,7 @@ function createHeaders(init) {
     init.forEach((value, key) => headers.set(key, value));
     return headers;
   }
-  if (Array.isArray(init)) {
+  if (isHeaderEntryArray(init)) {
     for (const [key, value] of init) {
       headers.set(key, value);
     }

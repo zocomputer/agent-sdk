@@ -1,8 +1,8 @@
-// ../../../../../tmp/agent-sdk-mirror-QNeF7s/repo/src/index.ts
+// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/index.ts
 import { tmpdir } from "node:os";
 import { join as join8 } from "node:path";
 
-// ../../../../../tmp/agent-sdk-mirror-QNeF7s/repo/src/async-tasks.ts
+// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/async-tasks.ts
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname } from "node:path";
 function isRecord(value) {
@@ -191,7 +191,7 @@ function buildTaskRegistry(opts) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-QNeF7s/repo/src/backgroundable.ts
+// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/backgroundable.ts
 import { z } from "zod";
 function defineOp(cfg) {
   return {
@@ -237,7 +237,7 @@ function createBashOp(runner) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-QNeF7s/repo/src/bounded-output.ts
+// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/bounded-output.ts
 import { appendFileSync, mkdirSync as mkdirSync2, writeFileSync as writeFileSync2 } from "node:fs";
 import { dirname as dirname2 } from "node:path";
 var HEAD_CHARS = 25000;
@@ -348,7 +348,7 @@ function createBoundedCapture(opts = {}) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-QNeF7s/repo/src/dir-conventions.ts
+// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/dir-conventions.ts
 import { readFileSync as readFileSync2 } from "node:fs";
 import { join } from "node:path";
 var DEFAULT_MAX_BYTES_PER_FILE = 16 * 1024;
@@ -460,12 +460,12 @@ function createDirConventionsTracker(options) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-QNeF7s/repo/src/instructions.ts
+// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/instructions.ts
 import { readFileSync as readFileSync3 } from "node:fs";
 import { resolve } from "node:path";
 import { defineDynamic, defineInstructions } from "eve/instructions";
 
-// ../../../../../tmp/agent-sdk-mirror-QNeF7s/repo/src/model-capabilities.ts
+// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/model-capabilities.ts
 var TEXT_ONLY_CAPABILITIES = {
   image: false,
   pdf: false,
@@ -524,7 +524,7 @@ function describeCapabilities(caps) {
   return `can view ${joinList(can, "and")}, but not ${joinList(cannot, "or")}`;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-QNeF7s/repo/src/prompt-sections.ts
+// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/prompt-sections.ts
 function renderPromptSection(section) {
   const body = section.body.trim();
   if (body === "")
@@ -567,7 +567,7 @@ function composePromptSections(baseline, options) {
   return composed;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-QNeF7s/repo/src/instructions.ts
+// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/instructions.ts
 function repoConventionsSection(opts) {
   let agents = "";
   try {
@@ -892,7 +892,7 @@ function createInstructionStackInstruction(opts) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-QNeF7s/repo/src/run.ts
+// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/run.ts
 import { spawn } from "node:child_process";
 import { join as join2 } from "node:path";
 var MAX_PREVIEW = 20000;
@@ -993,7 +993,7 @@ function createCommandRunner(opts) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-QNeF7s/repo/src/steer-inbox.ts
+// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/steer-inbox.ts
 import {
   appendFileSync as appendFileSync2,
   linkSync,
@@ -1004,7 +1004,7 @@ import {
 } from "node:fs";
 import { join as join3 } from "node:path";
 
-// ../../../../../tmp/agent-sdk-mirror-QNeF7s/repo/src/steer.ts
+// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/steer.ts
 var STEER_FIELD = "user_steer";
 var STEER_WRAPPED_OUTPUT_FIELD = "steer_wrapped_output";
 var STEER_DIRNAME = "steer";
@@ -1074,7 +1074,7 @@ function parseSteerLine(line) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-QNeF7s/repo/src/steer-inbox.ts
+// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/steer-inbox.ts
 var drainSequence = 0;
 function createSteerInbox(options) {
   const now = options.now ?? Date.now;
@@ -1123,7 +1123,7 @@ function createSteerInbox(options) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-QNeF7s/repo/src/steer-tool.ts
+// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/steer-tool.ts
 import { defineTool } from "eve/tools";
 function withSteerDelivery(tool, inbox) {
   const originalToModelOutput = tool.toModelOutput?.bind(tool);
@@ -1155,11 +1155,11 @@ function createSteerWrapper(inbox) {
   return (tool) => withSteerDelivery(tool, inbox);
 }
 
-// ../../../../../tmp/agent-sdk-mirror-QNeF7s/repo/src/tools/bash.ts
+// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/tools/bash.ts
 import { defineTool as defineTool2 } from "eve/tools";
 import { z as z2 } from "zod";
 
-// ../../../../../tmp/agent-sdk-mirror-QNeF7s/repo/src/park-delivery.ts
+// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/park-delivery.ts
 function isRecord3(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
@@ -1275,7 +1275,7 @@ function setParkNotificationHandler(handler) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-QNeF7s/repo/src/watch-output.ts
+// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/watch-output.ts
 var DEFAULT_WATCH_DEBOUNCE_MS = 5000;
 var DEFAULT_MAX_WATCH_NOTIFICATIONS = 5;
 function createOutputWatcher(options) {
@@ -1339,7 +1339,7 @@ function formatCompletionNotification(opts) {
   return `Background task ${opts.taskId} (${opts.label}) ${outcome}. Call await_task to collect its result.`;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-QNeF7s/repo/src/tools/bash.ts
+// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/tools/bash.ts
 var DEFAULT_INTERACTIVE_HINT = "This is a piped shell with NO tty: avoid interactive or full-screen CLIs (a REPL, vim, an interactive installer/prompt) — those programs hang or degrade without a real terminal.";
 var notifyParam = z2.object({
   pattern: z2.string().min(1).describe("Regex matched against complete output lines (stdout and stderr)."),
@@ -1451,11 +1451,11 @@ function createBashTool(opts) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-QNeF7s/repo/src/tools/edit.ts
+// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/tools/edit.ts
 import { defineTool as defineTool3 } from "eve/tools";
 import { z as z3 } from "zod";
 
-// ../../../../../tmp/agent-sdk-mirror-QNeF7s/repo/src/edit-match.ts
+// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/edit-match.ts
 class EditNotFoundError extends Error {
   constructor() {
     super("old_string not found. It must match the file contents exactly, including whitespace and indentation.");
@@ -1902,7 +1902,7 @@ function joinBom(text, bom) {
   return bom ? BOM + stripped : stripped;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-QNeF7s/repo/src/path-locks.ts
+// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/path-locks.ts
 var LOCKS_KEY = Symbol.for("zocomputer.agent-sdk.path-locks");
 function lockChains() {
   const holder = globalThis;
@@ -1928,18 +1928,18 @@ async function withPathLock(path, fn) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-QNeF7s/repo/src/workspace-io.ts
+// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/workspace-io.ts
 import { mkdirSync as mkdirSync4, readFileSync as readFileSync7, statSync as statSync2, writeFileSync as writeFileSync3 } from "node:fs";
 import { dirname as dirname3, join as join5 } from "node:path";
 
-// ../../../../../tmp/agent-sdk-mirror-QNeF7s/repo/src/glob-match.ts
+// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/glob-match.ts
 function globToRegExp(glob) {
   const escaped = glob.replace(/[.+^${}()|[\]\\]/g, "\\$&");
   const body = escaped.replace(/\*\*\/?/g, "\x00").replace(/\*/g, "[^/]*").replace(/\?/g, "[^/]").replace(/\u0000/g, "(?:.*/)?");
   return new RegExp(`^${body}$`);
 }
 
-// ../../../../../tmp/agent-sdk-mirror-QNeF7s/repo/src/list-files.ts
+// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/list-files.ts
 import { spawnSync } from "node:child_process";
 var MAX_BUFFER = 64 * 1024 * 1024;
 function gitPaths(root, args) {
@@ -1967,7 +1967,7 @@ function listGitFiles(root, scope) {
   return files.filter((path) => !gone.has(path));
 }
 
-// ../../../../../tmp/agent-sdk-mirror-QNeF7s/repo/src/read-text.ts
+// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/read-text.ts
 import { readFileSync as readFileSync5, statSync } from "node:fs";
 var MAX_SEARCH_FILE_BYTES = 1500000;
 var BINARY_SNIFF_BYTES = 8192;
@@ -1994,7 +1994,7 @@ function readTextForSearch(abs, maxBytes = MAX_SEARCH_FILE_BYTES) {
   return { kind: "text", content: buf.toString("utf8") };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-QNeF7s/repo/src/walk.ts
+// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/walk.ts
 import { readFileSync as readFileSync6, readdirSync } from "node:fs";
 import { join as join4, relative, sep } from "node:path";
 import ignore from "ignore";
@@ -2076,7 +2076,7 @@ function* walkFiles(root, base = root) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-QNeF7s/repo/src/workspace.ts
+// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/workspace.ts
 import { isAbsolute, relative as relative2, resolve as resolve2, sep as sep2 } from "node:path";
 function resolveWithin(root, path) {
   const abs = isAbsolute(path) ? resolve2(path) : resolve2(root, path);
@@ -2098,7 +2098,7 @@ function createWorkspace(root) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-QNeF7s/repo/src/workspace-io.ts
+// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/workspace-io.ts
 function createLocalIo(root) {
   return {
     async stat(abs) {
@@ -2186,7 +2186,7 @@ async function searchLocal(root, options) {
   return { matches, stopped, skippedLargeFiles };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-QNeF7s/repo/src/tools/edit.ts
+// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/tools/edit.ts
 function createEditTool(opts) {
   const { workspace, noun } = opts;
   const io = opts.io ?? localIoProvider(workspace.root);
@@ -2240,7 +2240,7 @@ ${hint.preview}`;
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-QNeF7s/repo/src/tools/glob.ts
+// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/tools/glob.ts
 import { defineTool as defineTool4 } from "eve/tools";
 import { z as z4 } from "zod";
 function createGlobTool(opts) {
@@ -2279,7 +2279,7 @@ function createGlobTool(opts) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-QNeF7s/repo/src/tools/grep.ts
+// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/tools/grep.ts
 import { defineTool as defineTool5 } from "eve/tools";
 import { z as z5 } from "zod";
 import { join as join6 } from "node:path";
@@ -2372,12 +2372,12 @@ function createGrepTool(opts) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-QNeF7s/repo/src/tools/look.ts
+// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/tools/look.ts
 import { defineTool as defineTool6 } from "eve/tools";
 import { basename } from "node:path";
 import { z as z6 } from "zod";
 
-// ../../../../../tmp/agent-sdk-mirror-QNeF7s/repo/src/file-kind.ts
+// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/file-kind.ts
 import { extname } from "node:path";
 function imageMediaType(format) {
   return `image/${format}`;
@@ -2575,7 +2575,7 @@ function detectFileKind(buf, path) {
   return { kind: "text", encoding: "utf8" };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-QNeF7s/repo/src/tools/look.ts
+// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/tools/look.ts
 var DEFAULT_LOOK_MAX_INPUT_BYTES = 20 * 1024 * 1024;
 var DEFAULT_LOOK_TIMEOUT_MS = 180000;
 var LOOK_MAX_ANSWER_CHARS = 30000;
@@ -2764,11 +2764,11 @@ function lookOversizeHint(oracle, maxInputBytes = DEFAULT_LOOK_MAX_INPUT_BYTES) 
   return `For text, use bash (head, sed -n, rg) to extract the part you need. Only if it is ${article} ${kindList} file up to ${capMb} MB, pass the path and a question to the look tool to have ${oracle.modelName} examine it (look sends files read cannot; over ${capMb} MB, shrink it first, e.g. ffmpeg extraction).`;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-QNeF7s/repo/src/tools/read.ts
+// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/tools/read.ts
 import { defineTool as defineTool7 } from "eve/tools";
 import { z as z7 } from "zod";
 
-// ../../../../../tmp/agent-sdk-mirror-QNeF7s/repo/src/file-view.ts
+// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/file-view.ts
 var READ_FILE_DEFAULT_LINE_LIMIT = 2000;
 var READ_FILE_MAX_LINE_CHARS = 2000;
 var READ_FILE_MAX_CONTENT_CHARS = 50000;
@@ -2812,10 +2812,10 @@ function buildFileView(text, opts = {}) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-QNeF7s/repo/src/read-file-content.ts
+// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/read-file-content.ts
 import { imageSize } from "image-size";
 
-// ../../../../../tmp/agent-sdk-mirror-QNeF7s/repo/src/extract/cache.ts
+// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/extract/cache.ts
 function createStatCache(limit) {
   const entries = new Map;
   return {
@@ -2840,7 +2840,7 @@ function createStatCache(limit) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-QNeF7s/repo/src/extract/docx.ts
+// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/extract/docx.ts
 import mammoth from "mammoth";
 async function extractDocx(buffer) {
   try {
@@ -2852,10 +2852,10 @@ async function extractDocx(buffer) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-QNeF7s/repo/src/extract/epub.ts
+// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/extract/epub.ts
 import { Parser } from "htmlparser2";
 
-// ../../../../../tmp/agent-sdk-mirror-QNeF7s/repo/src/extract/zip.ts
+// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/extract/zip.ts
 import { inflateRawSync } from "node:zlib";
 var EOCD_SIGNATURE = 101010256;
 var CENTRAL_SIGNATURE = 33639248;
@@ -2943,7 +2943,7 @@ function openZip(buffer) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-QNeF7s/repo/src/extract/epub.ts
+// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/extract/epub.ts
 var EPUB_SECTION_CAP = 200;
 var BLOCK_TAGS = new Set([
   "p",
@@ -3079,7 +3079,7 @@ function extractEpub(bytes, options = {}) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-QNeF7s/repo/src/extract/ipynb.ts
+// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/extract/ipynb.ts
 function joinSource(value) {
   if (typeof value === "string")
     return value;
@@ -3190,7 +3190,7 @@ function extractNotebook(bytes) {
 `), cells: cells.length };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-QNeF7s/repo/src/extract/odf.ts
+// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/extract/odf.ts
 import { Parser as Parser2 } from "htmlparser2";
 var ODP_EMPTY_SLIDE_NOTE = "[no text on this slide — likely image-only; images cannot be extracted]";
 function parseContentXml(xml) {
@@ -3277,7 +3277,7 @@ function extractOdp(bytes) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-QNeF7s/repo/src/extract/pdf.ts
+// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/extract/pdf.ts
 import { openPdf } from "clawpdf";
 var PDF_EMPTY_PAGE_NOTE = "[no text on this page — likely scanned or image-only; rendered pages cannot be attached]";
 var PDF_PAGE_CAP = 200;
@@ -3312,7 +3312,7 @@ async function extractPdf(bytes, options = {}) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-QNeF7s/repo/src/extract/pptx.ts
+// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/extract/pptx.ts
 import { Parser as Parser3 } from "htmlparser2";
 var PPTX_EMPTY_SLIDE_NOTE = "[no text on this slide — likely image-only; images cannot be extracted]";
 var PPTX_SLIDE_CAP = 200;
@@ -3468,7 +3468,7 @@ function extractPptx(bytes, options = {}) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-QNeF7s/repo/src/extract/rtf.ts
+// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/extract/rtf.ts
 var SKIP_DESTINATIONS = new Set([
   "fonttbl",
   "colortbl",
@@ -3666,7 +3666,7 @@ function extractRtf(bytes) {
   return { ok: true, text: text.replace(/\n+$/, "") };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-QNeF7s/repo/src/extract/sheet.ts
+// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/extract/sheet.ts
 import { read, utils } from "xlsx";
 var SHEET_ROW_CAP = 5000;
 function extractSheets(buffer, rowCap = SHEET_ROW_CAP) {
@@ -3707,7 +3707,7 @@ function extractSheets(buffer, rowCap = SHEET_ROW_CAP) {
 `), sheets };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-QNeF7s/repo/src/read-file-content.ts
+// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/read-file-content.ts
 var EXTRACTION_CACHE_LIMIT = 20;
 var extractionCache = createStatCache(EXTRACTION_CACHE_LIMIT);
 function decodeText(buffer, encoding) {
@@ -3826,7 +3826,7 @@ async function loadFileContent(buffer, path, id) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-QNeF7s/repo/src/tools/read.ts
+// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/tools/read.ts
 function buildMediaHint(verb) {
   return `${verb} media (images, video, audio) returns metadata only`;
 }
@@ -3978,7 +3978,7 @@ function createReadTool(opts) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-QNeF7s/repo/src/tools/tasks.ts
+// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/tools/tasks.ts
 import { defineDynamic as defineDynamic2, defineTool as defineTool8 } from "eve/tools";
 import { z as z8 } from "zod";
 var DEFAULT_WAIT_MS = 120000;
@@ -4152,11 +4152,11 @@ function createTasksTools(opts) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-QNeF7s/repo/src/tools/todo.ts
+// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/tools/todo.ts
 import { defineTool as defineTool9 } from "eve/tools";
 import { todo as eveTodo } from "eve/tools/defaults";
 
-// ../../../../../tmp/agent-sdk-mirror-QNeF7s/repo/src/todo-discipline.ts
+// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/todo-discipline.ts
 function isRecord5(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
@@ -4264,7 +4264,7 @@ var TODO_DISCIPLINE_RIDER = [
 ].join(`
 `);
 
-// ../../../../../tmp/agent-sdk-mirror-QNeF7s/repo/src/tools/todo.ts
+// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/tools/todo.ts
 function isRecord6(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
@@ -4291,17 +4291,17 @@ ${TODO_DISCIPLINE_RIDER}`,
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-QNeF7s/repo/src/tools/webfetch.ts
+// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/tools/webfetch.ts
 import { defineTool as defineTool10 } from "eve/tools";
 import { z as z9 } from "zod";
 import { join as join7 } from "node:path";
 
-// ../../../../../tmp/agent-sdk-mirror-QNeF7s/repo/src/web-fetch.ts
+// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/web-fetch.ts
 import { Parser as Parser4 } from "htmlparser2";
 import { parseHTML as parseHTML2 } from "linkedom";
 import TurndownService from "turndown";
 
-// ../../../../../tmp/agent-sdk-mirror-QNeF7s/repo/src/web-page.ts
+// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/web-page.ts
 import Defuddle from "defuddle";
 import { parseHTML } from "linkedom";
 var asField = (value) => {
@@ -4412,7 +4412,7 @@ function looksLikeRawHtmlOutput(rendered) {
   return tagChars / rendered.length > 0.1;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-QNeF7s/repo/src/web-fetch.ts
+// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/web-fetch.ts
 var WEB_FETCH_MAX_RESPONSE_BYTES = 5 * 1024 * 1024;
 var WEB_FETCH_DEFAULT_TIMEOUT_SECONDS = 30;
 var WEB_FETCH_PDF_DEFAULT_TIMEOUT_SECONDS = 60;
@@ -4602,7 +4602,7 @@ function urlLooksLikePdf(url) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-QNeF7s/repo/src/tools/webfetch.ts
+// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/tools/webfetch.ts
 var SPILL_EXTENSION = {
   markdown: "md",
   text: "txt",
@@ -4833,7 +4833,7 @@ function createWebFetchTool(opts) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-QNeF7s/repo/src/tools/write.ts
+// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/tools/write.ts
 import { defineTool as defineTool11 } from "eve/tools";
 import { z as z10 } from "zod";
 function createWriteTool(opts) {
@@ -4869,7 +4869,7 @@ function createWriteTool(opts) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-QNeF7s/repo/src/sandbox-io.ts
+// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/sandbox-io.ts
 import ignore2 from "ignore";
 function shellSingleQuote(value) {
   return `'${value.replaceAll("'", `'\\''`)}'`;
@@ -5085,7 +5085,7 @@ function parseSearchOutput(stdout, maxMatches, flooded = false) {
   return { matches, stopped, skippedLargeFiles: null };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-QNeF7s/repo/src/sandbox-run.ts
+// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/sandbox-run.ts
 var MAX_SPILL_RETAIN_CHARS = 5 * 1024 * 1024;
 var STREAM_DRAIN_GRACE_MS = 1000;
 function defaultResolveSession2(ctx) {
@@ -5300,7 +5300,7 @@ function createSandboxRunner(opts) {
     runCommand: (command, runOpts) => startCommand(command, runOpts).result
   };
 }
-// ../../../../../tmp/agent-sdk-mirror-QNeF7s/repo/src/hooks.ts
+// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/hooks.ts
 import { Client } from "eve/client";
 import { defineHook } from "eve/hooks";
 var RETRY_DELAYS_MS = [500, 2000, 5000];
@@ -5392,7 +5392,7 @@ function createParkDeliveryHook(options = {}) {
     }
   });
 }
-// ../../../../../tmp/agent-sdk-mirror-QNeF7s/repo/src/build-externals.ts
+// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/build-externals.ts
 var STDLIB_EXTERNAL_DEPENDENCIES = [
   "ai",
   "clawpdf",
@@ -5406,11 +5406,11 @@ var STDLIB_EXTERNAL_DEPENDENCIES = [
   "xlsx",
   "zod"
 ];
-// ../../../../../tmp/agent-sdk-mirror-QNeF7s/repo/src/task.ts
+// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/task.ts
 import { defineAgent } from "eve";
 import { defineDynamic as defineDynamic3, defineInstructions as defineInstructions2 } from "eve/instructions";
 
-// ../../../../../tmp/agent-sdk-mirror-QNeF7s/repo/src/visible-reasoning.ts
+// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/visible-reasoning.ts
 var ANTHROPIC_ADAPTIVE_THINKING_MODELS = [
   /^anthropic\/claude-fable-/,
   /^anthropic\/claude-mythos-/,
@@ -5436,7 +5436,7 @@ function visibleReasoningModelOptions(modelId) {
   return;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-QNeF7s/repo/src/task.ts
+// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/task.ts
 var TASK_DISABLED_BUILTINS = ["ask_question"];
 function expectedTaskToolNames(options) {
   const parent = new Set(options.parentToolNames);
@@ -5537,7 +5537,7 @@ async function fetchGatewayModelCatalog(options) {
   }
   return parsed;
 }
-// ../../../../../tmp/agent-sdk-mirror-QNeF7s/repo/src/validated-compaction.ts
+// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/validated-compaction.ts
 var COMPACTION_SENTINEL = "You are a conversation summarizer.";
 var RECOVERED_CONTEXT_HEADER = "## Recovered context (compaction audit)";
 var DEFAULT_MAX_RECOVERED_CHARS = 2000;
@@ -5721,7 +5721,7 @@ ${section.text}`;
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-QNeF7s/repo/src/mock-model.ts
+// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/mock-model.ts
 var STORY_SENTENCES = [
   "The lighthouse keeper counted the waves as they broke against the rocks.",
   "Every seventh wave carried a whisper from the old town beneath the sea.",
@@ -6253,7 +6253,7 @@ That changes the plan.`
     }
   };
 }
-// ../../../../../tmp/agent-sdk-mirror-QNeF7s/repo/src/orphaned-turns.ts
+// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/orphaned-turns.ts
 function isOrphanedTurn(input) {
   if (!input.reconciled || !input.inFlightAfter)
     return false;
@@ -6268,7 +6268,7 @@ function workerEpochMs(now = Date.now) {
   return holder[WORKER_EPOCH_KEY];
 }
 
-// ../../../../../tmp/agent-sdk-mirror-QNeF7s/repo/src/index.ts
+// ../../../../../tmp/agent-sdk-mirror-uSk2G7/repo/src/index.ts
 function createStdlib(options) {
   const noun = options.workspaceNoun ?? "workspace";
   const workspace2 = createWorkspace(options.workspaceRoot);

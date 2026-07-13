@@ -8,6 +8,6 @@
 
 > `const` **DEFAULT\_MAX\_RECOVERED\_CHARS**: `2000` = `2000`
 
-Defined in: [packages/agent-sdk/src/validated-compaction.ts:52](https://github.com/zocomputer/zov2-code/blob/61dc346b545160acfebf6cc02d8729e8a18c78ba/packages/agent-sdk/src/validated-compaction.ts#L52)
+Defined in: [packages/agent-sdk/src/validated-compaction.ts:52](https://github.com/zocomputer/zov2-code/blob/440b57200b266cf1c7309b270db9220db760c77a/packages/agent-sdk/src/validated-compaction.ts#L52)
 
 Default cap on the appended recovery section, in characters.
