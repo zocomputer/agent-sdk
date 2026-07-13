@@ -8,7 +8,7 @@
 
 > **looksLikeHtml**(`content`): `boolean`
 
-Defined in: [packages/agent-sdk/src/web-fetch.ts:145](https://github.com/zocomputer/zov2-code/blob/760605b8ac267b8d97156760bb2d6e6d1b69ada8/packages/agent-sdk/src/web-fetch.ts#L145)
+Defined in: [packages/agent-sdk/src/web-fetch.ts:145](https://github.com/zocomputer/zov2-code/blob/561b0153afcd985ff89c43386656aa6cb1d2502e/packages/agent-sdk/src/web-fetch.ts#L145)
 
 Sniff content to detect HTML even when the Content-Type header is wrong or
 missing. Checks for common HTML markers at the start of the content.

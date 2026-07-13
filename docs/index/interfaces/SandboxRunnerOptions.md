@@ -6,7 +6,7 @@
 
 # Interface: SandboxRunnerOptions
 
-Defined in: [packages/agent-sdk/src/sandbox-run.ts:79](https://github.com/zocomputer/zov2-code/blob/760605b8ac267b8d97156760bb2d6e6d1b69ada8/packages/agent-sdk/src/sandbox-run.ts#L79)
+Defined in: [packages/agent-sdk/src/sandbox-run.ts:79](https://github.com/zocomputer/zov2-code/blob/561b0153afcd985ff89c43386656aa6cb1d2502e/packages/agent-sdk/src/sandbox-run.ts#L79)
 
 Options for creating a sandbox-backed command runner provider.
 
@@ -16,7 +16,7 @@ Options for creating a sandbox-backed command runner provider.
 
 > `optional` **resolveSession?**: (`ctx`) => `PromiseLike`\<[`SandboxSessionLike`](SandboxSessionLike.md)\>
 
-Defined in: [packages/agent-sdk/src/sandbox-run.ts:91](https://github.com/zocomputer/zov2-code/blob/760605b8ac267b8d97156760bb2d6e6d1b69ada8/packages/agent-sdk/src/sandbox-run.ts#L91)
+Defined in: [packages/agent-sdk/src/sandbox-run.ts:91](https://github.com/zocomputer/zov2-code/blob/561b0153afcd985ff89c43386656aa6cb1d2502e/packages/agent-sdk/src/sandbox-run.ts#L91)
 
 Resolves the sandbox session for one tool call. Defaults to
 `ctx.getSandbox()` — the eve session sandbox. Injectable for tests and
@@ -39,7 +39,7 @@ workspace bootstrap).
 
 > **root**: `string`
 
-Defined in: [packages/agent-sdk/src/sandbox-run.ts:84](https://github.com/zocomputer/zov2-code/blob/760605b8ac267b8d97156760bb2d6e6d1b69ada8/packages/agent-sdk/src/sandbox-run.ts#L84)
+Defined in: [packages/agent-sdk/src/sandbox-run.ts:84](https://github.com/zocomputer/zov2-code/blob/561b0153afcd985ff89c43386656aa6cb1d2502e/packages/agent-sdk/src/sandbox-run.ts#L84)
 
 Absolute path of the workspace root **inside the sandbox**. Commands run
 from here by default, and `cwd` resolves within it.
@@ -50,7 +50,7 @@ from here by default, and `cwd` resolves within it.
 
 > `optional` **spillDir?**: `string`
 
-Defined in: [packages/agent-sdk/src/sandbox-run.ts:99](https://github.com/zocomputer/zov2-code/blob/760605b8ac267b8d97156760bb2d6e6d1b69ada8/packages/agent-sdk/src/sandbox-run.ts#L99)
+Defined in: [packages/agent-sdk/src/sandbox-run.ts:99](https://github.com/zocomputer/zov2-code/blob/561b0153afcd985ff89c43386656aa6cb1d2502e/packages/agent-sdk/src/sandbox-run.ts#L99)
 
 Absolute directory **inside the sandbox** for spilled command output.
 Omit to disable spilling (truncation markers then carry no file

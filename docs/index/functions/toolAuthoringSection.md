@@ -8,7 +8,7 @@
 
 > **toolAuthoringSection**(`opts?`): [`PromptSection`](../interfaces/PromptSection.md)
 
-Defined in: [packages/agent-sdk/src/instructions.ts:582](https://github.com/zocomputer/zov2-code/blob/760605b8ac267b8d97156760bb2d6e6d1b69ada8/packages/agent-sdk/src/instructions.ts#L582)
+Defined in: [packages/agent-sdk/src/instructions.ts:582](https://github.com/zocomputer/zov2-code/blob/561b0153afcd985ff89c43386656aa6cb1d2502e/packages/agent-sdk/src/instructions.ts#L582)
 
 The tool-authoring contract section, for agents that WRITE eve tools (Zo's
 Builder; any agent that edits another agent's `tools/` directory): the

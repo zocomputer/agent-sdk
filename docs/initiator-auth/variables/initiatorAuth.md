@@ -8,6 +8,6 @@
 
 > `const` **initiatorAuth**: `AuthFn`
 
-Defined in: [packages/agent-sdk/src/initiator-auth.ts:48](https://github.com/zocomputer/zov2-code/blob/760605b8ac267b8d97156760bb2d6e6d1b69ada8/packages/agent-sdk/src/initiator-auth.ts#L48)
+Defined in: [packages/agent-sdk/src/initiator-auth.ts:48](https://github.com/zocomputer/zov2-code/blob/561b0153afcd985ff89c43386656aa6cb1d2502e/packages/agent-sdk/src/initiator-auth.ts#L48)
 
 AuthFn that reads `x-zo-initiator` into the session's initiator identity.

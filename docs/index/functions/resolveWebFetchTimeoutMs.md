@@ -8,7 +8,7 @@
 
 > **resolveWebFetchTimeoutMs**(`timeoutSeconds`, `url?`): `number`
 
-Defined in: [packages/agent-sdk/src/web-fetch.ts:353](https://github.com/zocomputer/zov2-code/blob/760605b8ac267b8d97156760bb2d6e6d1b69ada8/packages/agent-sdk/src/web-fetch.ts#L353)
+Defined in: [packages/agent-sdk/src/web-fetch.ts:353](https://github.com/zocomputer/zov2-code/blob/561b0153afcd985ff89c43386656aa6cb1d2502e/packages/agent-sdk/src/web-fetch.ts#L353)
 
 Clamp the model-supplied timeout (seconds) into the allowed range, in ms.
 An explicit timeout always wins; without one, `.pdf` URLs default higher

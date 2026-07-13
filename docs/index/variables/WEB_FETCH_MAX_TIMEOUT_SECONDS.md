@@ -8,6 +8,6 @@
 
 > `const` **WEB\_FETCH\_MAX\_TIMEOUT\_SECONDS**: `120` = `120`
 
-Defined in: [packages/agent-sdk/src/web-fetch.ts:29](https://github.com/zocomputer/zov2-code/blob/760605b8ac267b8d97156760bb2d6e6d1b69ada8/packages/agent-sdk/src/web-fetch.ts#L29)
+Defined in: [packages/agent-sdk/src/web-fetch.ts:29](https://github.com/zocomputer/zov2-code/blob/561b0153afcd985ff89c43386656aa6cb1d2502e/packages/agent-sdk/src/web-fetch.ts#L29)
 
 Maximum allowed timeout across all resource types, in seconds.

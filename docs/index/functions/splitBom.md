@@ -8,7 +8,7 @@
 
 > **splitBom**(`text`): `object`
 
-Defined in: [packages/agent-sdk/src/edit-match.ts:651](https://github.com/zocomputer/zov2-code/blob/760605b8ac267b8d97156760bb2d6e6d1b69ada8/packages/agent-sdk/src/edit-match.ts#L651)
+Defined in: [packages/agent-sdk/src/edit-match.ts:651](https://github.com/zocomputer/zov2-code/blob/561b0153afcd985ff89c43386656aa6cb1d2502e/packages/agent-sdk/src/edit-match.ts#L651)
 
 Strip a leading UTF-8 BOM so the cascade never has to match around it.
 

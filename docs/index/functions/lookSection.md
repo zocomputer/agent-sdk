@@ -8,7 +8,7 @@
 
 > **lookSection**(`opts`): [`PromptSection`](../interfaces/PromptSection.md)
 
-Defined in: [packages/agent-sdk/src/instructions.ts:404](https://github.com/zocomputer/zov2-code/blob/760605b8ac267b8d97156760bb2d6e6d1b69ada8/packages/agent-sdk/src/instructions.ts#L404)
+Defined in: [packages/agent-sdk/src/instructions.ts:404](https://github.com/zocomputer/zov2-code/blob/561b0153afcd985ff89c43386656aa6cb1d2502e/packages/agent-sdk/src/instructions.ts#L404)
 
 The media-delegation section for agents with a `look` oracle wired: view
 natively what the session model supports, route documents through `read`,

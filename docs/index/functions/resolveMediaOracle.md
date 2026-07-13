@@ -8,7 +8,7 @@
 
 > **resolveMediaOracle**(`option`): [`LookOracleConfig`](../interfaces/LookOracleConfig.md)
 
-Defined in: [packages/agent-sdk/src/tools/look.ts:112](https://github.com/zocomputer/zov2-code/blob/760605b8ac267b8d97156760bb2d6e6d1b69ada8/packages/agent-sdk/src/tools/look.ts#L112)
+Defined in: [packages/agent-sdk/src/tools/look.ts:112](https://github.com/zocomputer/zov2-code/blob/561b0153afcd985ff89c43386656aa6cb1d2502e/packages/agent-sdk/src/tools/look.ts#L112)
 
 Resolve the `mediaOracle` option to a concrete config (`true` → the default oracle).
 
