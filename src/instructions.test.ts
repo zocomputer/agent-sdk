@@ -83,7 +83,11 @@ test("communication contract covers the load-bearing rules", () => {
   const markdown = buildCommunicationMarkdown();
   expect(markdown).toContain("## Communicating");
   expect(markdown).toContain("Lead with the outcome");
-  expect(markdown).toContain("Readable beats brief");
+  expect(markdown).toContain("Write tight");
+  expect(markdown).toContain("Match the response's length to the ask");
+  expect(markdown).toContain("Take a position");
+  expect(markdown).toContain("Use structure deliberately");
+  expect(markdown).toContain("End when the content ends");
   expect(markdown).toContain("Report, don't fix");
   expect(markdown).toContain("without asking");
   expect(markdown).toContain("faithfully");
@@ -239,7 +243,13 @@ describe("compact tier", () => {
     {
       name: "communication",
       render: (tier) => buildCommunicationMarkdown({ tier }),
-      tokens: ["Lead with the outcome", "Readable beats brief", "faithfully"],
+      tokens: [
+        "Lead with the outcome",
+        "Write tight",
+        "Take a position",
+        "Use structure deliberately",
+        "faithfully",
+      ],
     },
     {
       name: "tool authoring",

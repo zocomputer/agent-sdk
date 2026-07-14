@@ -6,7 +6,7 @@
 
 # Interface: IoSearchResult
 
-Defined in: [packages/agent-sdk/src/workspace-io.ts:60](https://github.com/zocomputer/zov2-code/blob/a7b5fa23defbcd3c7af6fb49008f7b280d46c09e/packages/agent-sdk/src/workspace-io.ts#L60)
+Defined in: [packages/agent-sdk/src/workspace-io.ts:60](https://github.com/zocomputer/zov2-code/blob/9538a0a8ac4443391049ca02b620175fec05d4cd/packages/agent-sdk/src/workspace-io.ts#L60)
 
 Content-search result: matched lines, a stop reason (false if complete), and
 the count of files skipped for size.
@@ -17,7 +17,7 @@ the count of files skipped for size.
 
 > `readonly` **matches**: readonly [`IoSearchMatch`](IoSearchMatch.md)[]
 
-Defined in: [packages/agent-sdk/src/workspace-io.ts:61](https://github.com/zocomputer/zov2-code/blob/a7b5fa23defbcd3c7af6fb49008f7b280d46c09e/packages/agent-sdk/src/workspace-io.ts#L61)
+Defined in: [packages/agent-sdk/src/workspace-io.ts:61](https://github.com/zocomputer/zov2-code/blob/9538a0a8ac4443391049ca02b620175fec05d4cd/packages/agent-sdk/src/workspace-io.ts#L61)
 
 ***
 
@@ -25,7 +25,7 @@ Defined in: [packages/agent-sdk/src/workspace-io.ts:61](https://github.com/zocom
 
 > `readonly` **skippedLargeFiles**: `number` \| `null`
 
-Defined in: [packages/agent-sdk/src/workspace-io.ts:74](https://github.com/zocomputer/zov2-code/blob/a7b5fa23defbcd3c7af6fb49008f7b280d46c09e/packages/agent-sdk/src/workspace-io.ts#L74)
+Defined in: [packages/agent-sdk/src/workspace-io.ts:74](https://github.com/zocomputer/zov2-code/blob/9538a0a8ac4443391049ca02b620175fec05d4cd/packages/agent-sdk/src/workspace-io.ts#L74)
 
 Files skipped for being over the search size cap, or `null` when the
 backend can't know (a remote searcher enforces the cap but doesn't
@@ -37,7 +37,7 @@ report a count). Consumers must omit the figure rather than show 0.
 
 > `readonly` **stopped**: `false` \| `"max-matches"` \| `"output-cap"`
 
-Defined in: [packages/agent-sdk/src/workspace-io.ts:68](https://github.com/zocomputer/zov2-code/blob/a7b5fa23defbcd3c7af6fb49008f7b280d46c09e/packages/agent-sdk/src/workspace-io.ts#L68)
+Defined in: [packages/agent-sdk/src/workspace-io.ts:68](https://github.com/zocomputer/zov2-code/blob/9538a0a8ac4443391049ca02b620175fec05d4cd/packages/agent-sdk/src/workspace-io.ts#L68)
 
 Why the scan ended early, or `false` when it covered everything:
 `"max-matches"` = the `maxMatches` bound; `"output-cap"` = a remote

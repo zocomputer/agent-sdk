@@ -5,8 +5,9 @@
 The SDK ships the **operational prose** alongside the tools: `workflow`
 (explore before edit, read before edit, reproduce a bug before fixing it,
 verify, finish before ending the turn), `planning` (the framework `todo`
-tool's contract), `communication` (lead with the outcome, readable over
-brief, report-don't-fix, act without permission-seeking),
+tool's contract), `communication` (lead with the outcome, match length to the
+ask, take a position, structure deliberately, report precisely, act without
+permission-seeking),
 `hitl` (the `ask_question` playbook), `parallelTools` (the background-work
 scheduling policy), `subagents` (the delegation playbook + roster routing),
 and `repoConventions` ([10](./10-repo-conventions-injection.md)). Each is

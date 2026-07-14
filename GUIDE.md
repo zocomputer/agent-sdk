@@ -70,7 +70,7 @@ deliberate one. The stack renders every section in its canonical order:
 | `subagents`       | Delegating with the agent tool            | delegation with eve's built-in `agent` tool (+ roster routing) |
 | `media`           | Media you can't view (look)               | (only with `mediaOracle` set) view natively what the model supports, `look` at the rest |
 | `hitl`            | Asking the user (ask_question)            | the `ask_question` playbook — options, `style: "primary"`, `allowFreeform`, ask independent questions together |
-| `communication`   | Communicating                             | lead with the outcome, readable over brief, report-don't-fix, act without permission-seeking |
+| `communication`   | Communicating                             | lead with the outcome, write tight, take a position, structure deliberately, report precisely |
 
 **Tiers.** Every section is authored in two depths — `full` (the default:
 numbered rules, worked examples) and `compact` (the same contracts, tighter

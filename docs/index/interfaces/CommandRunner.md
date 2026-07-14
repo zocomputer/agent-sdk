@@ -6,7 +6,7 @@
 
 # Interface: CommandRunner
 
-Defined in: [packages/agent-sdk/src/run.ts:67](https://github.com/zocomputer/zov2-code/blob/a7b5fa23defbcd3c7af6fb49008f7b280d46c09e/packages/agent-sdk/src/run.ts#L67)
+Defined in: [packages/agent-sdk/src/run.ts:67](https://github.com/zocomputer/zov2-code/blob/9538a0a8ac4443391049ca02b620175fec05d4cd/packages/agent-sdk/src/run.ts#L67)
 
 A workspace-rooted shell runner that spawns commands in detached process
 groups and captures/spills their output.
@@ -17,7 +17,7 @@ groups and captures/spills their output.
 
 > **runCommand**(`command`, `opts?`): `Promise`\<[`RunResult`](RunResult.md)\>
 
-Defined in: [packages/agent-sdk/src/run.ts:71](https://github.com/zocomputer/zov2-code/blob/a7b5fa23defbcd3c7af6fb49008f7b280d46c09e/packages/agent-sdk/src/run.ts#L71)
+Defined in: [packages/agent-sdk/src/run.ts:71](https://github.com/zocomputer/zov2-code/blob/9538a0a8ac4443391049ca02b620175fec05d4cd/packages/agent-sdk/src/run.ts#L71)
 
 startCommand, awaited to completion.
 
@@ -41,7 +41,7 @@ startCommand, awaited to completion.
 
 > **startCommand**(`command`, `opts?`): [`RunningCommand`](RunningCommand.md)
 
-Defined in: [packages/agent-sdk/src/run.ts:69](https://github.com/zocomputer/zov2-code/blob/a7b5fa23defbcd3c7af6fb49008f7b280d46c09e/packages/agent-sdk/src/run.ts#L69)
+Defined in: [packages/agent-sdk/src/run.ts:69](https://github.com/zocomputer/zov2-code/blob/9538a0a8ac4443391049ca02b620175fec05d4cd/packages/agent-sdk/src/run.ts#L69)
 
 Spawn a shell command and return live handles (progress preview, kill, result).
 

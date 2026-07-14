@@ -8,6 +8,6 @@
 
 > `const` **STATE\_FILES\_HANDLE\_PATH**: `"/state/handles"` = `"/state/handles"`
 
-Defined in: [packages/agent-sdk/src/state-files.ts:18](https://github.com/zocomputer/zov2-code/blob/a7b5fa23defbcd3c7af6fb49008f7b280d46c09e/packages/agent-sdk/src/state-files.ts#L18)
+Defined in: [packages/agent-sdk/src/state-files.ts:18](https://github.com/zocomputer/zov2-code/blob/9538a0a8ac4443391049ca02b620175fec05d4cd/packages/agent-sdk/src/state-files.ts#L18)
 
 Runtime broker route path for requesting a state-files handle.
