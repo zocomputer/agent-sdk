@@ -8,7 +8,7 @@
 
 > **buildWebFetchHeaders**(`format`, `userAgent?`): `Record`\<`string`, `string`\>
 
-Defined in: [packages/agent-sdk/src/web-fetch.ts:58](https://github.com/zocomputer/zov2-code/blob/9538a0a8ac4443391049ca02b620175fec05d4cd/packages/agent-sdk/src/web-fetch.ts#L58)
+Defined in: [packages/agent-sdk/src/web-fetch.ts:58](https://github.com/zocomputer/zov2-code/blob/a2d5ceb2d9204a0eb63ca9530ef74679c3b52143/packages/agent-sdk/src/web-fetch.ts#L58)
 
 Build request headers for a webfetch: Accept q-values per format,
 Accept-Language, and User-Agent.

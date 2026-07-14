@@ -8,7 +8,7 @@
 
 > **createSandboxFileTools**(`options`): `object`
 
-Defined in: [packages/agent-sdk/src/index.ts:138](https://github.com/zocomputer/zov2-code/blob/9538a0a8ac4443391049ca02b620175fec05d4cd/packages/agent-sdk/src/index.ts#L138)
+Defined in: [packages/agent-sdk/src/index.ts:138](https://github.com/zocomputer/zov2-code/blob/a2d5ceb2d9204a0eb63ca9530ef74679c3b52143/packages/agent-sdk/src/index.ts#L138)
 
 Create the sandbox-backed toolset for hosted agents:
 read/edit/write/glob/grep route through the sandbox session's file API and

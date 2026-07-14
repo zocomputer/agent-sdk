@@ -6,7 +6,7 @@
 
 # Interface: FileView
 
-Defined in: [packages/agent-sdk/src/file-view.ts:25](https://github.com/zocomputer/zov2-code/blob/9538a0a8ac4443391049ca02b620175fec05d4cd/packages/agent-sdk/src/file-view.ts#L25)
+Defined in: [packages/agent-sdk/src/file-view.ts:25](https://github.com/zocomputer/zov2-code/blob/a2d5ceb2d9204a0eb63ca9530ef74679c3b52143/packages/agent-sdk/src/file-view.ts#L25)
 
 A bounded, line-numbered window of a file's content: the result of applying
 read's offset/limit and budget constraints. `truncated` flags when a line
@@ -18,7 +18,7 @@ was clipped or the budget stopped short; `note` guides continuation.
 
 > `readonly` **content**: `string`
 
-Defined in: [packages/agent-sdk/src/file-view.ts:32](https://github.com/zocomputer/zov2-code/blob/9538a0a8ac4443391049ca02b620175fec05d4cd/packages/agent-sdk/src/file-view.ts#L32)
+Defined in: [packages/agent-sdk/src/file-view.ts:32](https://github.com/zocomputer/zov2-code/blob/a2d5ceb2d9204a0eb63ca9530ef74679c3b52143/packages/agent-sdk/src/file-view.ts#L32)
 
 Line-numbered content, `NNNNNN|text` per line.
 
@@ -28,7 +28,7 @@ Line-numbered content, `NNNNNN|text` per line.
 
 > `readonly` **endLine**: `number`
 
-Defined in: [packages/agent-sdk/src/file-view.ts:30](https://github.com/zocomputer/zov2-code/blob/9538a0a8ac4443391049ca02b620175fec05d4cd/packages/agent-sdk/src/file-view.ts#L30)
+Defined in: [packages/agent-sdk/src/file-view.ts:30](https://github.com/zocomputer/zov2-code/blob/a2d5ceb2d9204a0eb63ca9530ef74679c3b52143/packages/agent-sdk/src/file-view.ts#L30)
 
 1-based last line included; `startLine - 1` when the window is empty.
 
@@ -38,7 +38,7 @@ Defined in: [packages/agent-sdk/src/file-view.ts:30](https://github.com/zocomput
 
 > `readonly` **note**: `string` \| `null`
 
-Defined in: [packages/agent-sdk/src/file-view.ts:36](https://github.com/zocomputer/zov2-code/blob/9538a0a8ac4443391049ca02b620175fec05d4cd/packages/agent-sdk/src/file-view.ts#L36)
+Defined in: [packages/agent-sdk/src/file-view.ts:36](https://github.com/zocomputer/zov2-code/blob/a2d5ceb2d9204a0eb63ca9530ef74679c3b52143/packages/agent-sdk/src/file-view.ts#L36)
 
 Continuation guidance when there is more file past `endLine`, else null.
 
@@ -48,7 +48,7 @@ Continuation guidance when there is more file past `endLine`, else null.
 
 > `readonly` **startLine**: `number`
 
-Defined in: [packages/agent-sdk/src/file-view.ts:28](https://github.com/zocomputer/zov2-code/blob/9538a0a8ac4443391049ca02b620175fec05d4cd/packages/agent-sdk/src/file-view.ts#L28)
+Defined in: [packages/agent-sdk/src/file-view.ts:28](https://github.com/zocomputer/zov2-code/blob/a2d5ceb2d9204a0eb63ca9530ef74679c3b52143/packages/agent-sdk/src/file-view.ts#L28)
 
 1-based first line of the window.
 
@@ -58,7 +58,7 @@ Defined in: [packages/agent-sdk/src/file-view.ts:28](https://github.com/zocomput
 
 > `readonly` **totalLines**: `number`
 
-Defined in: [packages/agent-sdk/src/file-view.ts:26](https://github.com/zocomputer/zov2-code/blob/9538a0a8ac4443391049ca02b620175fec05d4cd/packages/agent-sdk/src/file-view.ts#L26)
+Defined in: [packages/agent-sdk/src/file-view.ts:26](https://github.com/zocomputer/zov2-code/blob/a2d5ceb2d9204a0eb63ca9530ef74679c3b52143/packages/agent-sdk/src/file-view.ts#L26)
 
 ***
 
@@ -66,6 +66,6 @@ Defined in: [packages/agent-sdk/src/file-view.ts:26](https://github.com/zocomput
 
 > `readonly` **truncated**: `boolean`
 
-Defined in: [packages/agent-sdk/src/file-view.ts:34](https://github.com/zocomputer/zov2-code/blob/9538a0a8ac4443391049ca02b620175fec05d4cd/packages/agent-sdk/src/file-view.ts#L34)
+Defined in: [packages/agent-sdk/src/file-view.ts:34](https://github.com/zocomputer/zov2-code/blob/a2d5ceb2d9204a0eb63ca9530ef74679c3b52143/packages/agent-sdk/src/file-view.ts#L34)
 
 True when the view was cut short of the requested window (budget) or a line was clipped.

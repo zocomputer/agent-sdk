@@ -8,7 +8,7 @@
 
 > **localIoProvider**(`root`): [`WorkspaceIoProvider`](../type-aliases/WorkspaceIoProvider.md)
 
-Defined in: [packages/agent-sdk/src/workspace-io.ts:197](https://github.com/zocomputer/zov2-code/blob/9538a0a8ac4443391049ca02b620175fec05d4cd/packages/agent-sdk/src/workspace-io.ts#L197)
+Defined in: [packages/agent-sdk/src/workspace-io.ts:197](https://github.com/zocomputer/zov2-code/blob/a2d5ceb2d9204a0eb63ca9530ef74679c3b52143/packages/agent-sdk/src/workspace-io.ts#L197)
 
 A local provider. Eve calls get a signal-bound IO; direct calls share the inert instance.
 

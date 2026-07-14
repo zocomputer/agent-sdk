@@ -8,7 +8,7 @@
 
 > **capturePreview**(`capture`): `string`
 
-Defined in: [packages/agent-sdk/src/run.ts:89](https://github.com/zocomputer/zov2-code/blob/9538a0a8ac4443391049ca02b620175fec05d4cd/packages/agent-sdk/src/run.ts#L89)
+Defined in: [packages/agent-sdk/src/run.ts:89](https://github.com/zocomputer/zov2-code/blob/a2d5ceb2d9204a0eb63ca9530ef74679c3b52143/packages/agent-sdk/src/run.ts#L89)
 
 Preview text for a live capture: the whole text within `MAX_PREVIEW`,
 tail-only (with a leading marker) beyond it. Shared by every runner's
