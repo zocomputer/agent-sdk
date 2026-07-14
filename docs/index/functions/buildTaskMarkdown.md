@@ -8,7 +8,7 @@
 
 > **buildTaskMarkdown**(`opts?`): `string`
 
-Defined in: [packages/agent-sdk/src/task.ts:90](https://github.com/zocomputer/zov2-code/blob/e7fb39c35601ce5ee40494fbfe469df1f7a9ecc4/packages/agent-sdk/src/task.ts#L90)
+Defined in: [packages/agent-sdk/src/task.ts:90](https://github.com/zocomputer/zov2-code/blob/2480a6ef0f68d759f57bf84a8fcb14c879dd765d/packages/agent-sdk/src/task.ts#L90)
 
 Pure markdown for the task child's operating contract.
 
