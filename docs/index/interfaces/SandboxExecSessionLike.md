@@ -6,7 +6,7 @@
 
 # Interface: SandboxExecSessionLike
 
-Defined in: [packages/agent-sdk/src/sandbox-run.ts:55](https://github.com/zocomputer/zov2-code/blob/a2d5ceb2d9204a0eb63ca9530ef74679c3b52143/packages/agent-sdk/src/sandbox-run.ts#L55)
+Defined in: [packages/agent-sdk/src/sandbox-run.ts:55](https://github.com/zocomputer/zov2-code/blob/63d0e014c421616ce0383b99e59109da774eac14/packages/agent-sdk/src/sandbox-run.ts#L55)
 
 A sandbox session that can spawn long-running processes — the file-tool
 session slice plus `spawn`. Eve's `SandboxSession` satisfies it
@@ -24,7 +24,7 @@ spawn.
 
 > `readonly` **readBinaryFile**: (`options`) => `PromiseLike`\<`Uint8Array`\<`ArrayBufferLike`\> \| `null`\>
 
-Defined in: [packages/agent-sdk/src/workspace-io.ts:106](https://github.com/zocomputer/zov2-code/blob/a2d5ceb2d9204a0eb63ca9530ef74679c3b52143/packages/agent-sdk/src/workspace-io.ts#L106)
+Defined in: [packages/agent-sdk/src/workspace-io.ts:106](https://github.com/zocomputer/zov2-code/blob/63d0e014c421616ce0383b99e59109da774eac14/packages/agent-sdk/src/workspace-io.ts#L106)
 
 Read a file's bytes; null when it doesn't exist.
 
@@ -50,7 +50,7 @@ Read a file's bytes; null when it doesn't exist.
 
 > `readonly` **run**: (`options`) => `PromiseLike`\<\{ `exitCode`: `number`; `stderr`: `string`; `stdout`: `string`; \}\>
 
-Defined in: [packages/agent-sdk/src/workspace-io.ts:115](https://github.com/zocomputer/zov2-code/blob/a2d5ceb2d9204a0eb63ca9530ef74679c3b52143/packages/agent-sdk/src/workspace-io.ts#L115)
+Defined in: [packages/agent-sdk/src/workspace-io.ts:115](https://github.com/zocomputer/zov2-code/blob/63d0e014c421616ce0383b99e59109da774eac14/packages/agent-sdk/src/workspace-io.ts#L115)
 
 Run a shell command and wait for its completion.
 
@@ -80,7 +80,7 @@ Run a shell command and wait for its completion.
 
 > `readonly` **spawn**: (`options`) => `PromiseLike`\<[`SandboxProcessLike`](SandboxProcessLike.md)\>
 
-Defined in: [packages/agent-sdk/src/sandbox-run.ts:57](https://github.com/zocomputer/zov2-code/blob/a2d5ceb2d9204a0eb63ca9530ef74679c3b52143/packages/agent-sdk/src/sandbox-run.ts#L57)
+Defined in: [packages/agent-sdk/src/sandbox-run.ts:57](https://github.com/zocomputer/zov2-code/blob/63d0e014c421616ce0383b99e59109da774eac14/packages/agent-sdk/src/sandbox-run.ts#L57)
 
 Spawn a shell command in the sandbox and return live process handles.
 
@@ -106,7 +106,7 @@ Spawn a shell command in the sandbox and return live process handles.
 
 > `readonly` **writeBinaryFile**: (`options`) => `PromiseLike`\<`void`\>
 
-Defined in: [packages/agent-sdk/src/workspace-io.ts:110](https://github.com/zocomputer/zov2-code/blob/a2d5ceb2d9204a0eb63ca9530ef74679c3b52143/packages/agent-sdk/src/workspace-io.ts#L110)
+Defined in: [packages/agent-sdk/src/workspace-io.ts:110](https://github.com/zocomputer/zov2-code/blob/63d0e014c421616ce0383b99e59109da774eac14/packages/agent-sdk/src/workspace-io.ts#L110)
 
 Write a file, creating parent directories and overwriting.
 

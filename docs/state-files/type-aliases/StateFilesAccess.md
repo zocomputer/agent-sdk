@@ -8,6 +8,6 @@
 
 > **StateFilesAccess** = `"r"` \| `"rw"`
 
-Defined in: [packages/agent-sdk/src/state-files.ts:6](https://github.com/zocomputer/zov2-code/blob/a2d5ceb2d9204a0eb63ca9530ef74679c3b52143/packages/agent-sdk/src/state-files.ts#L6)
+Defined in: [packages/agent-sdk/src/state-files.ts:6](https://github.com/zocomputer/zov2-code/blob/63d0e014c421616ce0383b99e59109da774eac14/packages/agent-sdk/src/state-files.ts#L6)
 
 Access mode requested for a state-files binding: read-only or read-write.
