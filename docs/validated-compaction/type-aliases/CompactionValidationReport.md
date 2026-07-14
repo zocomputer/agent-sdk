@@ -8,7 +8,7 @@
 
 > **CompactionValidationReport** = \{ `judgeText`: `string`; `kind`: `"nothing-missing"`; \} \| \{ `appendedChars`: `number`; `facts`: readonly `string`[]; `kind`: `"repaired"`; `truncated`: `boolean`; \} \| \{ `error`: `unknown`; `kind`: `"judge-error"`; \} \| \{ `kind`: `"skipped"`; `reason`: `"no-transcript"` \| `"no-summary-text"`; \}
 
-Defined in: [packages/runtime-ai/src/validated-compaction.ts:87](https://github.com/zocomputer/zov2-code/blob/561b0153afcd985ff89c43386656aa6cb1d2502e/packages/runtime-ai/src/validated-compaction.ts#L87)
+Defined in: [packages/runtime-ai/src/validated-compaction.ts:87](https://github.com/zocomputer/zov2-code/blob/a7b5fa23defbcd3c7af6fb49008f7b280d46c09e/packages/runtime-ai/src/validated-compaction.ts#L87)
 
 What the validation did to one compaction call, delivered to
 [ValidatedCompactionOptions.onValidation](../interfaces/ValidatedCompactionOptions.md#onvalidation).

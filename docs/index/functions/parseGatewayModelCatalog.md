@@ -8,7 +8,7 @@
 
 > **parseGatewayModelCatalog**(`value`): [`GatewayModelInfo`](../interfaces/GatewayModelInfo.md)[] \| `null`
 
-Defined in: [packages/agent-sdk/src/task.ts:283](https://github.com/zocomputer/zov2-code/blob/561b0153afcd985ff89c43386656aa6cb1d2502e/packages/agent-sdk/src/task.ts#L283)
+Defined in: [packages/agent-sdk/src/task.ts:283](https://github.com/zocomputer/zov2-code/blob/a7b5fa23defbcd3c7af6fb49008f7b280d46c09e/packages/agent-sdk/src/task.ts#L283)
 
 Parse the gateway catalog response body
 (`{ data: [{ id, name?, description? }, …] }`) into typed entries; `null`

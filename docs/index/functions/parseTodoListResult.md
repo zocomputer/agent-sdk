@@ -8,7 +8,7 @@
 
 > **parseTodoListResult**(`value`): readonly [`TodoItem`](../interfaces/TodoItem.md)[] \| `null`
 
-Defined in: [packages/agent-sdk/src/todo-discipline.ts:77](https://github.com/zocomputer/zov2-code/blob/561b0153afcd985ff89c43386656aa6cb1d2502e/packages/agent-sdk/src/todo-discipline.ts#L77)
+Defined in: [packages/agent-sdk/src/todo-discipline.ts:77](https://github.com/zocomputer/zov2-code/blob/a7b5fa23defbcd3c7af6fb49008f7b280d46c09e/packages/agent-sdk/src/todo-discipline.ts#L77)
 
 Parse eve's todo tool result (`{ counts, todos }`) down to its item list.
 Returns `null` when the shape doesn't match — the wrapper then skips the
