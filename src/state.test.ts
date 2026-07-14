@@ -41,12 +41,12 @@ describe("defineExternalState", () => {
     ).toThrow(/name/);
   });
 
-  test("rejects an unknown interface at runtime", () => {
+  test("rejects the out-of-scope kv interface at runtime", () => {
     expect(() =>
       defineExternalState({
         name: "notes",
         // @ts-expect-error deliberately invalid
-        interface: "graphql",
+        interface: "kv",
         access: "rw",
         intent: "private",
       }),

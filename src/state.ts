@@ -10,7 +10,7 @@
 // the module and reads the same object.
 
 /** What the agent's code programs against. A small, closed, slowly growing set. */
-export type StateInterface = "files" | "sql" | "kv" | "http" | "exec";
+export type StateInterface = "files" | "sql" | "http" | "exec";
 
 /** Read-only or read-write, as the code needs. */
 export type StateAccess = "r" | "rw";
@@ -53,7 +53,7 @@ export interface ExternalStateDeclaration {
 /** Mirrors the deploy parser's name rule: lowercase, digit/underscore/hyphen tail. */
 export const STATE_NAME_PATTERN = /^[a-z][a-z0-9_-]{0,63}$/;
 
-const INTERFACES: readonly StateInterface[] = ["files", "sql", "kv", "http", "exec"];
+const INTERFACES: readonly StateInterface[] = ["files", "sql", "http", "exec"];
 const ACCESSES: readonly StateAccess[] = ["r", "rw"];
 const INTENTS: readonly StateIntent[] = ["private", "shared"];
 const PARTITIONS: readonly StatePartition[] = ["none", "team", "user", "session"];

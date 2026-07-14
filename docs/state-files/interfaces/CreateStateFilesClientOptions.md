@@ -6,7 +6,7 @@
 
 # Interface: CreateStateFilesClientOptions
 
-Defined in: [packages/agent-sdk/src/state-files.ts:269](https://github.com/zocomputer/zov2-code/blob/2f6c8cc3fd1672c6cd6d12c28dbf229ac82949b0/packages/agent-sdk/src/state-files.ts#L269)
+Defined in: [packages/agent-sdk/src/state-files.ts:269](https://github.com/zocomputer/zov2-code/blob/e7fb39c35601ce5ee40494fbfe469df1f7a9ecc4/packages/agent-sdk/src/state-files.ts#L269)
 
 Options for creating a state-files client with a static handle.
 
@@ -16,7 +16,7 @@ Options for creating a state-files client with a static handle.
 
 > `readonly` **handle**: [`StateFilesHandle`](StateFilesHandle.md)
 
-Defined in: [packages/agent-sdk/src/state-files.ts:270](https://github.com/zocomputer/zov2-code/blob/2f6c8cc3fd1672c6cd6d12c28dbf229ac82949b0/packages/agent-sdk/src/state-files.ts#L270)
+Defined in: [packages/agent-sdk/src/state-files.ts:270](https://github.com/zocomputer/zov2-code/blob/e7fb39c35601ce5ee40494fbfe469df1f7a9ecc4/packages/agent-sdk/src/state-files.ts#L270)
 
 ***
 
@@ -24,4 +24,4 @@ Defined in: [packages/agent-sdk/src/state-files.ts:270](https://github.com/zocom
 
 > `readonly` **s3**: [`StateFilesS3Client`](StateFilesS3Client.md)
 
-Defined in: [packages/agent-sdk/src/state-files.ts:271](https://github.com/zocomputer/zov2-code/blob/2f6c8cc3fd1672c6cd6d12c28dbf229ac82949b0/packages/agent-sdk/src/state-files.ts#L271)
+Defined in: [packages/agent-sdk/src/state-files.ts:271](https://github.com/zocomputer/zov2-code/blob/e7fb39c35601ce5ee40494fbfe469df1f7a9ecc4/packages/agent-sdk/src/state-files.ts#L271)
