@@ -1,4 +1,4 @@
-// ../../../../../tmp/agent-sdk-mirror-FS9Yl0/repo/platform/runtime-auth/index.ts
+// ../../../../../tmp/agent-sdk-mirror-mSSHZe/repo/platform/runtime-auth/index.ts
 import { SignJWT, jwtVerify } from "jose";
 var AGENT_TOKEN_HEADER = "x-zo-agent-token";
 var EVE_SESSION_HEADER = "x-zo-eve-session";

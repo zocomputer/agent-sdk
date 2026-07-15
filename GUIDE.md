@@ -604,29 +604,73 @@ modelOptions: {
 
 ### Provider control matrix
 
-This matrix covers the public AI SDK controls relevant to gateway text models.
-Support is model-specific; an accepted option can still be ignored by a model
-that does not implement it.
+This matrix was audited against the upstream API, Vercel AI Gateway, current AI
+SDK provider docs, and this repo's installed provider schemas on 2026-07-15.
+`providerOptions` pass through AI Gateway, but that does not make one provider's
+shape portable to another. Support remains model-specific: an accepted option
+can still be ignored by a model that does not implement it.
 
 | Provider / family | Native reasoning control | Visibility | Speed / throughput |
 | --- | --- | --- | --- |
-| OpenAI GPT-5 and o-series | `openai.reasoningEffort`; model-specific subset of `none` through `max` | `openai.reasoningSummary: "auto"` or `"detailed"` | `gateway.serviceTier`: `"priority"` or `"flex"` |
-| Anthropic Claude 4.6+ | `anthropic.thinking: { type: "adaptive" }` plus `anthropic.effort`; supported levels reach `max` on current adaptive models | Newer adaptive families may need `display: "summarized"`; use `visibleReasoningModelOptions` | `anthropic.speed`: `"fast"` or `"standard"` on eligible models; currently documented for Opus 4.6 |
+| OpenAI GPT-5 and o-series | `openai.reasoningEffort`; exact models accept a subset of `none`, `minimal`, `low`, `medium`, `high`, `xhigh`, and `max` | `openai.reasoningSummary: "auto"`, `"concise"`, or `"detailed"`, subject to model support | `gateway.serviceTier`: `"priority"` or `"flex"` |
+| Anthropic Claude 4.6+ | `anthropic.thinking: { type: "adaptive" }` plus `anthropic.effort`; current adaptive models accept a model-specific subset of `low`, `medium`, `high`, and `max` | Newer adaptive families may need `display: "summarized"`; use `visibleReasoningModelOptions` | `anthropic.speed`: `"fast"` or `"standard"` on eligible models; currently documented for Opus 4.6 |
 | Anthropic Claude 4–4.5 | `anthropic.thinking: { type: "enabled", budgetTokens }`; do not send adaptive thinking | Reasoning is normally visible | No general public tier |
-| Google Gemini 3.x | `google.thinkingConfig.thinkingLevel` or `vertex.thinkingConfig.thinkingLevel`; accepted levels vary by exact Gemini model | Add `includeThoughts: true` | `gateway.serviceTier`: `"priority"` or `"flex"` |
+| Google Gemini 3.x | `google.thinkingConfig.thinkingLevel` or `vertex.thinkingConfig.thinkingLevel`; exact levels vary by model | Add `includeThoughts: true` | `gateway.serviceTier`: `"priority"` or `"flex"` |
 | Google Gemini 2.5 | `google` or `vertex` `thinkingConfig.thinkingBudget` | Add `includeThoughts: true` | `gateway.serviceTier`: `"priority"` or `"flex"` where the route supports it |
-| xAI Grok | `xai.reasoningEffort`; chat models document low/high, Responses models low/medium/high | Reasoning models emit reasoning parts | No separate public speed tier; choose a `*-fast-reasoning` or `*-fast-non-reasoning` model slug |
+| xAI Grok | `xai.reasoningEffort`; Grok 4.5 documents `low`/`medium`/`high`, while Grok 4.3 also documents `none` | Reasoning models emit reasoning parts | xAI's upstream `service_tier: "priority"` is not exposed through the current Gateway/AI SDK path. The retired Grok `*-fast-*` aliases are not a speed control. |
+| Perplexity Sonar | Raw snake_case options under `perplexity`, including `reasoning_effort`; the public Sonar API accepts `minimal`/`low`/`medium`/`high`, while Deep Research documents `low`/`medium`/`high` | `stream_mode: "concise"` emits reasoning events separately; `"full"` suppresses those events | No request tier. `web_search_options.search_context_size` changes search context, not processing speed |
 | Amazon Bedrock | `bedrock.reasoningConfig`: adaptive or `budgetTokens` for Claude; `maxReasoningEffort` for Nova 2 | Model-specific | No portable Gateway speed tier |
-| Groq-hosted reasoning models | `groq.reasoningEffort`; values depend on the model (`none/default` for Qwen 3, `low/medium/high` for GPT-OSS) | `groq.reasoningFormat`: `"parsed"`, `"raw"`, or `"hidden"` | `groq.serviceTier`: `"on_demand"`, `"flex"`, or `"auto"`; Groq flex raises throughput but can fail, unlike Gateway flex |
+| Groq-hosted reasoning models | `groq.reasoningEffort`; values depend on the model (`none`/`default` for Qwen 3, `low`/`medium`/`high` for GPT-OSS) | `groq.reasoningFormat`: `"parsed"`, `"raw"`, or `"hidden"` | `groq.serviceTier`: `"on_demand"`, `"flex"`, or `"auto"`; Groq flex raises throughput but can fail, unlike Gateway flex |
 | Cohere Command A Reasoning | `cohere.thinking: { type: "enabled", tokenBudget }` | Returns reasoning parts | No documented native tier |
 | DeepSeek | `deepseek.thinking` with type `"enabled"` or `"disabled"`, or select `deepseek-reasoner` | Streams reasoning parts | No documented native tier |
-| Moonshot Kimi | `moonshotai.thinking: { type, budgetTokens }`; `reasoningHistory` controls multi-turn preservation | Streams reasoning parts | Choose a `*-turbo` model slug; no separate documented tier |
+| Moonshot Kimi | `moonshotai.thinking: { type, budgetTokens }`; `reasoningHistory` controls multi-turn preservation | Streams reasoning parts | Choose a documented `*-turbo` model; there is no separate request tier |
 | Fireworks-hosted Kimi | `fireworks.thinking: { type, budgetTokens }`; `reasoningHistory` controls multi-turn preservation | Streams reasoning parts on supported models; older `<think>` models need extraction outside Gateway | Choose the serving model; no documented native tier |
-| Alibaba Qwen | `alibaba.enableThinking` and `alibaba.thinkingBudget`; thinking-only slugs enable it by default | Streams reasoning parts | No documented native tier |
+| Alibaba Qwen | `alibaba.enableThinking` and `alibaba.thinkingBudget`; thinking-only models enable it by default | Streams reasoning parts | No documented native tier |
 | Cerebras GPT-OSS | `cerebras.reasoningEffort`: `"low"`, `"medium"`, or `"high"` | Streams reasoning parts | No request tier; provider/model selection supplies the fast inference path |
 | Hugging Face reasoning models | `huggingface.reasoningEffort` is a string whose accepted values depend on the hosted model | Streams reasoning parts when the backend returns them | No portable tier |
 | Mistral Magistral | Select a Magistral reasoning model; the native provider exposes no effort control | Structured reasoning is parsed automatically | No documented native tier |
-| Perplexity Sonar Reasoning, Together.ai, DeepInfra, MiniMax, Z.ai GLM, Meta Llama, and other Gateway families | Select a reasoning/thinking model variant unless that exact model's current provider docs publish a control | Model-specific | Do not invent a tier; choose a faster model or serving provider |
+| Together AI | No documented native effort option. Select a reasoning model; direct AI SDK calls to models that return `<think>` tags need `extractReasoningMiddleware` | Model-specific | Select a model/host; no portable tier |
+| DeepInfra | No documented native effort option; select a reasoning model | Model-specific | Select a model/host; no portable tier |
+| MiniMax | No documented native effort option; select a reasoning model | Gateway normalizes supported reasoning output | Select a model/host; no portable tier |
+| Z.ai GLM | No documented native effort option in the current AI SDK provider; select a thinking model | Gateway normalizes supported reasoning output | Select a model/host; no portable tier |
+| Meta Llama | No portable native effort option; select a reasoning-tuned model when available | Model-specific; ordinary Llama models may ignore top-level effort | Select a model/host; no portable tier |
+
+The remaining current Gateway routing providers are Azure, Arcee AI, Baseten,
+ByteDance, Nebius, Novita, Parasail, SambaNova, StreamLake, and Vercel. Those
+names select a host; they do not create a portable request-time effort or speed
+control. Use the model creator's documented option only when that exact route
+supports it, and pin `gateway.only` when route behavior matters. Black Forest
+Labs, Prodia, Recraft, and Voyage are the remaining provider slugs and are
+outside this language-model table.
+
+Perplexity is the main shape exception. Perplexity Sonar uses raw snake_case
+model options under `perplexity`: `reasoning_effort`, `search_mode`,
+`return_images`, and nested `web_search_options.search_context_size`.
+
+```ts
+export default defineAgent({
+  model: "perplexity/sonar-deep-research",
+  modelOptions: {
+    providerOptions: {
+      perplexity: {
+        reasoning_effort: "high",
+        search_mode: "academic",
+        return_images: true,
+        web_search_options: { search_context_size: "high" },
+      },
+    },
+  },
+});
+```
+
+Other Sonar controls include `return_related_questions`,
+`enable_search_classifier`, `disable_search`, `search_domain_filter`,
+`search_language_filter`, `search_recency_filter`, and explicit date filters.
+Do not combine `search_recency_filter` with explicit date filters. Academic
+mode ignores date filters. These model options are separate from the seeded
+`web_search` tool's Perplexity backend. Both are separate from AI Gateway's
+camelCase `gateway.tools.perplexitySearch` tool, which can ground a
+non-Perplexity model.
 
 Provider routing matters. A creator-prefixed slug such as
 `anthropic/claude-opus-4.8` can fall back across Anthropic, Bedrock, and Vertex.
@@ -651,7 +695,16 @@ options pass through eve and the Zo runtime gateway unchanged; the runtime
 gateway owns authentication and metering, not model policy. Consult the
 [AI Gateway reasoning matrix](https://vercel.com/docs/ai-gateway/models-and-providers/reasoning),
 [service-tier matrix](https://vercel.com/docs/ai-gateway/models-and-providers/service-tiers),
-and the exact model's AI SDK provider page before adding a native option.
+and the [AI SDK provider index](https://ai-sdk.dev/providers/ai-sdk-providers)
+before adding a native option. The controls most likely to be confused have
+primary references: OpenAI's
+[latest-model guide](https://developers.openai.com/api/docs/guides/latest-model),
+xAI's [reasoning](https://docs.x.ai/developers/model-capabilities/text/reasoning),
+[priority processing](https://docs.x.ai/developers/advanced-api-usage/priority-processing),
+and [retired-model aliases](https://docs.x.ai/developers/migration/may-15-retirement),
+plus Perplexity's
+[Sonar request schema](https://docs.perplexity.ai/api-reference/sonar-post) and
+[filter compatibility rules](https://docs.perplexity.ai/docs/sonar/filters).
 
 ## Visible reasoning (the invisible-thinking gotcha)
 

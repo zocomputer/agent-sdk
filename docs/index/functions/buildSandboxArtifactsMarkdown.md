@@ -8,7 +8,7 @@
 
 > **buildSandboxArtifactsMarkdown**(`opts?`): `string`
 
-Defined in: [packages/agent-sdk/src/instructions.ts:514](https://github.com/zocomputer/zov2-code/blob/ea094c0d7d3efd4351c48b5c1bd38d95a1836e8d/packages/agent-sdk/src/instructions.ts#L514)
+Defined in: [packages/agent-sdk/src/instructions.ts:514](https://github.com/zocomputer/zov2-code/blob/1e681aac14f2dac158459843dc60bdd734625bf0/packages/agent-sdk/src/instructions.ts#L514)
 
 Pure markdown for the sandbox artifact playbook.
 

@@ -8,7 +8,7 @@
 
 > **createCommunicationInstruction**(`opts?`): `DynamicSentinel`\<\{ `markdown`: `string`; \}\>
 
-Defined in: [packages/agent-sdk/src/instructions.ts:334](https://github.com/zocomputer/zov2-code/blob/ea094c0d7d3efd4351c48b5c1bd38d95a1836e8d/packages/agent-sdk/src/instructions.ts#L334)
+Defined in: [packages/agent-sdk/src/instructions.ts:334](https://github.com/zocomputer/zov2-code/blob/1e681aac14f2dac158459843dc60bdd734625bf0/packages/agent-sdk/src/instructions.ts#L334)
 
 The reporting contract: lead with the outcome, write tightly and
 concretely, take a position, structure deliberately, assess-don't-fix when

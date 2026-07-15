@@ -8,6 +8,6 @@
 
 > **StateSandboxAccess** = `"r"` \| `"rw"`
 
-Defined in: [packages/agent-sdk/src/state-sandbox.ts:7](https://github.com/zocomputer/zov2-code/blob/ea094c0d7d3efd4351c48b5c1bd38d95a1836e8d/packages/agent-sdk/src/state-sandbox.ts#L7)
+Defined in: [packages/agent-sdk/src/state-sandbox.ts:7](https://github.com/zocomputer/zov2-code/blob/1e681aac14f2dac158459843dc60bdd734625bf0/packages/agent-sdk/src/state-sandbox.ts#L7)
 
 Read-only or read-write access to a sandbox state instance.
