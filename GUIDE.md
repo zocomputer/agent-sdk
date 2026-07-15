@@ -510,11 +510,14 @@ result enters the cached prefix on the next request. That fix does not change
 this wiring rule: a wrapped gateway model still needs gateway caching enabled
 explicitly.
 
-## OpenAI reasoning effort and processing speed
+## Reasoning effort and processing speed
 
-OpenAI exposes these as separate controls. Reasoning effort changes how much
-work the model spends before answering. The service tier changes how quickly
-OpenAI serves that work.
+Reasoning depth, reasoning visibility, and processing speed are separate
+controls. Their names and supported values differ by model, provider, API, and
+inference route. Start with eve's provider-agnostic `reasoning` field, then add
+native `providerOptions` only for a control eve does not expose or for visible
+reasoning. Never copy a value from another provider because its label sounds
+similar.
 
 For the common effort levels, use eve's provider-agnostic `reasoning` field:
 
@@ -526,9 +529,9 @@ export default defineAgent({
 ```
 
 Eve accepts `"provider-default"`, `"none"`, `"minimal"`, `"low"`,
-`"medium"`, `"high"`, and `"xhigh"`. Model support varies. OpenAI's API also
-publishes `"max"` for models that support it; pass that provider-native value
-through `modelOptions` until eve's provider-agnostic union includes it:
+`"medium"`, `"high"`, and `"xhigh"`. A model may support only a subset or
+ignore the field. Use the provider-native namespace for values or shapes that
+do not fit that union. For example, OpenAI publishes `"max"` on some models:
 
 ```ts
 export default defineAgent({
@@ -549,7 +552,8 @@ use that label for an internal preset or usage policy; do not send it through
 the API. OpenAI currently publishes `none`, `minimal`, `low`, `medium`, `high`,
 `xhigh`, and `max`, with a model-specific subset accepted on each model.
 
-For latency-sensitive work, request AI Gateway's unified priority tier:
+For latency-sensitive OpenAI or Gemini work, request AI Gateway's unified
+priority tier:
 
 ```ts
 export default defineAgent({
@@ -566,14 +570,15 @@ export default defineAgent({
 `gateway.serviceTier` accepts `"priority"` or `"flex"` in AI SDK 6 and 7.
 Priority is the public equivalent of a **Fast** preset; it costs more and is a
 best-effort request. Flex costs less and may be slower. An omitted tier uses
-standard processing. AI Gateway reports the tier it actually served as
+standard processing. AI Gateway currently translates this option for OpenAI,
+Google AI Studio, and Google Vertex AI. On other providers it has no effect.
+AI Gateway reports the tier it actually served as
 `providerMetadata.gateway.serviceTier`; a missing value means standard
-processing. Availability and accepted effort levels are model-specific, so a
-configuration that works for one OpenAI model is not a family-wide guarantee.
+processing or a downgraded/unsupported request.
 
 Reasoning summaries are output visibility, not effort. Set
 `openai.reasoningSummary` when the application needs reasoning events. Merge
-the OpenAI and gateway namespaces when you need both controls:
+provider namespaces when you need several controls:
 
 ```ts
 modelOptions: {
@@ -584,9 +589,56 @@ modelOptions: {
 },
 ```
 
-These options pass through eve and the Zo runtime gateway unchanged. The
-runtime gateway owns authentication and metering; it does not reinterpret the
-requested effort or tier.
+### Provider control matrix
+
+This matrix covers the public AI SDK controls relevant to gateway text models.
+Support is model-specific; an accepted option can still be ignored by a model
+that does not implement it.
+
+| Provider / family | Native reasoning control | Visibility | Speed / throughput |
+| --- | --- | --- | --- |
+| OpenAI GPT-5 and o-series | `openai.reasoningEffort`; model-specific subset of `none` through `max` | `openai.reasoningSummary: "auto"` or `"detailed"` | `gateway.serviceTier`: `"priority"` or `"flex"` |
+| Anthropic Claude 4.6+ | `anthropic.thinking: { type: "adaptive" }` plus `anthropic.effort`; supported levels reach `max` on current adaptive models | Newer adaptive families may need `display: "summarized"`; use `visibleReasoningModelOptions` | `anthropic.speed`: `"fast"` or `"standard"` on eligible models; currently documented for Opus 4.6 |
+| Anthropic Claude 4–4.5 | `anthropic.thinking: { type: "enabled", budgetTokens }`; do not send adaptive thinking | Reasoning is normally visible | No general public tier |
+| Google Gemini 3.x | `google.thinkingConfig.thinkingLevel` or `vertex.thinkingConfig.thinkingLevel`; accepted levels vary by exact Gemini model | Add `includeThoughts: true` | `gateway.serviceTier`: `"priority"` or `"flex"` |
+| Google Gemini 2.5 | `google` or `vertex` `thinkingConfig.thinkingBudget` | Add `includeThoughts: true` | `gateway.serviceTier`: `"priority"` or `"flex"` where the route supports it |
+| xAI Grok | `xai.reasoningEffort`; chat models document low/high, Responses models low/medium/high | Reasoning models emit reasoning parts | No separate public speed tier; choose a `*-fast-reasoning` or `*-fast-non-reasoning` model slug |
+| Amazon Bedrock | `bedrock.reasoningConfig`: adaptive or `budgetTokens` for Claude; `maxReasoningEffort` for Nova 2 | Model-specific | No portable Gateway speed tier |
+| Groq-hosted reasoning models | `groq.reasoningEffort`; values depend on the model (`none/default` for Qwen 3, `low/medium/high` for GPT-OSS) | `groq.reasoningFormat`: `"parsed"`, `"raw"`, or `"hidden"` | `groq.serviceTier`: `"on_demand"`, `"flex"`, or `"auto"`; Groq flex raises throughput but can fail, unlike Gateway flex |
+| Cohere Command A Reasoning | `cohere.thinking: { type: "enabled", tokenBudget }` | Returns reasoning parts | No documented native tier |
+| DeepSeek | `deepseek.thinking` with type `"enabled"` or `"disabled"`, or select `deepseek-reasoner` | Streams reasoning parts | No documented native tier |
+| Moonshot Kimi | `moonshotai.thinking: { type, budgetTokens }`; `reasoningHistory` controls multi-turn preservation | Streams reasoning parts | Choose a `*-turbo` model slug; no separate documented tier |
+| Fireworks-hosted Kimi | `fireworks.thinking: { type, budgetTokens }`; `reasoningHistory` controls multi-turn preservation | Streams reasoning parts on supported models; older `<think>` models need extraction outside Gateway | Choose the serving model; no documented native tier |
+| Alibaba Qwen | `alibaba.enableThinking` and `alibaba.thinkingBudget`; thinking-only slugs enable it by default | Streams reasoning parts | No documented native tier |
+| Cerebras GPT-OSS | `cerebras.reasoningEffort`: `"low"`, `"medium"`, or `"high"` | Streams reasoning parts | No request tier; provider/model selection supplies the fast inference path |
+| Hugging Face reasoning models | `huggingface.reasoningEffort` is a string whose accepted values depend on the hosted model | Streams reasoning parts when the backend returns them | No portable tier |
+| Mistral Magistral | Select a Magistral reasoning model; the native provider exposes no effort control | Structured reasoning is parsed automatically | No documented native tier |
+| Perplexity Sonar Reasoning, Together.ai, DeepInfra, MiniMax, Z.ai GLM, Meta Llama, and other Gateway families | Select a reasoning/thinking model variant unless that exact model's current provider docs publish a control | Model-specific | Do not invent a tier; choose a faster model or serving provider |
+
+Provider routing matters. A creator-prefixed slug such as
+`anthropic/claude-opus-4.8` can fall back across Anthropic, Bedrock, and Vertex.
+Native options apply only to the matching route. Supply every route-specific
+shape you intend to allow, or pin `gateway.only` when one native behavior is
+required. For example:
+
+```ts
+modelOptions: {
+  providerOptions: {
+    anthropic: { thinking: { type: "adaptive" }, effort: "high" },
+    bedrock: { reasoningConfig: { type: "adaptive" } },
+    gateway: { only: ["anthropic", "bedrock"] },
+  },
+},
+```
+
+The provider namespace describes the serving API, not necessarily the model
+creator. Gemini uses `google` when served by Google AI Studio and `vertex` when
+served by Vertex. Anthropic models served by Bedrock use `bedrock`. These
+options pass through eve and the Zo runtime gateway unchanged; the runtime
+gateway owns authentication and metering, not model policy. Consult the
+[AI Gateway reasoning matrix](https://vercel.com/docs/ai-gateway/models-and-providers/reasoning),
+[service-tier matrix](https://vercel.com/docs/ai-gateway/models-and-providers/service-tiers),
+and the exact model's AI SDK provider page before adding a native option.
 
 ## Visible reasoning (the invisible-thinking gotcha)
 

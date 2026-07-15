@@ -1,4 +1,4 @@
-// ../../../../../tmp/agent-sdk-mirror-fZqm4O/repo/platform/runtime-ai/stream-guards.ts
+// ../../../../../tmp/agent-sdk-mirror-JEmpl3/repo/platform/runtime-ai/stream-guards.ts
 var DEFAULT_STREAM_GUARDS = {
   firstByteMs: 60000,
   idleMs: 180000

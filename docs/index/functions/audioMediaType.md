@@ -8,7 +8,7 @@
 
 > **audioMediaType**(`format`): `string`
 
-Defined in: [packages/agent-sdk/src/file-kind.ts:41](https://github.com/zocomputer/zov2-code/blob/1201055c5cc9e558bf15b3fd953dc08102ba49af/packages/agent-sdk/src/file-kind.ts#L41)
+Defined in: [packages/agent-sdk/src/file-kind.ts:41](https://github.com/zocomputer/zov2-code/blob/344fef7287e3cdac215bfeba4bb54fc2101e5e6e/packages/agent-sdk/src/file-kind.ts#L41)
 
 The MIME type for a detected audio format (for data URLs / file parts).
 

@@ -6,7 +6,7 @@
 
 # Interface: OpStartExtras
 
-Defined in: [packages/agent-sdk/src/backgroundable.ts:13](https://github.com/zocomputer/zov2-code/blob/1201055c5cc9e558bf15b3fd953dc08102ba49af/packages/agent-sdk/src/backgroundable.ts#L13)
+Defined in: [packages/agent-sdk/src/backgroundable.ts:13](https://github.com/zocomputer/zov2-code/blob/344fef7287e3cdac215bfeba4bb54fc2101e5e6e/packages/agent-sdk/src/backgroundable.ts#L13)
 
 Optional live handles run_async threads into an op (e.g. a watcher tap).
 
@@ -16,7 +16,7 @@ Optional live handles run_async threads into an op (e.g. a watcher tap).
 
 > `optional` **ctx?**: [`IoToolContext`](IoToolContext.md)
 
-Defined in: [packages/agent-sdk/src/backgroundable.ts:21](https://github.com/zocomputer/zov2-code/blob/1201055c5cc9e558bf15b3fd953dc08102ba49af/packages/agent-sdk/src/backgroundable.ts#L21)
+Defined in: [packages/agent-sdk/src/backgroundable.ts:21](https://github.com/zocomputer/zov2-code/blob/344fef7287e3cdac215bfeba4bb54fc2101e5e6e/packages/agent-sdk/src/backgroundable.ts#L21)
 
 The calling tool's context, for ops whose backend resolves per call
 (the sandbox command runner reads `ctx.getSandbox()`). Ops with a fixed
@@ -28,7 +28,7 @@ backend ignore it.
 
 > `optional` **onOutput?**: (`chunk`) => `void`
 
-Defined in: [packages/agent-sdk/src/backgroundable.ts:15](https://github.com/zocomputer/zov2-code/blob/1201055c5cc9e558bf15b3fd953dc08102ba49af/packages/agent-sdk/src/backgroundable.ts#L15)
+Defined in: [packages/agent-sdk/src/backgroundable.ts:15](https://github.com/zocomputer/zov2-code/blob/344fef7287e3cdac215bfeba4bb54fc2101e5e6e/packages/agent-sdk/src/backgroundable.ts#L15)
 
 Raw output tap; an op that produces no stream just ignores it.
 

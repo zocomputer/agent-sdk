@@ -8,6 +8,6 @@
 
 > **FetchLike** = *typeof* `globalThis.fetch`
 
-Defined in: [packages/runtime-ai/src/stream-guards.ts:21](https://github.com/zocomputer/zov2-code/blob/1201055c5cc9e558bf15b3fd953dc08102ba49af/packages/runtime-ai/src/stream-guards.ts#L21)
+Defined in: [packages/runtime-ai/src/stream-guards.ts:21](https://github.com/zocomputer/zov2-code/blob/344fef7287e3cdac215bfeba4bb54fc2101e5e6e/packages/runtime-ai/src/stream-guards.ts#L21)
 
 The full global fetch type, as the AI SDK's gateway provider expects.

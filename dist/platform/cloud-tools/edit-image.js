@@ -1,13 +1,13 @@
-// ../../../../../tmp/agent-sdk-mirror-fZqm4O/repo/platform/cloud-tools/edit-image.ts
+// ../../../../../tmp/agent-sdk-mirror-JEmpl3/repo/platform/cloud-tools/edit-image.ts
 import { randomUUID } from "node:crypto";
 import { generateImage } from "ai";
 import { defineTool as defineTool2 } from "eve/tools";
 import { z as z5 } from "zod";
 
-// ../../../../../tmp/agent-sdk-mirror-fZqm4O/repo/platform/runtime-ai/gateway.ts
+// ../../../../../tmp/agent-sdk-mirror-JEmpl3/repo/platform/runtime-ai/gateway.ts
 import { createGateway } from "ai";
 
-// ../../../../../tmp/agent-sdk-mirror-fZqm4O/repo/platform/runtime-ai/session-fetch.ts
+// ../../../../../tmp/agent-sdk-mirror-JEmpl3/repo/platform/runtime-ai/session-fetch.ts
 var EVE_SESSION_HEADER = "x-zo-eve-session";
 var EVE_TURN_HEADER = "x-zo-eve-turn";
 var EVE_SUBAGENT_SESSION_HEADER = "x-zo-eve-subagent-session";
@@ -74,7 +74,7 @@ function eveSessionFetch(getSessionId = ambientEveSessionId, baseFetch = globalT
   }, baseFetch);
 }
 
-// ../../../../../tmp/agent-sdk-mirror-fZqm4O/repo/platform/runtime-ai/stream-guards.ts
+// ../../../../../tmp/agent-sdk-mirror-JEmpl3/repo/platform/runtime-ai/stream-guards.ts
 var DEFAULT_STREAM_GUARDS = {
   firstByteMs: 60000,
   idleMs: 180000
@@ -138,7 +138,7 @@ function withStreamGuards(baseFetch, options = DEFAULT_STREAM_GUARDS) {
   return Object.assign(guarded, { preconnect: globalThis.fetch.preconnect });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-fZqm4O/repo/platform/runtime-ai/gateway-config.ts
+// ../../../../../tmp/agent-sdk-mirror-JEmpl3/repo/platform/runtime-ai/gateway-config.ts
 var ZO_TOOL_HEADER = "x-zo-tool";
 var DEFAULT_ZO_AI_BASE_URL = "http://localhost:4000/runtime/ai/v4/ai";
 var DEFAULT_ZO_AI_KEY = "dev-proxy";
@@ -166,11 +166,11 @@ function zoGatewaySettings(options = {}) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-fZqm4O/repo/platform/runtime-ai/gateway.ts
+// ../../../../../tmp/agent-sdk-mirror-JEmpl3/repo/platform/runtime-ai/gateway.ts
 function zoGateway(options = {}) {
   return createGateway(zoGatewaySettings(options));
 }
-// ../../../../../tmp/agent-sdk-mirror-fZqm4O/repo/platform/runtime-ai/catalog.ts
+// ../../../../../tmp/agent-sdk-mirror-JEmpl3/repo/platform/runtime-ai/catalog.ts
 function resolveZoGatewayCatalogUrl(baseURL) {
   const url = new URL(resolveZoGatewayBaseUrl(baseURL));
   if (!/\/v4\/ai\/?$/u.test(url.pathname)) {
@@ -210,7 +210,7 @@ async function fetchMediaCatalog(options = {}) {
     clearTimeout(timeout);
   }
 }
-// ../../../../../tmp/agent-sdk-mirror-fZqm4O/repo/platform/cloud-tools/asset-path.ts
+// ../../../../../tmp/agent-sdk-mirror-JEmpl3/repo/platform/cloud-tools/asset-path.ts
 import { z } from "zod";
 var DEFAULT_ASSET_OUTPUT_DIR = "generated";
 var OutputDirSchema = z.string().trim().min(1).max(200).regex(/^(?!\/)(?!.*\/$)(?!.*\/\/)(?!.*(?:^|\/)(?:\.|\.\.)(?:\/|$))[A-Za-z0-9._/-]+$/u, "Use a relative state file path without empty, . or .. segments.");
@@ -239,7 +239,7 @@ function assetOutputPath(input) {
   return `${normalizedOutputDir(input.outputDir)}/${slugForPrompt(input.prompt, input.fallbackSlug)}-${input.id}.${extensionForMediaType(input.mediaType)}`;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-fZqm4O/repo/platform/cloud-tools/media-asset.ts
+// ../../../../../tmp/agent-sdk-mirror-JEmpl3/repo/platform/cloud-tools/media-asset.ts
 var ASSET_SCALAR_PREFIX = "files:";
 function formatMediaAssetRef(ref, declarationName = "files") {
   assertDeclaration(ref.declarationName, declarationName);
@@ -338,7 +338,7 @@ function ascii(bytes, offset, length) {
   return String.fromCharCode(...bytes.slice(offset, offset + length));
 }
 
-// ../../../../../tmp/agent-sdk-mirror-fZqm4O/repo/platform/cloud-tools/media-preflight.ts
+// ../../../../../tmp/agent-sdk-mirror-JEmpl3/repo/platform/cloud-tools/media-preflight.ts
 function createMediaPreflight(options) {
   const run = async (request) => {
     const registry = await options.registry();
@@ -455,7 +455,7 @@ function isRecord(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-// ../../../../../tmp/agent-sdk-mirror-fZqm4O/repo/platform/cloud-tools/media-catalog-parser.ts
+// ../../../../../tmp/agent-sdk-mirror-JEmpl3/repo/platform/cloud-tools/media-catalog-parser.ts
 var isRecord2 = (value) => typeof value === "object" && value !== null && !Array.isArray(value);
 var scalarRecordArray = (value) => Array.isArray(value) && value.every((row) => isRecord2(row) && Object.values(row).every((v) => ["string", "number", "boolean"].includes(typeof v))) ? value : undefined;
 function parsePricing(value) {
@@ -504,7 +504,7 @@ function isMediaKind(value) {
   return value === "image" || value === "video" || value === "speech" || value === "transcription";
 }
 
-// ../../../../../tmp/agent-sdk-mirror-fZqm4O/repo/platform/cloud-tools/media-catalog-snapshot.ts
+// ../../../../../tmp/agent-sdk-mirror-JEmpl3/repo/platform/cloud-tools/media-catalog-snapshot.ts
 import { createHash } from "node:crypto";
 function canonical(value) {
   if (Array.isArray(value))
@@ -518,7 +518,7 @@ function mediaCatalogSnapshotId(models) {
   return `sha256:${createHash("sha256").update(canonical(ordered)).digest("hex")}`;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-fZqm4O/repo/platform/cloud-tools/media-catalog-cache.ts
+// ../../../../../tmp/agent-sdk-mirror-JEmpl3/repo/platform/cloud-tools/media-catalog-cache.ts
 function createMediaCatalogCache(options) {
   const now = options.now ?? Date.now;
   const freshMs = options.freshMs ?? 5 * 60000;
@@ -565,7 +565,7 @@ function mergeValidators(previous, next) {
   return Object.keys(merged).length === 0 ? undefined : merged;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-fZqm4O/repo/platform/cloud-tools/media-models.ts
+// ../../../../../tmp/agent-sdk-mirror-JEmpl3/repo/platform/cloud-tools/media-models.ts
 import { defineTool } from "eve/tools";
 import { z as z2 } from "zod";
 var MediaModelsInputSchema = z2.object({
@@ -614,7 +614,7 @@ function compact(item) {
   return { id: item.id, name: item.name, kind: item.kind, availability: item.availability, catalog_snapshot_id: item.lineage.snapshotId, fetched_at: item.lineage.fetchedAt, stale: item.lineage.stale, adapter_revision: item.adapterRevision, verified_at: item.verifiedAt, pricing: item.pricing, operations: item.operations.map((op) => ({ operation: op.operation, inputs: op.inputs, settings: op.settings, outputs: op.outputs, provenance: op.provenance })) };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-fZqm4O/repo/platform/cloud-tools/media-adapters.ts
+// ../../../../../tmp/agent-sdk-mirror-JEmpl3/repo/platform/cloud-tools/media-adapters.ts
 function adapter(modelId, operation, output, options = {}) {
   const acceptedKinds = options.acceptedKinds ?? [];
   const curatedSettings = options.settings ?? [];
@@ -796,7 +796,7 @@ function isRecord3(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-// ../../../../../tmp/agent-sdk-mirror-fZqm4O/repo/platform/cloud-tools/media-registry.ts
+// ../../../../../tmp/agent-sdk-mirror-JEmpl3/repo/platform/cloud-tools/media-registry.ts
 function createMediaRegistry(models, lineage, adapters = MEDIA_PROVIDER_ADAPTERS) {
   const live = new Map(models.map((model) => [model.id, model]));
   const profile = (id) => {
@@ -862,7 +862,7 @@ function kindFor(operation) {
   return "transcription";
 }
 
-// ../../../../../tmp/agent-sdk-mirror-fZqm4O/repo/platform/cloud-tools/media-models-default.ts
+// ../../../../../tmp/agent-sdk-mirror-JEmpl3/repo/platform/cloud-tools/media-models-default.ts
 var catalog = createMediaCatalogCache({
   refresh: (validators) => fetchMediaCatalog(validators === undefined ? {} : { validators })
 });
@@ -872,7 +872,7 @@ async function defaultMediaRegistry() {
 }
 var media_models_default_default = mediaModelsTool({ registry: defaultMediaRegistry });
 
-// ../../../../../tmp/agent-sdk-mirror-fZqm4O/repo/platform/cloud-tools/image-lane.ts
+// ../../../../../tmp/agent-sdk-mirror-JEmpl3/repo/platform/cloud-tools/image-lane.ts
 var IMAGE_ASSET_MAX_BYTES = 20 * 1024 * 1024;
 function createImagePreflight(options) {
   return createMediaPreflight({
@@ -1017,7 +1017,7 @@ function isRecord4(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-// ../../../../../tmp/agent-sdk-mirror-fZqm4O/repo/platform/cloud-tools/media-lineage.ts
+// ../../../../../tmp/agent-sdk-mirror-JEmpl3/repo/platform/cloud-tools/media-lineage.ts
 var ZO_MEDIA_LINEAGE_HEADER = "x-zo-media-lineage";
 var MAX_MEDIA_LINEAGE_HEADER_LENGTH = 1024;
 function serializeMediaInvocationLineage(lineage) {
@@ -1031,10 +1031,10 @@ function mediaInvocationHeaders(lineage) {
   return { [ZO_MEDIA_LINEAGE_HEADER]: serializeMediaInvocationLineage(lineage) };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-fZqm4O/repo/platform/cloud-tools/tool-shared.ts
+// ../../../../../tmp/agent-sdk-mirror-JEmpl3/repo/platform/cloud-tools/tool-shared.ts
 import { z as z4 } from "zod";
 
-// ../../../../../tmp/agent-sdk-mirror-fZqm4O/repo/platform/cloud-tools/state-consent.ts
+// ../../../../../tmp/agent-sdk-mirror-JEmpl3/repo/platform/cloud-tools/state-consent.ts
 import { z as z3 } from "zod";
 var REQUEST_STATE_CONSENT_TOOL_NAME = "request_state_consent";
 var consentPartySchema = z3.object({
@@ -1062,7 +1062,7 @@ function buildConsentSteer(envelope) {
 `);
 }
 
-// ../../../../../tmp/agent-sdk-mirror-fZqm4O/repo/platform/cloud-tools/state-files.ts
+// ../../../../../tmp/agent-sdk-mirror-JEmpl3/repo/platform/cloud-tools/state-files.ts
 var DEFAULT_STATE_ASSET_DECLARATION_NAME = "files";
 var STATE_FILES_HANDLE_PATH = "/state/handles";
 var ZO_AGENT_TOKEN_HEADER = "x-zo-agent-token";
@@ -1493,7 +1493,7 @@ function readString(record, key) {
   return typeof value === "string" && value.length > 0 ? value : null;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-fZqm4O/repo/platform/cloud-tools/tool-shared.ts
+// ../../../../../tmp/agent-sdk-mirror-JEmpl3/repo/platform/cloud-tools/tool-shared.ts
 var StateAssetReferenceSchema = z4.object({
   bytes: z4.number().int().nonnegative().optional(),
   contentType: z4.string().optional(),
@@ -1529,7 +1529,7 @@ function saveFailure(kind, error) {
   return new Error(`The ${kind} was generated but no state asset was saved — ${errorDetail(error)}. ` + `Nothing is available to the chat. If the reason looks transient (a storage ` + `write failure), retry the call once; if it's a configuration problem, report ` + `it to the user instead of retrying.`);
 }
 
-// ../../../../../tmp/agent-sdk-mirror-fZqm4O/repo/platform/cloud-tools/edit-image.ts
+// ../../../../../tmp/agent-sdk-mirror-JEmpl3/repo/platform/cloud-tools/edit-image.ts
 var DEFAULT_IMAGE_EDIT_MODEL = "bfl/flux-kontext-pro";
 var AspectRatioSchema = z5.templateLiteral([z5.number().int().positive(), ":", z5.number().int().positive()]);
 var EditImageInputSchema = z5.object({

@@ -8,7 +8,7 @@
 
 > **SandboxFileTools** = `ReturnType`\<*typeof* [`createSandboxFileTools`](../functions/createSandboxFileTools.md)\>
 
-Defined in: [packages/agent-sdk/src/index.ts:294](https://github.com/zocomputer/zov2-code/blob/1201055c5cc9e558bf15b3fd953dc08102ba49af/packages/agent-sdk/src/index.ts#L294)
+Defined in: [packages/agent-sdk/src/index.ts:294](https://github.com/zocomputer/zov2-code/blob/344fef7287e3cdac215bfeba4bb54fc2101e5e6e/packages/agent-sdk/src/index.ts#L294)
 
 The sandbox file tools return type: workspace, IO provider, runner,
 registry, backgroundables, tools (read/edit/write/glob/grep/bash, tasks,

@@ -8,7 +8,7 @@
 
 > **slideParagraphs**(`xml`): `string`[]
 
-Defined in: [packages/agent-sdk/src/extract/pptx.ts:34](https://github.com/zocomputer/zov2-code/blob/1201055c5cc9e558bf15b3fd953dc08102ba49af/packages/agent-sdk/src/extract/pptx.ts#L34)
+Defined in: [packages/agent-sdk/src/extract/pptx.ts:34](https://github.com/zocomputer/zov2-code/blob/344fef7287e3cdac215bfeba4bb54fc2101e5e6e/packages/agent-sdk/src/extract/pptx.ts#L34)
 
 Collect the visible paragraphs of one slide (or notes-slide) XML part:
 `a:t` runs concatenated within their `a:p` paragraph, `a:br` as a line
