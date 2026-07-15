@@ -8,7 +8,7 @@
 
 > **Task** = [`BaseTask`](../interfaces/BaseTask.md) & `object` \| [`BaseTask`](../interfaces/BaseTask.md) & `object` \| [`BaseTask`](../interfaces/BaseTask.md) & `object` \| [`BaseTask`](../interfaces/BaseTask.md) & `object`
 
-Defined in: [packages/agent-sdk/src/async-tasks.ts:51](https://github.com/zocomputer/zov2-code/blob/2480a6ef0f68d759f57bf84a8fcb14c879dd765d/packages/agent-sdk/src/async-tasks.ts#L51)
+Defined in: [packages/agent-sdk/src/async-tasks.ts:51](https://github.com/zocomputer/zov2-code/blob/8ddca74b7284f16fe6a147e3eb2a55bed9838617/packages/agent-sdk/src/async-tasks.ts#L51)
 
 Discriminated task union: running (no result yet), done (settled with a
 result), error (failed), or lost (was running when the agent restarted).

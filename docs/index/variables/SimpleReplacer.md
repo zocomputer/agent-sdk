@@ -8,6 +8,6 @@
 
 > `const` **SimpleReplacer**: [`Replacer`](../type-aliases/Replacer.md)
 
-Defined in: [packages/agent-sdk/src/edit-match.ts:96](https://github.com/zocomputer/zov2-code/blob/2480a6ef0f68d759f57bf84a8fcb14c879dd765d/packages/agent-sdk/src/edit-match.ts#L96)
+Defined in: [packages/agent-sdk/src/edit-match.ts:96](https://github.com/zocomputer/zov2-code/blob/8ddca74b7284f16fe6a147e3eb2a55bed9838617/packages/agent-sdk/src/edit-match.ts#L96)
 
 Yields `find` verbatim — the exact-match strategy, always tried first.
