@@ -1,4 +1,4 @@
-// ../../../../../tmp/agent-sdk-mirror-eO7ydV/repo/src/state-consent-envelope.ts
+// ../../../../../tmp/agent-sdk-mirror-fZqm4O/repo/src/state-consent-envelope.ts
 import { z } from "zod";
 var consentPartySchema = z.object({
   handle: z.string().min(1),
@@ -16,7 +16,7 @@ function parseConsentEnvelope(value) {
   return result.success ? result.data : null;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-eO7ydV/repo/src/state-files.ts
+// ../../../../../tmp/agent-sdk-mirror-fZqm4O/repo/src/state-files.ts
 function normalizeStateFilePath(path) {
   if (path.length === 0) {
     throw new Error("state file path must not be empty");
@@ -31,7 +31,7 @@ function normalizeStateFilePath(path) {
   return path;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-eO7ydV/repo/src/state-sandbox.ts
+// ../../../../../tmp/agent-sdk-mirror-fZqm4O/repo/src/state-sandbox.ts
 var STATE_SANDBOX_HANDLE_PATH = "/state/handles";
 var ZO_AGENT_TOKEN_HEADER = "x-zo-agent-token";
 var ZO_EVE_SESSION_HEADER = "x-zo-eve-session";

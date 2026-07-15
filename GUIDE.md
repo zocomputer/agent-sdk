@@ -510,6 +510,84 @@ result enters the cached prefix on the next request. That fix does not change
 this wiring rule: a wrapped gateway model still needs gateway caching enabled
 explicitly.
 
+## OpenAI reasoning effort and processing speed
+
+OpenAI exposes these as separate controls. Reasoning effort changes how much
+work the model spends before answering. The service tier changes how quickly
+OpenAI serves that work.
+
+For the common effort levels, use eve's provider-agnostic `reasoning` field:
+
+```ts
+export default defineAgent({
+  model: "openai/gpt-5.6-sol",
+  reasoning: "high",
+});
+```
+
+Eve accepts `"provider-default"`, `"none"`, `"minimal"`, `"low"`,
+`"medium"`, `"high"`, and `"xhigh"`. Model support varies. OpenAI's API also
+publishes `"max"` for models that support it; pass that provider-native value
+through `modelOptions` until eve's provider-agnostic union includes it:
+
+```ts
+export default defineAgent({
+  model: "openai/gpt-5.6-sol",
+  modelOptions: {
+    providerOptions: {
+      openai: {
+        reasoningEffort: "max",
+        reasoningSummary: "auto",
+      },
+    },
+  },
+});
+```
+
+There is no public OpenAI `"ultra"` reasoning-effort value. A product UI may
+use that label for an internal preset or usage policy; do not send it through
+the API. OpenAI currently publishes `none`, `minimal`, `low`, `medium`, `high`,
+`xhigh`, and `max`, with a model-specific subset accepted on each model.
+
+For latency-sensitive work, request AI Gateway's unified priority tier:
+
+```ts
+export default defineAgent({
+  model: "openai/gpt-5.6-sol",
+  reasoning: "low",
+  modelOptions: {
+    providerOptions: {
+      gateway: { serviceTier: "priority" },
+    },
+  },
+});
+```
+
+`gateway.serviceTier` accepts `"priority"` or `"flex"` in AI SDK 6 and 7.
+Priority is the public equivalent of a **Fast** preset; it costs more and is a
+best-effort request. Flex costs less and may be slower. An omitted tier uses
+standard processing. AI Gateway reports the tier it actually served as
+`providerMetadata.gateway.serviceTier`; a missing value means standard
+processing. Availability and accepted effort levels are model-specific, so a
+configuration that works for one OpenAI model is not a family-wide guarantee.
+
+Reasoning summaries are output visibility, not effort. Set
+`openai.reasoningSummary` when the application needs reasoning events. Merge
+the OpenAI and gateway namespaces when you need both controls:
+
+```ts
+modelOptions: {
+  providerOptions: {
+    openai: { reasoningEffort: "high", reasoningSummary: "auto" },
+    gateway: { serviceTier: "priority" },
+  },
+},
+```
+
+These options pass through eve and the Zo runtime gateway unchanged. The
+runtime gateway owns authentication and metering; it does not reinterpret the
+requested effort or tier.
+
 ## Visible reasoning (the invisible-thinking gotcha)
 
 `defineAgent`'s `reasoning` effort turns extended thinking ON, but on several

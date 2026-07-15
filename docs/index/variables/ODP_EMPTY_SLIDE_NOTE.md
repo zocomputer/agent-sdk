@@ -8,6 +8,6 @@
 
 > `const` **ODP\_EMPTY\_SLIDE\_NOTE**: `"[no text on this slide — likely image-only; images cannot be extracted]"` = `"[no text on this slide — likely image-only; images cannot be extracted]"`
 
-Defined in: [packages/agent-sdk/src/extract/odf.ts:24](https://github.com/zocomputer/zov2-code/blob/492659e3281a9b9d11501446d7ec2e941b7da162/packages/agent-sdk/src/extract/odf.ts#L24)
+Defined in: [packages/agent-sdk/src/extract/odf.ts:24](https://github.com/zocomputer/zov2-code/blob/1201055c5cc9e558bf15b3fd953dc08102ba49af/packages/agent-sdk/src/extract/odf.ts#L24)
 
 Shown in place of an ODP slide whose frames carry no text at all.

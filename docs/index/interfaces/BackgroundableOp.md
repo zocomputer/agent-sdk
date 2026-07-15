@@ -6,7 +6,7 @@
 
 # Interface: BackgroundableOp
 
-Defined in: [packages/agent-sdk/src/backgroundable.ts:30](https://github.com/zocomputer/zov2-code/blob/492659e3281a9b9d11501446d7ec2e941b7da162/packages/agent-sdk/src/backgroundable.ts#L30)
+Defined in: [packages/agent-sdk/src/backgroundable.ts:30](https://github.com/zocomputer/zov2-code/blob/1201055c5cc9e558bf15b3fd953dc08102ba49af/packages/agent-sdk/src/backgroundable.ts#L30)
 
 A registered operation run_async can launch in the background: uniform
 surface over any input type. `start` parses the raw tool input with the
@@ -19,7 +19,7 @@ plus the in-flight promise, with optional progress tap.
 
 > `readonly` **description**: `string`
 
-Defined in: [packages/agent-sdk/src/backgroundable.ts:32](https://github.com/zocomputer/zov2-code/blob/492659e3281a9b9d11501446d7ec2e941b7da162/packages/agent-sdk/src/backgroundable.ts#L32)
+Defined in: [packages/agent-sdk/src/backgroundable.ts:32](https://github.com/zocomputer/zov2-code/blob/1201055c5cc9e558bf15b3fd953dc08102ba49af/packages/agent-sdk/src/backgroundable.ts#L32)
 
 ***
 
@@ -27,7 +27,7 @@ Defined in: [packages/agent-sdk/src/backgroundable.ts:32](https://github.com/zoc
 
 > `readonly` **inputJsonSchema**: `unknown`
 
-Defined in: [packages/agent-sdk/src/backgroundable.ts:34](https://github.com/zocomputer/zov2-code/blob/492659e3281a9b9d11501446d7ec2e941b7da162/packages/agent-sdk/src/backgroundable.ts#L34)
+Defined in: [packages/agent-sdk/src/backgroundable.ts:34](https://github.com/zocomputer/zov2-code/blob/1201055c5cc9e558bf15b3fd953dc08102ba49af/packages/agent-sdk/src/backgroundable.ts#L34)
 
 JSON Schema of the op's input, surfaced so the model knows what to pass.
 
@@ -37,7 +37,7 @@ JSON Schema of the op's input, surfaced so the model knows what to pass.
 
 > `readonly` **name**: `string`
 
-Defined in: [packages/agent-sdk/src/backgroundable.ts:31](https://github.com/zocomputer/zov2-code/blob/492659e3281a9b9d11501446d7ec2e941b7da162/packages/agent-sdk/src/backgroundable.ts#L31)
+Defined in: [packages/agent-sdk/src/backgroundable.ts:31](https://github.com/zocomputer/zov2-code/blob/1201055c5cc9e558bf15b3fd953dc08102ba49af/packages/agent-sdk/src/backgroundable.ts#L31)
 
 ## Methods
 
@@ -45,7 +45,7 @@ Defined in: [packages/agent-sdk/src/backgroundable.ts:31](https://github.com/zoc
 
 > **start**(`rawInput`, `extras?`): `object`
 
-Defined in: [packages/agent-sdk/src/backgroundable.ts:40](https://github.com/zocomputer/zov2-code/blob/492659e3281a9b9d11501446d7ec2e941b7da162/packages/agent-sdk/src/backgroundable.ts#L40)
+Defined in: [packages/agent-sdk/src/backgroundable.ts:40](https://github.com/zocomputer/zov2-code/blob/1201055c5cc9e558bf15b3fd953dc08102ba49af/packages/agent-sdk/src/backgroundable.ts#L40)
 
 Parse input and start the operation. Returns a user-facing label, the
 in-flight work promise, and optionally a progress tap that reads the
