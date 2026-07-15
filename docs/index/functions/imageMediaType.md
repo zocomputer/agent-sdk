@@ -8,7 +8,7 @@
 
 > **imageMediaType**(`format`): `string`
 
-Defined in: [packages/agent-sdk/src/file-kind.ts:13](https://github.com/zocomputer/zov2-code/blob/8ddca74b7284f16fe6a147e3eb2a55bed9838617/packages/agent-sdk/src/file-kind.ts#L13)
+Defined in: [packages/agent-sdk/src/file-kind.ts:13](https://github.com/zocomputer/zov2-code/blob/492659e3281a9b9d11501446d7ec2e941b7da162/packages/agent-sdk/src/file-kind.ts#L13)
 
 The MIME type for a detected image format (for data URLs / file parts).
 

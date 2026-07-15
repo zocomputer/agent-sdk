@@ -8,6 +8,6 @@
 
 > **DirConventionsRider** = \{ `content`: `string`; `path`: `string`; \} \| \{ `note`: `string`; `path`: `string`; \}
 
-Defined in: [packages/agent-sdk/src/dir-conventions.ts:21](https://github.com/zocomputer/zov2-code/blob/8ddca74b7284f16fe6a147e3eb2a55bed9838617/packages/agent-sdk/src/dir-conventions.ts#L21)
+Defined in: [packages/agent-sdk/src/dir-conventions.ts:21](https://github.com/zocomputer/zov2-code/blob/492659e3281a9b9d11501446d7ec2e941b7da162/packages/agent-sdk/src/dir-conventions.ts#L21)
 
 One conventions rider attached to a read result.

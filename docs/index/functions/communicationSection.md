@@ -8,7 +8,7 @@
 
 > **communicationSection**(`opts?`): [`PromptSection`](../interfaces/PromptSection.md)
 
-Defined in: [packages/agent-sdk/src/instructions.ts:298](https://github.com/zocomputer/zov2-code/blob/8ddca74b7284f16fe6a147e3eb2a55bed9838617/packages/agent-sdk/src/instructions.ts#L298)
+Defined in: [packages/agent-sdk/src/instructions.ts:298](https://github.com/zocomputer/zov2-code/blob/492659e3281a9b9d11501446d7ec2e941b7da162/packages/agent-sdk/src/instructions.ts#L298)
 
 The reporting-contract section: lead with the outcome, write tightly and
 concretely, take a position, structure deliberately, report-don't-fix when

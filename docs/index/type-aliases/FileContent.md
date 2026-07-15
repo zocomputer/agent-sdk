@@ -8,6 +8,6 @@
 
 > **FileContent** = \{ `kind`: `"text"`; `text`: `string`; \} \| \{ `kind`: `"pdf"`; `pages`: `number`; `text`: `string`; \} \| \{ `kind`: `"docx"`; `text`: `string`; \} \| \{ `kind`: `"pptx"`; `slides`: `number`; `text`: `string`; \} \| \{ `kind`: `"odt"`; `text`: `string`; \} \| \{ `kind`: `"odp"`; `slides`: `number`; `text`: `string`; \} \| \{ `kind`: `"epub"`; `sections`: `number`; `text`: `string`; \} \| \{ `cells`: `number`; `kind`: `"ipynb"`; `text`: `string`; \} \| \{ `kind`: `"rtf"`; `text`: `string`; \} \| \{ `format`: [`SheetFormat`](SheetFormat.md); `kind`: `"sheet"`; `sheets`: readonly [`SheetMeta`](../interfaces/SheetMeta.md)[]; `text`: `string`; \} \| \{ `format`: [`ImageFormat`](ImageFormat.md); `height`: `number` \| `null`; `kind`: `"image"`; `width`: `number` \| `null`; \} \| \{ `format`: [`VideoFormat`](VideoFormat.md); `kind`: `"video"`; \} \| \{ `format`: [`AudioFormat`](AudioFormat.md); `kind`: `"audio"`; \}
 
-Defined in: [packages/agent-sdk/src/read-file-content.ts:27](https://github.com/zocomputer/zov2-code/blob/8ddca74b7284f16fe6a147e3eb2a55bed9838617/packages/agent-sdk/src/read-file-content.ts#L27)
+Defined in: [packages/agent-sdk/src/read-file-content.ts:27](https://github.com/zocomputer/zov2-code/blob/492659e3281a9b9d11501446d7ec2e941b7da162/packages/agent-sdk/src/read-file-content.ts#L27)
 
 Content routed by detected file kind: text (native or extracted), image/video/audio metadata, or a thrown error for unsupported binaries.
