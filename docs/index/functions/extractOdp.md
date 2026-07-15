@@ -8,7 +8,7 @@
 
 > **extractOdp**(`bytes`): [`OdpExtraction`](../type-aliases/OdpExtraction.md)
 
-Defined in: [packages/agent-sdk/src/extract/odf.ts:121](https://github.com/zocomputer/zov2-code/blob/344fef7287e3cdac215bfeba4bb54fc2101e5e6e/packages/agent-sdk/src/extract/odf.ts#L121)
+Defined in: [packages/agent-sdk/src/extract/odf.ts:121](https://github.com/zocomputer/zov2-code/blob/ea094c0d7d3efd4351c48b5c1bd38d95a1836e8d/packages/agent-sdk/src/extract/odf.ts#L121)
 
 Extract ODP (OpenDocument presentation) bytes into text: one
 `=== slide N of M ===` block per `draw:page`.

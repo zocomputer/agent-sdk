@@ -46,6 +46,12 @@ const fixture = (name: string) =>
   new URL(`../extract/fixtures/${name}`, import.meta.url).pathname;
 
 describe("webfetch tool", () => {
+  test("description distinguishes in-context fetches from browser and clipping workflows", () => {
+    const tool = toolWith(new Response("ok"));
+    expect(tool.description).toContain("with Defuddle");
+    expect(tool.description).toContain("not a browser session or a durable clipping workflow");
+  });
+
   test("converts an html page to markdown by default", async () => {
     const tool = toolWith(
       new Response("<html><body><h1>Title</h1><p>Body text.</p></body></html>", {

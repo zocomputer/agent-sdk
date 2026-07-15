@@ -203,6 +203,19 @@ The names are deliberately boring; the behavior behind them is the point:
   eve process's disk the sandbox-backed `read` can't reach), the whole
   rendered content returns inline up to `maxInlineContentChars` (default
   100k), then truncates head+tail with no file to point at.
+- **Sandbox artifact routing is opt-in.** `sandboxArtifactsSection()` (or the
+  standalone `createSandboxArtifactsInstruction()`) teaches agents when to
+  keep work in `webfetch`/`read`/`look` and when to use Defuddle,
+  agent-browser, document/PDF/OCR, data, or media CLIs through `bash`. Do not
+  add it to an arbitrary SDK consumer: it promises Zo's standard sandbox
+  image. The seed and Builder opt in because they run on that image; declared
+  subagents re-export the same instruction because Eve does not inherit the
+  parent's prompt modules.
+  The video fallback keeps audio and timecodes, combines PySceneDetect's
+  shot-aware previews with sparse uniform FFmpeg sampling, and asks for denser
+  frames only around rapid or question-relevant intervals. This avoids the two
+  common lossy shortcuts: silently dropping audio and treating one still as
+  evidence of motion.
 - **`todo`** wraps eve's framework todo — same durable session state, same
   schemas and `{ counts, todos }` result, so the UI checklist and the
   compaction re-injection keep working — and enforces the checklist rules the

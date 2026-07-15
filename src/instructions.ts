@@ -476,6 +476,65 @@ export function createLookInstruction(opts: {
 }
 
 // ---------------------------------------------------------------------------
+// Sandbox artifact workflows
+// ---------------------------------------------------------------------------
+
+/**
+ * Routing guidance for consumers whose sandbox image carries Zo's standard
+ * document, browser, media, and data CLIs. Kept opt-in because the SDK can
+ * also run over arbitrary sandboxes that do not provide this image contract.
+ */
+export function sandboxArtifactsSection(opts?: {
+  /** Prose depth; defaults to "full". */
+  tier?: InstructionTier | undefined;
+}): PromptSection {
+  const body =
+    (opts?.tier ?? "full") === "compact"
+      ? `Use tools for understanding; use sandbox CLIs for durable artifacts and deterministic transforms.
+
+- \`webfetch\` brings one URL into context. Persist clean static content with \`defuddle parse <url-or-html> --markdown -o <file>\`; use \`agent-browser\` for interaction, authentication, or client-rendered pages (run \`agent-browser skills get core\` for its version-matched workflow).
+- \`read\` extracts document/data text; \`look\` inspects layout, pixels, audio, or video. Use Pandoc/LibreOffice/Typst and the PDF/OCR tools to create or convert documents; DuckDB/SQLite/jq/yq for data transforms.
+- Use the cloud media tools for generation; use ffmpeg/libvips/ImageMagick/ExifTool/yt-dlp for deterministic media work. For a model without video input, preserve audio/transcript and timestamps, then combine shot-aware \`scenedetect\` frames with a sparse uniform sample; inspect rapid or important intervals more densely.`
+      : `Choose between an in-context tool result and a durable sandbox artifact deliberately:
+
+- **Web content:** use \`webfetch\` when you need one URL's content in the conversation. It performs one read-only request and extracts the main content; it is not a browser session or a clipping workflow. To save clean Markdown without routing the full article through context, run \`defuddle parse <url-or-html> --markdown -o <file>\`. Use \`agent-browser\` when the page needs JavaScript, interaction, or authentication; run \`agent-browser skills get core\` for instructions matching the installed CLI. A rendered page can then be saved as HTML and passed to Defuddle.
+- **Documents and data:** use \`read\` for extracted text and \`look\` when layout or pixels matter. Use Pandoc, LibreOffice, Typst, and the PDF/OCR tools through \`bash\` when the deliverable is a created or converted file. Use DuckDB, SQLite, jq, or yq for repeatable queries and transforms instead of pasting large datasets into context.
+- **Media:** use \`look\` to understand existing media and the cloud media tools to generate new media. Use ffmpeg, libvips/ImageMagick, ExifTool, or yt-dlp through \`bash\` for deterministic conversion, resizing, metadata, extraction, and download work.
+- **Video fallback:** when \`look\` can take the whole video, prefer it and ask for timestamped audio-plus-visual evidence. For a model or workflow without video input, keep both channels: extract/transcribe the audio, then create a visual digest. Use \`scenedetect -i <video> detect-adaptive list-scenes save-images\` for a timestamped scene manifest and representative start/middle/end frames. Add a sparse uniform FFmpeg sample so long continuous shots retain temporal coverage; sample rapid or question-relevant intervals at a higher FPS. Preserve chronological order and timestamps in filenames/captions. Use a labeled contact sheet when one image is easier to pass than many frames, but keep enough per-frame resolution for text; OCR important screen text separately. Avoid near-duplicate frames and never infer motion or causality from a single still.
+
+Prefer the narrowest capable path, write outputs into the workspace, and verify the resulting artifact before reporting completion.`;
+  return {
+    id: "sandbox-artifacts",
+    heading: "Sandbox artifacts and heavyweight workflows",
+    body,
+  };
+}
+
+/** Pure markdown for the sandbox artifact playbook. */
+export function buildSandboxArtifactsMarkdown(opts?: {
+  tier?: InstructionTier | undefined;
+}): string {
+  return renderPromptSection(sandboxArtifactsSection(opts));
+}
+
+/**
+ * Opt-in playbook for agents backed by Zo's standard sandbox image. Static
+ * and session-stable so it remains prompt-cache safe.
+ */
+export function createSandboxArtifactsInstruction(opts?: {
+  tier?: InstructionTier | undefined;
+}) {
+  const instruction = defineInstructions({
+    markdown: buildSandboxArtifactsMarkdown(opts),
+  });
+  return defineDynamic({
+    events: {
+      "session.started": () => instruction,
+    },
+  });
+}
+
+// ---------------------------------------------------------------------------
 // Delegation (subagents)
 // ---------------------------------------------------------------------------
 

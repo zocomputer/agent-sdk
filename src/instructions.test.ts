@@ -11,6 +11,7 @@ import {
   buildParallelToolsMarkdown,
   buildPlanningMarkdown,
   buildRepoConventionsMarkdown,
+  buildSandboxArtifactsMarkdown,
   buildSubagentMarkdown,
   buildToolAuthoringMarkdown,
   buildWorkflowMarkdown,
@@ -76,6 +77,22 @@ test("parallel-tools requires explicit task polling, in both tiers", () => {
     const markdown = buildParallelToolsMarkdown({ tier });
     expect(markdown).toContain("`run_async`");
     expect(markdown).not.toContain("notify");
+  }
+});
+
+test("sandbox artifact guidance preserves the tool-to-CLI routing in both tiers", () => {
+  for (const tier of ["full", "compact"] as const) {
+    const markdown = buildSandboxArtifactsMarkdown({ tier });
+    expect(markdown).toContain("`webfetch`");
+    expect(markdown).toContain("`defuddle parse <url-or-html> --markdown -o <file>`");
+    expect(markdown).toContain("`agent-browser skills get core`");
+    expect(markdown).toContain("`read`");
+    expect(markdown).toContain("`look`");
+    expect(markdown).toContain("ffmpeg");
+    expect(markdown).toContain("scenedetect");
+    expect(markdown).toContain("timestamps");
+    expect(markdown).toContain("audio");
+    expect(markdown).toContain("DuckDB");
   }
 });
 
