@@ -8,7 +8,7 @@
 
 > **resolveWithin**(`root`, `path`): `string`
 
-Defined in: [packages/agent-sdk/src/workspace.ts:11](https://github.com/zocomputer/zov2-code/blob/f95a48c7e1f1a7b1961c045374fb5540573a3627/packages/agent-sdk/src/workspace.ts#L11)
+Defined in: [packages/agent-sdk/src/workspace.ts:11](https://github.com/zocomputer/zov2-code/blob/ff98edef5b507bf96c80f8f4c36882d827c8a81e/packages/agent-sdk/src/workspace.ts#L11)
 
 Resolve `path` against `root` and refuse anything that escapes it. Relative
 paths resolve from `root`; an absolute path must already sit inside it.

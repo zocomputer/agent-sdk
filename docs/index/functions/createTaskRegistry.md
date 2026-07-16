@@ -8,19 +8,27 @@
 
 > **createTaskRegistry**(`opts`): [`TaskRegistry`](../interfaces/TaskRegistry.md)
 
-Defined in: [packages/agent-sdk/src/async-tasks.ts:204](https://github.com/zocomputer/zov2-code/blob/f95a48c7e1f1a7b1961c045374fb5540573a3627/packages/agent-sdk/src/async-tasks.ts#L204)
+Defined in: [packages/agent-sdk/src/async-tasks.ts:239](https://github.com/zocomputer/zov2-code/blob/ff98edef5b507bf96c80f8f4c36882d827c8a81e/packages/agent-sdk/src/async-tasks.ts#L239)
 
 Create a task registry backed by a JSON store. Registries are deduped per
-`storePath` on `globalThis` so multiple module copies (across rebuilds or
-static vs dynamic exports) converge on one instance.
+`storePath` and ABI on `globalThis` so compatible module copies (across
+rebuilds or static vs dynamic exports) converge on one instance.
 
 ## Parameters
 
 ### opts
 
+#### newTaskId?
+
+() => `string`
+
+Test seam for deterministic ids; production uses `crypto.randomUUID`.
+
 #### storePath
 
 `string`
+
+JSON persistence path owned by the caller.
 
 ## Returns
 

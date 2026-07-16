@@ -1,9 +1,9 @@
-import { afterAll, describe, expect, test } from "bun:test";
+import { afterAll, describe, expect, spyOn, test } from "bun:test";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import type { ToolContext } from "eve/tools";
-import { createTaskRegistry } from "../async-tasks";
+import { createTaskRegistry, taskScopeForSession } from "../async-tasks";
 import { createBashOp } from "../backgroundable";
 import { createCommandRunner } from "../run";
 import { createWorkspace } from "../workspace";
@@ -44,9 +44,19 @@ function ctxWith(sessionId: string): ToolContext {
   };
 }
 const ctx = ctxWith("tasks-test-session");
+const missingTaskId = "task_00000000-0000-4000-8000-000000000000";
+
+async function rejectionMessage(promise: Promise<unknown>): Promise<string> {
+  try {
+    await promise;
+  } catch (error) {
+    return error instanceof Error ? error.message : String(error);
+  }
+  throw new Error("Expected promise to reject");
+}
 
 describe("check_tasks session scoping", () => {
-  test("lists only the calling session's tasks; await_task stays id-scoped", async () => {
+  test("lists and awaits only the calling session's tasks", async () => {
     const mine = await toolset.run_async.execute(
       { tool: "bash", input: { command: "echo mine" } },
       ctxWith("session-one"),
@@ -60,13 +70,35 @@ describe("check_tasks session scoping", () => {
     const ids = listed.tasks.map((t) => t.task_id);
     expect(ids).toContain(mine.task_id);
     expect(ids).not.toContain(theirs.task_id);
+    expect(mine.task_id).toMatch(
+      /^task_[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
+    );
 
-    // A task id is an unguessable capability — lookups by id stay unscoped.
-    const awaited = await toolset.await_task.execute(
-      { task_id: theirs.task_id, wait_ms: 5_000 },
+    const foreignMessage = await rejectionMessage(
+      Promise.resolve(
+        toolset.await_task.execute(
+          { task_id: theirs.task_id, wait_ms: 5_000 },
+          ctxWith("session-one"),
+        ),
+      ),
+    );
+    const missingMessage = await rejectionMessage(
+      Promise.resolve(
+        toolset.await_task.execute(
+          { task_id: missingTaskId, wait_ms: 5_000 },
+          ctxWith("session-one"),
+        ),
+      ),
+    );
+    expect(foreignMessage.replace(theirs.task_id, "<task_id>")).toBe(
+      missingMessage.replace(missingTaskId, "<task_id>"),
+    );
+
+    const mineResult = await toolset.await_task.execute(
+      { task_id: mine.task_id, wait_ms: 5_000 },
       ctxWith("session-one"),
     );
-    expect(awaited).toMatchObject({ task_id: theirs.task_id, status: "done" });
+    expect(mineResult).toMatchObject({ task_id: mine.task_id, status: "done" });
   });
 });
 
@@ -80,10 +112,27 @@ describe("await_task failure hygiene", () => {
 
 describe("run_async failure hygiene", () => {
   test("bad op input rejects with the field named, and starts nothing", () => {
-    const before = registry.listTasks().length;
+    const scope = taskScopeForSession(ctx.session.id);
+    const before = registry.listTasks(scope).length;
     expect(() =>
       toolset.run_async.execute({ tool: "bash", input: { command: 42 } }, ctx),
     ).toThrow(/Invalid input for "bash" — nothing was started/);
-    expect(registry.listTasks().length).toBe(before);
+    expect(registry.listTasks(scope).length).toBe(before);
+  });
+
+  test("missing session context fails before work starts or task state is read", async () => {
+    const start = spyOn(runner, "startCommand");
+    expect(() =>
+      // @ts-expect-error Exercise the runtime fail-closed boundary.
+      toolset.run_async.execute({ tool: "bash", input: { command: "echo orphan" } }, undefined),
+    ).toThrow(/require an active session/);
+    // @ts-expect-error Exercise the runtime fail-closed boundary.
+    expect(() => toolset.check_tasks.execute({}, undefined)).toThrow(/require an active session/);
+    await expect(
+      // @ts-expect-error Exercise the runtime fail-closed boundary.
+      toolset.await_task.execute({ task_id: missingTaskId }, undefined),
+    ).rejects.toThrow(/require an active session/);
+    expect(start).not.toHaveBeenCalled();
+    start.mockRestore();
   });
 });

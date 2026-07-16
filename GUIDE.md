@@ -230,8 +230,10 @@ The names are deliberately boring; the behavior behind them is the point:
   standalone (`validateTodoWrite`, `parseTodoItems`, `formatTodoViolations`
   in `todo-discipline.ts`).
 - **`run_async` / `check_tasks` / `await_task`** persist the task registry
-  across restarts (tasks running across a restart report as `lost`); any
-  `defineOp` op becomes `run_async`-able via `extraBackgroundables`.
+  across restarts (tasks running across a restart report as `lost`). Every
+  task is isolated to its spawning session, and UUID-backed ids do not reveal
+  creation order. Any `defineOp` op becomes `run_async`-able via
+  `extraBackgroundables`.
 
 ## Media reads (images, video, audio)
 

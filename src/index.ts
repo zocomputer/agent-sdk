@@ -87,7 +87,9 @@ export interface SandboxFileToolsOptions {
    * (task metadata + completed results, surviving an agent restart).
    * Defaults to a per-process path under the OS temp dir — fine for
    * serverless, where the store's lifetime matches the instance anyway;
-   * agents on durable hosts pass a real state path.
+   * agents on durable hosts pass a real state path. Keep it outside any
+   * model-readable workspace and give it one active writer; this registry is
+   * restart persistence, not a multi-process job coordinator.
    */
   taskStorePath?: string;
   /** Extra prompt text for interactive-command guidance. */

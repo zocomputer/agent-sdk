@@ -1,20 +1,39 @@
-// ../../../../../tmp/agent-sdk-mirror-XpkfuE/repo/src/index.ts
+// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/src/index.ts
 import { tmpdir } from "node:os";
 import { join as join7 } from "node:path";
 
-// ../../../../../tmp/agent-sdk-mirror-XpkfuE/repo/src/async-tasks.ts
+// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/src/async-tasks.ts
+import { randomUUID } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname } from "node:path";
+import { z } from "zod";
+var TASK_ID_PATTERN = /^task_[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+var TASK_STORE_VERSION = 2;
+var TaskIdSchema = z.string().regex(TASK_ID_PATTERN).brand();
+function parseTaskId(value) {
+  const parsed = TaskIdSchema.safeParse(value);
+  return parsed.success ? parsed.data : null;
+}
+var TaskScopeSchema = z.object({
+  kind: z.literal("session"),
+  sessionId: z.string().min(1)
+});
+function taskScopeForSession(sessionId) {
+  if (sessionId === undefined || sessionId.length === 0) {
+    throw new Error("Background task tools require an active session. Nothing was started or read; retry from an active Eve session.");
+  }
+  return { kind: "session", sessionId };
+}
 function isRecord(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 function isTask(value) {
   if (!isRecord(value))
     return false;
-  if (typeof value.id !== "string" || typeof value.tool !== "string" || typeof value.label !== "string" || typeof value.startedAt !== "number" || typeof value.status !== "string") {
+  if (parseTaskId(value.id) === null || typeof value.tool !== "string" || typeof value.label !== "string" || typeof value.startedAt !== "number" || typeof value.status !== "string") {
     return false;
   }
-  if (value.sessionId !== undefined && typeof value.sessionId !== "string")
+  if (!TaskScopeSchema.safeParse(value.scope).success)
     return false;
   switch (value.status) {
     case "running":
@@ -28,8 +47,8 @@ function isTask(value) {
       return false;
   }
 }
-var MAX_TASKS = 100;
-var REGISTRY_CACHE_KEY = Symbol.for("zocomputer.agent-sdk.task-registries");
+var MAX_SETTLED_TASKS = 100;
+var REGISTRY_CACHE_KEY = Symbol.for(`zocomputer.agent-sdk.task-registries.v${TASK_STORE_VERSION}`);
 function registryCache() {
   const holder = globalThis;
   holder[REGISTRY_CACHE_KEY] ??= new Map;
@@ -38,7 +57,6 @@ function registryCache() {
 function __resetTaskRegistryCacheForTests() {
   registryCache().clear();
 }
-var STORE_POLL_MS = 500;
 function abortReason(signal) {
   if (signal.reason instanceof Error)
     return signal.reason;
@@ -95,9 +113,6 @@ function createWait(ms, abortSignal) {
   });
   return { promise, cancel: () => cancel() };
 }
-function waitFor(ms, abortSignal) {
-  return createWait(ms, abortSignal).promise;
-}
 function createTaskRegistry(opts) {
   const cache = registryCache();
   const cached = cache.get(opts.storePath);
@@ -111,33 +126,39 @@ function buildTaskRegistry(opts) {
   const { storePath } = opts;
   const tasks = new Map;
   const pending = new Map;
-  let counter = 0;
+  const activeWaiters = new Map;
+  const newTaskId = opts.newTaskId ?? (() => `task_${randomUUID()}`);
+  function sameScope(left, right) {
+    return left.kind === right.kind && left.sessionId === right.sessionId;
+  }
+  function canAccess(scope, task) {
+    return sameScope(scope, task.scope);
+  }
   function allTasks() {
     return [...tasks.values()].sort((a, b) => a.startedAt - b.startedAt);
   }
-  function listTasks(sessionId) {
-    const all = allTasks();
-    if (sessionId === undefined)
-      return all;
-    return all.filter((t) => t.sessionId === undefined || t.sessionId === sessionId);
+  function listTasks(scope) {
+    return allTasks().filter((task) => canAccess(scope, task));
   }
   function persist() {
-    mkdirSync(dirname(storePath), { recursive: true });
-    writeFileSync(storePath, JSON.stringify({ tasks: allTasks() }, null, 2), "utf8");
+    mkdirSync(dirname(storePath), { recursive: true, mode: 448 });
+    writeFileSync(storePath, JSON.stringify({ version: TASK_STORE_VERSION, scopedTasks: allTasks() }, null, 2), { encoding: "utf8", mode: 384 });
   }
   function readStoreTasks() {
     if (!existsSync(storePath))
       return [];
     try {
       const parsed = JSON.parse(readFileSync(storePath, "utf8"));
-      if (!isRecord(parsed) || !Array.isArray(parsed.tasks))
+      if (!isRecord(parsed) || parsed.version !== TASK_STORE_VERSION || !Array.isArray(parsed.scopedTasks)) {
         return [];
-      return parsed.tasks.filter(isTask);
+      }
+      return parsed.scopedTasks.filter(isTask);
     } catch {
       return [];
     }
   }
   function loadPersisted() {
+    let convertedRunningTask = false;
     for (const saved of readStoreTasks()) {
       const task = saved.status === "running" ? {
         ...saved,
@@ -145,47 +166,58 @@ function buildTaskRegistry(opts) {
         finishedAt: Date.now(),
         error: "The agent restarted before this background task finished."
       } : saved;
+      if (saved.status === "running")
+        convertedRunningTask = true;
       tasks.set(task.id, task);
-      const match = task.id.match(/^task_(\d+)$/);
-      const n = match ? Number(match[1]) : 0;
-      if (Number.isFinite(n))
-        counter = Math.max(counter, n);
     }
+    const pruned = pruneSettledTasks();
+    if (convertedRunningTask || pruned)
+      persist();
   }
   loadPersisted();
-  function storeTask(id) {
-    return readStoreTasks().find((task) => task.id === id);
-  }
-  function prune() {
-    if (tasks.size <= MAX_TASKS)
-      return;
-    const settled = [...tasks.values()].filter((t) => t.status !== "running").sort((a, b) => a.startedAt - b.startedAt);
-    for (const t of settled) {
-      if (tasks.size <= MAX_TASKS)
+  function pruneSettledTasks() {
+    const settled = [...tasks.values()].filter((task) => task.status !== "running" && !activeWaiters.has(task.id)).sort((a, b) => a.startedAt - b.startedAt);
+    let excess = settled.length - MAX_SETTLED_TASKS;
+    let pruned = false;
+    for (const task of settled) {
+      if (excess <= 0)
         break;
-      tasks.delete(t.id);
-      pending.delete(t.id);
+      tasks.delete(task.id);
+      pending.delete(task.id);
+      excess -= 1;
+      pruned = true;
     }
-    persist();
+    return pruned;
   }
-  function spawnTask(tool, label, work, sessionId) {
-    const id = `task_${++counter}`;
+  function nextTaskId() {
+    for (let attempt = 0;attempt < 3; attempt += 1) {
+      const id = parseTaskId(newTaskId());
+      if (id === null) {
+        throw new Error("newTaskId must return task_<uuid>.");
+      }
+      if (!tasks.has(id))
+        return id;
+    }
+    throw new Error("Unable to allocate a unique background task id.");
+  }
+  function spawnTask(scope, tool, label, work) {
+    const id = nextTaskId();
     const startedAt = Date.now();
-    const scope = sessionId !== undefined ? { sessionId } : {};
-    tasks.set(id, { id, tool, label, ...scope, startedAt, status: "running" });
+    tasks.set(id, { id, tool, label, scope, startedAt, status: "running" });
     pending.set(id, work);
     work.then((result) => {
       tasks.set(id, {
         id,
         tool,
         label,
-        ...scope,
+        scope,
         startedAt,
         status: "done",
         finishedAt: Date.now(),
         result
       });
       pending.delete(id);
+      pruneSettledTasks();
       persist();
     }, (err) => {
       const error = err instanceof Error ? err.message : String(err);
@@ -193,39 +225,44 @@ function buildTaskRegistry(opts) {
         id,
         tool,
         label,
-        ...scope,
+        scope,
         startedAt,
         status: "error",
         finishedAt: Date.now(),
         error
       });
       pending.delete(id);
+      pruneSettledTasks();
       persist();
     });
-    prune();
+    pruneSettledTasks();
     persist();
     return id;
   }
   return {
     spawnTask,
-    updateTaskProgress(id, progress) {
+    updateTaskProgress(scope, id, progress) {
       const task = tasks.get(id);
-      if (!task || task.status !== "running")
+      if (!task || !canAccess(scope, task) || task.status !== "running")
         return;
       tasks.set(id, { ...task, progress });
     },
     listTasks,
-    getTask(id) {
-      return tasks.get(id) ?? storeTask(id);
+    getTask(scope, id) {
+      const task = tasks.get(id);
+      return task && canAccess(scope, task) ? task : undefined;
     },
-    async awaitTask(id, waitMs, abortSignal) {
+    async awaitTask(scope, id, waitMs, abortSignal) {
       const current = tasks.get(id);
       if (current) {
+        if (!canAccess(scope, current))
+          return;
         if (current.status !== "running")
           return current;
         const work = pending.get(id);
         if (work) {
           const wait = createWait(waitMs, abortSignal);
+          activeWaiters.set(id, (activeWaiters.get(id) ?? 0) + 1);
           try {
             await Promise.race([
               work.then(() => {
@@ -235,38 +272,37 @@ function buildTaskRegistry(opts) {
               }),
               wait.promise
             ]);
+            return tasks.get(id);
           } finally {
             wait.cancel();
+            const waiterCount = activeWaiters.get(id) ?? 1;
+            if (waiterCount === 1)
+              activeWaiters.delete(id);
+            else
+              activeWaiters.set(id, waiterCount - 1);
+            if (pruneSettledTasks())
+              persist();
           }
         }
         return tasks.get(id);
       }
-      const deadline = Date.now() + waitMs;
-      for (;; ) {
-        const saved = storeTask(id);
-        if (!saved || saved.status !== "running")
-          return saved;
-        const remaining = deadline - Date.now();
-        if (remaining <= 0)
-          return saved;
-        await waitFor(Math.min(STORE_POLL_MS, remaining), abortSignal);
-      }
+      return;
     }
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-XpkfuE/repo/src/backgroundable.ts
-import { z } from "zod";
+// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/src/backgroundable.ts
+import { z as z2 } from "zod";
 function defineOp(cfg) {
   return {
     name: cfg.name,
     description: cfg.description,
-    inputJsonSchema: z.toJSONSchema(cfg.inputSchema),
+    inputJsonSchema: z2.toJSONSchema(cfg.inputSchema),
     start(rawInput, extras) {
       const parsed = cfg.inputSchema.safeParse(rawInput);
       if (!parsed.success) {
         throw new Error(`Invalid input for "${cfg.name}" — nothing was started. Fix the input to match the tool's schema (shown in the run_async catalog) and resend.
-${z.prettifyError(parsed.error)}`);
+${z2.prettifyError(parsed.error)}`);
       }
       const started = cfg.run(parsed.data, extras);
       if (started instanceof Promise)
@@ -283,10 +319,10 @@ function createBashOp(runner) {
   return defineOp({
     name: "bash",
     description: "Run a shell command in the background (git, bun, tests, builds, installs, dev servers). Same as the bash tool, but non-blocking.",
-    inputSchema: z.object({
-      command: z.string().min(1),
-      cwd: z.string().optional(),
-      timeout_ms: z.number().int().positive().optional()
+    inputSchema: z2.object({
+      command: z2.string().min(1),
+      cwd: z2.string().optional(),
+      timeout_ms: z2.number().int().positive().optional()
     }),
     label: ({ command }) => truncate(command),
     run: ({ command, cwd, timeout_ms }, extras) => {
@@ -301,7 +337,7 @@ function createBashOp(runner) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-XpkfuE/repo/src/dir-conventions.ts
+// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/src/dir-conventions.ts
 import { readFileSync as readFileSync2 } from "node:fs";
 import { join } from "node:path";
 var DEFAULT_MAX_BYTES_PER_FILE = 16 * 1024;
@@ -413,12 +449,12 @@ function createDirConventionsTracker(options) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-XpkfuE/repo/src/instructions.ts
+// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/src/instructions.ts
 import { readFileSync as readFileSync3 } from "node:fs";
 import { resolve } from "node:path";
 import { defineDynamic, defineInstructions } from "eve/instructions";
 
-// ../../../../../tmp/agent-sdk-mirror-XpkfuE/repo/src/model-capabilities.ts
+// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/src/model-capabilities.ts
 var TEXT_ONLY_CAPABILITIES = {
   image: false,
   pdf: false,
@@ -477,7 +513,7 @@ function describeCapabilities(caps) {
   return `can view ${joinList(can, "and")}, but not ${joinList(cannot, "or")}`;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-XpkfuE/repo/src/prompt-sections.ts
+// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/src/prompt-sections.ts
 function renderPromptSection(section) {
   const body = section.body.trim();
   if (body === "")
@@ -520,7 +556,7 @@ function composePromptSections(baseline, options) {
   return composed;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-XpkfuE/repo/src/instructions.ts
+// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/src/instructions.ts
 function repoConventionsSection(opts) {
   let agents = "";
   try {
@@ -874,9 +910,9 @@ function createInstructionStackInstruction(opts) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-XpkfuE/repo/src/tools/bash.ts
+// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/src/tools/bash.ts
 import { defineTool } from "eve/tools";
-import { z as z2 } from "zod";
+import { z as z3 } from "zod";
 var DEFAULT_INTERACTIVE_HINT = "This is a piped shell with NO tty: avoid interactive or full-screen CLIs (a REPL, vim, an interactive installer/prompt) — those programs hang or degrade without a real terminal.";
 function abortReason2(signal) {
   if (signal.reason instanceof Error)
@@ -896,13 +932,14 @@ function createBashTool(opts) {
     interactiveHint
   ].join(" ");
   const baseParams = {
-    command: z2.string().min(1).describe("The shell command to run."),
-    cwd: z2.string().optional().describe(`Working directory, relative to the ${noun} root. Defaults to the ${noun} root.`),
-    timeout_ms: z2.number().int().positive().optional().describe("Kill the command after this many milliseconds (default 600000)."),
-    foreground_ms: z2.number().int().positive().optional().describe("How long to wait before returning a background task handle (default 2000).")
+    command: z3.string().min(1).describe("The shell command to run."),
+    cwd: z3.string().optional().describe(`Working directory, relative to the ${noun} root. Defaults to the ${noun} root.`),
+    timeout_ms: z3.number().int().positive().optional().describe("Kill the command after this many milliseconds (default 600000)."),
+    foreground_ms: z3.number().int().positive().optional().describe("How long to wait before returning a background task handle (default 2000).")
   };
   async function runBash(args, ctx) {
     const { command, cwd, timeout_ms, foreground_ms } = args;
+    const scope = taskScopeForSession(ctx?.session?.id);
     const runner = resolveRunner(ctx);
     const running = runner.startCommand(command, {
       cwd,
@@ -960,9 +997,9 @@ function createBashTool(opts) {
         stderr: result.stderr
       };
     }
-    const taskId = registry.spawnTask("bash", command, running.result, ctx?.session?.id);
-    registry.updateTaskProgress(taskId, running.progress());
-    const interval = setInterval(() => registry.updateTaskProgress(taskId, running.progress()), 500);
+    const taskId = registry.spawnTask(scope, "bash", command, running.result);
+    registry.updateTaskProgress(scope, taskId, running.progress());
+    const interval = setInterval(() => registry.updateTaskProgress(scope, taskId, running.progress()), 500);
     running.result.finally(() => clearInterval(interval)).catch(() => {
       return;
     });
@@ -977,16 +1014,16 @@ function createBashTool(opts) {
   }
   return defineTool({
     description,
-    inputSchema: z2.object(baseParams),
+    inputSchema: z3.object(baseParams),
     execute: (args, ctx) => runBash(args, ctx)
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-XpkfuE/repo/src/tools/edit.ts
+// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/src/tools/edit.ts
 import { defineTool as defineTool2 } from "eve/tools";
-import { z as z3 } from "zod";
+import { z as z4 } from "zod";
 
-// ../../../../../tmp/agent-sdk-mirror-XpkfuE/repo/src/edit-match.ts
+// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/src/edit-match.ts
 class EditNotFoundError extends Error {
   constructor() {
     super("old_string not found. It must match the file contents exactly, including whitespace and indentation.");
@@ -1433,7 +1470,7 @@ function joinBom(text, bom) {
   return bom ? BOM + stripped : stripped;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-XpkfuE/repo/src/path-locks.ts
+// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/src/path-locks.ts
 var LOCKS_KEY = Symbol.for("zocomputer.agent-sdk.path-locks");
 function lockChains() {
   const holder = globalThis;
@@ -1459,18 +1496,18 @@ async function withPathLock(path, fn) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-XpkfuE/repo/src/workspace-io.ts
+// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/src/workspace-io.ts
 import { mkdirSync as mkdirSync2, readFileSync as readFileSync6, statSync as statSync2, writeFileSync as writeFileSync2 } from "node:fs";
 import { dirname as dirname2, join as join3 } from "node:path";
 
-// ../../../../../tmp/agent-sdk-mirror-XpkfuE/repo/src/glob-match.ts
+// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/src/glob-match.ts
 function globToRegExp(glob) {
   const escaped = glob.replace(/[.+^${}()|[\]\\]/g, "\\$&");
   const body = escaped.replace(/\*\*\/?/g, "\x00").replace(/\*/g, "[^/]*").replace(/\?/g, "[^/]").replace(/\u0000/g, "(?:.*/)?");
   return new RegExp(`^${body}$`);
 }
 
-// ../../../../../tmp/agent-sdk-mirror-XpkfuE/repo/src/list-files.ts
+// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/src/list-files.ts
 import { spawnSync } from "node:child_process";
 var MAX_BUFFER = 64 * 1024 * 1024;
 function gitPaths(root, args) {
@@ -1498,7 +1535,7 @@ function listGitFiles(root, scope) {
   return files.filter((path) => !gone.has(path));
 }
 
-// ../../../../../tmp/agent-sdk-mirror-XpkfuE/repo/src/read-text.ts
+// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/src/read-text.ts
 import { readFileSync as readFileSync4, statSync } from "node:fs";
 var MAX_SEARCH_FILE_BYTES = 1500000;
 var BINARY_SNIFF_BYTES = 8192;
@@ -1525,7 +1562,7 @@ function readTextForSearch(abs, maxBytes = MAX_SEARCH_FILE_BYTES) {
   return { kind: "text", content: buf.toString("utf8") };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-XpkfuE/repo/src/walk.ts
+// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/src/walk.ts
 import { readFileSync as readFileSync5, readdirSync } from "node:fs";
 import { join as join2, relative, sep } from "node:path";
 import ignore from "ignore";
@@ -1607,7 +1644,7 @@ function* walkFiles(root, base = root) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-XpkfuE/repo/src/workspace.ts
+// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/src/workspace.ts
 import { isAbsolute, relative as relative2, resolve as resolve2, sep as sep2 } from "node:path";
 function resolveWithin(root, path) {
   const abs = isAbsolute(path) ? resolve2(path) : resolve2(root, path);
@@ -1629,7 +1666,7 @@ function createWorkspace(root) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-XpkfuE/repo/src/workspace-io.ts
+// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/src/workspace-io.ts
 function createLocalIo(root, abortSignal) {
   return {
     async stat(abs) {
@@ -1752,17 +1789,17 @@ async function searchLocal(root, options, abortSignal) {
   return { matches, stopped, skippedLargeFiles };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-XpkfuE/repo/src/tools/edit.ts
+// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/src/tools/edit.ts
 function createEditTool(opts) {
   const { workspace, noun } = opts;
   const io = opts.io ?? localIoProvider(workspace.root);
   return defineTool2({
     description: "Replace a string in an existing file. Prefer the exact text from a read; near-miss whitespace, indentation, and over-escaping are tolerated, but a match much larger than old_string is refused. By default old_string must resolve to exactly one place — include enough surrounding context to make it unique. Set replace_all to replace every occurrence (e.g. renaming a symbol).",
-    inputSchema: z3.object({
-      path: z3.string().min(1).describe(`File path, relative to the ${noun} root.`),
-      old_string: z3.string().min(1).describe("Exact text to replace; must currently exist in the file."),
-      new_string: z3.string().describe("Text to replace it with."),
-      replace_all: z3.boolean().optional().describe("Replace every occurrence instead of requiring a single match.")
+    inputSchema: z4.object({
+      path: z4.string().min(1).describe(`File path, relative to the ${noun} root.`),
+      old_string: z4.string().min(1).describe("Exact text to replace; must currently exist in the file."),
+      new_string: z4.string().describe("Text to replace it with."),
+      replace_all: z4.boolean().optional().describe("Replace every occurrence instead of requiring a single match.")
     }),
     async execute({ path, old_string, new_string, replace_all }, ctx) {
       const abs = workspace.resolve(path);
@@ -1806,17 +1843,17 @@ ${hint.preview}`;
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-XpkfuE/repo/src/tools/glob.ts
+// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/src/tools/glob.ts
 import { defineTool as defineTool3 } from "eve/tools";
-import { z as z4 } from "zod";
+import { z as z5 } from "zod";
 function createGlobTool(opts) {
   const { workspace, noun } = opts;
   const io = opts.io ?? localIoProvider(workspace.root);
   return defineTool3({
     description: `Find files in the ${noun} by glob pattern, returning ${noun}-relative paths. \`**\` spans directories, \`*\` matches within a path segment. A pattern without a leading \`**/\` is matched at any depth (so \`*.ts\` finds .ts files anywhere). Gitignored files and build/VCS dirs are skipped.`,
-    inputSchema: z4.object({
-      pattern: z4.string().min(1).describe("Glob pattern, e.g. `**/*.ts` or `src/tools/*.ts`."),
-      limit: z4.number().int().positive().optional().describe("Max paths to return (default 500).")
+    inputSchema: z5.object({
+      pattern: z5.string().min(1).describe("Glob pattern, e.g. `**/*.ts` or `src/tools/*.ts`."),
+      limit: z5.number().int().positive().optional().describe("Max paths to return (default 500).")
     }),
     async execute({ pattern, limit }, ctx) {
       const normalized = pattern.startsWith("**/") || pattern.startsWith("/") ? pattern.replace(/^\//, "") : `**/${pattern}`;
@@ -1845,9 +1882,9 @@ function createGlobTool(opts) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-XpkfuE/repo/src/tools/grep.ts
+// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/src/tools/grep.ts
 import { defineTool as defineTool4 } from "eve/tools";
-import { z as z5 } from "zod";
+import { z as z6 } from "zod";
 import { join as join4 } from "node:path";
 var GREP_SPILL_MAX_MATCHES = 5000;
 var MATCH_TEXT_MAX_CHARS = 300;
@@ -1856,12 +1893,12 @@ function createGrepTool(opts) {
   const io = opts.io ?? localIoProvider(workspace.root);
   return defineTool4({
     description: `Search ${noun} file contents by regular expression, returning matching lines with their file and line number. Scope with \`path\` (a file or directory) and/or a \`glob\` on the filename. Gitignored files, build/VCS dirs, binaries, and files over ~1.5 MB are skipped.${spillDir === undefined ? "" : " When more lines match than max_results, the collected matches are saved to a file named in the result (the note says whether that list is complete) — read or grep that file instead of re-searching."}`,
-    inputSchema: z5.object({
-      pattern: z5.string().min(1).describe("JavaScript regular expression to search for."),
-      path: z5.string().optional().describe(`A file or directory (relative to the ${noun} root) to limit the search to.`),
-      glob: z5.string().optional().describe("Only search files whose path matches this glob, e.g. `**/*.ts`."),
-      ignore_case: z5.boolean().optional().describe("Case-insensitive match."),
-      max_results: z5.number().int().positive().optional().describe("Max matching lines (default 200).")
+    inputSchema: z6.object({
+      pattern: z6.string().min(1).describe("JavaScript regular expression to search for."),
+      path: z6.string().optional().describe(`A file or directory (relative to the ${noun} root) to limit the search to.`),
+      glob: z6.string().optional().describe("Only search files whose path matches this glob, e.g. `**/*.ts`."),
+      ignore_case: z6.boolean().optional().describe("Case-insensitive match."),
+      max_results: z6.number().int().positive().optional().describe("Max matching lines (default 200).")
     }),
     async execute({ pattern, path, glob, ignore_case, max_results }, ctx) {
       try {
@@ -1938,12 +1975,12 @@ function createGrepTool(opts) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-XpkfuE/repo/src/tools/look.ts
+// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/src/tools/look.ts
 import { defineTool as defineTool5 } from "eve/tools";
 import { basename } from "node:path";
-import { z as z6 } from "zod";
+import { z as z7 } from "zod";
 
-// ../../../../../tmp/agent-sdk-mirror-XpkfuE/repo/src/file-kind.ts
+// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/src/file-kind.ts
 import { extname } from "node:path";
 function imageMediaType(format) {
   return `image/${format}`;
@@ -2141,7 +2178,7 @@ function detectFileKind(buf, path) {
   return { kind: "text", encoding: "utf8" };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-XpkfuE/repo/src/tools/look.ts
+// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/src/tools/look.ts
 var DEFAULT_LOOK_MAX_INPUT_BYTES = 20 * 1024 * 1024;
 var DEFAULT_LOOK_TIMEOUT_MS = 180000;
 var LOOK_MAX_ANSWER_CHARS = 30000;
@@ -2179,9 +2216,9 @@ function createLookTool(opts) {
   const capabilityPhrase = describeCapabilities(oracle.capabilities);
   return defineTool5({
     description: `Ask ${oracle.modelName} — a separate model that ${capabilityPhrase} — one question about a media file in the ${noun} that you cannot view yourself. Sends the file's bytes and your prompt in a single call and returns the model's answer as text. ` + `The model sees only the file and your prompt — none of your conversation — so pack the prompt with everything it needs and name the exact deliverable ` + `(e.g. "describe the UI layout and transcribe all visible text", "summarize what happens in this recording"). Text-readable files (source, PDFs-as-text, DOCX, spreadsheets) are cheaper through read; use look for pixels, video, and audio.`,
-    inputSchema: z6.object({
-      path: z6.string().min(1).describe(`Media file path, relative to the ${noun} root.`),
-      prompt: z6.string().min(1).describe("The question or task for the model, self-contained.")
+    inputSchema: z7.object({
+      path: z7.string().min(1).describe(`Media file path, relative to the ${noun} root.`),
+      prompt: z7.string().min(1).describe("The question or task for the model, self-contained.")
     }),
     async execute({ path, prompt }, ctx) {
       const abs = workspace.resolve(path);
@@ -2332,11 +2369,11 @@ function lookOversizeHint(oracle, maxInputBytes = DEFAULT_LOOK_MAX_INPUT_BYTES) 
   return `For text, use bash (head, sed -n, rg) to extract the part you need. Only if it is ${article} ${kindList} file up to ${capMb} MB, pass the path and a question to the look tool to have ${oracle.modelName} examine it (look sends files read cannot; over ${capMb} MB, shrink it first, e.g. ffmpeg extraction).`;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-XpkfuE/repo/src/tools/read.ts
+// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/src/tools/read.ts
 import { defineTool as defineTool6 } from "eve/tools";
-import { z as z7 } from "zod";
+import { z as z8 } from "zod";
 
-// ../../../../../tmp/agent-sdk-mirror-XpkfuE/repo/src/file-view.ts
+// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/src/file-view.ts
 var READ_FILE_DEFAULT_LINE_LIMIT = 2000;
 var READ_FILE_MAX_LINE_CHARS = 2000;
 var READ_FILE_MAX_CONTENT_CHARS = 50000;
@@ -2380,10 +2417,10 @@ function buildFileView(text, opts = {}) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-XpkfuE/repo/src/read-file-content.ts
+// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/src/read-file-content.ts
 import { imageSize } from "image-size";
 
-// ../../../../../tmp/agent-sdk-mirror-XpkfuE/repo/src/extract/cache.ts
+// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/src/extract/cache.ts
 function createStatCache(limit) {
   const entries = new Map;
   return {
@@ -2408,7 +2445,7 @@ function createStatCache(limit) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-XpkfuE/repo/src/extract/docx.ts
+// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/src/extract/docx.ts
 import mammoth from "mammoth";
 async function extractDocx(buffer) {
   try {
@@ -2420,10 +2457,10 @@ async function extractDocx(buffer) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-XpkfuE/repo/src/extract/epub.ts
+// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/src/extract/epub.ts
 import { Parser } from "htmlparser2";
 
-// ../../../../../tmp/agent-sdk-mirror-XpkfuE/repo/src/extract/zip.ts
+// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/src/extract/zip.ts
 import { inflateRawSync } from "node:zlib";
 var EOCD_SIGNATURE = 101010256;
 var CENTRAL_SIGNATURE = 33639248;
@@ -2511,7 +2548,7 @@ function openZip(buffer) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-XpkfuE/repo/src/extract/epub.ts
+// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/src/extract/epub.ts
 var EPUB_SECTION_CAP = 200;
 var BLOCK_TAGS = new Set([
   "p",
@@ -2647,7 +2684,7 @@ function extractEpub(bytes, options = {}) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-XpkfuE/repo/src/extract/ipynb.ts
+// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/src/extract/ipynb.ts
 function joinSource(value) {
   if (typeof value === "string")
     return value;
@@ -2758,7 +2795,7 @@ function extractNotebook(bytes) {
 `), cells: cells.length };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-XpkfuE/repo/src/extract/odf.ts
+// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/src/extract/odf.ts
 import { Parser as Parser2 } from "htmlparser2";
 var ODP_EMPTY_SLIDE_NOTE = "[no text on this slide — likely image-only; images cannot be extracted]";
 function parseContentXml(xml) {
@@ -2845,7 +2882,7 @@ function extractOdp(bytes) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-XpkfuE/repo/src/extract/pdf.ts
+// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/src/extract/pdf.ts
 import { openPdf } from "clawpdf";
 var PDF_EMPTY_PAGE_NOTE = "[no text on this page — likely scanned or image-only; rendered pages cannot be attached]";
 var PDF_PAGE_CAP = 200;
@@ -2880,7 +2917,7 @@ async function extractPdf(bytes, options = {}) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-XpkfuE/repo/src/extract/pptx.ts
+// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/src/extract/pptx.ts
 import { Parser as Parser3 } from "htmlparser2";
 var PPTX_EMPTY_SLIDE_NOTE = "[no text on this slide — likely image-only; images cannot be extracted]";
 var PPTX_SLIDE_CAP = 200;
@@ -3036,7 +3073,7 @@ function extractPptx(bytes, options = {}) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-XpkfuE/repo/src/extract/rtf.ts
+// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/src/extract/rtf.ts
 var SKIP_DESTINATIONS = new Set([
   "fonttbl",
   "colortbl",
@@ -3234,7 +3271,7 @@ function extractRtf(bytes) {
   return { ok: true, text: text.replace(/\n+$/, "") };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-XpkfuE/repo/src/extract/sheet.ts
+// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/src/extract/sheet.ts
 import { read, utils } from "xlsx";
 var SHEET_ROW_CAP = 5000;
 function extractSheets(buffer, rowCap = SHEET_ROW_CAP) {
@@ -3275,7 +3312,7 @@ function extractSheets(buffer, rowCap = SHEET_ROW_CAP) {
 `), sheets };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-XpkfuE/repo/src/read-file-content.ts
+// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/src/read-file-content.ts
 var EXTRACTION_CACHE_LIMIT = 20;
 var extractionCache = createStatCache(EXTRACTION_CACHE_LIMIT);
 function decodeText(buffer, encoding) {
@@ -3394,7 +3431,7 @@ async function loadFileContent(buffer, path, id) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-XpkfuE/repo/src/tools/read.ts
+// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/src/tools/read.ts
 function buildMediaHint(verb) {
   return `${verb} media (images, video, audio) returns metadata only`;
 }
@@ -3409,10 +3446,10 @@ function createReadTool(opts) {
   const editHint = opts.includeEditGuidance ?? true ? " Read a file before editing it so your edits target the current text." : "";
   return defineTool6({
     description: `Read a file from the ${noun}, returning line-numbered text. Documents are converted to plain text: PDF (per-page markers), DOCX/ODT/RTF, PPTX/ODP decks (per-slide markers, speaker notes), spreadsheets (.xlsx, .xlsm, .xls, .ods; TSV per sheet), EPUB (per-section markers), and Jupyter notebooks (per-cell markers); ${mediaHint}.${editHint} Returns up to 2000 lines per call by default; page bigger files with offset/limit.` + conventionsHint,
-    inputSchema: z7.object({
-      path: z7.string().min(1).describe(`File path, relative to the ${noun} root.`),
-      offset: z7.number().int().positive().optional().describe("1-based line to start reading from."),
-      limit: z7.number().int().positive().optional().describe("Max number of lines to return.")
+    inputSchema: z8.object({
+      path: z8.string().min(1).describe(`File path, relative to the ${noun} root.`),
+      offset: z8.number().int().positive().optional().describe("1-based line to start reading from."),
+      limit: z8.number().int().positive().optional().describe("Max number of lines to return.")
     }),
     async execute({ path, offset, limit }, ctx) {
       const abs = workspace.resolve(path);
@@ -3546,9 +3583,9 @@ function createReadTool(opts) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-XpkfuE/repo/src/tools/tasks.ts
+// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/src/tools/tasks.ts
 import { defineDynamic as defineDynamic2, defineTool as defineTool7 } from "eve/tools";
-import { z as z8 } from "zod";
+import { z as z9 } from "zod";
 var DEFAULT_WAIT_MS = 120000;
 function elapsedMs(task) {
   const end = task.status === "running" ? Date.now() : task.finishedAt;
@@ -3593,19 +3630,20 @@ function buildTasksToolset(opts) {
 Backgroundable tools (pass \`input\` matching the tool's own schema):
 ` + catalog;
   const runAsyncBaseParams = {
-    tool: z8.enum(toolNames).describe("Which backgroundable tool to run."),
-    input: z8.record(z8.string(), z8.unknown()).describe("Arguments for that tool — the same object you'd pass calling it directly.")
+    tool: z9.enum(toolNames).describe("Which backgroundable tool to run."),
+    input: z9.record(z9.string(), z9.unknown()).describe("Arguments for that tool — the same object you'd pass calling it directly.")
   };
   function startAsync(args, ctx) {
     const { tool, input } = args;
+    const scope = taskScopeForSession(ctx?.session?.id);
     const op = backgroundables.find((o) => o.name === tool);
     if (!op)
       throw new Error(`Unknown backgroundable tool: ${tool}`);
     const { label, work, progress } = op.start(input, { ctx });
-    const taskId = registry.spawnTask(tool, label, work, ctx?.session?.id);
+    const taskId = registry.spawnTask(scope, tool, label, work);
     if (progress) {
-      registry.updateTaskProgress(taskId, progress());
-      const interval = setInterval(() => registry.updateTaskProgress(taskId, progress()), 500);
+      registry.updateTaskProgress(scope, taskId, progress());
+      const interval = setInterval(() => registry.updateTaskProgress(scope, taskId, progress()), 500);
       work.finally(() => clearInterval(interval)).catch(() => {
         return;
       });
@@ -3619,27 +3657,30 @@ Backgroundable tools (pass \`input\` matching the tool's own schema):
   }
   const runAsync = defineTool7({
     description: runAsyncDescription,
-    inputSchema: z8.object(runAsyncBaseParams),
+    inputSchema: z9.object(runAsyncBaseParams),
     execute: (args, ctx) => startAsync(args, ctx)
   });
   return {
     run_async: runAsync,
     check_tasks: defineTool7({
       description: "List background tasks and their status without blocking; returns `runningCount` plus the task list. For tasks that support progress (notably bash), includes a live stdout/stderr preview. Call await_task to collect a task's final result.",
-      inputSchema: z8.object({}),
+      inputSchema: z9.object({}),
       execute(_args, ctx) {
-        const tasks = registry.listTasks(ctx?.session?.id).map(peek);
+        const scope = taskScopeForSession(ctx?.session?.id);
+        const tasks = registry.listTasks(scope).map(peek);
         return { runningCount: tasks.filter((t) => t.status === "running").length, tasks };
       }
     }),
     await_task: defineTool7({
       description: "Block until a background task finishes (up to wait_ms), then return its full result. Use it when your next step needs the task's final output. If the wait elapses while it's still running, returns the running status plus any live progress so you can decide to keep waiting or move on.",
-      inputSchema: z8.object({
-        task_id: z8.string().min(1).describe("Task id returned by run_async or a backgrounded bash call."),
-        wait_ms: z8.number().int().positive().optional().describe(`Max time to block in ms (default ${DEFAULT_WAIT_MS}).`)
+      inputSchema: z9.object({
+        task_id: z9.string().min(1).describe("Task id returned by run_async or a backgrounded bash call."),
+        wait_ms: z9.number().int().positive().optional().describe(`Max time to block in ms (default ${DEFAULT_WAIT_MS}).`)
       }),
       async execute({ task_id, wait_ms }, ctx) {
-        const task = await registry.awaitTask(task_id, wait_ms ?? DEFAULT_WAIT_MS, ctx?.abortSignal);
+        const scope = taskScopeForSession(ctx?.session?.id);
+        const parsedTaskId = parseTaskId(task_id);
+        const task = parsedTaskId ? await registry.awaitTask(scope, parsedTaskId, wait_ms ?? DEFAULT_WAIT_MS, ctx?.abortSignal) : undefined;
         if (!task) {
           throw new Error(`No such task: ${task_id}. Call check_tasks to list the current tasks and their ids, then resend with a real one.`);
         }
@@ -3656,11 +3697,11 @@ function createTasksTools(opts) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-XpkfuE/repo/src/tools/todo.ts
+// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/src/tools/todo.ts
 import { defineTool as defineTool8 } from "eve/tools";
 import { todo as eveTodo } from "eve/tools/defaults";
 
-// ../../../../../tmp/agent-sdk-mirror-XpkfuE/repo/src/todo-discipline.ts
+// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/src/todo-discipline.ts
 function isRecord3(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
@@ -3768,7 +3809,7 @@ var TODO_DISCIPLINE_RIDER = [
 ].join(`
 `);
 
-// ../../../../../tmp/agent-sdk-mirror-XpkfuE/repo/src/tools/todo.ts
+// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/src/tools/todo.ts
 function isRecord4(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
@@ -3795,12 +3836,12 @@ ${TODO_DISCIPLINE_RIDER}`,
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-XpkfuE/repo/src/tools/webfetch.ts
+// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/src/tools/webfetch.ts
 import { defineTool as defineTool9 } from "eve/tools";
-import { z as z9 } from "zod";
+import { z as z10 } from "zod";
 import { join as join5 } from "node:path";
 
-// ../../../../../tmp/agent-sdk-mirror-XpkfuE/repo/src/bounded-output.ts
+// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/src/bounded-output.ts
 import { appendFileSync, mkdirSync as mkdirSync3, writeFileSync as writeFileSync3 } from "node:fs";
 import { dirname as dirname3 } from "node:path";
 var HEAD_CHARS = 25000;
@@ -3911,12 +3952,12 @@ function createBoundedCapture(opts = {}) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-XpkfuE/repo/src/web-fetch.ts
+// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/src/web-fetch.ts
 import { Parser as Parser4 } from "htmlparser2";
 import { parseHTML as parseHTML2 } from "linkedom";
 import TurndownService from "turndown";
 
-// ../../../../../tmp/agent-sdk-mirror-XpkfuE/repo/src/web-page.ts
+// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/src/web-page.ts
 import Defuddle from "defuddle";
 import { parseHTML } from "linkedom";
 var asField = (value) => {
@@ -4027,7 +4068,7 @@ function looksLikeRawHtmlOutput(rendered) {
   return tagChars / rendered.length > 0.1;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-XpkfuE/repo/src/web-fetch.ts
+// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/src/web-fetch.ts
 var WEB_FETCH_MAX_RESPONSE_BYTES = 5 * 1024 * 1024;
 var WEB_FETCH_DEFAULT_TIMEOUT_SECONDS = 30;
 var WEB_FETCH_PDF_DEFAULT_TIMEOUT_SECONDS = 60;
@@ -4233,7 +4274,7 @@ function urlLooksLikePdf(url) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-XpkfuE/repo/src/tools/webfetch.ts
+// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/src/tools/webfetch.ts
 var SPILL_EXTENSION = {
   markdown: "md",
   text: "txt",
@@ -4343,10 +4384,10 @@ function createWebFetchTool(opts) {
   const overflowHint = spillDir !== undefined ? "Content over the in-context budget is truncated head+tail and the complete output is spilled to a file named in the truncation marker — read or grep that file instead of re-fetching." : "Content returns whole; only extremely long pages truncate head+tail (the marker shows the boundary) — refetch a narrower page or a more specific URL if the middle matters.";
   return defineTool9({
     description: `Fetch a URL and return its content in context. HTML pages are reduced to their main content with Defuddle (boilerplate stripped, title/author/date header) and converted to readable markdown by default (set format to "text" for plain text or "html" for the raw page). This is one read-only request, not a browser session or a durable clipping workflow. Fetched documents (PDF, DOCX/ODT/RTF, PPTX/ODP, spreadsheets, EPUB, Jupyter notebooks) are converted to plain text; ${mediaHint}. ${overflowHint} Default timeout ${WEB_FETCH_DEFAULT_TIMEOUT_SECONDS}s (${WEB_FETCH_PDF_DEFAULT_TIMEOUT_SECONDS}s for PDFs), max ${WEB_FETCH_MAX_TIMEOUT_SECONDS}s; responses over 5 MB error.`,
-    inputSchema: z9.object({
-      url: z9.string().min(1).describe("The URL to fetch. Must start with http:// or https://."),
-      format: z9.enum(["markdown", "text", "html"]).optional().describe('How to render HTML responses: "markdown" (default), "text", or "html" (raw). Non-HTML content is unaffected.'),
-      timeout: z9.number().int().positive().optional().describe(`Timeout in seconds (default ${WEB_FETCH_DEFAULT_TIMEOUT_SECONDS}, max ${WEB_FETCH_MAX_TIMEOUT_SECONDS}).`)
+    inputSchema: z10.object({
+      url: z10.string().min(1).describe("The URL to fetch. Must start with http:// or https://."),
+      format: z10.enum(["markdown", "text", "html"]).optional().describe('How to render HTML responses: "markdown" (default), "text", or "html" (raw). Non-HTML content is unaffected.'),
+      timeout: z10.number().int().positive().optional().describe(`Timeout in seconds (default ${WEB_FETCH_DEFAULT_TIMEOUT_SECONDS}, max ${WEB_FETCH_MAX_TIMEOUT_SECONDS}).`)
     }),
     async execute({ url, format, timeout }, ctx) {
       const renderFormat = format ?? "markdown";
@@ -4465,17 +4506,17 @@ function createWebFetchTool(opts) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-XpkfuE/repo/src/tools/write.ts
+// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/src/tools/write.ts
 import { defineTool as defineTool10 } from "eve/tools";
-import { z as z10 } from "zod";
+import { z as z11 } from "zod";
 function createWriteTool(opts) {
   const { workspace, noun } = opts;
   const io = opts.io ?? localIoProvider(workspace.root);
   return defineTool10({
     description: `Write a complete file to the ${noun}, creating parent directories and overwriting any existing file. For a small change to an existing file, prefer edit so you don't have to reproduce the whole file.`,
-    inputSchema: z10.object({
-      path: z10.string().min(1).describe(`File path, relative to the ${noun} root.`),
-      content: z10.string().describe("The full contents to write.")
+    inputSchema: z11.object({
+      path: z11.string().min(1).describe(`File path, relative to the ${noun} root.`),
+      content: z11.string().describe("The full contents to write.")
     }),
     async execute({ path, content }, ctx) {
       const abs = workspace.resolve(path);
@@ -4501,7 +4542,7 @@ function createWriteTool(opts) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-XpkfuE/repo/src/sandbox-io.ts
+// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/src/sandbox-io.ts
 import ignore2 from "ignore";
 function shellSingleQuote(value) {
   return `'${value.replaceAll("'", `'\\''`)}'`;
@@ -4737,7 +4778,7 @@ function parseSearchOutput(stdout, maxMatches, flooded = false) {
   return { matches, stopped, skippedLargeFiles: null };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-XpkfuE/repo/src/run.ts
+// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/src/run.ts
 import { spawn } from "node:child_process";
 import { join as join6 } from "node:path";
 var MAX_PREVIEW = 20000;
@@ -4838,7 +4879,7 @@ function createCommandRunner(opts) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-XpkfuE/repo/src/sandbox-run.ts
+// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/src/sandbox-run.ts
 var MAX_SPILL_RETAIN_CHARS = 5 * 1024 * 1024;
 var STREAM_DRAIN_GRACE_MS = 1000;
 function defaultResolveSession2(ctx) {
@@ -5053,7 +5094,7 @@ function createSandboxRunner(opts) {
     runCommand: (command, runOpts) => startCommand(command, runOpts).result
   };
 }
-// ../../../../../tmp/agent-sdk-mirror-XpkfuE/repo/src/build-externals.ts
+// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/src/build-externals.ts
 var STDLIB_EXTERNAL_DEPENDENCIES = [
   "ai",
   "clawpdf",
@@ -5067,11 +5108,11 @@ var STDLIB_EXTERNAL_DEPENDENCIES = [
   "xlsx",
   "zod"
 ];
-// ../../../../../tmp/agent-sdk-mirror-XpkfuE/repo/src/task.ts
+// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/src/task.ts
 import { defineAgent } from "eve";
 import { defineDynamic as defineDynamic3, defineInstructions as defineInstructions2 } from "eve/instructions";
 
-// ../../../../../tmp/agent-sdk-mirror-XpkfuE/repo/src/visible-reasoning.ts
+// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/src/visible-reasoning.ts
 var ANTHROPIC_ADAPTIVE_THINKING_MODELS = [
   /^anthropic\/claude-fable-/,
   /^anthropic\/claude-mythos-/,
@@ -5097,7 +5138,7 @@ function visibleReasoningModelOptions(modelId) {
   return;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-XpkfuE/repo/src/task.ts
+// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/src/task.ts
 var TASK_DISABLED_BUILTINS = ["ask_question"];
 function expectedTaskToolNames(options) {
   const parent = new Set(options.parentToolNames);
@@ -5200,7 +5241,7 @@ async function fetchGatewayModelCatalog(options) {
   return parsed;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-XpkfuE/repo/src/index.ts
+// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/src/index.ts
 function createSandboxFileTools(options) {
   const noun = options.workspaceNoun ?? "workspace";
   const workspace2 = createWorkspace(options.workspaceRoot);
@@ -5321,6 +5362,7 @@ export {
   videoMediaType,
   validateTodoWrite,
   toolAuthoringSection,
+  taskScopeForSession,
   subagentSection,
   splitBom,
   slideParagraphs,
@@ -5343,6 +5385,7 @@ export {
   planningSection,
   parseTodoListResult,
   parseTodoItems,
+  parseTaskId,
   parseSearchOutput,
   parseGatewayModelCatalog,
   parallelToolsSection,
@@ -5452,6 +5495,7 @@ export {
   WEB_FETCH_MAX_RESPONSE_BYTES,
   WEB_FETCH_DEFAULT_TIMEOUT_SECONDS,
   TrimmedBoundaryReplacer,
+  TaskIdSchema,
   TOOL_OUTPUT_DIRNAME,
   TODO_STATUSES,
   TODO_PRIORITIES,

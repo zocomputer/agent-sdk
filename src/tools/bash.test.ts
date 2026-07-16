@@ -1,8 +1,21 @@
 import { describe, expect, test } from "bun:test";
 import type { ToolContext } from "eve/tools";
-import type { TaskRegistry } from "../async-tasks";
+import {
+  parseTaskId,
+  type TaskId,
+  type TaskRegistry,
+  type TaskScope,
+} from "../async-tasks";
 import type { CommandRunner, RunResult } from "../run";
 import { createBashTool } from "./bash";
+
+function requiredTaskId(value: string): TaskId {
+  const id = parseTaskId(value);
+  if (id === null) throw new Error("test task id must be valid");
+  return id;
+}
+
+const taskId = requiredTaskId("task_00000000-0000-4000-8000-000000000001");
 
 function context(signal: AbortSignal): ToolContext {
   return {
@@ -27,33 +40,42 @@ function context(signal: AbortSignal): ToolContext {
 function harness() {
   let kills = 0;
   let spawned = 0;
+  let started = 0;
+  let spawnScope: TaskScope | undefined;
+  const progressScopes: TaskScope[] = [];
   let settleResult: ((result: RunResult) => void) | undefined;
   const result = new Promise<RunResult>((resolve) => {
     settleResult = resolve;
   });
   const runner: CommandRunner = {
-    startCommand: () => ({
-      result,
-      progress: () => ({
-        stdout: "",
-        stderr: "",
-        stdoutBytes: 0,
-        stderrBytes: 0,
-        stdoutTruncated: false,
-        stderrTruncated: false,
-      }),
-      kill: () => {
-        kills += 1;
-      },
-    }),
+    startCommand: () => {
+      started += 1;
+      return {
+        result,
+        progress: () => ({
+          stdout: "",
+          stderr: "",
+          stdoutBytes: 0,
+          stderrBytes: 0,
+          stdoutTruncated: false,
+          stderrTruncated: false,
+        }),
+        kill: () => {
+          kills += 1;
+        },
+      };
+    },
     runCommand: () => result,
   };
   const registry: TaskRegistry = {
-    spawnTask: () => {
+    spawnTask: (scope) => {
       spawned += 1;
-      return "task_1";
+      spawnScope = scope;
+      return taskId;
     },
-    updateTaskProgress: () => {},
+    updateTaskProgress: (scope) => {
+      progressScopes.push(scope);
+    },
     listTasks: () => [],
     getTask: () => undefined,
     awaitTask: () => Promise.resolve(undefined),
@@ -68,6 +90,9 @@ function harness() {
     tool,
     kills: () => kills,
     spawned: () => spawned,
+    started: () => started,
+    spawnScope: () => spawnScope,
+    progressScopes: () => progressScopes,
     settle: () =>
       settleResult?.({ stdout: "", stderr: "", exitCode: 0, timedOut: false }),
   };
@@ -88,13 +113,15 @@ describe("createBashTool cancellation", () => {
   });
 
   test("leaves a command detached after returning its task id", async () => {
-    const { tool, kills, spawned, settle } = harness();
+    const { tool, kills, spawned, spawnScope, progressScopes, settle } = harness();
     const controller = new AbortController();
     const result = await tool.execute(
       { command: "server", foreground_ms: 1 },
       context(controller.signal),
     );
-    expect(result).toMatchObject({ mode: "backgrounded", task_id: "task_1" });
+    expect(result).toMatchObject({ mode: "backgrounded", task_id: taskId });
+    expect(spawnScope()).toEqual({ kind: "session", sessionId: "session-1" });
+    expect(progressScopes()).toContainEqual({ kind: "session", sessionId: "session-1" });
     controller.abort(new Error("turn cancelled"));
     expect(kills()).toBe(0);
     expect(spawned()).toBe(1);
@@ -126,5 +153,15 @@ describe("createBashTool cancellation", () => {
     await expect(pending).resolves.toMatchObject({ mode: "completed" });
     controller.abort(new Error("late cancellation"));
     expect(kills()).toBe(0);
+  });
+
+  test("rejects missing session context before starting a command", async () => {
+    const { tool, started, spawned } = harness();
+    await expect(
+      // @ts-expect-error Exercise the runtime fail-closed boundary.
+      tool.execute({ command: "orphan", foreground_ms: 1 }, undefined),
+    ).rejects.toThrow(/require an active session/);
+    expect(started()).toBe(0);
+    expect(spawned()).toBe(0);
   });
 });

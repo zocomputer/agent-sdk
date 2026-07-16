@@ -8,7 +8,7 @@
 
 > **buildWorkflowMarkdown**(`opts?`): `string`
 
-Defined in: [packages/agent-sdk/src/instructions.ts:134](https://github.com/zocomputer/zov2-code/blob/f95a48c7e1f1a7b1961c045374fb5540573a3627/packages/agent-sdk/src/instructions.ts#L134)
+Defined in: [packages/agent-sdk/src/instructions.ts:134](https://github.com/zocomputer/zov2-code/blob/ff98edef5b507bf96c80f8f4c36882d827c8a81e/packages/agent-sdk/src/instructions.ts#L134)
 
 Pure markdown for the how-to-work contract; see createWorkflowInstruction.
 

@@ -6,7 +6,7 @@
 
 # Interface: TaskRegistry
 
-Defined in: [packages/agent-sdk/src/async-tasks.ts:61](https://github.com/zocomputer/zov2-code/blob/f95a48c7e1f1a7b1961c045374fb5540573a3627/packages/agent-sdk/src/async-tasks.ts#L61)
+Defined in: [packages/agent-sdk/src/async-tasks.ts:96](https://github.com/zocomputer/zov2-code/blob/ff98edef5b507bf96c80f8f4c36882d827c8a81e/packages/agent-sdk/src/async-tasks.ts#L96)
 
 Background task registry: spawn work and return an id immediately, list/get
 task state, update progress, and await settlement with a timeout.
@@ -15,18 +15,23 @@ task state, update progress, and await settlement with a timeout.
 
 ### awaitTask()
 
-> **awaitTask**(`id`, `waitMs`, `abortSignal?`): `Promise`\<[`Task`](../type-aliases/Task.md) \| `undefined`\>
+> **awaitTask**(`scope`, `id`, `waitMs`, `abortSignal?`): `Promise`\<[`Task`](../type-aliases/Task.md) \| `undefined`\>
 
-Defined in: [packages/agent-sdk/src/async-tasks.ts:80](https://github.com/zocomputer/zov2-code/blob/f95a48c7e1f1a7b1961c045374fb5540573a3627/packages/agent-sdk/src/async-tasks.ts#L80)
+Defined in: [packages/agent-sdk/src/async-tasks.ts:113](https://github.com/zocomputer/zov2-code/blob/ff98edef5b507bf96c80f8f4c36882d827c8a81e/packages/agent-sdk/src/async-tasks.ts#L113)
 
 Block until the task settles or `waitMs` elapses, then return its current
-state (still "running" if the wait timed out). Undefined for an unknown id.
+state (still "running" if the wait timed out). Foreign and unknown ids
+both return undefined.
 
 #### Parameters
 
+##### scope
+
+[`TaskScope`](TaskScope.md)
+
 ##### id
 
-`string`
+`string` & `$brand`\<`"TaskId"`\>
 
 ##### waitMs
 
@@ -44,17 +49,21 @@ state (still "running" if the wait timed out). Undefined for an unknown id.
 
 ### getTask()
 
-> **getTask**(`id`): [`Task`](../type-aliases/Task.md) \| `undefined`
+> **getTask**(`scope`, `id`): [`Task`](../type-aliases/Task.md) \| `undefined`
 
-Defined in: [packages/agent-sdk/src/async-tasks.ts:75](https://github.com/zocomputer/zov2-code/blob/f95a48c7e1f1a7b1961c045374fb5540573a3627/packages/agent-sdk/src/async-tasks.ts#L75)
+Defined in: [packages/agent-sdk/src/async-tasks.ts:107](https://github.com/zocomputer/zov2-code/blob/ff98edef5b507bf96c80f8f4c36882d827c8a81e/packages/agent-sdk/src/async-tasks.ts#L107)
 
-Retrieve one task by id; undefined when not found.
+Retrieve an owned task by id; undefined for foreign or unknown ids.
 
 #### Parameters
 
+##### scope
+
+[`TaskScope`](TaskScope.md)
+
 ##### id
 
-`string`
+`string` & `$brand`\<`"TaskId"`\>
 
 #### Returns
 
@@ -64,21 +73,17 @@ Retrieve one task by id; undefined when not found.
 
 ### listTasks()
 
-> **listTasks**(`sessionId?`): [`Task`](../type-aliases/Task.md)[]
+> **listTasks**(`scope`): [`Task`](../type-aliases/Task.md)[]
 
-Defined in: [packages/agent-sdk/src/async-tasks.ts:73](https://github.com/zocomputer/zov2-code/blob/f95a48c7e1f1a7b1961c045374fb5540573a3627/packages/agent-sdk/src/async-tasks.ts#L73)
+Defined in: [packages/agent-sdk/src/async-tasks.ts:105](https://github.com/zocomputer/zov2-code/blob/ff98edef5b507bf96c80f8f4c36882d827c8a81e/packages/agent-sdk/src/async-tasks.ts#L105)
 
-List tasks sorted by start time. With `sessionId`, only that session's
-tasks (plus session-less ones) — a shared warm instance must not leak
-other sessions' command lines into check_tasks. Lookups by id
-(`getTask`/`awaitTask`) stay unscoped: a task id is an unguessable
-capability the model got from its own run_async.
+List the calling session's tasks sorted by start time.
 
 #### Parameters
 
-##### sessionId?
+##### scope
 
-`string`
+[`TaskScope`](TaskScope.md)
 
 #### Returns
 
@@ -88,13 +93,17 @@ capability the model got from its own run_async.
 
 ### spawnTask()
 
-> **spawnTask**(`tool`, `label`, `work`, `sessionId?`): `string`
+> **spawnTask**(`scope`, `tool`, `label`, `work`): `string` & `$brand`\<`"TaskId"`\>
 
-Defined in: [packages/agent-sdk/src/async-tasks.ts:63](https://github.com/zocomputer/zov2-code/blob/f95a48c7e1f1a7b1961c045374fb5540573a3627/packages/agent-sdk/src/async-tasks.ts#L63)
+Defined in: [packages/agent-sdk/src/async-tasks.ts:98](https://github.com/zocomputer/zov2-code/blob/ff98edef5b507bf96c80f8f4c36882d827c8a81e/packages/agent-sdk/src/async-tasks.ts#L98)
 
 Register `work` as a background task and return its id immediately.
 
 #### Parameters
+
+##### scope
+
+[`TaskScope`](TaskScope.md)
 
 ##### tool
 
@@ -108,29 +117,30 @@ Register `work` as a background task and return its id immediately.
 
 `Promise`\<`unknown`\>
 
-##### sessionId?
-
-`string`
-
 #### Returns
 
-`string`
+`string` & `$brand`\<`"TaskId"`\>
 
 ***
 
 ### updateTaskProgress()
 
-> **updateTaskProgress**(`id`, `progress`): `void`
+> **updateTaskProgress**(`scope`, `id`, `progress`): `void`
 
-Defined in: [packages/agent-sdk/src/async-tasks.ts:65](https://github.com/zocomputer/zov2-code/blob/f95a48c7e1f1a7b1961c045374fb5540573a3627/packages/agent-sdk/src/async-tasks.ts#L65)
+Defined in: [packages/agent-sdk/src/async-tasks.ts:103](https://github.com/zocomputer/zov2-code/blob/ff98edef5b507bf96c80f8f4c36882d827c8a81e/packages/agent-sdk/src/async-tasks.ts#L103)
 
-Update a running task's progress field; no-op when the task isn't running or doesn't exist.
+Update an owned running task's progress field. Foreign, settled, and
+unknown tasks are indistinguishable no-ops.
 
 #### Parameters
 
+##### scope
+
+[`TaskScope`](TaskScope.md)
+
 ##### id
 
-`string`
+`string` & `$brand`\<`"TaskId"`\>
 
 ##### progress
 

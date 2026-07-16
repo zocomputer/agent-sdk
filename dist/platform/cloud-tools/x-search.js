@@ -1,13 +1,13 @@
-// ../../../../../tmp/agent-sdk-mirror-XpkfuE/repo/platform/cloud-tools/x-search.ts
+// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/platform/cloud-tools/x-search.ts
 import { xaiTools } from "@ai-sdk/xai";
 import { generateText } from "ai";
 import { defineTool } from "eve/tools";
 import { z } from "zod";
 
-// ../../../../../tmp/agent-sdk-mirror-XpkfuE/repo/platform/runtime-ai/gateway.ts
+// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/platform/runtime-ai/gateway.ts
 import { createGateway } from "ai";
 
-// ../../../../../tmp/agent-sdk-mirror-XpkfuE/repo/platform/runtime-ai/session-fetch.ts
+// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/platform/runtime-ai/session-fetch.ts
 var EVE_SESSION_HEADER = "x-zo-eve-session";
 var EVE_TURN_HEADER = "x-zo-eve-turn";
 var EVE_SUBAGENT_SESSION_HEADER = "x-zo-eve-subagent-session";
@@ -74,7 +74,7 @@ function eveSessionFetch(getSessionId = ambientEveSessionId, baseFetch = globalT
   }, baseFetch);
 }
 
-// ../../../../../tmp/agent-sdk-mirror-XpkfuE/repo/platform/runtime-ai/stream-guards.ts
+// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/platform/runtime-ai/stream-guards.ts
 var DEFAULT_STREAM_GUARDS = {
   firstByteMs: 60000,
   idleMs: 180000
@@ -138,7 +138,7 @@ function withStreamGuards(baseFetch, options = DEFAULT_STREAM_GUARDS) {
   return Object.assign(guarded, { preconnect: globalThis.fetch.preconnect });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-XpkfuE/repo/platform/runtime-ai/gateway-config.ts
+// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/platform/runtime-ai/gateway-config.ts
 var ZO_TOOL_HEADER = "x-zo-tool";
 var DEFAULT_ZO_AI_BASE_URL = "http://localhost:4000/runtime/ai/v4/ai";
 var DEFAULT_ZO_AI_KEY = "dev-proxy";
@@ -166,11 +166,11 @@ function zoGatewaySettings(options = {}) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-XpkfuE/repo/platform/runtime-ai/gateway.ts
+// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/platform/runtime-ai/gateway.ts
 function zoGateway(options = {}) {
   return createGateway(zoGatewaySettings(options));
 }
-// ../../../../../tmp/agent-sdk-mirror-XpkfuE/repo/platform/cloud-tools/media-lineage.ts
+// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/platform/cloud-tools/media-lineage.ts
 var ZO_MEDIA_LINEAGE_HEADER = "x-zo-media-lineage";
 var MAX_MEDIA_LINEAGE_HEADER_LENGTH = 1024;
 function serializeMediaInvocationLineage(lineage) {
@@ -184,7 +184,7 @@ function mediaInvocationHeaders(lineage) {
   return { [ZO_MEDIA_LINEAGE_HEADER]: serializeMediaInvocationLineage(lineage) };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-XpkfuE/repo/platform/cloud-tools/search-contracts.ts
+// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/platform/cloud-tools/search-contracts.ts
 function parseSearchResultUrl(value) {
   if (typeof value !== "string" || value.trim().length === 0)
     return null;
@@ -199,7 +199,7 @@ function parseSearchResultUrl(value) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-XpkfuE/repo/platform/cloud-tools/tool-meta.ts
+// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/platform/cloud-tools/tool-meta.ts
 var CLOUD_TOOL_META = {
   image: {
     description: "Generate images from text and optional durable references. Use media_models to inspect model-specific settings and prices."
@@ -236,7 +236,7 @@ var CLOUD_TOOL_META = {
   }
 };
 
-// ../../../../../tmp/agent-sdk-mirror-XpkfuE/repo/platform/cloud-tools/x-search.ts
+// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/platform/cloud-tools/x-search.ts
 var DEFAULT_X_SEARCH_DRIVER_MODEL = "xai/grok-4.3";
 var X_SEARCH_ADAPTER_REVISION = "2026-07-12.1";
 var MAX_POST_CHARS = 1000;

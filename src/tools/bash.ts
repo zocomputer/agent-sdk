@@ -1,6 +1,6 @@
 import { defineTool } from "eve/tools";
 import { z } from "zod";
-import type { TaskRegistry } from "../async-tasks";
+import { taskScopeForSession, type TaskRegistry } from "../async-tasks";
 import type { CommandRunner, CommandRunnerProvider } from "../run";
 import type { IoToolContext } from "../workspace-io";
 
@@ -88,6 +88,7 @@ export function createBashTool(opts: {
     ctx: IoToolContext | undefined,
   ) {
     const { command, cwd, timeout_ms, foreground_ms } = args;
+    const scope = taskScopeForSession(ctx?.session?.id);
     const runner = resolveRunner(ctx);
     const running = runner.startCommand(command, {
       cwd,
@@ -143,9 +144,12 @@ export function createBashTool(opts: {
         stderr: result.stderr,
       };
     }
-    const taskId = registry.spawnTask("bash", command, running.result, ctx?.session?.id);
-    registry.updateTaskProgress(taskId, running.progress());
-    const interval = setInterval(() => registry.updateTaskProgress(taskId, running.progress()), 500);
+    const taskId = registry.spawnTask(scope, "bash", command, running.result);
+    registry.updateTaskProgress(scope, taskId, running.progress());
+    const interval = setInterval(
+      () => registry.updateTaskProgress(scope, taskId, running.progress()),
+      500,
+    );
     void running.result.finally(() => clearInterval(interval)).catch(() => undefined);
     return {
       workdir,

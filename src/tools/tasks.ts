@@ -1,6 +1,11 @@
 import { defineDynamic, defineTool } from "eve/tools";
 import { z } from "zod";
-import type { Task, TaskRegistry } from "../async-tasks";
+import {
+  parseTaskId,
+  taskScopeForSession,
+  type Task,
+  type TaskRegistry,
+} from "../async-tasks";
 import type { BackgroundableOp } from "../backgroundable";
 import type { IoToolContext } from "../workspace-io";
 
@@ -80,15 +85,19 @@ export function buildTasksToolset(opts: {
     ctx: IoToolContext | undefined,
   ) {
     const { tool, input } = args;
+    const scope = taskScopeForSession(ctx?.session?.id);
     const op = backgroundables.find((o) => o.name === tool);
     if (!op) throw new Error(`Unknown backgroundable tool: ${tool}`);
     // start() parses input against the op's schema and throws on bad input,
     // so we validate before registering a task.
     const { label, work, progress } = op.start(input, { ctx });
-    const taskId = registry.spawnTask(tool, label, work, ctx?.session?.id);
+    const taskId = registry.spawnTask(scope, tool, label, work);
     if (progress) {
-      registry.updateTaskProgress(taskId, progress());
-      const interval = setInterval(() => registry.updateTaskProgress(taskId, progress()), 500);
+      registry.updateTaskProgress(scope, taskId, progress());
+      const interval = setInterval(
+        () => registry.updateTaskProgress(scope, taskId, progress()),
+        500,
+      );
       void work.finally(() => clearInterval(interval)).catch(() => undefined);
     }
     return {
@@ -115,7 +124,8 @@ export function buildTasksToolset(opts: {
       // Scoped to the calling session: on a shared warm instance another
       // session's tasks (labels carry full command lines) must not list here.
       execute(_args, ctx) {
-        const tasks = registry.listTasks(ctx?.session?.id).map(peek);
+        const scope = taskScopeForSession(ctx?.session?.id);
+        const tasks = registry.listTasks(scope).map(peek);
         return { runningCount: tasks.filter((t) => t.status === "running").length, tasks };
       },
     }),
@@ -136,11 +146,16 @@ export function buildTasksToolset(opts: {
           .describe(`Max time to block in ms (default ${DEFAULT_WAIT_MS}).`),
       }),
       async execute({ task_id, wait_ms }, ctx) {
-        const task = await registry.awaitTask(
-          task_id,
-          wait_ms ?? DEFAULT_WAIT_MS,
-          ctx?.abortSignal,
-        );
+        const scope = taskScopeForSession(ctx?.session?.id);
+        const parsedTaskId = parseTaskId(task_id);
+        const task = parsedTaskId
+          ? await registry.awaitTask(
+              scope,
+              parsedTaskId,
+              wait_ms ?? DEFAULT_WAIT_MS,
+              ctx?.abortSignal,
+            )
+          : undefined;
         if (!task) {
           throw new Error(
             `No such task: ${task_id}. Call check_tasks to list the current tasks and their ids, then resend with a real one.`,
