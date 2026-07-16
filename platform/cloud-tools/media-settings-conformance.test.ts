@@ -38,7 +38,7 @@ function store(kind: ResolvedMediaAsset["kind"]): StateFilesAssetStore {
       return { ref, body: new Uint8Array([1, 2, 3]), kind, contentType: kind === "image" ? "image/png" : kind === "video" ? "video/mp4" : "audio/wav", bytes: 3 };
     },
     async write(path, body, options) {
-      return { type: "state_asset", declarationName: "files", path, bytes: body.byteLength, ...(options?.contentType === undefined ? {} : { contentType: options.contentType }) };
+      return { type: "state_asset", declarationName: "files", path, integrity: "v1.test-integrity", bytes: body.byteLength, ...(options?.contentType === undefined ? {} : { contentType: options.contentType }) };
     },
     async resolveUrl() { return new URL("https://example.invalid/asset"); },
   };

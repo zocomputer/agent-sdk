@@ -1,8 +1,8 @@
-// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/src/state-consent-tool.ts
+// ../../../../../tmp/agent-sdk-mirror-CGUkNt/repo/src/state-consent-tool.ts
 import { defineTool } from "eve/tools";
 import { always } from "eve/tools/approval";
 
-// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/src/state-consent-envelope.ts
+// ../../../../../tmp/agent-sdk-mirror-CGUkNt/repo/src/state-consent-envelope.ts
 import { z } from "zod";
 var REQUEST_STATE_CONSENT_TOOL_NAME = "request_state_consent";
 var consentPartySchema = z.object({
@@ -21,7 +21,7 @@ function parseConsentEnvelope(value) {
   return result.success ? result.data : null;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/src/state-consent-tool.ts
+// ../../../../../tmp/agent-sdk-mirror-CGUkNt/repo/src/state-consent-tool.ts
 function createRequestStateConsentTool() {
   return defineTool({
     description: "Request the consumer's consent before using an external-state capability that " + "resolved `consent_required`. Call this with the exact envelope the state error " + "returned (bindingId, declarationName, resourceName, party). The consumer is asked " + "to Allow or Deny; on Allow the capability is granted and you should retry the " + "original state operation. Do not fabricate the envelope — use the one the state " + "tool gave you.",
@@ -32,10 +32,11 @@ function createRequestStateConsentTool() {
     approval: always()
   });
 }
-// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/src/state-files.ts
+// ../../../../../tmp/agent-sdk-mirror-CGUkNt/repo/src/state-files.ts
 var STATE_FILES_HANDLE_PATH = "/state/handles";
 var ZO_AGENT_TOKEN_HEADER = "x-zo-agent-token";
 var ZO_EVE_SESSION_HEADER = "x-zo-eve-session";
+var ZO_SESSION_CAPABILITY_HEADER = "x-zo-session-capability";
 
 class StateFilesHandleError extends Error {
   status;
@@ -141,6 +142,9 @@ function buildStateFilesHandleHeaders(options) {
   if (options.eveSessionKey !== undefined) {
     headers.set(ZO_EVE_SESSION_HEADER, options.eveSessionKey);
   }
+  if (options.sessionCapability !== undefined) {
+    headers.set(ZO_SESSION_CAPABILITY_HEADER, options.sessionCapability);
+  }
   return headers;
 }
 function isHeaderEntryArray(value) {
@@ -215,10 +219,11 @@ function readString(record, key) {
   return typeof value === "string" && value.length > 0 ? value : null;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/src/state-sandbox.ts
+// ../../../../../tmp/agent-sdk-mirror-CGUkNt/repo/src/state-sandbox.ts
 var STATE_SANDBOX_HANDLE_PATH = "/state/handles";
 var ZO_AGENT_TOKEN_HEADER2 = "x-zo-agent-token";
 var ZO_EVE_SESSION_HEADER2 = "x-zo-eve-session";
+var ZO_SESSION_CAPABILITY_HEADER2 = "x-zo-session-capability";
 
 class StateSandboxHandleError extends Error {
   status;
@@ -324,6 +329,9 @@ function buildStateSandboxHandleHeaders(options) {
   if (options.eveSessionKey !== undefined) {
     headers.set(ZO_EVE_SESSION_HEADER2, options.eveSessionKey);
   }
+  if (options.sessionCapability !== undefined) {
+    headers.set(ZO_SESSION_CAPABILITY_HEADER2, options.sessionCapability);
+  }
   return headers;
 }
 function createHeaders2(init) {
@@ -410,7 +418,7 @@ function readString2(record, key) {
   return typeof value === "string" && value.length > 0 ? value : null;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/src/state-consent-wrapper.ts
+// ../../../../../tmp/agent-sdk-mirror-CGUkNt/repo/src/state-consent-wrapper.ts
 function buildConsentSteer(envelope) {
   return [
     `Using "${envelope.resourceName}" needs the user's consent first.`,

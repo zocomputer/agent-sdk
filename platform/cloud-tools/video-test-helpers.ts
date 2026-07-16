@@ -11,7 +11,7 @@ export function videoResult() { return { video: { mediaType: "video/mp4", uint8A
 
 export function recordingWriter(): StateFilesAssetWriter & { readonly writes: { path: string; body: Uint8Array; contentType?: string }[] } {
   const writes: { path: string; body: Uint8Array; contentType?: string }[] = [];
-  return { writes, write(path, body, options) { writes.push({ path, body, ...(options?.contentType === undefined ? {} : { contentType: options.contentType }) }); return Promise.resolve({ type: "state_asset" as const, declarationName: "files", path, ...(options?.contentType === undefined ? {} : { contentType: options.contentType }), bytes: body.byteLength }); } };
+  return { writes, write(path, body, options) { writes.push({ path, body, ...(options?.contentType === undefined ? {} : { contentType: options.contentType }) }); return Promise.resolve({ type: "state_asset" as const, declarationName: "files", path, integrity: "v1.test-integrity", ...(options?.contentType === undefined ? {} : { contentType: options.contentType }), bytes: body.byteLength }); } };
 }
 
 export function mediaAsset(path: string, kind: "image" | "video" = "image"): ResolvedMediaAsset {

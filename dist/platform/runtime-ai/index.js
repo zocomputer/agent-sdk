@@ -1,13 +1,14 @@
-// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/platform/runtime-ai/gateway.ts
+// ../../../../../tmp/agent-sdk-mirror-CGUkNt/repo/platform/runtime-ai/gateway.ts
 import { createGateway } from "ai";
 
-// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/platform/runtime-ai/session-fetch.ts
+// ../../../../../tmp/agent-sdk-mirror-CGUkNt/repo/platform/runtime-ai/session-fetch.ts
 var EVE_SESSION_HEADER = "x-zo-eve-session";
 var EVE_TURN_HEADER = "x-zo-eve-turn";
 var EVE_SUBAGENT_SESSION_HEADER = "x-zo-eve-subagent-session";
 var EVE_CONTEXT_STORAGE_KEY = Symbol.for("eve.context-storage");
 var SESSION_ID_KEY_NAME = "eve.sessionId";
 var SESSION_KEY_NAME = "eve.session";
+var SESSION_CAPABILITY_ATTRIBUTE = "zoSessionCapability";
 var PARENT_SESSION_KEY_NAME = "eve.parentSession";
 function hasMethod(value, name) {
   return typeof value === "object" && value !== null && typeof value[name] === "function";
@@ -37,6 +38,31 @@ function ambientEveTurnId() {
     return;
   const id = turn["id"];
   return typeof id === "string" && id.trim().length > 0 ? id : undefined;
+}
+function ambientSessionCapability() {
+  const session = ambientContextValue(SESSION_KEY_NAME);
+  if (typeof session !== "object" || session === null)
+    return;
+  const auth = session["auth"];
+  if (typeof auth !== "object" || auth === null)
+    return;
+  const authRecord = auth;
+  for (const key of ["current", "initiator"]) {
+    const context = authRecord[key];
+    if (typeof context !== "object" || context === null)
+      continue;
+    const attributes = context["attributes"];
+    if (typeof attributes !== "object" || attributes === null)
+      continue;
+    const capability = attributes[SESSION_CAPABILITY_ATTRIBUTE];
+    if (typeof capability === "string" && capability.trim().length > 0) {
+      return capability;
+    }
+  }
+  return;
+}
+function ambientControlPlaneSessionId() {
+  return ambientSessionParent()?.rootSessionId ?? ambientEveSessionId();
 }
 function ambientContextValue(keyName) {
   const storage = Reflect.get(globalThis, EVE_CONTEXT_STORAGE_KEY);
@@ -68,7 +94,7 @@ function eveSessionFetch(getSessionId = ambientEveSessionId, baseFetch = globalT
   }, baseFetch);
 }
 
-// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/platform/runtime-ai/stream-guards.ts
+// ../../../../../tmp/agent-sdk-mirror-CGUkNt/repo/platform/runtime-ai/stream-guards.ts
 var DEFAULT_STREAM_GUARDS = {
   firstByteMs: 60000,
   idleMs: 180000
@@ -132,7 +158,7 @@ function withStreamGuards(baseFetch, options = DEFAULT_STREAM_GUARDS) {
   return Object.assign(guarded, { preconnect: globalThis.fetch.preconnect });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/platform/runtime-ai/gateway-config.ts
+// ../../../../../tmp/agent-sdk-mirror-CGUkNt/repo/platform/runtime-ai/gateway-config.ts
 var ZO_TOOL_HEADER = "x-zo-tool";
 var DEFAULT_ZO_AI_BASE_URL = "http://localhost:4000/runtime/ai/v4/ai";
 var DEFAULT_ZO_AI_KEY = "dev-proxy";
@@ -160,11 +186,11 @@ function zoGatewaySettings(options = {}) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/platform/runtime-ai/gateway.ts
+// ../../../../../tmp/agent-sdk-mirror-CGUkNt/repo/platform/runtime-ai/gateway.ts
 function zoGateway(options = {}) {
   return createGateway(zoGatewaySettings(options));
 }
-// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/platform/runtime-ai/catalog.ts
+// ../../../../../tmp/agent-sdk-mirror-CGUkNt/repo/platform/runtime-ai/catalog.ts
 function resolveZoGatewayCatalogUrl(baseURL) {
   const url = new URL(resolveZoGatewayBaseUrl(baseURL));
   if (!/\/v4\/ai\/?$/u.test(url.pathname)) {
@@ -212,8 +238,10 @@ export {
   fetchMediaCatalog,
   eveSessionFetch,
   ambientSessionParent,
+  ambientSessionCapability,
   ambientEveTurnId,
   ambientEveSessionId,
+  ambientControlPlaneSessionId,
   ZO_TOOL_HEADER,
   EVE_TURN_HEADER,
   EVE_SUBAGENT_SESSION_HEADER,

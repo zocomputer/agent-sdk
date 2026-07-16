@@ -58,6 +58,7 @@ const SESSION_ID_KEY_NAME = "eve.sessionId";
 
 /** `SessionKey.name` in eve — the durable session object carrying `turn.id`. */
 const SESSION_KEY_NAME = "eve.session";
+const SESSION_CAPABILITY_ATTRIBUTE = "zoSessionCapability";
 
 /** `ParentSessionKey.name` in eve — the `SessionParent` lineage seeded for subagents. */
 const PARENT_SESSION_KEY_NAME = "eve.parentSession";
@@ -125,6 +126,33 @@ export function ambientEveTurnId(): string | undefined {
   if (typeof turn !== "object" || turn === null) return undefined;
   const id = (turn as Record<string, unknown>)["id"];
   return typeof id === "string" && id.trim().length > 0 ? id : undefined;
+}
+
+/** Trusted channel-issued session capability stored by the Zo channel AuthFn. */
+export function ambientSessionCapability(): string | undefined {
+  const session = ambientContextValue(SESSION_KEY_NAME);
+  if (typeof session !== "object" || session === null) return undefined;
+  const auth = (session as Record<string, unknown>)["auth"];
+  if (typeof auth !== "object" || auth === null) return undefined;
+  const authRecord = auth as Record<string, unknown>;
+  for (const key of ["current", "initiator"] as const) {
+    const context = authRecord[key];
+    if (typeof context !== "object" || context === null) continue;
+    const attributes = (context as Record<string, unknown>)["attributes"];
+    if (typeof attributes !== "object" || attributes === null) continue;
+    const capability = (attributes as Record<string, unknown>)[
+      SESSION_CAPABILITY_ATTRIBUTE
+    ];
+    if (typeof capability === "string" && capability.trim().length > 0) {
+      return capability;
+    }
+  }
+  return undefined;
+}
+
+/** Session id the control plane owns: a delegated child resolves to its root. */
+export function ambientControlPlaneSessionId(): string | undefined {
+  return ambientSessionParent()?.rootSessionId ?? ambientEveSessionId();
 }
 
 /** One guarded read of eve's process-wide context slot by key name. */

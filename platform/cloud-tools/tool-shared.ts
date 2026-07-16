@@ -16,6 +16,7 @@ export const StateAssetReferenceSchema = z.object({
   bytes: z.number().int().nonnegative().optional(),
   contentType: z.string().optional(),
   declarationName: z.string(),
+  integrity: z.string().min(1),
   path: z.string(),
   type: z.literal("state_asset"),
 });

@@ -19,7 +19,7 @@ function approved(assets: readonly ResolvedMediaAsset[]): MediaPreflight {
 
 function store(): StateFilesAssetStore & { writes: string[] } {
   const writes: string[] = [];
-  return { writes, async read() { throw new Error("unexpected"); }, async write(path, body, options) { writes.push(path); return { type: "state_asset", declarationName: "files", path, bytes: body.byteLength, ...(options?.contentType === undefined ? {} : { contentType: options.contentType }) }; } };
+  return { writes, async read() { throw new Error("unexpected"); }, async write(path, body, options) { writes.push(path); return { type: "state_asset", declarationName: "files", path, integrity: "v1.test-integrity", bytes: body.byteLength, ...(options?.contentType === undefined ? {} : { contentType: options.contentType }) }; } };
 }
 
 describe("editImageTool", () => {
@@ -49,7 +49,7 @@ describe("editImageTool", () => {
 
   test("model output exposes only the durable files scalar", async () => {
     const tool = editImageTool({ assetStore: store(), preflight: approved([resolved("in.png", 1)]), generate: async () => ({ image: { mediaType: "image/png", uint8Array: new Uint8Array([4]) }, warnings: [] }) });
-    const output = await tool.toModelOutput?.({ asset: { type: "state_asset", declarationName: "files", path: "generated/edit.png" }, model: "m", prompt: "p", warnings: [] });
+    const output = await tool.toModelOutput?.({ asset: { type: "state_asset", declarationName: "files", path: "generated/edit.png", integrity: "v1.test-integrity" }, model: "m", prompt: "p", warnings: [] });
     expect(JSON.stringify(output)).toContain("files:generated/edit.png");
     expect(JSON.stringify(output)).not.toContain("http");
   });

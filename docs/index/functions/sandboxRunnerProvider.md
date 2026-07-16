@@ -8,7 +8,7 @@
 
 > **sandboxRunnerProvider**(`options`): [`CommandRunnerProvider`](../type-aliases/CommandRunnerProvider.md)
 
-Defined in: [packages/agent-sdk/src/sandbox-run.ts:131](https://github.com/zocomputer/zov2-code/blob/ff98edef5b507bf96c80f8f4c36882d827c8a81e/packages/agent-sdk/src/sandbox-run.ts#L131)
+Defined in: [packages/agent-sdk/src/sandbox-run.ts:131](https://github.com/zocomputer/zov2-code/blob/f537e0a90da222390e69bcbf7e329142b9e8d4b0/packages/agent-sdk/src/sandbox-run.ts#L131)
 
 A `CommandRunnerProvider` over the session sandbox — pass as the `runner`
 option of `createBashTool`/`createBashOp` (or use `createSandboxFileTools`,

@@ -1,4 +1,4 @@
-// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/src/state-consent-envelope.ts
+// ../../../../../tmp/agent-sdk-mirror-CGUkNt/repo/src/state-consent-envelope.ts
 import { z } from "zod";
 var consentPartySchema = z.object({
   handle: z.string().min(1),
@@ -16,7 +16,7 @@ function parseConsentEnvelope(value) {
   return result.success ? result.data : null;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/src/state-files.ts
+// ../../../../../tmp/agent-sdk-mirror-CGUkNt/repo/src/state-files.ts
 function normalizeStateFilePath(path) {
   if (path.length === 0) {
     throw new Error("state file path must not be empty");
@@ -31,10 +31,11 @@ function normalizeStateFilePath(path) {
   return path;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/src/state-sandbox.ts
+// ../../../../../tmp/agent-sdk-mirror-CGUkNt/repo/src/state-sandbox.ts
 var STATE_SANDBOX_HANDLE_PATH = "/state/handles";
 var ZO_AGENT_TOKEN_HEADER = "x-zo-agent-token";
 var ZO_EVE_SESSION_HEADER = "x-zo-eve-session";
+var ZO_SESSION_CAPABILITY_HEADER = "x-zo-session-capability";
 
 class StateSandboxHandleError extends Error {
   status;
@@ -307,6 +308,9 @@ function buildStateSandboxHandleHeaders(options) {
   if (options.eveSessionKey !== undefined) {
     headers.set(ZO_EVE_SESSION_HEADER, options.eveSessionKey);
   }
+  if (options.sessionCapability !== undefined) {
+    headers.set(ZO_SESSION_CAPABILITY_HEADER, options.sessionCapability);
+  }
   return headers;
 }
 function createHeaders(init) {
@@ -397,6 +401,7 @@ export {
   requestStateSandboxHandle,
   parseStateSandboxHandle,
   createStateSandboxClient,
+  ZO_SESSION_CAPABILITY_HEADER,
   ZO_EVE_SESSION_HEADER,
   ZO_AGENT_TOKEN_HEADER,
   StateSandboxHandleError,

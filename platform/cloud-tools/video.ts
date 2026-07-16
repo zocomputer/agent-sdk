@@ -7,7 +7,6 @@ import { z } from "zod";
 import { ZO_TOOL_HEADER, zoGateway } from "../runtime-ai/index.ts";
 import { assetOutputPath, OutputDirSchema } from "./asset-path";
 import type {
-  MediaAssetRef,
   MediaCorrection,
   MediaPreflight,
   MediaPreflightSuccess,
@@ -23,6 +22,7 @@ import {
 } from "./tool-shared";
 import {
   createRuntimeStateFilesClient,
+  type StateAssetReference,
   type StateFilesAssetStore,
   type StateFilesAssetWriter,
 } from "./state-files";
@@ -224,7 +224,7 @@ async function persistVideo(options: {
 }): Promise<GenerateVideoOutput> {
   const video = options.result.video;
   const path = assetOutputPath({ id: options.randomId(), mediaType: video.mediaType, outputDir: options.input.output_dir, prompt: options.input.prompt, fallbackSlug: "video" });
-  let asset: MediaAssetRef;
+  let asset: StateAssetReference;
   try {
     asset = await options.assetWriter.write(path, video.uint8Array, { contentType: video.mediaType });
   } catch (error) {

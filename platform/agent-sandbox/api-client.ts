@@ -2,6 +2,7 @@ import {
   AGENT_TOKEN_ENV,
   AGENT_TOKEN_HEADER,
   EVE_SESSION_HEADER,
+  SESSION_CAPABILITY_HEADER,
 } from "../runtime-auth/index.ts";
 import type { SshSandboxAccess } from "./ssh-session";
 
@@ -31,7 +32,12 @@ import type { SshSandboxAccess } from "./ssh-session";
 
 // Re-export the contract constants this client uses, so a consumer importing the
 // client surface gets them without reaching into @zocomputer/runtime-auth directly.
-export { AGENT_TOKEN_ENV, AGENT_TOKEN_HEADER, EVE_SESSION_HEADER };
+export {
+  AGENT_TOKEN_ENV,
+  AGENT_TOKEN_HEADER,
+  EVE_SESSION_HEADER,
+  SESSION_CAPABILITY_HEADER,
+};
 
 /** The seed `scratch` declaration the default runtime sandbox resolves through. */
 export const SCRATCH_DECLARATION = "scratch";
@@ -187,6 +193,8 @@ export interface RequestSandboxInput {
    * agent-token-only) — a clear failure rather than a silent fallthrough.
    */
   readonly agentToken?: string;
+  /** Opaque trusted-channel proof for user-partitioned state. */
+  readonly sessionCapability?: string;
   /** Injectable for tests; defaults to global fetch. */
   readonly fetch?: FetchLike;
 }
@@ -214,6 +222,10 @@ export async function requestScratchSandboxAccess(
   const headers: Record<string, string> = { "content-type": "application/json" };
   if (agentToken) headers[AGENT_TOKEN_HEADER] = agentToken;
   if (eveSessionKey) headers[EVE_SESSION_HEADER] = eveSessionKey;
+  const sessionCapability = input.sessionCapability?.trim() || undefined;
+  if (sessionCapability) {
+    headers[SESSION_CAPABILITY_HEADER] = sessionCapability;
+  }
   // Header-only eve session — no body `eveSessionKey`, so we never trip the
   // route's header/body mismatch guard (the header IS the trusted session key).
   const res = await doFetch(`${input.apiBaseUrl}${STATE_HANDLE_PATH}`, {

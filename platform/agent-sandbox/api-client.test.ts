@@ -3,6 +3,7 @@ import consentEnvelopeFixture from "../../fixtures/consent-envelope.fixture.json
 import {
   AGENT_TOKEN_HEADER,
   EVE_SESSION_HEADER,
+  SESSION_CAPABILITY_HEADER,
   type FetchLike,
   parseSandboxAccess,
   parseSandboxConsentEnvelope,
@@ -112,12 +113,16 @@ describe("requestScratchSandboxAccess", () => {
     await requestScratchSandboxAccess({
       apiBaseUrl: "http://api.test",
       eveSessionKey: "ses-abc",
+      sessionCapability: "signed-session-capability",
       fetch: fakeFetch,
     });
 
     const request = requests[0];
     if (request === undefined) throw new Error("scratch broker request was not captured");
     expect(header(request.init, EVE_SESSION_HEADER)).toBe("ses-abc");
+    expect(header(request.init, SESSION_CAPABILITY_HEADER)).toBe(
+      "signed-session-capability",
+    );
     // No body eveSessionKey → never trips the route's header/body mismatch guard.
     expect(request.body).not.toHaveProperty("eveSessionKey");
   });

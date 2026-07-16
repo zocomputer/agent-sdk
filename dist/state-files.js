@@ -1,4 +1,4 @@
-// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/src/state-consent-envelope.ts
+// ../../../../../tmp/agent-sdk-mirror-CGUkNt/repo/src/state-consent-envelope.ts
 import { z } from "zod";
 var consentPartySchema = z.object({
   handle: z.string().min(1),
@@ -16,10 +16,11 @@ function parseConsentEnvelope(value) {
   return result.success ? result.data : null;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/src/state-files.ts
+// ../../../../../tmp/agent-sdk-mirror-CGUkNt/repo/src/state-files.ts
 var STATE_FILES_HANDLE_PATH = "/state/handles";
 var ZO_AGENT_TOKEN_HEADER = "x-zo-agent-token";
 var ZO_EVE_SESSION_HEADER = "x-zo-eve-session";
+var ZO_SESSION_CAPABILITY_HEADER = "x-zo-session-capability";
 
 class StateFilesHandleError extends Error {
   status;
@@ -211,6 +212,9 @@ function buildStateFilesHandleHeaders(options) {
   if (options.eveSessionKey !== undefined) {
     headers.set(ZO_EVE_SESSION_HEADER, options.eveSessionKey);
   }
+  if (options.sessionCapability !== undefined) {
+    headers.set(ZO_SESSION_CAPABILITY_HEADER, options.sessionCapability);
+  }
   return headers;
 }
 function isHeaderEntryArray(value) {
@@ -304,6 +308,7 @@ export {
   normalizeStateFilePath,
   createStateFilesClient,
   createRefreshingStateFilesClient,
+  ZO_SESSION_CAPABILITY_HEADER,
   ZO_EVE_SESSION_HEADER,
   ZO_AGENT_TOKEN_HEADER,
   StateFilesHandleError,

@@ -6,8 +6,10 @@ import {
   EVE_SESSION_HEADER,
   EVE_SUBAGENT_SESSION_HEADER,
   EVE_TURN_HEADER,
+  ambientControlPlaneSessionId,
   ambientEveSessionId,
   ambientEveTurnId,
+  ambientSessionCapability,
   ambientSessionParent,
   eveSessionFetch,
 } from "./session-fetch";
@@ -278,6 +280,38 @@ describe("ambientEveSessionId", () => {
     expect(withSlot(storageOf({ turn: { id: "  " } }), () => ambientEveTurnId())).toBeUndefined();
   });
 
+  test("ambientSessionCapability reads current auth before the durable initiator", () => {
+    const storageOf = (value: unknown) => ({
+      getStore: () => ({
+        get: (key: { name: string }) =>
+          key.name === "eve.session" ? value : undefined,
+      }),
+    });
+    expect(
+      withSlot(
+        storageOf({
+          auth: {
+            current: { attributes: { zoSessionCapability: "current-cap" } },
+            initiator: { attributes: { zoSessionCapability: "initiator-cap" } },
+          },
+        }),
+        () => ambientSessionCapability(),
+      ),
+    ).toBe("current-cap");
+    expect(
+      withSlot(
+        storageOf({
+          auth: {
+            current: null,
+            initiator: { attributes: { zoSessionCapability: "initiator-cap" } },
+          },
+        }),
+        () => ambientSessionCapability(),
+      ),
+    ).toBe("initiator-cap");
+    expect(withSlot(storageOf({ auth: {} }), () => ambientSessionCapability())).toBeUndefined();
+  });
+
   test("non-string or blank slot value → undefined", () => {
     const storageOf = (value: unknown) => ({
       getStore: () => ({ get: () => value }),
@@ -320,6 +354,23 @@ describe("ambientEveSessionId", () => {
     expect(
       withSlot(storageOf({ rootSessionId: "ses-root", sessionId: "  " }), () => ambientSessionParent()),
     ).toBeNull();
+  });
+
+  test("ambientControlPlaneSessionId resolves a child to its root", () => {
+    const storage = {
+      getStore: () => ({
+        get: (key: { name: string }) => {
+          if (key.name === "eve.sessionId") return "ses-child";
+          if (key.name === "eve.parentSession") {
+            return { rootSessionId: "ses-root", sessionId: "ses-parent" };
+          }
+          return undefined;
+        },
+      }),
+    };
+    expect(withSlot(storage, () => ambientControlPlaneSessionId())).toBe(
+      "ses-root",
+    );
   });
 
   test("ambientSessionParent with no storage slot → null", () => {

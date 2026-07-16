@@ -21,6 +21,8 @@ const EVE_CONTEXT_STORAGE_KEY = Symbol.for("eve.context-storage");
 
 /** `ParentSessionKey.name` in eve — a durable serialized key, so it can't drift casually. */
 const PARENT_SESSION_KEY_NAME = "eve.parentSession";
+const SESSION_KEY_NAME = "eve.session";
+const SESSION_CAPABILITY_ATTRIBUTE = "zoSessionCapability";
 
 /**
  * The lineage slice of eve's `SessionParent` this package consumes. `turn` is
@@ -80,5 +82,34 @@ export function ambientSessionParent(): AmbientSessionParent | null {
   } catch {
     // Contract: never throw — a hostile/broken slot reads as "no lineage".
     return null;
+  }
+}
+
+/** Trusted channel capability stored in the current Eve session auth. */
+export function ambientSessionCapability(): string | undefined {
+  try {
+    const storage: unknown = Reflect.get(globalThis, EVE_CONTEXT_STORAGE_KEY);
+    if (!hasMethod(storage, "getStore")) return undefined;
+    const store = storage.getStore();
+    if (!hasMethod(store, "get")) return undefined;
+    const session = store.get({ name: SESSION_KEY_NAME });
+    if (typeof session !== "object" || session === null) return undefined;
+    const auth = (session as Record<string, unknown>).auth;
+    if (typeof auth !== "object" || auth === null) return undefined;
+    for (const key of ["current", "initiator"] as const) {
+      const context = (auth as Record<string, unknown>)[key];
+      if (typeof context !== "object" || context === null) continue;
+      const attributes = (context as Record<string, unknown>).attributes;
+      if (typeof attributes !== "object" || attributes === null) continue;
+      const capability = (attributes as Record<string, unknown>)[
+        SESSION_CAPABILITY_ATTRIBUTE
+      ];
+      if (typeof capability === "string" && capability.trim().length > 0) {
+        return capability;
+      }
+    }
+    return undefined;
+  } catch {
+    return undefined;
   }
 }

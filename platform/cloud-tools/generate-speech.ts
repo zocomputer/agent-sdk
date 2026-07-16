@@ -10,7 +10,7 @@ import { audioOutputPath, correctionError, createAudioPreflight, type AudioLaneP
 import type { MediaInvocationLineage, MediaResult } from "./media-contracts";
 import { mediaInvocationHeaders } from "./media-lineage";
 import type { MediaRegistry } from "./media-registry";
-import { warningText } from "./tool-shared";
+import { StateAssetReferenceSchema, warningText } from "./tool-shared";
 import { createRuntimeStateFilesClient, DEFAULT_STATE_ASSET_DECLARATION_NAME, type StateFilesAssetWriter } from "./state-files";
 
 export const DEFAULT_SPEECH_MODEL = "openai/tts-1";
@@ -33,7 +33,7 @@ const EstimateSchema = z.discriminatedUnion("confidence", [
 ]);
 
 export const GenerateSpeechOutputSchema = z.object({
-  asset: z.object({ type: z.literal("state_asset"), declarationName: z.string(), path: z.string(), contentType: z.string().optional(), bytes: z.number().optional() }),
+  asset: StateAssetReferenceSchema,
   bytes: z.number().int().nonnegative(),
   estimate: EstimateSchema,
   format: z.string(),

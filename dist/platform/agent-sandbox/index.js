@@ -1,9 +1,11 @@
-// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/platform/agent-sandbox/zo-sandbox.ts
+// ../../../../../tmp/agent-sdk-mirror-CGUkNt/repo/platform/agent-sandbox/zo-sandbox.ts
 import { defineSandbox } from "eve/sandbox";
 
-// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/platform/agent-sandbox/ambient.ts
+// ../../../../../tmp/agent-sdk-mirror-CGUkNt/repo/platform/agent-sandbox/ambient.ts
 var EVE_CONTEXT_STORAGE_KEY = Symbol.for("eve.context-storage");
 var PARENT_SESSION_KEY_NAME = "eve.parentSession";
+var SESSION_KEY_NAME = "eve.session";
+var SESSION_CAPABILITY_ATTRIBUTE = "zoSessionCapability";
 function hasMethod(value, name) {
   return typeof value === "object" && value !== null && typeof value[name] === "function";
 }
@@ -34,11 +36,43 @@ function ambientSessionParent() {
     return null;
   }
 }
+function ambientSessionCapability() {
+  try {
+    const storage = Reflect.get(globalThis, EVE_CONTEXT_STORAGE_KEY);
+    if (!hasMethod(storage, "getStore"))
+      return;
+    const store = storage.getStore();
+    if (!hasMethod(store, "get"))
+      return;
+    const session = store.get({ name: SESSION_KEY_NAME });
+    if (typeof session !== "object" || session === null)
+      return;
+    const auth = session.auth;
+    if (typeof auth !== "object" || auth === null)
+      return;
+    for (const key of ["current", "initiator"]) {
+      const context = auth[key];
+      if (typeof context !== "object" || context === null)
+        continue;
+      const attributes = context.attributes;
+      if (typeof attributes !== "object" || attributes === null)
+        continue;
+      const capability = attributes[SESSION_CAPABILITY_ATTRIBUTE];
+      if (typeof capability === "string" && capability.trim().length > 0) {
+        return capability;
+      }
+    }
+    return;
+  } catch {
+    return;
+  }
+}
 
-// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/platform/runtime-auth/index.ts
-import { SignJWT, jwtVerify } from "jose";
+// ../../../../../tmp/agent-sdk-mirror-CGUkNt/repo/platform/runtime-auth/index.ts
+import { SignJWT, errors as joseErrors, jwtVerify } from "jose";
 var AGENT_TOKEN_HEADER = "x-zo-agent-token";
 var EVE_SESSION_HEADER = "x-zo-eve-session";
+var SESSION_CAPABILITY_HEADER = "x-zo-session-capability";
 var AGENT_TOKEN_ENV = "ZO_AGENT_TOKEN";
 var ZO_PLATFORM_ORG = {
   id: "org_zo",
@@ -58,7 +92,7 @@ var RESERVED_AGENT_PROJECT_IDS = [
   LOCAL_AGENT_IDENTITY.agentProjectId
 ];
 
-// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/platform/agent-sandbox/api-client.ts
+// ../../../../../tmp/agent-sdk-mirror-CGUkNt/repo/platform/agent-sandbox/api-client.ts
 var SCRATCH_DECLARATION = "scratch";
 var STATE_HANDLE_PATH = "/state/handles";
 
@@ -133,6 +167,10 @@ async function requestScratchSandboxAccess(input) {
     headers[AGENT_TOKEN_HEADER] = agentToken;
   if (eveSessionKey)
     headers[EVE_SESSION_HEADER] = eveSessionKey;
+  const sessionCapability = input.sessionCapability?.trim() || undefined;
+  if (sessionCapability) {
+    headers[SESSION_CAPABILITY_HEADER] = sessionCapability;
+  }
   const res = await doFetch(`${input.apiBaseUrl}${STATE_HANDLE_PATH}`, {
     method: "POST",
     headers,
@@ -182,11 +220,11 @@ function describeBrokerError(status, code, message) {
   return `sandbox provisioning failed: ${status}${detail ? ` ${detail}` : ""}`.trim();
 }
 
-// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/platform/agent-sandbox/ssh-session.ts
+// ../../../../../tmp/agent-sdk-mirror-CGUkNt/repo/platform/agent-sandbox/ssh-session.ts
 import { Client } from "ssh2";
 import { extractLines } from "@ai-sdk/provider-utils";
 
-// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/platform/agent-sandbox/pure.ts
+// ../../../../../tmp/agent-sdk-mirror-CGUkNt/repo/platform/agent-sandbox/pure.ts
 import { Buffer as Buffer2 } from "node:buffer";
 import path from "node:path";
 var NOMINAL_WORKSPACE_ROOT = "/workspace";
@@ -243,7 +281,7 @@ function encodeText(text, encoding) {
   return new Uint8Array(Buffer2.from(text, enc));
 }
 
-// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/platform/agent-sandbox/ssh-connection.ts
+// ../../../../../tmp/agent-sdk-mirror-CGUkNt/repo/platform/agent-sandbox/ssh-connection.ts
 function isExpired(access, skewMs, now) {
   const expiry = Date.parse(access.expiresAt);
   if (Number.isNaN(expiry))
@@ -334,7 +372,7 @@ class SshConnectionManager {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/platform/agent-sandbox/ssh-exec.ts
+// ../../../../../tmp/agent-sdk-mirror-CGUkNt/repo/platform/agent-sandbox/ssh-exec.ts
 var SIGNAL_EXIT_CODE = 137;
 function abortError(signal) {
   return signal.reason instanceof Error ? signal.reason : new Error(typeof signal.reason === "string" ? signal.reason : "aborted");
@@ -387,7 +425,7 @@ function awaitCommand(stream, abortSignal) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/platform/agent-sandbox/sftp.ts
+// ../../../../../tmp/agent-sdk-mirror-CGUkNt/repo/platform/agent-sandbox/sftp.ts
 import path2 from "node:path";
 var SFTP_NO_SUCH_FILE = 2;
 function isNoSuchFile(error) {
@@ -472,7 +510,7 @@ async function removePath(client, remotePath, opts = {}) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/platform/agent-sandbox/ssh-session.ts
+// ../../../../../tmp/agent-sdk-mirror-CGUkNt/repo/platform/agent-sandbox/ssh-session.ts
 var WORK_DIR = "/home/daytona";
 var EXPIRY_SKEW_MS = 30000;
 var SSH_PORT = 22;
@@ -728,7 +766,7 @@ function sshSandboxSession(id, acquireAccess, connect = async (access) => {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/platform/agent-sandbox/zo-backend.ts
+// ../../../../../tmp/agent-sdk-mirror-CGUkNt/repo/platform/agent-sandbox/zo-backend.ts
 var BACKEND_NAME = "zo";
 function zoBackend(options) {
   return {
@@ -740,6 +778,7 @@ function zoBackend(options) {
         throw new Error("zoBackend.create: eve did not supply a non-blank tags.sessionId (the raw session id the state broker partitions on)");
       }
       const readAmbientParent = options.ambientParent ?? ambientSessionParent;
+      const readAmbientCapability = options.ambientCapability ?? ambientSessionCapability;
       let lineageRootId = readAmbientParent()?.rootSessionId ?? null;
       let brokeredKey = null;
       const brokerSessionKey = () => {
@@ -749,10 +788,19 @@ function zoBackend(options) {
         }
         return brokeredKey;
       };
-      const acquireAccess = async () => await requestScratchSandboxAccess({
-        apiBaseUrl: options.apiBaseUrl,
-        eveSessionKey: brokerSessionKey()
-      });
+      let latchedCapability = readAmbientCapability();
+      const brokerSessionCapability = () => {
+        latchedCapability ??= readAmbientCapability();
+        return latchedCapability;
+      };
+      const acquireAccess = async () => {
+        const sessionCapability = brokerSessionCapability();
+        return await requestScratchSandboxAccess({
+          apiBaseUrl: options.apiBaseUrl,
+          eveSessionKey: brokerSessionKey(),
+          ...sessionCapability === undefined ? {} : { sessionCapability }
+        });
+      };
       const ssh = sshSandboxSession(lineageRootId ?? eveSessionKey, acquireAccess);
       const useSessionFn = () => Promise.resolve(ssh.session);
       return Promise.resolve({
@@ -778,7 +826,7 @@ function zoBackend(options) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/platform/agent-sandbox/zo-sandbox.ts
+// ../../../../../tmp/agent-sdk-mirror-CGUkNt/repo/platform/agent-sandbox/zo-sandbox.ts
 var DEFAULT_API_URL = "http://api.zo.localhost:4000";
 function zoSandbox(options = {}) {
   return defineSandbox({

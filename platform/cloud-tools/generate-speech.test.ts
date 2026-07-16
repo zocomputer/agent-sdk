@@ -9,7 +9,7 @@ function writer() {
   const assetWriter: StateFilesAssetWriter = {
     async write(path, body, options) {
       writes.push({ path, body, ...(options?.contentType === undefined ? {} : { contentType: options.contentType }) });
-      return { type: "state_asset", declarationName: "files", path, ...(options?.contentType === undefined ? {} : { contentType: options.contentType }), bytes: body.byteLength };
+      return { type: "state_asset", declarationName: "files", path, integrity: "v1.test-integrity", ...(options?.contentType === undefined ? {} : { contentType: options.contentType }), bytes: body.byteLength };
     },
   };
   return { writes, assetWriter };
@@ -79,7 +79,7 @@ describe("generateSpeechTool", () => {
     const output = await tool.execute({ text: "Hello world", voice: "calm", output_dir: "spoken" } satisfies GenerateSpeechInput, new Proxy({}, {}) as Parameters<typeof tool.execute>[1]);
     expect(calls).toEqual([{ model: "speech/test", request: { text: "Hello world", voice: "calm", format: "wav" } }]);
     expect(recorded.writes[0]?.path).toBe("spoken/hello-world-abc12345.wav");
-    expect(output.asset).toEqual({ type: "state_asset", declarationName: "files", path: "spoken/hello-world-abc12345.wav", contentType: "audio/wav", bytes: 4 });
+    expect(output.asset).toEqual({ type: "state_asset", declarationName: "files", path: "spoken/hello-world-abc12345.wav", integrity: "v1.test-integrity", contentType: "audio/wav", bytes: 4 });
     expect(JSON.stringify(output)).not.toContain("http");
   });
 

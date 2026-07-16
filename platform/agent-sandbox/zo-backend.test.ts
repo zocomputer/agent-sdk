@@ -1,6 +1,11 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import type { SandboxBackendCreateInput } from "eve/sandbox";
-import { AGENT_TOKEN_ENV, AGENT_TOKEN_HEADER, EVE_SESSION_HEADER } from "../runtime-auth/index.ts";
+import {
+  AGENT_TOKEN_ENV,
+  AGENT_TOKEN_HEADER,
+  EVE_SESSION_HEADER,
+  SESSION_CAPABILITY_HEADER,
+} from "../runtime-auth/index.ts";
 import { zoBackend } from "./zo-backend";
 
 // zoBackend composes the real `requestScratchSandboxAccess` (broker client) +
@@ -67,7 +72,9 @@ describe("zoBackend", () => {
       return new Response("{}", { headers: { "content-type": "application/json" } });
     }) as unknown as typeof fetch;
 
-    const handle = await zoBackend({ apiBaseUrl: "http://api.test" }).create(
+    const handle = await zoBackend({
+      apiBaseUrl: "http://api.test",
+    }).create(
       createInput(WRAPPED_KEY, { rawSessionId: RAW_SESSION_ID }),
     );
 
@@ -93,9 +100,10 @@ describe("zoBackend", () => {
       });
     }) as typeof fetch;
 
-    const handle = await zoBackend({ apiBaseUrl: "http://api.test" }).create(
-      createInput(WRAPPED_KEY, { rawSessionId: RAW_SESSION_ID }),
-    );
+    const handle = await zoBackend({
+      apiBaseUrl: "http://api.test",
+      ambientCapability: () => "signed-session-capability",
+    }).create(createInput(WRAPPED_KEY, { rawSessionId: RAW_SESSION_ID }));
     await expect(handle.session.run({ command: "echo hi" })).rejects.toThrow(/provider_unconfigured|503/);
 
     const request = requests[0];
@@ -114,6 +122,9 @@ describe("zoBackend", () => {
     // on the raw id, so the runtime must too or Save promotes an empty seed tree.
     expect(header(request.init, EVE_SESSION_HEADER)).toBe(RAW_SESSION_ID);
     expect(header(request.init, EVE_SESSION_HEADER)).not.toBe(WRAPPED_KEY);
+    expect(header(request.init, SESSION_CAPABILITY_HEADER)).toBe(
+      "signed-session-capability",
+    );
   });
 
   test("create fails loud when eve supplies no tags.sessionId (never falls back to the wrapped key)", async () => {
@@ -290,6 +301,70 @@ describe("zoBackend", () => {
         createInput(WRAPPED_KEY, { rawSessionId: "   " }),
       ),
     ).toThrow(/tags\.sessionId/);
+  });
+
+  // ── Capability latching: the trusted-channel capability is latched on the
+  // FIRST non-undefined ambient read (create time or any mint), mirroring the
+  // broker-key latch — a token-expiry re-mint landing outside eve's ALS scope
+  // must present the SAME capability the first mint used, not silently drop it
+  // (once sandbox state is user-partitioned, a capability-less re-mint would
+  // resolve a different partition or fail closed).
+
+  test("a re-mint outside eve's ALS scope still presents the capability latched on the first mint", async () => {
+    const requests = brokerCapture();
+    // Create runs outside the ALS scope (read misses), the first mint resolves
+    // the capability, the second mint's read misses again — the latched value
+    // must ride every re-mint regardless.
+    const capabilityReads: Array<string | undefined> = [undefined, "signed-session-capability"];
+    let reads = 0;
+    const handle = await zoBackend({
+      apiBaseUrl: "http://api.test",
+      ambientCapability: () => capabilityReads[reads++],
+    }).create(createInput(WRAPPED_KEY, { rawSessionId: RAW_SESSION_ID }));
+
+    // Two failed runs → two mints (a broker error leaves no held token).
+    await expect(handle.session.run({ command: "echo hi" })).rejects.toThrow(/provider_unconfigured|503/);
+    await expect(handle.session.run({ command: "echo hi" })).rejects.toThrow(/provider_unconfigured|503/);
+    expect(requests.length).toBe(2);
+    for (const request of requests) {
+      expect(header(request.init, SESSION_CAPABILITY_HEADER)).toBe(
+        "signed-session-capability",
+      );
+    }
+  });
+
+  test("a capability latched at create time rides re-mints whose ambient reads all miss", async () => {
+    const requests = brokerCapture();
+    const capabilityReads: Array<string | undefined> = ["signed-session-capability"];
+    let reads = 0;
+    const handle = await zoBackend({
+      apiBaseUrl: "http://api.test",
+      ambientCapability: () => capabilityReads[reads++],
+    }).create(createInput(WRAPPED_KEY, { rawSessionId: RAW_SESSION_ID }));
+
+    await expect(handle.session.run({ command: "echo hi" })).rejects.toThrow(/provider_unconfigured|503/);
+    await expect(handle.session.run({ command: "echo hi" })).rejects.toThrow(/provider_unconfigured|503/);
+    expect(requests.length).toBe(2);
+    for (const request of requests) {
+      expect(header(request.init, SESSION_CAPABILITY_HEADER)).toBe(
+        "signed-session-capability",
+      );
+    }
+  });
+
+  test("no capability ever appearing keeps every mint capability-less (unchanged behavior)", async () => {
+    const requests = brokerCapture();
+    const handle = await zoBackend({
+      apiBaseUrl: "http://api.test",
+      ambientCapability: () => undefined,
+    }).create(createInput(WRAPPED_KEY, { rawSessionId: RAW_SESSION_ID }));
+
+    await expect(handle.session.run({ command: "echo hi" })).rejects.toThrow(/provider_unconfigured|503/);
+    await expect(handle.session.run({ command: "echo hi" })).rejects.toThrow(/provider_unconfigured|503/);
+    expect(requests.length).toBe(2);
+    for (const request of requests) {
+      expect(header(request.init, SESSION_CAPABILITY_HEADER)).toBeUndefined();
+    }
   });
 
   test("captureState keeps eve's WRAPPED sessionKey and records the brokered lineage key as metadata only", async () => {

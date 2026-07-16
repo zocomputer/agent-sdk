@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { buildConsentSteer } from "./state-consent";
 import {
   createRuntimeStateFilesClient,
+  DURABLE_STORAGE_FALLBACK,
   normalizeStateFilePath,
   StateFilesConsentError,
   StateFilesRuntimeError,
@@ -50,6 +51,9 @@ describe("createRuntimeStateFilesClient", () => {
           },
         });
       }
+      if (url === "https://api.example.test/runtime/state/assets/integrity") {
+        return jsonResponse({ integrity: "v1.test-integrity" });
+      }
       return new Response(null, { status: 200 });
     }, globalThis.fetch);
 
@@ -65,9 +69,9 @@ describe("createRuntimeStateFilesClient", () => {
     const ref = await client.write("generated/hello world.png", new Uint8Array([1, 2, 3]), {
       contentType: "image/png",
     });
-    expect(ref).toEqual({ type: "state_asset", declarationName: "files", path: "generated/hello world.png", contentType: "image/png", bytes: 3 });
+    expect(ref).toEqual({ type: "state_asset", declarationName: "files", path: "generated/hello world.png", integrity: "v1.test-integrity", contentType: "image/png", bytes: 3 });
 
-    expect(calls).toHaveLength(2);
+    expect(calls).toHaveLength(3);
     const handleCall = calls[0];
     expect(handleCall?.url).toBe("https://api.example.test/runtime/state/handles");
     expect(new Headers(handleCall?.init?.headers).get("x-zo-agent-token")).toBe("agent-token");
@@ -81,7 +85,15 @@ describe("createRuntimeStateFilesClient", () => {
       }),
     );
 
-    const putCall = calls[1];
+    const integrityCall = calls[1];
+    expect(integrityCall?.url).toBe("https://api.example.test/runtime/state/assets/integrity");
+    expect(new Headers(integrityCall?.init?.headers).get("x-zo-agent-token")).toBe("agent-token");
+    expect(new Headers(integrityCall?.init?.headers).get("x-zo-eve-session")).toBe("eve-session");
+    expect(integrityCall?.init?.body).toBe(
+      JSON.stringify({ declarationName: "files", path: "generated/hello world.png" }),
+    );
+
+    const putCall = calls[2];
     expect(putCall?.url).toBe("https://acct.r2.example.test/bucket-one/generated/hello%20world.png");
     expect(putCall?.init?.method).toBe("PUT");
     expect(putCall?.init?.body).toEqual(new Uint8Array([1, 2, 3]));
@@ -90,6 +102,308 @@ describe("createRuntimeStateFilesClient", () => {
     expect(putHeaders.get("x-amz-security-token")).toBe("session-token");
     expect(putHeaders.get("authorization")).toContain("Credential=AKIA_TEST/20260705/auto/s3/aws4_request");
     expect(putHeaders.get("authorization")).not.toContain("secret");
+
+  });
+
+  test("honors the broker-authorized user-files fallback to shared-files", async () => {
+    const calls: { url: string; init?: RequestInit }[] = [];
+    let handleCalls = 0;
+    const png = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+    const fetch = Object.assign(async (
+      input: Parameters<typeof globalThis.fetch>[0],
+      init?: RequestInit,
+    ) => {
+      const url =
+        typeof input === "string"
+          ? input
+          : input instanceof URL
+            ? input.href
+            : input.url;
+      calls.push({ url, ...(init === undefined ? {} : { init }) });
+      if (url.endsWith("/state/handles")) {
+        handleCalls += 1;
+        return jsonResponse({
+          handleId: `hnd_${handleCalls}`,
+          declarationName: "shared-files",
+          interface: "files",
+          access: handleCalls === 1 ? "rw" : "r",
+          engine: "zo-blob-r2",
+          bucketName: "shared-bucket",
+          endpoint: "https://r2.test",
+          credentials: {
+            accessKeyId: "key",
+            secretAccessKey: "secret",
+            sessionToken: "token",
+            expiresAt: "2026-07-05T23:00:00.000Z",
+          },
+        });
+      }
+      if (url.endsWith("/state/assets/integrity")) {
+        return jsonResponse({ integrity: "v1.shared-proof" });
+      }
+      if (init?.method === "GET") return new Response(png);
+      return new Response(null, { status: 200 });
+    }, globalThis.fetch);
+    const client = createRuntimeStateFilesClient({
+      apiBaseUrl: "https://api.test",
+      agentToken: "agent-token",
+      declarationName: "user-files",
+      fetch,
+      getSessionId: () => "eve-session",
+      getSessionCapability: () => "signed-session-capability",
+      now: () => new Date("2026-07-05T22:00:00.000Z"),
+      suggestedDefaults: { engine: "zo-blob-r2", partition: "user" },
+    });
+
+    const ref = await client.write("generated/shared.png", png);
+    expect(ref).toMatchObject({
+      declarationName: "shared-files",
+      integrity: "v1.shared-proof",
+    });
+    await expect(client.read(ref, { maxBytes: png.byteLength })).resolves.toMatchObject({
+      kind: "image",
+      bytes: png.byteLength,
+    });
+
+    const brokerCalls = calls.filter((call) => call.url.startsWith("https://api.test"));
+    const firstHandleBody = brokerCalls[0]?.init?.body;
+    const integrityBody = brokerCalls[1]?.init?.body;
+    const secondHandleBody = brokerCalls[2]?.init?.body;
+    expect(typeof firstHandleBody === "string" ? JSON.parse(firstHandleBody) : null).toMatchObject({
+      declarationName: "user-files",
+    });
+    expect(typeof integrityBody === "string" ? JSON.parse(integrityBody) : null).toEqual({
+      declarationName: "shared-files",
+      path: "generated/shared.png",
+    });
+    expect(typeof secondHandleBody === "string" ? JSON.parse(secondHandleBody) : null).toMatchObject({
+      declarationName: "shared-files",
+    });
+    for (const call of brokerCalls) {
+      expect(new Headers(call.init?.headers).get("x-zo-session-capability")).toBe(
+        "signed-session-capability",
+      );
+    }
+  });
+
+  test("DURABLE_STORAGE_FALLBACK mirrors the broker's shared-fallback policy exactly", () => {
+    // The one client-side copy of apps/api's shared-fallback resolution
+    // (src/state/resolve.ts). Both the handle check and the asset-ref check
+    // read this map — if the broker policy changes, change THIS entry, and
+    // this pin, together.
+    expect(DURABLE_STORAGE_FALLBACK).toEqual({ "user-files": "shared-files" });
+  });
+
+  test("the handle check rejects the fallback declaration when the request was not user-files", async () => {
+    // `shared-files` is an authorized substitute ONLY for a `user-files`
+    // request; for any other configured declaration it is "a handle for
+    // another declaration" and must be rejected before object access.
+    let handleCalls = 0;
+    const fetch = Object.assign(async () => {
+      handleCalls += 1;
+      return jsonResponse({
+        handleId: "hnd_x",
+        declarationName: "shared-files",
+        interface: "files",
+        access: "rw",
+        engine: "zo-blob-r2",
+        bucketName: "shared-bucket",
+        endpoint: "https://r2.test",
+        credentials: {
+          accessKeyId: "key",
+          secretAccessKey: "secret",
+          sessionToken: "token",
+          expiresAt: "2026-07-05T23:00:00.000Z",
+        },
+      });
+    }, globalThis.fetch);
+    const client = createRuntimeStateFilesClient({
+      apiBaseUrl: "https://api.test",
+      agentToken: "agent-token",
+      declarationName: "files",
+      fetch,
+      getSessionId: () => "eve-session",
+      now: () => new Date("2026-07-05T22:00:00.000Z"),
+    });
+
+    await expect(client.write("generated/x.png", new Uint8Array([1]))).rejects.toThrow(
+      "another declaration",
+    );
+    expect(handleCalls).toBe(1);
+  });
+
+  test("the asset-ref check rejects a shared-files ref when the configured declaration is not user-files", async () => {
+    // Same policy at the read boundary: a `shared-files` reference only passes
+    // for a `user-files` client, and the rejection happens before any broker
+    // or object access.
+    let calls = 0;
+    const client = createRuntimeStateFilesClient({
+      apiBaseUrl: "https://api.test",
+      agentToken: "agent-token",
+      declarationName: "files",
+      fetch: Object.assign(async () => {
+        calls += 1;
+        return new Response(null, { status: 500 });
+      }, globalThis.fetch),
+    });
+
+    await expect(
+      client.read(
+        { type: "state_asset", declarationName: "shared-files", path: "x.png" },
+        { maxBytes: 10 },
+      ),
+    ).rejects.toThrow("configured");
+    expect(calls).toBe(0);
+  });
+
+  test("does not write an object when the integrity proof cannot be minted", async () => {
+    const urls: string[] = [];
+    const fetch = Object.assign(async (input: Parameters<typeof globalThis.fetch>[0]) => {
+      const url = typeof input === "string" ? input : input instanceof URL ? input.href : input.url;
+      urls.push(url);
+      if (url.endsWith("/state/handles")) {
+        return jsonResponse({
+          handleId: "hnd_123",
+          declarationName: "files",
+          interface: "files",
+          access: "rw",
+          engine: "zo-blob-r2",
+          bucketName: "bucket-one",
+          endpoint: "https://acct.r2.example.test",
+          credentials: {
+            accessKeyId: "AKIA_TEST",
+            secretAccessKey: "secret",
+            sessionToken: "session-token",
+            expiresAt: "2026-07-05T23:00:00.000Z",
+          },
+        });
+      }
+      return jsonResponse({ error: "provider_unconfigured" }, { status: 503 });
+    }, globalThis.fetch);
+    const client = createRuntimeStateFilesClient({
+      apiBaseUrl: "https://api.example.test/runtime",
+      agentToken: "agent-token",
+      fetch,
+      getSessionId: () => "eve-session",
+      now: () => new Date("2026-07-05T22:00:00.000Z"),
+    });
+
+    await expect(client.write("generated/fail.png", new Uint8Array([1]))).rejects.toThrow();
+    expect(urls).toEqual([
+      "https://api.example.test/runtime/state/handles",
+      "https://api.example.test/runtime/state/assets/integrity",
+    ]);
+  });
+
+  test("bounds a hung integrity request and aborts its fetch", async () => {
+    const captured: { signal?: AbortSignal } = {};
+    const fetch = Object.assign(
+      async (
+        input: Parameters<typeof globalThis.fetch>[0],
+        init?: Parameters<typeof globalThis.fetch>[1],
+      ) => {
+        const url =
+          typeof input === "string"
+            ? input
+            : input instanceof URL
+              ? input.href
+              : input.url;
+        if (url.endsWith("/state/handles")) {
+          return jsonResponse({
+            handleId: "hnd_123",
+            declarationName: "files",
+            interface: "files",
+            access: "rw",
+            engine: "zo-blob-r2",
+            bucketName: "bucket-one",
+            endpoint: "https://acct.r2.example.test",
+            credentials: {
+              accessKeyId: "AKIA_TEST",
+              secretAccessKey: "secret",
+              sessionToken: "session-token",
+              expiresAt: "2026-07-05T23:00:00.000Z",
+            },
+          });
+        }
+        if (init?.signal !== null && init?.signal !== undefined) {
+          captured.signal = init.signal;
+        }
+        return await new Promise<Response>(() => {});
+      },
+      globalThis.fetch,
+    );
+    const client = createRuntimeStateFilesClient({
+      apiBaseUrl: "https://api.example.test/runtime",
+      agentToken: "agent-token",
+      brokerRequestTimeoutMs: 5,
+      fetch,
+      getSessionId: () => "eve-session",
+      now: () => new Date("2026-07-05T22:00:00.000Z"),
+    });
+
+    await expect(
+      client.write("generated/hung.png", new Uint8Array([1])),
+    ).rejects.toThrow("broker timed out");
+    expect(captured.signal?.aborted).toBe(true);
+  });
+
+  test("keeps the integrity deadline active while the response body stalls", async () => {
+    const captured: { signal?: AbortSignal } = {};
+    const fetch = Object.assign(
+      async (
+        input: Parameters<typeof globalThis.fetch>[0],
+        init?: Parameters<typeof globalThis.fetch>[1],
+      ) => {
+        const url =
+          typeof input === "string"
+            ? input
+            : input instanceof URL
+              ? input.href
+              : input.url;
+        if (url.endsWith("/state/handles")) {
+          return jsonResponse({
+            handleId: "hnd_123",
+            declarationName: "files",
+            interface: "files",
+            access: "rw",
+            engine: "zo-blob-r2",
+            bucketName: "bucket-one",
+            endpoint: "https://acct.r2.example.test",
+            credentials: {
+              accessKeyId: "AKIA_TEST",
+              secretAccessKey: "secret",
+              sessionToken: "session-token",
+              expiresAt: "2026-07-05T23:00:00.000Z",
+            },
+          });
+        }
+        if (init?.signal !== null && init?.signal !== undefined) {
+          captured.signal = init.signal;
+        }
+        return new Response(
+          new ReadableStream<Uint8Array>({
+            start(controller) {
+              controller.enqueue(new TextEncoder().encode('{"integrity":"partial'));
+            },
+          }),
+          { headers: { "content-type": "application/json" } },
+        );
+      },
+      globalThis.fetch,
+    );
+    const client = createRuntimeStateFilesClient({
+      apiBaseUrl: "https://api.example.test/runtime",
+      agentToken: "agent-token",
+      brokerRequestTimeoutMs: 5,
+      fetch,
+      getSessionId: () => "eve-session",
+      now: () => new Date("2026-07-05T22:00:00.000Z"),
+    });
+
+    await expect(
+      client.write("generated/hung-body.png", new Uint8Array([1])),
+    ).rejects.toThrow("broker timed out");
+    expect(captured.signal?.aborted).toBe(true);
   });
 
   test("rejects unsafe paths before requesting a handle", async () => {
@@ -272,6 +586,13 @@ describe("consent_required steer", () => {
     expect(error).toBeInstanceOf(StateFilesRuntimeError);
     expect(error).not.toBeInstanceOf(StateFilesConsentError);
   });
+
+  test("preserves a broker error code when no detail message is present", async () => {
+    const client = consentClient({ error: "access_denied" }, 403);
+    await expect(
+      client.write("generated/cat.png", new Uint8Array([1])),
+    ).rejects.toThrow("access_denied");
+  });
 });
 
 describe("stateAssetReference", () => {
@@ -281,6 +602,7 @@ describe("stateAssetReference", () => {
         type: "state_asset",
         declarationName: "files",
         path: "generated/cat.png",
+        integrity: "v1.test-integrity",
         contentType: "image/png",
         bytes: 10,
       }),
@@ -288,6 +610,7 @@ describe("stateAssetReference", () => {
       type: "state_asset",
       declarationName: "files",
       path: "generated/cat.png",
+      integrity: "v1.test-integrity",
       contentType: "image/png",
       bytes: 10,
     });
@@ -295,8 +618,19 @@ describe("stateAssetReference", () => {
 
   test("shares state-file path rejection semantics", () => {
     expect(() => normalizeStateFilePath("/absolute.png")).toThrow("relative");
-    expect(() => stateAssetReference({ type: "state_asset", declarationName: "files", path: "a//b" })).toThrow(
+    expect(() => stateAssetReference({ type: "state_asset", declarationName: "files", path: "a//b", integrity: "v1.test-integrity" })).toThrow(
       "empty, . or ..",
     );
+  });
+
+  test("rejects an empty browser integrity proof", () => {
+    expect(() =>
+      stateAssetReference({
+        type: "state_asset",
+        declarationName: "files",
+        path: "generated/cat.png",
+        integrity: " ",
+      }),
+    ).toThrow("integrity proof must not be empty");
   });
 });

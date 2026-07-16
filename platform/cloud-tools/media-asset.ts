@@ -43,6 +43,7 @@ export function assertMediaAssetRef(
     type: "state_asset",
     declarationName,
     path: normalizeMediaAssetPath(ref.path),
+    ...(ref.integrity === undefined ? {} : { integrity: ref.integrity }),
     ...(ref.contentType === undefined ? {} : { contentType: ref.contentType }),
     ...(ref.bytes === undefined ? {} : { bytes: ref.bytes }),
   });

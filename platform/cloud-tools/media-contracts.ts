@@ -21,6 +21,7 @@ export interface MediaAssetRef {
   readonly type: "state_asset";
   readonly declarationName: string;
   readonly path: string;
+  readonly integrity?: string;
   readonly contentType?: string;
   readonly bytes?: number;
 }

@@ -1,10 +1,11 @@
-// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/platform/runtime-ai/session-fetch.ts
+// ../../../../../tmp/agent-sdk-mirror-CGUkNt/repo/platform/runtime-ai/session-fetch.ts
 var EVE_SESSION_HEADER = "x-zo-eve-session";
 var EVE_TURN_HEADER = "x-zo-eve-turn";
 var EVE_SUBAGENT_SESSION_HEADER = "x-zo-eve-subagent-session";
 var EVE_CONTEXT_STORAGE_KEY = Symbol.for("eve.context-storage");
 var SESSION_ID_KEY_NAME = "eve.sessionId";
 var SESSION_KEY_NAME = "eve.session";
+var SESSION_CAPABILITY_ATTRIBUTE = "zoSessionCapability";
 var PARENT_SESSION_KEY_NAME = "eve.parentSession";
 function hasMethod(value, name) {
   return typeof value === "object" && value !== null && typeof value[name] === "function";
@@ -34,6 +35,31 @@ function ambientEveTurnId() {
     return;
   const id = turn["id"];
   return typeof id === "string" && id.trim().length > 0 ? id : undefined;
+}
+function ambientSessionCapability() {
+  const session = ambientContextValue(SESSION_KEY_NAME);
+  if (typeof session !== "object" || session === null)
+    return;
+  const auth = session["auth"];
+  if (typeof auth !== "object" || auth === null)
+    return;
+  const authRecord = auth;
+  for (const key of ["current", "initiator"]) {
+    const context = authRecord[key];
+    if (typeof context !== "object" || context === null)
+      continue;
+    const attributes = context["attributes"];
+    if (typeof attributes !== "object" || attributes === null)
+      continue;
+    const capability = attributes[SESSION_CAPABILITY_ATTRIBUTE];
+    if (typeof capability === "string" && capability.trim().length > 0) {
+      return capability;
+    }
+  }
+  return;
+}
+function ambientControlPlaneSessionId() {
+  return ambientSessionParent()?.rootSessionId ?? ambientEveSessionId();
 }
 function ambientContextValue(keyName) {
   const storage = Reflect.get(globalThis, EVE_CONTEXT_STORAGE_KEY);
@@ -67,8 +93,10 @@ function eveSessionFetch(getSessionId = ambientEveSessionId, baseFetch = globalT
 export {
   eveSessionFetch,
   ambientSessionParent,
+  ambientSessionCapability,
   ambientEveTurnId,
   ambientEveSessionId,
+  ambientControlPlaneSessionId,
   EVE_TURN_HEADER,
   EVE_SUBAGENT_SESSION_HEADER,
   EVE_SESSION_HEADER

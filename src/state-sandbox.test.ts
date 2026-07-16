@@ -112,6 +112,7 @@ describe("requestStateSandboxHandle", () => {
       access: "rw",
       agentToken: "agent-token",
       eveSessionKey: "eve-session",
+      sessionCapability: "signed-session-capability",
       headers: { "x-extra": "kept", "content-type": "ignored" },
       suggestedDefaults: { partition: "team" },
     });
@@ -124,6 +125,9 @@ describe("requestStateSandboxHandle", () => {
     expect(headers.get("content-type")).toBe("application/json");
     expect(headers.get("x-zo-agent-token")).toBe("agent-token");
     expect(headers.get("x-zo-eve-session")).toBe("eve-session");
+    expect(headers.get("x-zo-session-capability")).toBe(
+      "signed-session-capability",
+    );
     expect(headers.get("x-extra")).toBe("kept");
     expect(JSON.parse(String(seenInit?.body))).toEqual({
       declarationName: "workspace",

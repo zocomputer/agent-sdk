@@ -20,6 +20,8 @@ export const STATE_SANDBOX_HANDLE_PATH = "/state/handles";
 export const ZO_AGENT_TOKEN_HEADER = "x-zo-agent-token";
 /** HTTP header for the eve session key when requesting a sandbox handle. */
 export const ZO_EVE_SESSION_HEADER = "x-zo-eve-session";
+/** HTTP header for the trusted channel's opaque user/session capability. */
+export const ZO_SESSION_CAPABILITY_HEADER = "x-zo-session-capability";
 
 /**
  * Short-lived SSH access for a broker-owned sandbox state instance.
@@ -105,6 +107,8 @@ export interface RequestStateSandboxHandleOptions {
   readonly agentToken?: string;
   /** eve session key sent as `x-zo-eve-session`; the route derives resolver session identity from auth context. */
   readonly eveSessionKey?: string;
+  /** Opaque trusted-channel capability sent as `x-zo-session-capability`. */
+  readonly sessionCapability?: string;
   /**
    * Declaration defaults from `defineExternalState`. The sandbox client sends
    * `engine: "sandbox-daytona"` by default so unbound exec declarations do
@@ -696,6 +700,9 @@ function buildStateSandboxHandleHeaders(
   }
   if (options.eveSessionKey !== undefined) {
     headers.set(ZO_EVE_SESSION_HEADER, options.eveSessionKey);
+  }
+  if (options.sessionCapability !== undefined) {
+    headers.set(ZO_SESSION_CAPABILITY_HEADER, options.sessionCapability);
   }
   return headers;
 }

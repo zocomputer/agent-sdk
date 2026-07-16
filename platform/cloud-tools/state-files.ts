@@ -1,4 +1,7 @@
-import { ambientEveSessionId } from "../runtime-ai/session-fetch.ts";
+import {
+  ambientControlPlaneSessionId,
+  ambientSessionCapability,
+} from "../runtime-ai/session-fetch.ts";
 
 import { buildConsentSteer, type ConsentEnvelope, parseConsentEnvelope } from "./state-consent";
 import { assertMediaAssetRef, normalizeMediaAssetPath, sniffMediaAsset } from "./media-asset";
@@ -6,20 +9,40 @@ import type { MediaAssetRef, ResolvedMediaAsset } from "./media-contracts";
 
 export const DEFAULT_STATE_ASSET_DECLARATION_NAME = "files";
 export const STATE_FILES_HANDLE_PATH = "/state/handles";
+export const STATE_ASSET_INTEGRITY_PATH = "/state/assets/integrity";
 export const ZO_AGENT_TOKEN_HEADER = "x-zo-agent-token";
 export const ZO_EVE_SESSION_HEADER = "x-zo-eve-session";
+export const ZO_SESSION_CAPABILITY_HEADER = "x-zo-session-capability";
+const DEFAULT_BROKER_REQUEST_TIMEOUT_MS = 15_000;
 
 const DEFAULT_STATE_FILES_SUGGESTED_DEFAULTS: RuntimeStateFilesSuggestedDefaults = Object.freeze({
   engine: "zo-blob-r2",
   partition: "session",
 });
 
-export interface StateAssetReference {
-  readonly type: "state_asset";
-  readonly declarationName: string;
-  readonly path: string;
-  readonly contentType?: string;
-  readonly bytes?: number;
+/**
+ * The broker's durable-storage fallback policy, mirrored client-side: when the
+ * caller has no user identity, a `user-files` request legitimately resolves to
+ * a `shared-files` handle. The authority is apps/api's shared-fallback
+ * resolution (`apps/api/src/state/resolve.ts`) — mirrored here, not imported,
+ * since cloud-tools must not depend on apps/api. Maps each requested
+ * declaration to the fallback declaration the broker may substitute; both the
+ * handle check (`requestRuntimeStateFilesHandle`) and the asset-ref check
+ * (`assertRuntimeStateAssetRef`) read this ONE map, so a broker policy change
+ * updates one entry instead of desyncing the client into rejecting legitimate
+ * handles.
+ */
+export const DURABLE_STORAGE_FALLBACK: Readonly<Partial<Record<string, string>>> = Object.freeze({
+  "user-files": "shared-files",
+});
+
+/** True when `actual` is the broker's authorized fallback declaration for `requested`. */
+function isBrokerFallbackDeclaration(requested: string, actual: string): boolean {
+  return DURABLE_STORAGE_FALLBACK[requested] === actual;
+}
+
+export interface StateAssetReference extends MediaAssetRef {
+  readonly integrity: string;
 }
 
 interface StateFilesCredentials {
@@ -45,7 +68,7 @@ export interface StateFilesWriteOptions {
 }
 
 export interface StateFilesAssetWriter {
-  write(path: string, body: Uint8Array, options?: StateFilesWriteOptions): Promise<MediaAssetRef>;
+  write(path: string, body: Uint8Array, options?: StateFilesWriteOptions): Promise<StateAssetReference>;
 }
 
 export interface StateFilesAssetStore extends StateFilesAssetWriter {
@@ -59,6 +82,8 @@ export interface RuntimeStateFilesClientOptions {
   readonly declarationName?: string;
   readonly fetch?: typeof globalThis.fetch;
   readonly getSessionId?: () => string | undefined;
+  readonly getSessionCapability?: () => string | undefined;
+  readonly brokerRequestTimeoutMs?: number;
   readonly now?: () => Date;
   readonly suggestedDefaults?: RuntimeStateFilesSuggestedDefaults;
 }
@@ -100,25 +125,33 @@ export function createRuntimeStateFilesClient(
 ): StateFilesAssetStore {
   const fetchImpl = options.fetch ?? globalThis.fetch;
   const declarationName = options.declarationName ?? DEFAULT_STATE_ASSET_DECLARATION_NAME;
-  const getSessionId = options.getSessionId ?? ambientEveSessionId;
+  const getSessionId = options.getSessionId ?? ambientControlPlaneSessionId;
+  const getSessionCapability =
+    options.getSessionCapability ?? ambientSessionCapability;
   const now = options.now ?? (() => new Date());
+  const brokerRequestTimeoutMs = resolveBrokerRequestTimeoutMs(
+    options.brokerRequestTimeoutMs,
+  );
 
   return {
     async resolveUrl(ref, expiresInSeconds) {
       if (!Number.isSafeInteger(expiresInSeconds) || expiresInSeconds <= 0) {
         throw new StateFilesRuntimeError("media URL expiry must be a positive safe integer");
       }
-      const trustedRef = assertMediaAssetRef(ref, declarationName);
+      const trustedRef = assertRuntimeStateAssetRef(ref, declarationName);
       const eveSessionKey = getSessionId();
+      const sessionCapability = getSessionCapability();
       const handle = await requestRuntimeStateFilesHandle({
         access: "r",
         apiBaseUrl: resolveApiBaseUrl(options.apiBaseUrl),
         agentToken: resolveAgentToken(options.agentToken),
-        declarationName,
+        declarationName: trustedRef.declarationName,
         fetch: fetchImpl,
+        timeoutMs: brokerRequestTimeoutMs,
         now,
         suggestedDefaults: options.suggestedDefaults ?? DEFAULT_STATE_FILES_SUGGESTED_DEFAULTS,
         ...(eveSessionKey === undefined ? {} : { eveSessionKey }),
+        ...(sessionCapability === undefined ? {} : { sessionCapability }),
       });
       return presignedStateFileGetUrl({
         bucketName: handle.bucketName,
@@ -133,17 +166,20 @@ export function createRuntimeStateFilesClient(
       if (!Number.isSafeInteger(limits.maxBytes) || limits.maxBytes <= 0) {
         throw new StateFilesRuntimeError("media read maxBytes must be a positive safe integer");
       }
-      const trustedRef = assertMediaAssetRef(ref, declarationName);
+      const trustedRef = assertRuntimeStateAssetRef(ref, declarationName);
       const eveSessionKey = getSessionId();
+      const sessionCapability = getSessionCapability();
       const handle = await requestRuntimeStateFilesHandle({
         access: "r",
         apiBaseUrl: resolveApiBaseUrl(options.apiBaseUrl),
         agentToken: resolveAgentToken(options.agentToken),
-        declarationName,
+        declarationName: trustedRef.declarationName,
         fetch: fetchImpl,
+        timeoutMs: brokerRequestTimeoutMs,
         now,
         suggestedDefaults: options.suggestedDefaults ?? DEFAULT_STATE_FILES_SUGGESTED_DEFAULTS,
         ...(eveSessionKey === undefined ? {} : { eveSessionKey }),
+        ...(sessionCapability === undefined ? {} : { sessionCapability }),
       });
       const body = await getStateFileObject({
         bucketName: handle.bucketName,
@@ -163,21 +199,42 @@ export function createRuntimeStateFilesClient(
     async write(path, body, writeOptions) {
       const key = normalizeStateFilePath(path);
       const eveSessionKey = getSessionId();
+      const sessionCapability = getSessionCapability();
+      if (eveSessionKey === undefined || eveSessionKey.trim().length === 0) {
+        throw new StateFilesRuntimeError(
+          "the state asset write has no eve session, so its browser integrity proof cannot be minted",
+        );
+      }
+      const apiBaseUrl = resolveApiBaseUrl(options.apiBaseUrl);
+      const agentToken = resolveAgentToken(options.agentToken);
       const handle = await requestRuntimeStateFilesHandle({
         access: "rw",
-        apiBaseUrl: resolveApiBaseUrl(options.apiBaseUrl),
-        agentToken: resolveAgentToken(options.agentToken),
+        apiBaseUrl,
+        agentToken,
         declarationName,
         fetch: fetchImpl,
+        timeoutMs: brokerRequestTimeoutMs,
         now,
         suggestedDefaults: options.suggestedDefaults ?? DEFAULT_STATE_FILES_SUGGESTED_DEFAULTS,
-        ...(eveSessionKey === undefined ? {} : { eveSessionKey }),
+        eveSessionKey,
+        ...(sessionCapability === undefined ? {} : { sessionCapability }),
       });
       if (handle.access !== "rw") {
         throw new StateFilesRuntimeError(
           `the "${handle.declarationName}" state files handle is read-only, so nothing can be written — the agent's state configuration must allow writes`,
         );
       }
+      const effectiveDeclarationName = handle.declarationName;
+      const integrity = await requestStateAssetIntegrity({
+        apiBaseUrl,
+        agentToken,
+        declarationName: effectiveDeclarationName,
+        eveSessionKey,
+        ...(sessionCapability === undefined ? {} : { sessionCapability }),
+        fetch: fetchImpl,
+        path: key,
+        timeoutMs: brokerRequestTimeoutMs,
+      });
       await putStateFileObject({
         body,
         bucketName: handle.bucketName,
@@ -190,8 +247,9 @@ export function createRuntimeStateFilesClient(
       });
       return stateAssetReference({
         type: "state_asset",
-        declarationName,
+        declarationName: effectiveDeclarationName,
         path: key,
+        integrity,
         ...(writeOptions?.contentType === undefined ? {} : { contentType: writeOptions.contentType }),
         bytes: body.byteLength,
       });
@@ -199,14 +257,72 @@ export function createRuntimeStateFilesClient(
   };
 }
 
+function assertRuntimeStateAssetRef(
+  ref: MediaAssetRef,
+  configuredDeclarationName: string,
+): MediaAssetRef {
+  try {
+    return assertMediaAssetRef(ref, configuredDeclarationName);
+  } catch (error) {
+    if (isBrokerFallbackDeclaration(configuredDeclarationName, ref.declarationName)) {
+      return assertMediaAssetRef(ref, ref.declarationName);
+    }
+    throw error;
+  }
+}
+
 export function stateAssetReference(input: StateAssetReference): StateAssetReference {
+  if (input.integrity.trim().length === 0) {
+    throw new StateFilesRuntimeError("state asset integrity proof must not be empty");
+  }
   return Object.freeze({
     type: "state_asset",
     declarationName: input.declarationName,
     path: normalizeStateFilePath(input.path),
+    integrity: input.integrity,
     ...(input.contentType === undefined ? {} : { contentType: input.contentType }),
     ...(input.bytes === undefined ? {} : { bytes: input.bytes }),
   });
+}
+
+interface RequestStateAssetIntegrityOptions {
+  readonly apiBaseUrl: string;
+  readonly agentToken: string;
+  readonly declarationName: string;
+  readonly eveSessionKey: string;
+  readonly fetch: typeof globalThis.fetch;
+  readonly path: string;
+  readonly sessionCapability?: string;
+  readonly timeoutMs: number;
+}
+
+async function requestStateAssetIntegrity(
+  options: RequestStateAssetIntegrityOptions,
+): Promise<string> {
+  const { response, body } = await fetchBrokerJson(options.fetch, buildApiUrl(options.apiBaseUrl, STATE_ASSET_INTEGRITY_PATH), {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      [ZO_AGENT_TOKEN_HEADER]: options.agentToken,
+      [ZO_EVE_SESSION_HEADER]: options.eveSessionKey,
+      ...(options.sessionCapability === undefined
+        ? {}
+        : { [ZO_SESSION_CAPABILITY_HEADER]: options.sessionCapability }),
+    },
+    body: JSON.stringify({
+      declarationName: options.declarationName,
+      path: options.path,
+    }),
+  }, options.timeoutMs);
+  if (!response.ok) {
+    throw new StateFilesRuntimeError(readBrokerErrorMessage(body));
+  }
+  if (!isRecord(body) || typeof body.integrity !== "string" || body.integrity.length === 0) {
+    throw new StateFilesRuntimeError(
+      "the state asset broker returned a malformed integrity proof; retrying may help",
+    );
+  }
+  return body.integrity;
 }
 
 export function normalizeStateFilePath(path: string): string {
@@ -226,6 +342,8 @@ interface RequestRuntimeStateFilesHandleOptions {
   readonly fetch: typeof globalThis.fetch;
   readonly now: () => Date;
   readonly suggestedDefaults: RuntimeStateFilesSuggestedDefaults;
+  readonly sessionCapability?: string;
+  readonly timeoutMs: number;
 }
 
 async function requestRuntimeStateFilesHandle(
@@ -236,8 +354,17 @@ async function requestRuntimeStateFilesHandle(
   if (options.eveSessionKey !== undefined && options.eveSessionKey.trim().length > 0) {
     headers.set(ZO_EVE_SESSION_HEADER, options.eveSessionKey.trim());
   }
+  if (
+    options.sessionCapability !== undefined &&
+    options.sessionCapability.trim().length > 0
+  ) {
+    headers.set(
+      ZO_SESSION_CAPABILITY_HEADER,
+      options.sessionCapability.trim(),
+    );
+  }
 
-  const response = await options.fetch(buildStateFilesHandleUrl(options.apiBaseUrl), {
+  const { response, body: json } = await fetchBrokerJson(options.fetch, buildStateFilesHandleUrl(options.apiBaseUrl), {
     method: "POST",
     headers,
     body: JSON.stringify({
@@ -246,8 +373,7 @@ async function requestRuntimeStateFilesHandle(
       access: options.access,
       suggestedDefaults: options.suggestedDefaults,
     }),
-  });
-  const json: unknown = await response.json().catch(() => null);
+  }, options.timeoutMs);
   if (!response.ok) {
     // A `consent_required` 409 with a parseable envelope becomes a consent steer,
     // not a failure — the trust binding is `pending_consent` and needs the
@@ -265,7 +391,11 @@ async function requestRuntimeStateFilesHandle(
       "the state files broker returned a malformed handle; retrying may help",
     );
   }
-  if (handle.declarationName !== options.declarationName) {
+  const sharedFallback = isBrokerFallbackDeclaration(
+    options.declarationName,
+    handle.declarationName,
+  );
+  if (handle.declarationName !== options.declarationName && !sharedFallback) {
     throw new StateFilesRuntimeError("the state files broker returned a handle for another declaration");
   }
   if (options.access === "rw" && handle.access !== "rw") {
@@ -297,9 +427,63 @@ function resolveAgentToken(agentToken: string | null | undefined): string {
   return value;
 }
 
+function resolveBrokerRequestTimeoutMs(value: number | undefined): number {
+  const timeoutMs = value ?? DEFAULT_BROKER_REQUEST_TIMEOUT_MS;
+  if (!Number.isSafeInteger(timeoutMs) || timeoutMs <= 0) {
+    throw new StateFilesRuntimeError(
+      "state files broker timeout must be a positive safe integer",
+    );
+  }
+  return timeoutMs;
+}
+
+async function fetchBrokerJson(
+  fetchImpl: typeof globalThis.fetch,
+  input: string,
+  init: RequestInit,
+  timeoutMs: number,
+): Promise<{ readonly response: Response; readonly body: unknown }> {
+  const controller = new AbortController();
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<never>((_resolve, reject) => {
+    timer = setTimeout(() => {
+      controller.abort();
+      reject(
+        new StateFilesRuntimeError(
+          "the state files broker timed out; retrying may help",
+        ),
+      );
+    }, timeoutMs);
+  });
+  try {
+    return await Promise.race([
+      (async () => {
+        const response = await fetchImpl(input, {
+          ...init,
+          signal: controller.signal,
+        });
+        const body: unknown = await response.json().catch(() => null);
+        return { response, body };
+      })(),
+      timeout,
+    ]);
+  } catch (error) {
+    if (error instanceof StateFilesRuntimeError) throw error;
+    throw new StateFilesRuntimeError(
+      `the state files broker request failed: ${error instanceof Error ? error.message : "unknown error"}`,
+    );
+  } finally {
+    if (timer !== undefined) clearTimeout(timer);
+  }
+}
+
 function buildStateFilesHandleUrl(apiBaseUrl: string): string {
+  return buildApiUrl(apiBaseUrl, STATE_FILES_HANDLE_PATH);
+}
+
+function buildApiUrl(apiBaseUrl: string, path: string): string {
   const url = new URL(apiBaseUrl);
-  url.pathname = `${url.pathname.replace(/\/+$/u, "")}/${STATE_FILES_HANDLE_PATH.replace(/^\/+/, "")}`;
+  url.pathname = `${url.pathname.replace(/\/+$/u, "")}/${path.replace(/^\/+/, "")}`;
   url.search = "";
   url.hash = "";
   return url.toString();
@@ -352,8 +536,14 @@ function isConsentRequired(value: unknown): boolean {
 
 function readBrokerErrorMessage(value: unknown): string {
   if (!isRecord(value)) return "state files broker request failed";
-  const error = isRecord(value.error) ? value.error : value;
-  return readString(error, "message") ?? "state files broker request failed";
+  const code = readString(value, "error");
+  const message = readString(value, "message");
+  if (code !== null && message !== null) return `${code}: ${message}`;
+  if (code !== null) return `state files broker request failed (${code})`;
+  const nested = isRecord(value.error) ? value.error : value;
+  return (
+    readString(nested, "message") ?? "state files broker request failed"
+  );
 }
 
 interface PutStateFileObjectOptions {

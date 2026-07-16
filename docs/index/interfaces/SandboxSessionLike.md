@@ -6,7 +6,7 @@
 
 # Interface: SandboxSessionLike
 
-Defined in: [packages/agent-sdk/src/workspace-io.ts:104](https://github.com/zocomputer/zov2-code/blob/ff98edef5b507bf96c80f8f4c36882d827c8a81e/packages/agent-sdk/src/workspace-io.ts#L104)
+Defined in: [packages/agent-sdk/src/workspace-io.ts:104](https://github.com/zocomputer/zov2-code/blob/f537e0a90da222390e69bcbf7e329142b9e8d4b0/packages/agent-sdk/src/workspace-io.ts#L104)
 
 The slice of eve's `SandboxSession` the sandbox backend needs, declared
 structurally so lib modules stay framework-free (eve's type satisfies it).
@@ -23,7 +23,7 @@ missing file, writes create parent directories.
 
 > `readonly` **readBinaryFile**: (`options`) => `PromiseLike`\<`Uint8Array`\<`ArrayBufferLike`\> \| `null`\>
 
-Defined in: [packages/agent-sdk/src/workspace-io.ts:106](https://github.com/zocomputer/zov2-code/blob/ff98edef5b507bf96c80f8f4c36882d827c8a81e/packages/agent-sdk/src/workspace-io.ts#L106)
+Defined in: [packages/agent-sdk/src/workspace-io.ts:106](https://github.com/zocomputer/zov2-code/blob/f537e0a90da222390e69bcbf7e329142b9e8d4b0/packages/agent-sdk/src/workspace-io.ts#L106)
 
 Read a file's bytes; null when it doesn't exist.
 
@@ -45,7 +45,7 @@ Read a file's bytes; null when it doesn't exist.
 
 > `readonly` **run**: (`options`) => `PromiseLike`\<\{ `exitCode`: `number`; `stderr`: `string`; `stdout`: `string`; \}\>
 
-Defined in: [packages/agent-sdk/src/workspace-io.ts:115](https://github.com/zocomputer/zov2-code/blob/ff98edef5b507bf96c80f8f4c36882d827c8a81e/packages/agent-sdk/src/workspace-io.ts#L115)
+Defined in: [packages/agent-sdk/src/workspace-io.ts:115](https://github.com/zocomputer/zov2-code/blob/f537e0a90da222390e69bcbf7e329142b9e8d4b0/packages/agent-sdk/src/workspace-io.ts#L115)
 
 Run a shell command and wait for its completion.
 
@@ -71,7 +71,7 @@ Run a shell command and wait for its completion.
 
 > `readonly` **writeBinaryFile**: (`options`) => `PromiseLike`\<`void`\>
 
-Defined in: [packages/agent-sdk/src/workspace-io.ts:110](https://github.com/zocomputer/zov2-code/blob/ff98edef5b507bf96c80f8f4c36882d827c8a81e/packages/agent-sdk/src/workspace-io.ts#L110)
+Defined in: [packages/agent-sdk/src/workspace-io.ts:110](https://github.com/zocomputer/zov2-code/blob/f537e0a90da222390e69bcbf7e329142b9e8d4b0/packages/agent-sdk/src/workspace-io.ts#L110)
 
 Write a file, creating parent directories and overwriting.
 

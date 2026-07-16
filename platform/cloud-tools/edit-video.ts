@@ -9,7 +9,7 @@ import { mappedMediaInput, normalizedMappedCall } from "./image-lane";
 import { mediaInvocationHeaders } from "./media-lineage";
 import { createProviderMediaInputResolver, type ProviderMediaInput } from "./provider-media-input";
 import { GeneratedAssetOutputSchema, generationFailure, saveFailure, warningText } from "./tool-shared";
-import { createRuntimeStateFilesClient, type StateFilesAssetStore, type StateFilesAssetWriter } from "./state-files";
+import { createRuntimeStateFilesClient, type StateAssetReference, type StateFilesAssetStore, type StateFilesAssetWriter } from "./state-files";
 import { createBoundedVideoDownload, DEFAULT_VIDEO_DOWNLOAD_MAX_BYTES, DEFAULT_VIDEO_TIMEOUT_MS } from "./video";
 import { createVideoPreflight } from "./video-lane";
 import { assetOutputPath } from "./asset-path";
@@ -84,7 +84,7 @@ export function editVideoTool(options: EditVideoToolOptions = {}) {
       }
       const video = result.video;
       const path = assetOutputPath({ id: (options.randomId ?? (() => randomUUID().slice(0, 8)))(), mediaType: video.mediaType, outputDir: input.output_dir, prompt: input.prompt, fallbackSlug: "video-edit" });
-      let asset: MediaAssetRef;
+      let asset: StateAssetReference;
       try { asset = await writer.write(path, video.uint8Array, { contentType: video.mediaType }); }
       catch (error) { throw saveFailure("video", error); }
       return { asset, bytes: video.uint8Array.byteLength, mediaType: video.mediaType, model: checked.value.lineage.concreteModelId, path, prompt: input.prompt, warnings: result.warnings.map(warningText) };

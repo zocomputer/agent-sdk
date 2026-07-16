@@ -1,4 +1,4 @@
-import { SignJWT, jwtVerify, type JWTPayload } from "jose";
+import { SignJWT, errors as joseErrors, jwtVerify, type JWTPayload } from "jose";
 
 // @zocomputer/runtime-auth — the agent-token contract shared by the minter and the verifier.
 //
@@ -25,6 +25,12 @@ export const AGENT_TOKEN_HEADER = "x-zo-agent-token";
  * {@link EVE_SUBAGENT_SESSION_HEADER} as descriptive detail.
  */
 export const EVE_SESSION_HEADER = "x-zo-eve-session";
+
+/** Short-lived proof that a trusted channel bound this agent call to one user session. */
+export const SESSION_CAPABILITY_HEADER = "x-zo-session-capability";
+
+/** Eve auth attribute carrying the opaque session capability inside the runtime. */
+export const SESSION_CAPABILITY_ATTRIBUTE = "zoSessionCapability";
 
 /**
  * The eve turn the agent's call belongs to. Descriptive metering detail (it lands
@@ -95,6 +101,26 @@ export interface RuntimeAuthContext {
    * trust the sandbox route gives its eve session key). Absent on a direct user call.
    */
   readonly eveSessionId?: string;
+  /**
+   * Verified channel-issued subject binding. Absent means user-partitioned state
+   * must fail closed. Discriminated on `binding` so an UNVERIFIED bootstrap
+   * session id cannot be read as if it were signed: the exact arm's
+   * `eveSessionId` was in the channel's signed claims; the bootstrap arm's
+   * `unverifiedEveSessionId` is the runtime-asserted request session, which
+   * grants nothing until the control-plane `Conversation` ownership join vouches
+   * for it — a consumer must branch on `binding` to reach either field.
+   */
+  readonly trustedSession?:
+    | {
+        readonly binding: "exact";
+        readonly eveSessionId: string;
+        readonly userId: string;
+      }
+    | {
+        readonly binding: "bootstrap";
+        readonly unverifiedEveSessionId: string;
+        readonly userId: string;
+      };
 }
 
 // ── reserved identities ──────────────────────────────────────────────────────
@@ -152,12 +178,21 @@ export const RESERVED_AGENT_PROJECT_IDS: readonly string[] = [
 
 const ISSUER = "zo-api";
 const AGENT_TOKEN_TYP = "zo-agent";
+const SESSION_CAPABILITY_TYP = "zo-session-capability";
 
 /** What the agent token asserts about the actor. */
 export interface AgentTokenClaims {
   readonly agentProjectId: string;
   readonly ownerOrgId: string;
   readonly deploymentId?: string;
+}
+
+export interface SessionCapabilityClaims {
+  readonly userId: string;
+  readonly agentProjectId: string;
+  readonly deploymentId: string;
+  /** Present when the trusted channel already knows the Eve session id. */
+  readonly eveSessionId?: string;
 }
 
 /** Seconds-since-epoch clock, injected so tests are deterministic. */
@@ -201,6 +236,29 @@ export async function mintAgentToken(input: MintAgentTokenInput): Promise<string
     .sign(key(input.secret));
 }
 
+export async function mintSessionCapability(input: {
+  readonly claims: SessionCapabilityClaims;
+  readonly secret: string;
+  readonly ttlSeconds: number;
+  readonly clock?: Clock;
+}): Promise<string> {
+  const now = (input.clock ?? defaultClock)();
+  return new SignJWT({
+    typ: SESSION_CAPABILITY_TYP,
+    userId: input.claims.userId,
+    agentProjectId: input.claims.agentProjectId,
+    deploymentId: input.claims.deploymentId,
+    ...(input.claims.eveSessionId === undefined
+      ? {}
+      : { eveSessionId: input.claims.eveSessionId }),
+  })
+    .setProtectedHeader({ alg: "HS256" })
+    .setIssuer(ISSUER)
+    .setIssuedAt(now)
+    .setExpirationTime(now + input.ttlSeconds)
+    .sign(key(input.secret));
+}
+
 // ── verify ───────────────────────────────────────────────────────────────────
 
 /** Verify the agent token's signature, issuer, expiry, and `typ`. Returns the claims,
@@ -227,19 +285,122 @@ export async function verifyAgentToken(
 }
 
 /**
+ * The three-way capability verdict. `expired` is deliberately distinct from
+ * `invalid`: jose verifies the signature BEFORE claim validation, so an expired
+ * capability is authentic-but-stale — eve latches the bootstrap proof in durable
+ * session auth, and a scheduled or late turn legitimately replays it past its TTL.
+ * A stale proof grants nothing (same as absent); only a forged/malformed one is
+ * evidence of a bad caller.
+ */
+export type SessionCapabilityVerification =
+  | { readonly outcome: "verified"; readonly claims: SessionCapabilityClaims }
+  | { readonly outcome: "expired" }
+  | { readonly outcome: "invalid" };
+
+export async function inspectSessionCapability(
+  token: string,
+  secret: string,
+  clock: Clock = defaultClock,
+): Promise<SessionCapabilityVerification> {
+  try {
+    const { payload } = await jwtVerify(token, key(secret), {
+      issuer: ISSUER,
+      currentDate: new Date(clock() * 1000),
+    });
+    if (payload.typ !== SESSION_CAPABILITY_TYP) return { outcome: "invalid" };
+    const userId = asString(payload.userId);
+    const agentProjectId = asString(payload.agentProjectId);
+    const deploymentId = asString(payload.deploymentId);
+    const eveSessionId =
+      payload.eveSessionId === undefined
+        ? undefined
+        : asString(payload.eveSessionId);
+    if (
+      !userId ||
+      !agentProjectId ||
+      !deploymentId ||
+      (payload.eveSessionId !== undefined && eveSessionId === undefined)
+    ) {
+      return { outcome: "invalid" };
+    }
+    return {
+      outcome: "verified",
+      claims: {
+        userId,
+        agentProjectId,
+        deploymentId,
+        ...(eveSessionId === undefined ? {} : { eveSessionId }),
+      },
+    };
+  } catch (cause) {
+    if (cause instanceof joseErrors.JWTExpired) return { outcome: "expired" };
+    return { outcome: "invalid" };
+  }
+}
+
+export async function verifySessionCapability(
+  token: string,
+  secret: string,
+  clock: Clock = defaultClock,
+): Promise<SessionCapabilityClaims | null> {
+  const verification = await inspectSessionCapability(token, secret, clock);
+  return verification.outcome === "verified" ? verification.claims : null;
+}
+
+/**
  * Resolve a verified agent token into a `RuntimeAuthContext`, or `null` when the
  * token is invalid. `eveSessionId` is the session the runtime reports for this call
  * (per request — see the field doc); it's carried onto the context so consumers can
  * join to the `Conversation`. It's not part of the token and is not verified here.
+ *
+ * A presented session capability is graded, not pass/fail: an EXPIRED capability
+ * (authentic signature, past its TTL) resolves the context WITHOUT `trustedSession`
+ * — the runtime latches the proof in durable session auth, so old conversations
+ * replay it on turns that never needed per-user identity, and rejecting the whole
+ * request would take session-partitioned state down with it. Per-user state still
+ * fails closed (absent `trustedSession` is the deny path). A forged, malformed, or
+ * claim-mismatched capability remains a hard `null` reject.
  */
 export async function resolveAgentContext(
   agentToken: string,
   secret: string,
   eveSessionId: string | undefined,
+  sessionCapability: string | undefined,
   clock: Clock = defaultClock,
 ): Promise<RuntimeAuthContext | null> {
   const claims = await verifyAgentToken(agentToken, secret, clock);
   if (!claims) return null;
+  let trustedSession: RuntimeAuthContext["trustedSession"];
+  if (sessionCapability !== undefined) {
+    const verification = await inspectSessionCapability(sessionCapability, secret, clock);
+    if (verification.outcome === "invalid") return null;
+    if (verification.outcome === "verified") {
+      const verified = verification.claims;
+      const requestEveSessionId = eveSessionId;
+      if (
+        verified.agentProjectId !== claims.agentProjectId ||
+        verified.deploymentId !== claims.deploymentId ||
+        requestEveSessionId === undefined ||
+        (verified.eveSessionId !== undefined &&
+          verified.eveSessionId !== requestEveSessionId)
+      ) {
+        return null;
+      }
+      trustedSession =
+        verified.eveSessionId === undefined
+          ? {
+              binding: "bootstrap",
+              unverifiedEveSessionId: requestEveSessionId,
+              userId: verified.userId,
+            }
+          : {
+              binding: "exact",
+              eveSessionId: requestEveSessionId,
+              userId: verified.userId,
+            };
+    }
+    // `expired`: authentic but stale — grants nothing, same as no capability.
+  }
   return {
     actor: {
       kind: "agent",
@@ -248,6 +409,7 @@ export async function resolveAgentContext(
       ...(claims.deploymentId ? { deploymentId: claims.deploymentId } : {}),
     },
     ...(eveSessionId ? { eveSessionId } : {}),
+    ...(trustedSession === undefined ? {} : { trustedSession }),
   };
 }
 

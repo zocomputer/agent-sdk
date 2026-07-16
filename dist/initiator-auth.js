@@ -1,5 +1,7 @@
-// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/src/initiator-auth.ts
+// ../../../../../tmp/agent-sdk-mirror-CGUkNt/repo/src/initiator-auth.ts
 var INITIATOR_HEADER = "x-zo-initiator";
+var SESSION_CAPABILITY_HEADER = "x-zo-session-capability";
+var SESSION_CAPABILITY_ATTRIBUTE = "zoSessionCapability";
 function parseInitiator(value) {
   if (!value)
     return null;
@@ -22,12 +24,16 @@ var initiatorAuth = (request) => {
   const identity = parseInitiator(request.headers.get(INITIATOR_HEADER));
   if (!identity)
     return null;
+  const sessionCapability = request.headers.get(SESSION_CAPABILITY_HEADER)?.trim() || null;
   return {
     principalId: identity.userId,
     principalType: "user",
     authenticator: "zo-initiator",
     subject: identity.userId,
-    attributes: { agentId: identity.agentId }
+    attributes: {
+      agentId: identity.agentId,
+      ...sessionCapability === null ? {} : { [SESSION_CAPABILITY_ATTRIBUTE]: sessionCapability }
+    }
   };
 };
 function readInitiator(initiator) {
@@ -41,9 +47,19 @@ function readInitiator(initiator) {
     return null;
   return { userId, agentId };
 }
+function readSessionCapability(current, initiator) {
+  return capabilityFromAuth(current) ?? capabilityFromAuth(initiator);
+}
+function capabilityFromAuth(value) {
+  const capability = value?.attributes?.[SESSION_CAPABILITY_ATTRIBUTE];
+  return typeof capability === "string" && capability.trim().length > 0 ? capability : undefined;
+}
 export {
+  readSessionCapability,
   readInitiator,
   parseInitiator,
   initiatorAuth,
+  SESSION_CAPABILITY_HEADER,
+  SESSION_CAPABILITY_ATTRIBUTE,
   INITIATOR_HEADER
 };

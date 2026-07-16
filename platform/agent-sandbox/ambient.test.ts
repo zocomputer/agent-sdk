@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { createRequire } from "node:module";
 import { dirname, join } from "node:path";
 import { pathToFileURL } from "node:url";
-import { ambientSessionParent } from "./ambient";
+import { ambientSessionCapability, ambientSessionParent } from "./ambient";
 
 const SLOT = Symbol.for("eve.context-storage");
 
@@ -24,6 +24,15 @@ function storageOf(value: unknown): unknown {
   return {
     getStore: () => ({
       get: (key: { name: string }) => (key.name === "eve.parentSession" ? value : undefined),
+    }),
+  };
+}
+
+function storageWithSession(session: unknown): unknown {
+  return {
+    getStore: () => ({
+      get: (key: { name: string }) =>
+        key.name === "eve.session" ? session : undefined,
     }),
   };
 }
@@ -102,6 +111,55 @@ describe("ambientSessionParent", () => {
         () => ambientSessionParent(),
       ),
     ).toBeNull();
+  });
+});
+
+describe("ambientSessionCapability", () => {
+  test("reads the trusted capability from the current auth context", () => {
+    const session = {
+      auth: {
+        current: {
+          attributes: { zoSessionCapability: "signed-current-capability" },
+        },
+      },
+    };
+    expect(
+      withSlot(storageWithSession(session), () => ambientSessionCapability()),
+    ).toBe("signed-current-capability");
+  });
+
+  test("falls back to the initiator and ignores malformed or blank values", () => {
+    const session = {
+      auth: {
+        current: { attributes: { zoSessionCapability: "   " } },
+        initiator: {
+          attributes: { zoSessionCapability: "signed-initiator-capability" },
+        },
+      },
+    };
+    expect(
+      withSlot(storageWithSession(session), () => ambientSessionCapability()),
+    ).toBe("signed-initiator-capability");
+    expect(
+      withSlot(storageWithSession({ auth: null }), () =>
+        ambientSessionCapability(),
+      ),
+    ).toBeUndefined();
+  });
+
+  test("never throws when the ambient session slot is hostile", () => {
+    expect(
+      withSlot(
+        {
+          getStore: () => ({
+            get: () => {
+              throw new Error("boom");
+            },
+          }),
+        },
+        () => ambientSessionCapability(),
+      ),
+    ).toBeUndefined();
   });
 });
 

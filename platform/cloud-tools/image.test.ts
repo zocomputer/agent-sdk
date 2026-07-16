@@ -29,7 +29,7 @@ function store(): StateFilesAssetStore & { writes: string[] } {
     async read() { throw new Error("unexpected read"); },
     async write(path, body, options) {
       writes.push(path);
-      return { type: "state_asset", declarationName: "files", path, bytes: body.byteLength, ...(options?.contentType === undefined ? {} : { contentType: options.contentType }) };
+      return { type: "state_asset", declarationName: "files", path, integrity: "v1.test-integrity", bytes: body.byteLength, ...(options?.contentType === undefined ? {} : { contentType: options.contentType }) };
     },
   };
 }

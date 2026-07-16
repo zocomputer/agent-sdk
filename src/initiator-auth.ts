@@ -21,6 +21,10 @@ import type { AuthFn } from "eve/channels/auth";
 
 /** The proxy → agent initiator header (`@zocomputer/runtime-auth`'s INITIATOR_HEADER). */
 export const INITIATOR_HEADER = "x-zo-initiator";
+/** The trusted channel's opaque per-session user capability header. */
+export const SESSION_CAPABILITY_HEADER = "x-zo-session-capability";
+/** Eve auth attribute used to retain the opaque session capability. */
+export const SESSION_CAPABILITY_ATTRIBUTE = "zoSessionCapability";
 
 /** The initiator identity carried on `INITIATOR_HEADER`. */
 export interface InitiatorIdentity {
@@ -48,12 +52,19 @@ export function parseInitiator(value: string | null | undefined): InitiatorIdent
 export const initiatorAuth: AuthFn = (request) => {
   const identity = parseInitiator(request.headers.get(INITIATOR_HEADER));
   if (!identity) return null;
+  const sessionCapability =
+    request.headers.get(SESSION_CAPABILITY_HEADER)?.trim() || null;
   return {
     principalId: identity.userId,
     principalType: "user",
     authenticator: "zo-initiator",
     subject: identity.userId,
-    attributes: { agentId: identity.agentId },
+    attributes: {
+      agentId: identity.agentId,
+      ...(sessionCapability === null
+        ? {}
+        : { [SESSION_CAPABILITY_ATTRIBUTE]: sessionCapability }),
+    },
   };
 };
 
@@ -78,4 +89,21 @@ export function readInitiator(
   if (typeof agentId !== "string" || !agentId) return null;
   if (typeof userId !== "string" || !userId) return null;
   return { userId, agentId };
+}
+
+/** Read the trusted channel capability, preferring fresh auth over the initiator. */
+export function readSessionCapability(
+  current: InitiatorReadable | null | undefined,
+  initiator: InitiatorReadable | null | undefined,
+): string | undefined {
+  return capabilityFromAuth(current) ?? capabilityFromAuth(initiator);
+}
+
+function capabilityFromAuth(
+  value: InitiatorReadable | null | undefined,
+): string | undefined {
+  const capability = value?.attributes?.[SESSION_CAPABILITY_ATTRIBUTE];
+  return typeof capability === "string" && capability.trim().length > 0
+    ? capability
+    : undefined;
 }

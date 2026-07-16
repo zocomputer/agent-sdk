@@ -1,5 +1,13 @@
 import { describe, expect, test } from "bun:test";
-import { INITIATOR_HEADER, initiatorAuth, parseInitiator, readInitiator } from "./initiator-auth";
+import {
+  INITIATOR_HEADER,
+  SESSION_CAPABILITY_ATTRIBUTE,
+  SESSION_CAPABILITY_HEADER,
+  initiatorAuth,
+  parseInitiator,
+  readInitiator,
+  readSessionCapability,
+} from "./initiator-auth";
 
 function requestWith(headers: Record<string, string>): Request {
   return new Request("http://agent.test/eve/v1/session", { headers });
@@ -28,6 +36,19 @@ describe("initiatorAuth", () => {
 
   test("returns null for a malformed header", () => {
     expect(initiatorAuth(requestWith({ [INITIATOR_HEADER]: "not-json" }))).toBeNull();
+  });
+
+  test("stores the opaque session capability in the Eve auth context", () => {
+    const req = requestWith({
+      [INITIATOR_HEADER]: initiatorHeader("usr_1", "agt_1"),
+      [SESSION_CAPABILITY_HEADER]: "signed-session-capability",
+    });
+    expect(initiatorAuth(req)).toMatchObject({
+      attributes: {
+        agentId: "agt_1",
+        [SESSION_CAPABILITY_ATTRIBUTE]: "signed-session-capability",
+      },
+    });
   });
 });
 
@@ -74,5 +95,21 @@ describe("readInitiator", () => {
 
   test("returns null when subject (userId) is missing", () => {
     expect(readInitiator({ attributes: { agentId: "agt_1" } })).toBeNull();
+  });
+});
+
+describe("readSessionCapability", () => {
+  test("prefers current auth and falls back to the durable initiator", () => {
+    const initiator = {
+      attributes: { [SESSION_CAPABILITY_ATTRIBUTE]: "initiator-cap" },
+    };
+    expect(
+      readSessionCapability(
+        { attributes: { [SESSION_CAPABILITY_ATTRIBUTE]: "current-cap" } },
+        initiator,
+      ),
+    ).toBe("current-cap");
+    expect(readSessionCapability(null, initiator)).toBe("initiator-cap");
+    expect(readSessionCapability(null, null)).toBeUndefined();
   });
 });

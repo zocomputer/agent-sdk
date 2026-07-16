@@ -1,19 +1,20 @@
-// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/platform/cloud-tools/image.ts
+// ../../../../../tmp/agent-sdk-mirror-CGUkNt/repo/platform/cloud-tools/image.ts
 import { randomUUID } from "node:crypto";
 import { generateImage } from "ai";
 import { defineTool as defineTool2 } from "eve/tools";
 import { z as z5 } from "zod";
 
-// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/platform/runtime-ai/gateway.ts
+// ../../../../../tmp/agent-sdk-mirror-CGUkNt/repo/platform/runtime-ai/gateway.ts
 import { createGateway } from "ai";
 
-// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/platform/runtime-ai/session-fetch.ts
+// ../../../../../tmp/agent-sdk-mirror-CGUkNt/repo/platform/runtime-ai/session-fetch.ts
 var EVE_SESSION_HEADER = "x-zo-eve-session";
 var EVE_TURN_HEADER = "x-zo-eve-turn";
 var EVE_SUBAGENT_SESSION_HEADER = "x-zo-eve-subagent-session";
 var EVE_CONTEXT_STORAGE_KEY = Symbol.for("eve.context-storage");
 var SESSION_ID_KEY_NAME = "eve.sessionId";
 var SESSION_KEY_NAME = "eve.session";
+var SESSION_CAPABILITY_ATTRIBUTE = "zoSessionCapability";
 var PARENT_SESSION_KEY_NAME = "eve.parentSession";
 function hasMethod(value, name) {
   return typeof value === "object" && value !== null && typeof value[name] === "function";
@@ -43,6 +44,31 @@ function ambientEveTurnId() {
     return;
   const id = turn["id"];
   return typeof id === "string" && id.trim().length > 0 ? id : undefined;
+}
+function ambientSessionCapability() {
+  const session = ambientContextValue(SESSION_KEY_NAME);
+  if (typeof session !== "object" || session === null)
+    return;
+  const auth = session["auth"];
+  if (typeof auth !== "object" || auth === null)
+    return;
+  const authRecord = auth;
+  for (const key of ["current", "initiator"]) {
+    const context = authRecord[key];
+    if (typeof context !== "object" || context === null)
+      continue;
+    const attributes = context["attributes"];
+    if (typeof attributes !== "object" || attributes === null)
+      continue;
+    const capability = attributes[SESSION_CAPABILITY_ATTRIBUTE];
+    if (typeof capability === "string" && capability.trim().length > 0) {
+      return capability;
+    }
+  }
+  return;
+}
+function ambientControlPlaneSessionId() {
+  return ambientSessionParent()?.rootSessionId ?? ambientEveSessionId();
 }
 function ambientContextValue(keyName) {
   const storage = Reflect.get(globalThis, EVE_CONTEXT_STORAGE_KEY);
@@ -74,7 +100,7 @@ function eveSessionFetch(getSessionId = ambientEveSessionId, baseFetch = globalT
   }, baseFetch);
 }
 
-// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/platform/runtime-ai/stream-guards.ts
+// ../../../../../tmp/agent-sdk-mirror-CGUkNt/repo/platform/runtime-ai/stream-guards.ts
 var DEFAULT_STREAM_GUARDS = {
   firstByteMs: 60000,
   idleMs: 180000
@@ -138,7 +164,7 @@ function withStreamGuards(baseFetch, options = DEFAULT_STREAM_GUARDS) {
   return Object.assign(guarded, { preconnect: globalThis.fetch.preconnect });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/platform/runtime-ai/gateway-config.ts
+// ../../../../../tmp/agent-sdk-mirror-CGUkNt/repo/platform/runtime-ai/gateway-config.ts
 var ZO_TOOL_HEADER = "x-zo-tool";
 var DEFAULT_ZO_AI_BASE_URL = "http://localhost:4000/runtime/ai/v4/ai";
 var DEFAULT_ZO_AI_KEY = "dev-proxy";
@@ -166,11 +192,11 @@ function zoGatewaySettings(options = {}) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/platform/runtime-ai/gateway.ts
+// ../../../../../tmp/agent-sdk-mirror-CGUkNt/repo/platform/runtime-ai/gateway.ts
 function zoGateway(options = {}) {
   return createGateway(zoGatewaySettings(options));
 }
-// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/platform/runtime-ai/catalog.ts
+// ../../../../../tmp/agent-sdk-mirror-CGUkNt/repo/platform/runtime-ai/catalog.ts
 function resolveZoGatewayCatalogUrl(baseURL) {
   const url = new URL(resolveZoGatewayBaseUrl(baseURL));
   if (!/\/v4\/ai\/?$/u.test(url.pathname)) {
@@ -210,7 +236,7 @@ async function fetchMediaCatalog(options = {}) {
     clearTimeout(timeout);
   }
 }
-// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/platform/cloud-tools/asset-path.ts
+// ../../../../../tmp/agent-sdk-mirror-CGUkNt/repo/platform/cloud-tools/asset-path.ts
 import { z } from "zod";
 var DEFAULT_ASSET_OUTPUT_DIR = "generated";
 var OutputDirSchema = z.string().trim().min(1).max(200).regex(/^(?!\/)(?!.*\/$)(?!.*\/\/)(?!.*(?:^|\/)(?:\.|\.\.)(?:\/|$))[A-Za-z0-9._/-]+$/u, "Use a relative state file path without empty, . or .. segments.");
@@ -239,7 +265,7 @@ function assetOutputPath(input) {
   return `${normalizedOutputDir(input.outputDir)}/${slugForPrompt(input.prompt, input.fallbackSlug)}-${input.id}.${extensionForMediaType(input.mediaType)}`;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/platform/cloud-tools/media-asset.ts
+// ../../../../../tmp/agent-sdk-mirror-CGUkNt/repo/platform/cloud-tools/media-asset.ts
 var ASSET_SCALAR_PREFIX = "files:";
 function formatMediaAssetRef(ref, declarationName = "files") {
   assertDeclaration(ref.declarationName, declarationName);
@@ -274,6 +300,7 @@ function assertMediaAssetRef(ref, declarationName) {
     type: "state_asset",
     declarationName,
     path: normalizeMediaAssetPath(ref.path),
+    ...ref.integrity === undefined ? {} : { integrity: ref.integrity },
     ...ref.contentType === undefined ? {} : { contentType: ref.contentType },
     ...ref.bytes === undefined ? {} : { bytes: ref.bytes }
   });
@@ -338,7 +365,7 @@ function ascii(bytes, offset, length) {
   return String.fromCharCode(...bytes.slice(offset, offset + length));
 }
 
-// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/platform/cloud-tools/media-preflight.ts
+// ../../../../../tmp/agent-sdk-mirror-CGUkNt/repo/platform/cloud-tools/media-preflight.ts
 function createMediaPreflight(options) {
   const run = async (request) => {
     const registry = await options.registry();
@@ -455,7 +482,7 @@ function isRecord(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/platform/cloud-tools/media-catalog-parser.ts
+// ../../../../../tmp/agent-sdk-mirror-CGUkNt/repo/platform/cloud-tools/media-catalog-parser.ts
 var isRecord2 = (value) => typeof value === "object" && value !== null && !Array.isArray(value);
 var scalarRecordArray = (value) => Array.isArray(value) && value.every((row) => isRecord2(row) && Object.values(row).every((v) => ["string", "number", "boolean"].includes(typeof v))) ? value : undefined;
 function parsePricing(value) {
@@ -504,7 +531,7 @@ function isMediaKind(value) {
   return value === "image" || value === "video" || value === "speech" || value === "transcription";
 }
 
-// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/platform/cloud-tools/media-catalog-snapshot.ts
+// ../../../../../tmp/agent-sdk-mirror-CGUkNt/repo/platform/cloud-tools/media-catalog-snapshot.ts
 import { createHash } from "node:crypto";
 function canonical(value) {
   if (Array.isArray(value))
@@ -518,7 +545,7 @@ function mediaCatalogSnapshotId(models) {
   return `sha256:${createHash("sha256").update(canonical(ordered)).digest("hex")}`;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/platform/cloud-tools/media-catalog-cache.ts
+// ../../../../../tmp/agent-sdk-mirror-CGUkNt/repo/platform/cloud-tools/media-catalog-cache.ts
 function createMediaCatalogCache(options) {
   const now = options.now ?? Date.now;
   const freshMs = options.freshMs ?? 5 * 60000;
@@ -565,7 +592,7 @@ function mergeValidators(previous, next) {
   return Object.keys(merged).length === 0 ? undefined : merged;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/platform/cloud-tools/media-models.ts
+// ../../../../../tmp/agent-sdk-mirror-CGUkNt/repo/platform/cloud-tools/media-models.ts
 import { defineTool } from "eve/tools";
 import { z as z2 } from "zod";
 var MediaModelsInputSchema = z2.object({
@@ -614,7 +641,7 @@ function compact(item) {
   return { id: item.id, name: item.name, kind: item.kind, availability: item.availability, catalog_snapshot_id: item.lineage.snapshotId, fetched_at: item.lineage.fetchedAt, stale: item.lineage.stale, adapter_revision: item.adapterRevision, verified_at: item.verifiedAt, pricing: item.pricing, operations: item.operations.map((op) => ({ operation: op.operation, inputs: op.inputs, settings: op.settings, outputs: op.outputs, provenance: op.provenance })) };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/platform/cloud-tools/media-adapters.ts
+// ../../../../../tmp/agent-sdk-mirror-CGUkNt/repo/platform/cloud-tools/media-adapters.ts
 function adapter(modelId, operation, output, options = {}) {
   const acceptedKinds = options.acceptedKinds ?? [];
   const curatedSettings = options.settings ?? [];
@@ -796,7 +823,7 @@ function isRecord3(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/platform/cloud-tools/media-registry.ts
+// ../../../../../tmp/agent-sdk-mirror-CGUkNt/repo/platform/cloud-tools/media-registry.ts
 function createMediaRegistry(models, lineage, adapters = MEDIA_PROVIDER_ADAPTERS) {
   const live = new Map(models.map((model) => [model.id, model]));
   const profile = (id) => {
@@ -862,7 +889,7 @@ function kindFor(operation) {
   return "transcription";
 }
 
-// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/platform/cloud-tools/media-models-default.ts
+// ../../../../../tmp/agent-sdk-mirror-CGUkNt/repo/platform/cloud-tools/media-models-default.ts
 var catalog = createMediaCatalogCache({
   refresh: (validators) => fetchMediaCatalog(validators === undefined ? {} : { validators })
 });
@@ -872,7 +899,7 @@ async function defaultMediaRegistry() {
 }
 var media_models_default_default = mediaModelsTool({ registry: defaultMediaRegistry });
 
-// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/platform/cloud-tools/image-lane.ts
+// ../../../../../tmp/agent-sdk-mirror-CGUkNt/repo/platform/cloud-tools/image-lane.ts
 var IMAGE_ASSET_MAX_BYTES = 20 * 1024 * 1024;
 function createImagePreflight(options) {
   return createMediaPreflight({
@@ -1017,7 +1044,7 @@ function isRecord4(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/platform/cloud-tools/media-lineage.ts
+// ../../../../../tmp/agent-sdk-mirror-CGUkNt/repo/platform/cloud-tools/media-lineage.ts
 var ZO_MEDIA_LINEAGE_HEADER = "x-zo-media-lineage";
 var MAX_MEDIA_LINEAGE_HEADER_LENGTH = 1024;
 function serializeMediaInvocationLineage(lineage) {
@@ -1031,7 +1058,7 @@ function mediaInvocationHeaders(lineage) {
   return { [ZO_MEDIA_LINEAGE_HEADER]: serializeMediaInvocationLineage(lineage) };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/platform/cloud-tools/tool-meta.ts
+// ../../../../../tmp/agent-sdk-mirror-CGUkNt/repo/platform/cloud-tools/tool-meta.ts
 var CLOUD_TOOL_META = {
   image: {
     description: "Generate images from text and optional durable references. Use media_models to inspect model-specific settings and prices."
@@ -1068,10 +1095,10 @@ var CLOUD_TOOL_META = {
   }
 };
 
-// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/platform/cloud-tools/tool-shared.ts
+// ../../../../../tmp/agent-sdk-mirror-CGUkNt/repo/platform/cloud-tools/tool-shared.ts
 import { z as z4 } from "zod";
 
-// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/platform/cloud-tools/state-consent.ts
+// ../../../../../tmp/agent-sdk-mirror-CGUkNt/repo/platform/cloud-tools/state-consent.ts
 import { z as z3 } from "zod";
 var REQUEST_STATE_CONSENT_TOOL_NAME = "request_state_consent";
 var consentPartySchema = z3.object({
@@ -1099,15 +1126,24 @@ function buildConsentSteer(envelope) {
 `);
 }
 
-// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/platform/cloud-tools/state-files.ts
+// ../../../../../tmp/agent-sdk-mirror-CGUkNt/repo/platform/cloud-tools/state-files.ts
 var DEFAULT_STATE_ASSET_DECLARATION_NAME = "files";
 var STATE_FILES_HANDLE_PATH = "/state/handles";
+var STATE_ASSET_INTEGRITY_PATH = "/state/assets/integrity";
 var ZO_AGENT_TOKEN_HEADER = "x-zo-agent-token";
 var ZO_EVE_SESSION_HEADER = "x-zo-eve-session";
+var ZO_SESSION_CAPABILITY_HEADER = "x-zo-session-capability";
+var DEFAULT_BROKER_REQUEST_TIMEOUT_MS = 15000;
 var DEFAULT_STATE_FILES_SUGGESTED_DEFAULTS = Object.freeze({
   engine: "zo-blob-r2",
   partition: "session"
 });
+var DURABLE_STORAGE_FALLBACK = Object.freeze({
+  "user-files": "shared-files"
+});
+function isBrokerFallbackDeclaration(requested, actual) {
+  return DURABLE_STORAGE_FALLBACK[requested] === actual;
+}
 
 class StateFilesRuntimeError extends Error {
   constructor(message) {
@@ -1127,24 +1163,29 @@ class StateFilesConsentError extends Error {
 function createRuntimeStateFilesClient(options = {}) {
   const fetchImpl = options.fetch ?? globalThis.fetch;
   const declarationName = options.declarationName ?? DEFAULT_STATE_ASSET_DECLARATION_NAME;
-  const getSessionId = options.getSessionId ?? ambientEveSessionId;
+  const getSessionId = options.getSessionId ?? ambientControlPlaneSessionId;
+  const getSessionCapability = options.getSessionCapability ?? ambientSessionCapability;
   const now = options.now ?? (() => new Date);
+  const brokerRequestTimeoutMs = resolveBrokerRequestTimeoutMs(options.brokerRequestTimeoutMs);
   return {
     async resolveUrl(ref, expiresInSeconds) {
       if (!Number.isSafeInteger(expiresInSeconds) || expiresInSeconds <= 0) {
         throw new StateFilesRuntimeError("media URL expiry must be a positive safe integer");
       }
-      const trustedRef = assertMediaAssetRef(ref, declarationName);
+      const trustedRef = assertRuntimeStateAssetRef(ref, declarationName);
       const eveSessionKey = getSessionId();
+      const sessionCapability = getSessionCapability();
       const handle = await requestRuntimeStateFilesHandle({
         access: "r",
         apiBaseUrl: resolveApiBaseUrl(options.apiBaseUrl),
         agentToken: resolveAgentToken(options.agentToken),
-        declarationName,
+        declarationName: trustedRef.declarationName,
         fetch: fetchImpl,
+        timeoutMs: brokerRequestTimeoutMs,
         now,
         suggestedDefaults: options.suggestedDefaults ?? DEFAULT_STATE_FILES_SUGGESTED_DEFAULTS,
-        ...eveSessionKey === undefined ? {} : { eveSessionKey }
+        ...eveSessionKey === undefined ? {} : { eveSessionKey },
+        ...sessionCapability === undefined ? {} : { sessionCapability }
       });
       return presignedStateFileGetUrl({
         bucketName: handle.bucketName,
@@ -1159,17 +1200,20 @@ function createRuntimeStateFilesClient(options = {}) {
       if (!Number.isSafeInteger(limits.maxBytes) || limits.maxBytes <= 0) {
         throw new StateFilesRuntimeError("media read maxBytes must be a positive safe integer");
       }
-      const trustedRef = assertMediaAssetRef(ref, declarationName);
+      const trustedRef = assertRuntimeStateAssetRef(ref, declarationName);
       const eveSessionKey = getSessionId();
+      const sessionCapability = getSessionCapability();
       const handle = await requestRuntimeStateFilesHandle({
         access: "r",
         apiBaseUrl: resolveApiBaseUrl(options.apiBaseUrl),
         agentToken: resolveAgentToken(options.agentToken),
-        declarationName,
+        declarationName: trustedRef.declarationName,
         fetch: fetchImpl,
+        timeoutMs: brokerRequestTimeoutMs,
         now,
         suggestedDefaults: options.suggestedDefaults ?? DEFAULT_STATE_FILES_SUGGESTED_DEFAULTS,
-        ...eveSessionKey === undefined ? {} : { eveSessionKey }
+        ...eveSessionKey === undefined ? {} : { eveSessionKey },
+        ...sessionCapability === undefined ? {} : { sessionCapability }
       });
       const body = await getStateFileObject({
         bucketName: handle.bucketName,
@@ -1189,19 +1233,38 @@ function createRuntimeStateFilesClient(options = {}) {
     async write(path, body, writeOptions) {
       const key = normalizeStateFilePath(path);
       const eveSessionKey = getSessionId();
+      const sessionCapability = getSessionCapability();
+      if (eveSessionKey === undefined || eveSessionKey.trim().length === 0) {
+        throw new StateFilesRuntimeError("the state asset write has no eve session, so its browser integrity proof cannot be minted");
+      }
+      const apiBaseUrl = resolveApiBaseUrl(options.apiBaseUrl);
+      const agentToken = resolveAgentToken(options.agentToken);
       const handle = await requestRuntimeStateFilesHandle({
         access: "rw",
-        apiBaseUrl: resolveApiBaseUrl(options.apiBaseUrl),
-        agentToken: resolveAgentToken(options.agentToken),
+        apiBaseUrl,
+        agentToken,
         declarationName,
         fetch: fetchImpl,
+        timeoutMs: brokerRequestTimeoutMs,
         now,
         suggestedDefaults: options.suggestedDefaults ?? DEFAULT_STATE_FILES_SUGGESTED_DEFAULTS,
-        ...eveSessionKey === undefined ? {} : { eveSessionKey }
+        eveSessionKey,
+        ...sessionCapability === undefined ? {} : { sessionCapability }
       });
       if (handle.access !== "rw") {
         throw new StateFilesRuntimeError(`the "${handle.declarationName}" state files handle is read-only, so nothing can be written — the agent's state configuration must allow writes`);
       }
+      const effectiveDeclarationName = handle.declarationName;
+      const integrity = await requestStateAssetIntegrity({
+        apiBaseUrl,
+        agentToken,
+        declarationName: effectiveDeclarationName,
+        eveSessionKey,
+        ...sessionCapability === undefined ? {} : { sessionCapability },
+        fetch: fetchImpl,
+        path: key,
+        timeoutMs: brokerRequestTimeoutMs
+      });
       await putStateFileObject({
         body,
         bucketName: handle.bucketName,
@@ -1214,22 +1277,59 @@ function createRuntimeStateFilesClient(options = {}) {
       });
       return stateAssetReference({
         type: "state_asset",
-        declarationName,
+        declarationName: effectiveDeclarationName,
         path: key,
+        integrity,
         ...writeOptions?.contentType === undefined ? {} : { contentType: writeOptions.contentType },
         bytes: body.byteLength
       });
     }
   };
 }
+function assertRuntimeStateAssetRef(ref, configuredDeclarationName) {
+  try {
+    return assertMediaAssetRef(ref, configuredDeclarationName);
+  } catch (error) {
+    if (isBrokerFallbackDeclaration(configuredDeclarationName, ref.declarationName)) {
+      return assertMediaAssetRef(ref, ref.declarationName);
+    }
+    throw error;
+  }
+}
 function stateAssetReference(input) {
+  if (input.integrity.trim().length === 0) {
+    throw new StateFilesRuntimeError("state asset integrity proof must not be empty");
+  }
   return Object.freeze({
     type: "state_asset",
     declarationName: input.declarationName,
     path: normalizeStateFilePath(input.path),
+    integrity: input.integrity,
     ...input.contentType === undefined ? {} : { contentType: input.contentType },
     ...input.bytes === undefined ? {} : { bytes: input.bytes }
   });
+}
+async function requestStateAssetIntegrity(options) {
+  const { response, body } = await fetchBrokerJson(options.fetch, buildApiUrl(options.apiBaseUrl, STATE_ASSET_INTEGRITY_PATH), {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      [ZO_AGENT_TOKEN_HEADER]: options.agentToken,
+      [ZO_EVE_SESSION_HEADER]: options.eveSessionKey,
+      ...options.sessionCapability === undefined ? {} : { [ZO_SESSION_CAPABILITY_HEADER]: options.sessionCapability }
+    },
+    body: JSON.stringify({
+      declarationName: options.declarationName,
+      path: options.path
+    })
+  }, options.timeoutMs);
+  if (!response.ok) {
+    throw new StateFilesRuntimeError(readBrokerErrorMessage(body));
+  }
+  if (!isRecord5(body) || typeof body.integrity !== "string" || body.integrity.length === 0) {
+    throw new StateFilesRuntimeError("the state asset broker returned a malformed integrity proof; retrying may help");
+  }
+  return body.integrity;
 }
 function normalizeStateFilePath(path) {
   try {
@@ -1244,7 +1344,10 @@ async function requestRuntimeStateFilesHandle(options) {
   if (options.eveSessionKey !== undefined && options.eveSessionKey.trim().length > 0) {
     headers.set(ZO_EVE_SESSION_HEADER, options.eveSessionKey.trim());
   }
-  const response = await options.fetch(buildStateFilesHandleUrl(options.apiBaseUrl), {
+  if (options.sessionCapability !== undefined && options.sessionCapability.trim().length > 0) {
+    headers.set(ZO_SESSION_CAPABILITY_HEADER, options.sessionCapability.trim());
+  }
+  const { response, body: json } = await fetchBrokerJson(options.fetch, buildStateFilesHandleUrl(options.apiBaseUrl), {
     method: "POST",
     headers,
     body: JSON.stringify({
@@ -1253,8 +1356,7 @@ async function requestRuntimeStateFilesHandle(options) {
       access: options.access,
       suggestedDefaults: options.suggestedDefaults
     })
-  });
-  const json = await response.json().catch(() => null);
+  }, options.timeoutMs);
   if (!response.ok) {
     if (isConsentRequired(json)) {
       const envelope = parseConsentEnvelope(json);
@@ -1267,7 +1369,8 @@ async function requestRuntimeStateFilesHandle(options) {
   if (handle === null) {
     throw new StateFilesRuntimeError("the state files broker returned a malformed handle; retrying may help");
   }
-  if (handle.declarationName !== options.declarationName) {
+  const sharedFallback = isBrokerFallbackDeclaration(options.declarationName, handle.declarationName);
+  if (handle.declarationName !== options.declarationName && !sharedFallback) {
     throw new StateFilesRuntimeError("the state files broker returned a handle for another declaration");
   }
   if (options.access === "rw" && handle.access !== "rw") {
@@ -1292,9 +1395,49 @@ function resolveAgentToken(agentToken) {
   }
   return value;
 }
+function resolveBrokerRequestTimeoutMs(value) {
+  const timeoutMs = value ?? DEFAULT_BROKER_REQUEST_TIMEOUT_MS;
+  if (!Number.isSafeInteger(timeoutMs) || timeoutMs <= 0) {
+    throw new StateFilesRuntimeError("state files broker timeout must be a positive safe integer");
+  }
+  return timeoutMs;
+}
+async function fetchBrokerJson(fetchImpl, input, init, timeoutMs) {
+  const controller = new AbortController;
+  let timer;
+  const timeout = new Promise((_resolve, reject) => {
+    timer = setTimeout(() => {
+      controller.abort();
+      reject(new StateFilesRuntimeError("the state files broker timed out; retrying may help"));
+    }, timeoutMs);
+  });
+  try {
+    return await Promise.race([
+      (async () => {
+        const response = await fetchImpl(input, {
+          ...init,
+          signal: controller.signal
+        });
+        const body = await response.json().catch(() => null);
+        return { response, body };
+      })(),
+      timeout
+    ]);
+  } catch (error) {
+    if (error instanceof StateFilesRuntimeError)
+      throw error;
+    throw new StateFilesRuntimeError(`the state files broker request failed: ${error instanceof Error ? error.message : "unknown error"}`);
+  } finally {
+    if (timer !== undefined)
+      clearTimeout(timer);
+  }
+}
 function buildStateFilesHandleUrl(apiBaseUrl) {
+  return buildApiUrl(apiBaseUrl, STATE_FILES_HANDLE_PATH);
+}
+function buildApiUrl(apiBaseUrl, path) {
   const url = new URL(apiBaseUrl);
-  url.pathname = `${url.pathname.replace(/\/+$/u, "")}/${STATE_FILES_HANDLE_PATH.replace(/^\/+/, "")}`;
+  url.pathname = `${url.pathname.replace(/\/+$/u, "")}/${path.replace(/^\/+/, "")}`;
   url.search = "";
   url.hash = "";
   return url.toString();
@@ -1333,8 +1476,14 @@ function isConsentRequired(value) {
 function readBrokerErrorMessage(value) {
   if (!isRecord5(value))
     return "state files broker request failed";
-  const error = isRecord5(value.error) ? value.error : value;
-  return readString(error, "message") ?? "state files broker request failed";
+  const code = readString(value, "error");
+  const message = readString(value, "message");
+  if (code !== null && message !== null)
+    return `${code}: ${message}`;
+  if (code !== null)
+    return `state files broker request failed (${code})`;
+  const nested = isRecord5(value.error) ? value.error : value;
+  return readString(nested, "message") ?? "state files broker request failed";
 }
 async function getStateFileObject(options) {
   const url = stateFileObjectUrl(options.endpoint, options.bucketName, options.key);
@@ -1530,11 +1679,12 @@ function readString(record, key) {
   return typeof value === "string" && value.length > 0 ? value : null;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/platform/cloud-tools/tool-shared.ts
+// ../../../../../tmp/agent-sdk-mirror-CGUkNt/repo/platform/cloud-tools/tool-shared.ts
 var StateAssetReferenceSchema = z4.object({
   bytes: z4.number().int().nonnegative().optional(),
   contentType: z4.string().optional(),
   declarationName: z4.string(),
+  integrity: z4.string().min(1),
   path: z4.string(),
   type: z4.literal("state_asset")
 });
@@ -1566,7 +1716,7 @@ function saveFailure(kind, error) {
   return new Error(`The ${kind} was generated but no state asset was saved — ${errorDetail(error)}. ` + `Nothing is available to the chat. If the reason looks transient (a storage ` + `write failure), retry the call once; if it's a configuration problem, report ` + `it to the user instead of retrying.`);
 }
 
-// ../../../../../tmp/agent-sdk-mirror-DGql2U/repo/platform/cloud-tools/image.ts
+// ../../../../../tmp/agent-sdk-mirror-CGUkNt/repo/platform/cloud-tools/image.ts
 var DEFAULT_IMAGE_MODEL = "bfl/flux-2-pro";
 var SizeSchema = z5.templateLiteral([z5.number().int(), "x", z5.number().int()]).refine((value) => /^[1-9]\d*x[1-9]\d*$/u.test(value), "size dimensions must be positive integers");
 var AspectRatioSchema = z5.templateLiteral([z5.number().int(), ":", z5.number().int()]).refine((value) => /^[1-9]\d*:[1-9]\d*$/u.test(value), "aspect ratio terms must be positive integers");

@@ -14,7 +14,7 @@ function audioStore(kind: ResolvedMediaAsset["kind"] = "audio") {
     },
     async write(path, body, options) {
       writes.push({ path, body, ...(options?.contentType === undefined ? {} : { contentType: options.contentType }) });
-      return { type: "state_asset", declarationName: "files", path, ...(options?.contentType === undefined ? {} : { contentType: options.contentType }), bytes: body.byteLength };
+      return { type: "state_asset", declarationName: "files", path, integrity: "v1.test-integrity", ...(options?.contentType === undefined ? {} : { contentType: options.contentType }), bytes: body.byteLength };
     },
   };
   return { reads, writes, store };

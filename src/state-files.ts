@@ -23,6 +23,9 @@ export const ZO_AGENT_TOKEN_HEADER = "x-zo-agent-token";
 /** Header name carrying the eve session key to the runtime broker. */
 export const ZO_EVE_SESSION_HEADER = "x-zo-eve-session";
 
+/** Header carrying a trusted channel's opaque user/session capability. */
+export const ZO_SESSION_CAPABILITY_HEADER = "x-zo-session-capability";
+
 /** Temporary S3-compatible credentials for direct object-store access. Never log the secrets. */
 export interface StateFilesCredentials {
   readonly accessKeyId: string;
@@ -80,6 +83,8 @@ export interface RequestStateFilesHandleOptions {
   readonly agentToken?: string;
   /** eve session key sent as `x-zo-eve-session`; the route derives resolver session identity from auth context. */
   readonly eveSessionKey?: string;
+  /** Opaque trusted-channel capability read from Eve session auth. */
+  readonly sessionCapability?: string;
   /** Extra headers; cannot override the SDK-managed content type or Zo auth headers. */
   readonly headers?: StateFilesHeadersInit;
 }
@@ -438,6 +443,9 @@ function buildStateFilesHandleHeaders(options: RequestStateFilesHandleOptions): 
   }
   if (options.eveSessionKey !== undefined) {
     headers.set(ZO_EVE_SESSION_HEADER, options.eveSessionKey);
+  }
+  if (options.sessionCapability !== undefined) {
+    headers.set(ZO_SESSION_CAPABILITY_HEADER, options.sessionCapability);
   }
   return headers;
 }

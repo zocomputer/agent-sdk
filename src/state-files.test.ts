@@ -107,6 +107,7 @@ describe("requestStateFilesHandle", () => {
       access: "rw",
       agentToken: "agent-token",
       eveSessionKey: "eve-session",
+      sessionCapability: "session-capability",
       async fetch(input, init) {
         calls.push({ url: String(input), init });
         return Response.json(BASE_HANDLE);
@@ -122,6 +123,7 @@ describe("requestStateFilesHandle", () => {
     expect(headers.get("content-type")).toBe("application/json");
     expect(headers.get("x-zo-agent-token")).toBe("agent-token");
     expect(headers.get("x-zo-eve-session")).toBe("eve-session");
+    expect(headers.get("x-zo-session-capability")).toBe("session-capability");
     expect(JSON.parse(String(call?.init?.body))).toEqual({
       declarationName: "notes",
       interface: "files",

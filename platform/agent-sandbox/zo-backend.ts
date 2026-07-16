@@ -5,7 +5,11 @@ import type {
   SandboxBackendPrewarmInput,
   SandboxSession,
 } from "eve/sandbox";
-import { type AmbientSessionParent, ambientSessionParent } from "./ambient";
+import {
+  type AmbientSessionParent,
+  ambientSessionCapability,
+  ambientSessionParent,
+} from "./ambient";
 import { requestScratchSandboxAccess } from "./api-client";
 import { type SshSandboxAccess, sshSandboxSession } from "./ssh-session";
 import { type DaytonaSessionMetadata, readSandboxId } from "./pure";
@@ -36,6 +40,8 @@ export interface ZoBackendOptions {
    * context-storage read (`ambientSessionParent`).
    */
   readonly ambientParent?: () => AmbientSessionParent | null;
+  /** Injectable trusted-channel capability read (tests). */
+  readonly ambientCapability?: () => string | undefined;
 }
 
 export function zoBackend(options: ZoBackendOptions): SandboxBackend {
@@ -98,6 +104,8 @@ export function zoBackend(options: ZoBackendOptions): SandboxBackend {
       // (a root session, or no ALS) → fall back to `tags.sessionId`, today's
       // behavior, so nothing regresses.
       const readAmbientParent = options.ambientParent ?? ambientSessionParent;
+      const readAmbientCapability =
+        options.ambientCapability ?? ambientSessionCapability;
       let lineageRootId: string | null = readAmbientParent()?.rootSessionId ?? null;
       let brokeredKey: string | null = null;
       const brokerSessionKey = (): string => {
@@ -108,17 +116,35 @@ export function zoBackend(options: ZoBackendOptions): SandboxBackend {
         return brokeredKey;
       };
 
+      // The trusted-channel capability is LATCHED for the same reason the
+      // broker key is: the ambient read only resolves inside eve's ALS scope,
+      // so a token-expiry re-mint that lands OUTSIDE it would silently drop
+      // the capability the first mint presented — and once sandbox state is
+      // user-partitioned, a capability-less re-mint resolves a different
+      // partition (or fails closed) mid-session. Latch the FIRST non-undefined
+      // read (create time or any mint) so every re-mint presents the same
+      // capability; a session where no capability ever appears keeps sending
+      // none, unchanged.
+      let latchedCapability: string | undefined = readAmbientCapability();
+      const brokerSessionCapability = (): string | undefined => {
+        latchedCapability ??= readAmbientCapability();
+        return latchedCapability;
+      };
+
       // Resolve (or re-resolve) scoped SSH access from the control-plane state
       // broker — the `scratch` sandbox declaration for this eve session (or its
       // root, when lineage resolves). Called LAZILY on first `run` — so opening
       // a session the agent never uses provisions nothing — and again when the
       // short-lived token expires or the connection drops, so a long session
       // keeps working.
-      const acquireAccess = async (): Promise<SshSandboxAccess> =>
-        await requestScratchSandboxAccess({
+      const acquireAccess = async (): Promise<SshSandboxAccess> => {
+        const sessionCapability = brokerSessionCapability();
+        return await requestScratchSandboxAccess({
           apiBaseUrl: options.apiBaseUrl,
           eveSessionKey: brokerSessionKey(),
+          ...(sessionCapability === undefined ? {} : { sessionCapability }),
         });
+      };
 
       // `SandboxSession.id` is the raw eve session key the broker is keyed on
       // (same string the flush + git-remote paths use) — the CREATE-TIME
