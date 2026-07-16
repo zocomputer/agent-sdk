@@ -6,7 +6,7 @@
 
 # Interface: IoToolContext
 
-Defined in: [packages/agent-sdk/src/workspace-io.ts:127](https://github.com/zocomputer/zov2-code/blob/1e681aac14f2dac158459843dc60bdd734625bf0/packages/agent-sdk/src/workspace-io.ts#L127)
+Defined in: [packages/agent-sdk/src/workspace-io.ts:127](https://github.com/zocomputer/zov2-code/blob/f95a48c7e1f1a7b1961c045374fb5540573a3627/packages/agent-sdk/src/workspace-io.ts#L127)
 
 The slice of eve's `ToolContext` an IO provider may use. Structural, so
 tools can hand their eve context straight through without the lib importing
@@ -19,7 +19,7 @@ per-session setup (the Builder's workspace bootstrap keys on it).
 
 > `readonly` **abortSignal**: `AbortSignal`
 
-Defined in: [packages/agent-sdk/src/workspace-io.ts:132](https://github.com/zocomputer/zov2-code/blob/1e681aac14f2dac158459843dc60bdd734625bf0/packages/agent-sdk/src/workspace-io.ts#L132)
+Defined in: [packages/agent-sdk/src/workspace-io.ts:132](https://github.com/zocomputer/zov2-code/blob/f95a48c7e1f1a7b1961c045374fb5540573a3627/packages/agent-sdk/src/workspace-io.ts#L132)
 
 Aborts when the owning turn is cancelled.
 
@@ -29,7 +29,7 @@ Aborts when the owning turn is cancelled.
 
 > `readonly` **callId**: `string`
 
-Defined in: [packages/agent-sdk/src/workspace-io.ts:130](https://github.com/zocomputer/zov2-code/blob/1e681aac14f2dac158459843dc60bdd734625bf0/packages/agent-sdk/src/workspace-io.ts#L130)
+Defined in: [packages/agent-sdk/src/workspace-io.ts:130](https://github.com/zocomputer/zov2-code/blob/f95a48c7e1f1a7b1961c045374fb5540573a3627/packages/agent-sdk/src/workspace-io.ts#L130)
 
 Eve's stable id for this tool execution.
 
@@ -39,7 +39,7 @@ Eve's stable id for this tool execution.
 
 > `readonly` `optional` **session?**: `object`
 
-Defined in: [packages/agent-sdk/src/workspace-io.ts:128](https://github.com/zocomputer/zov2-code/blob/1e681aac14f2dac158459843dc60bdd734625bf0/packages/agent-sdk/src/workspace-io.ts#L128)
+Defined in: [packages/agent-sdk/src/workspace-io.ts:128](https://github.com/zocomputer/zov2-code/blob/f95a48c7e1f1a7b1961c045374fb5540573a3627/packages/agent-sdk/src/workspace-io.ts#L128)
 
 #### id
 
@@ -51,7 +51,7 @@ Defined in: [packages/agent-sdk/src/workspace-io.ts:128](https://github.com/zoco
 
 > **getSandbox**(): `PromiseLike`\<[`SandboxSessionLike`](SandboxSessionLike.md)\>
 
-Defined in: [packages/agent-sdk/src/workspace-io.ts:134](https://github.com/zocomputer/zov2-code/blob/1e681aac14f2dac158459843dc60bdd734625bf0/packages/agent-sdk/src/workspace-io.ts#L134)
+Defined in: [packages/agent-sdk/src/workspace-io.ts:134](https://github.com/zocomputer/zov2-code/blob/f95a48c7e1f1a7b1961c045374fb5540573a3627/packages/agent-sdk/src/workspace-io.ts#L134)
 
 Resolve the sandbox session for the current tool call.
 

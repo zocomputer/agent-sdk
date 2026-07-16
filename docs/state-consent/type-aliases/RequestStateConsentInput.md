@@ -8,7 +8,7 @@
 
 > **RequestStateConsentInput** = `z.infer`\<*typeof* [`requestStateConsentInputSchema`](../variables/requestStateConsentInputSchema.md)\>
 
-Defined in: [packages/agent-sdk/src/state-consent-envelope.ts:42](https://github.com/zocomputer/zov2-code/blob/1e681aac14f2dac158459843dc60bdd734625bf0/packages/agent-sdk/src/state-consent-envelope.ts#L42)
+Defined in: [packages/agent-sdk/src/state-consent-envelope.ts:42](https://github.com/zocomputer/zov2-code/blob/f95a48c7e1f1a7b1961c045374fb5540573a3627/packages/agent-sdk/src/state-consent-envelope.ts#L42)
 
 The validated `request_state_consent` tool input — the envelope the model
 passes through, inferred from [requestStateConsentInputSchema](../variables/requestStateConsentInputSchema.md).

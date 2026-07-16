@@ -6,7 +6,7 @@
 
 # Interface: StatCache\<T\>
 
-Defined in: [packages/agent-sdk/src/extract/cache.ts:21](https://github.com/zocomputer/zov2-code/blob/1e681aac14f2dac158459843dc60bdd734625bf0/packages/agent-sdk/src/extract/cache.ts#L21)
+Defined in: [packages/agent-sdk/src/extract/cache.ts:21](https://github.com/zocomputer/zov2-code/blob/f95a48c7e1f1a7b1961c045374fb5540573a3627/packages/agent-sdk/src/extract/cache.ts#L21)
 
 A stat-validated memo for document extraction: keyed by path, validated by
 mtime and size, insertion-ordered LRU. Failures are not cached; `compute`
@@ -24,7 +24,7 @@ throwing stores nothing.
 
 > **get**(`key`, `id`, `compute`): `Promise`\<`T`\>
 
-Defined in: [packages/agent-sdk/src/extract/cache.ts:27](https://github.com/zocomputer/zov2-code/blob/1e681aac14f2dac158459843dc60bdd734625bf0/packages/agent-sdk/src/extract/cache.ts#L27)
+Defined in: [packages/agent-sdk/src/extract/cache.ts:27](https://github.com/zocomputer/zov2-code/blob/f95a48c7e1f1a7b1961c045374fb5540573a3627/packages/agent-sdk/src/extract/cache.ts#L27)
 
 Get a cached value or compute and cache it. A hit whose stat identity
 matches the provided one returns immediately; a miss or stale hit calls
@@ -54,7 +54,7 @@ matches the provided one returns immediately; a miss or stale hit calls
 
 > **size**(): `number`
 
-Defined in: [packages/agent-sdk/src/extract/cache.ts:29](https://github.com/zocomputer/zov2-code/blob/1e681aac14f2dac158459843dc60bdd734625bf0/packages/agent-sdk/src/extract/cache.ts#L29)
+Defined in: [packages/agent-sdk/src/extract/cache.ts:29](https://github.com/zocomputer/zov2-code/blob/f95a48c7e1f1a7b1961c045374fb5540573a3627/packages/agent-sdk/src/extract/cache.ts#L29)
 
 Current entry count, for tests.
 

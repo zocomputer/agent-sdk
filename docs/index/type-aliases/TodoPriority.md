@@ -8,6 +8,6 @@
 
 > **TodoPriority** = *typeof* [`TODO_PRIORITIES`](../variables/TODO_PRIORITIES.md)\[`number`\]
 
-Defined in: [packages/agent-sdk/src/todo-discipline.ts:30](https://github.com/zocomputer/zov2-code/blob/1e681aac14f2dac158459843dc60bdd734625bf0/packages/agent-sdk/src/todo-discipline.ts#L30)
+Defined in: [packages/agent-sdk/src/todo-discipline.ts:30](https://github.com/zocomputer/zov2-code/blob/f95a48c7e1f1a7b1961c045374fb5540573a3627/packages/agent-sdk/src/todo-discipline.ts#L30)
 
 Priority of one todo item.

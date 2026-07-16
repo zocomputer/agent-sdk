@@ -124,15 +124,47 @@ that don't drive real machinery.
   on the tool contract — eve already knows the set of calls it's about to run
   concurrently — would queue same-key calls FIFO while keeping distinct keys
   parallel (zocomputer/zov2-code#337).
-- **Streaming events are quadratic.** `message.appended`/`reasoning.appended`
-  carry the full text-so-far alongside each delta, so one turn's events sum
-  to O(n²) bytes — a 3,000-delta turn measures ~330 MB of payloads, and
-  late deltas re-send ~36 KB of prefix each. vercel/eve#691 now coalesces
-  adjacent appends while durable writes are in flight, which fixes server
-  throughput under a slow writer, but every emitted event still carries its
-  cumulative `*SoFar` field. Clients that store or replay streams must
-  compact/thin app-side (chat-core's `stream-thinning`); delta-only stream
-  events would fix storage, replay, and live-wire throughput at the source.
+- **Streaming, replay, and client collection scale with the raw event log.**
+  `message.appended`/`reasoning.appended` carry the full text-so-far alongside
+  each delta, so one turn's events sum to O(n²) bytes — a 3,000-delta turn
+  measures ~330 MB of payloads, and late deltas re-send ~36 KB of prefix each.
+  vercel/eve#691 coalesces adjacent appends while durable writes are in flight,
+  which fixes server throughput under a slow writer, but every emitted event
+  still carries its cumulative `*SoFar` field. The installed 0.22.6 client then
+  amplifies the cost: `ClientSession` retains every raw event until its iterator
+  closes, while `EveAgentStore` retains separate public and reducer histories,
+  copies both arrays per server event, and publishes every event individually.
+  Durable backlog also arrives at only ~25–50 events/s in our hosted measurements;
+  a bounded tail limits first paint, but loading a long full history remains
+  proportional to every raw event. Zo now mitigates the client side by projecting
+  incrementally, deleting cumulative source strings after synchronous consumers,
+  replacing `EveAgentStore` with a compact batched store, and rotating replay/tail
+  iterators at finite raw-event chunks. That removes the quadratic app-side copies
+  and bounds replay collector attachments, but it cannot reduce durable/wire bytes
+  or backlog delivery time. A send-owned `MessageResponse` also cannot be rotated
+  mid-turn without changing Eve's session semantics, so it still retains O(raw
+  event count) small references until the turn boundary.
+
+  The upstream target needs the three layers to agree:
+
+  1. Emit delta-only durable append events; keep final text on each
+     `message.completed`/`reasoning.completed`. A ranged replay that begins
+     inside an unfinished block must include a compact checkpoint for its prefix
+     (or align the range to that block's start), so removing `*SoFar` does not
+     make tail replay lossy.
+  2. Add a finite replay primitive — `startIndex` plus `endIndex`/`limit`, or a
+     compact snapshot plus tail — that returns an authoritative raw
+     `nextIndex`/head cursor and can serve historical batches without live-tail
+     pacing. The cursor must count durable source events even when the response
+     compacts them, so continuation never skips or replays an event.
+  3. Let `EveAgentStore` append/prepend event batches, retain a bounded or
+     optional raw log, project incrementally, and coalesce subscriber publishes.
+     That would support seamless load-older and remove the O(n²) array copies
+     without requiring each framework client to own a replacement store.
+
+  Acceptance invariant: full raw replay and checkpoint-plus-tail replay produce
+  the same reducer state and continuation cursor, including an in-flight final
+  block; semantic turn, action, input, and failure events remain lossless.
 - **An aborted stream resets the client session.** `advanceSession` carries
   the session forward only when the consumed stream ends on
   `session.waiting`; an abort (Stop/Esc) therefore erases the sessionId, and

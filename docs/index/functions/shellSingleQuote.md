@@ -8,7 +8,7 @@
 
 > **shellSingleQuote**(`value`): `string`
 
-Defined in: [packages/agent-sdk/src/sandbox-io.ts:37](https://github.com/zocomputer/zov2-code/blob/1e681aac14f2dac158459843dc60bdd734625bf0/packages/agent-sdk/src/sandbox-io.ts#L37)
+Defined in: [packages/agent-sdk/src/sandbox-io.ts:37](https://github.com/zocomputer/zov2-code/blob/f95a48c7e1f1a7b1961c045374fb5540573a3627/packages/agent-sdk/src/sandbox-io.ts#L37)
 
 POSIX single-quoting for splicing untrusted strings into a shell command.
 

@@ -8,7 +8,7 @@
 
 > **createHitlInstruction**(`opts?`): `DynamicSentinel`\<\{ `markdown`: `string`; \}\>
 
-Defined in: [packages/agent-sdk/src/instructions.ts:390](https://github.com/zocomputer/zov2-code/blob/1e681aac14f2dac158459843dc60bdd734625bf0/packages/agent-sdk/src/instructions.ts#L390)
+Defined in: [packages/agent-sdk/src/instructions.ts:390](https://github.com/zocomputer/zov2-code/blob/f95a48c7e1f1a7b1961c045374fb5540573a3627/packages/agent-sdk/src/instructions.ts#L390)
 
 The ask_question playbook for eve's built-in HITL tool. The framework ships
 the tool with a one-line description and no guidance on options, styles, or

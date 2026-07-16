@@ -3,6 +3,7 @@ import {
   BUILDER_AGENT_IDENTITY,
   ZO_PLATFORM_ORG,
   formatInitiator,
+  isHostedTurnLeaseId,
   mintAgentToken,
   mintIdentityBearer,
   parseInitiator,
@@ -17,6 +18,13 @@ const OTHER_SECRET = "a-different-secret";
 // A fixed clock so expiry tests are deterministic (seconds since epoch).
 const T0 = 1_700_000_000;
 const at = (t: number) => () => t;
+
+test("hosted turn leases are nonblank bounded header values", () => {
+  expect(isHostedTurnLeaseId("lease-1")).toBe(true);
+  for (const value of [null, "", "has whitespace", "x".repeat(129)]) {
+    expect(isHostedTurnLeaseId(value)).toBe(false);
+  }
+});
 
 const agentClaims = {
   agentProjectId: "agt_abc",

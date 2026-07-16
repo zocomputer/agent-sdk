@@ -47,6 +47,20 @@ export const EVE_SUBAGENT_SESSION_HEADER = "x-zo-eve-subagent-session";
 /** The database-backed Builder writer lease validated by the Builder proxy. */
 export const BUILDER_TURN_LEASE_HEADER = "x-zo-builder-lease";
 
+/** The accepted hosted turn allowed to settle its Conversation row. */
+export const HOSTED_TURN_LEASE_HEADER = "x-zo-turn-lease";
+/** HTTP/database bound shared by the proxy, settle route, and clients. */
+export const MAX_HOSTED_TURN_LEASE_ID_LENGTH = 128;
+
+export function isHostedTurnLeaseId(value: unknown): value is string {
+  return (
+    typeof value === "string" &&
+    value.length > 0 &&
+    value.length <= MAX_HOSTED_TURN_LEASE_ID_LENGTH &&
+    /^\S+$/u.test(value)
+  );
+}
+
 /** Env var a runtime reads its agent token from (injected by its launcher). */
 export const AGENT_TOKEN_ENV = "ZO_AGENT_TOKEN";
 

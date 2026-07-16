@@ -1,10 +1,15 @@
-// ../../../../../tmp/agent-sdk-mirror-mSSHZe/repo/platform/runtime-auth/index.ts
+// ../../../../../tmp/agent-sdk-mirror-XpkfuE/repo/platform/runtime-auth/index.ts
 import { SignJWT, jwtVerify } from "jose";
 var AGENT_TOKEN_HEADER = "x-zo-agent-token";
 var EVE_SESSION_HEADER = "x-zo-eve-session";
 var EVE_TURN_HEADER = "x-zo-eve-turn";
 var EVE_SUBAGENT_SESSION_HEADER = "x-zo-eve-subagent-session";
 var BUILDER_TURN_LEASE_HEADER = "x-zo-builder-lease";
+var HOSTED_TURN_LEASE_HEADER = "x-zo-turn-lease";
+var MAX_HOSTED_TURN_LEASE_ID_LENGTH = 128;
+function isHostedTurnLeaseId(value) {
+  return typeof value === "string" && value.length > 0 && value.length <= MAX_HOSTED_TURN_LEASE_ID_LENGTH && /^\S+$/u.test(value);
+}
 var AGENT_TOKEN_ENV = "ZO_AGENT_TOKEN";
 var ZO_PLATFORM_ORG = {
   id: "org_zo",
@@ -130,11 +135,14 @@ export {
   parseInitiator,
   mintIdentityBearer,
   mintAgentToken,
+  isHostedTurnLeaseId,
   formatInitiator,
   ZO_PLATFORM_ORG,
   RESERVED_AGENT_PROJECT_IDS,
+  MAX_HOSTED_TURN_LEASE_ID_LENGTH,
   LOCAL_AGENT_IDENTITY,
   INITIATOR_HEADER,
+  HOSTED_TURN_LEASE_HEADER,
   EVE_TURN_HEADER,
   EVE_SUBAGENT_SESSION_HEADER,
   EVE_SESSION_HEADER,

@@ -8,7 +8,7 @@
 
 > `const` **EPUB\_SECTION\_CAP**: `200` = `200`
 
-Defined in: [packages/agent-sdk/src/extract/epub.ts:22](https://github.com/zocomputer/zov2-code/blob/1e681aac14f2dac158459843dc60bdd734625bf0/packages/agent-sdk/src/extract/epub.ts#L22)
+Defined in: [packages/agent-sdk/src/extract/epub.ts:22](https://github.com/zocomputer/zov2-code/blob/f95a48c7e1f1a7b1961c045374fb5540573a3627/packages/agent-sdk/src/extract/epub.ts#L22)
 
 Extraction section cap, mirroring the PDF page cap: the view budget
 paginates the text; this bounds the extraction work itself.

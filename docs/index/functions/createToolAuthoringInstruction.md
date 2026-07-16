@@ -8,7 +8,7 @@
 
 > **createToolAuthoringInstruction**(`opts?`): `DynamicSentinel`\<\{ `markdown`: `string`; \}\>
 
-Defined in: [packages/agent-sdk/src/instructions.ts:685](https://github.com/zocomputer/zov2-code/blob/1e681aac14f2dac158459843dc60bdd734625bf0/packages/agent-sdk/src/instructions.ts#L685)
+Defined in: [packages/agent-sdk/src/instructions.ts:685](https://github.com/zocomputer/zov2-code/blob/f95a48c7e1f1a7b1961c045374fb5540573a3627/packages/agent-sdk/src/instructions.ts#L685)
 
 The tool-authoring contract as a standalone à la carte instruction, for
 agents that author eve tools. Static and session-stable (prompt-cache

@@ -8,7 +8,7 @@
 
 > **createSandboxArtifactsInstruction**(`opts?`): `DynamicSentinel`\<\{ `markdown`: `string`; \}\>
 
-Defined in: [packages/agent-sdk/src/instructions.ts:524](https://github.com/zocomputer/zov2-code/blob/1e681aac14f2dac158459843dc60bdd734625bf0/packages/agent-sdk/src/instructions.ts#L524)
+Defined in: [packages/agent-sdk/src/instructions.ts:524](https://github.com/zocomputer/zov2-code/blob/f95a48c7e1f1a7b1961c045374fb5540573a3627/packages/agent-sdk/src/instructions.ts#L524)
 
 Opt-in playbook for agents backed by Zo's standard sandbox image. Static
 and session-stable so it remains prompt-cache safe.

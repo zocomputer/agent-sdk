@@ -8,7 +8,7 @@
 
 > `const` **PDF\_PAGE\_CAP**: `200` = `200`
 
-Defined in: [packages/agent-sdk/src/extract/pdf.ts:29](https://github.com/zocomputer/zov2-code/blob/1e681aac14f2dac158459843dc60bdd734625bf0/packages/agent-sdk/src/extract/pdf.ts#L29)
+Defined in: [packages/agent-sdk/src/extract/pdf.ts:29](https://github.com/zocomputer/zov2-code/blob/f95a48c7e1f1a7b1961c045374fb5540573a3627/packages/agent-sdk/src/extract/pdf.ts#L29)
 
 Extraction page cap. Read's view budget paginates the text; this bounds the
 extraction work itself, so a 10,000-page PDF doesn't churn PDFium for pages

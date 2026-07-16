@@ -6,7 +6,7 @@
 
 # Interface: StateFilesHandleRequest
 
-Defined in: [packages/agent-sdk/src/state-files.ts:56](https://github.com/zocomputer/zov2-code/blob/1e681aac14f2dac158459843dc60bdd734625bf0/packages/agent-sdk/src/state-files.ts#L56)
+Defined in: [packages/agent-sdk/src/state-files.ts:56](https://github.com/zocomputer/zov2-code/blob/f95a48c7e1f1a7b1961c045374fb5540573a3627/packages/agent-sdk/src/state-files.ts#L56)
 
 Request body sent to the runtime broker to obtain a state-files handle.
 
@@ -16,7 +16,7 @@ Request body sent to the runtime broker to obtain a state-files handle.
 
 > `readonly` **access**: [`StateFilesAccess`](../type-aliases/StateFilesAccess.md)
 
-Defined in: [packages/agent-sdk/src/state-files.ts:59](https://github.com/zocomputer/zov2-code/blob/1e681aac14f2dac158459843dc60bdd734625bf0/packages/agent-sdk/src/state-files.ts#L59)
+Defined in: [packages/agent-sdk/src/state-files.ts:59](https://github.com/zocomputer/zov2-code/blob/f95a48c7e1f1a7b1961c045374fb5540573a3627/packages/agent-sdk/src/state-files.ts#L59)
 
 ***
 
@@ -24,7 +24,7 @@ Defined in: [packages/agent-sdk/src/state-files.ts:59](https://github.com/zocomp
 
 > `readonly` **declarationName**: `string`
 
-Defined in: [packages/agent-sdk/src/state-files.ts:57](https://github.com/zocomputer/zov2-code/blob/1e681aac14f2dac158459843dc60bdd734625bf0/packages/agent-sdk/src/state-files.ts#L57)
+Defined in: [packages/agent-sdk/src/state-files.ts:57](https://github.com/zocomputer/zov2-code/blob/f95a48c7e1f1a7b1961c045374fb5540573a3627/packages/agent-sdk/src/state-files.ts#L57)
 
 ***
 
@@ -32,4 +32,4 @@ Defined in: [packages/agent-sdk/src/state-files.ts:57](https://github.com/zocomp
 
 > `readonly` **interface**: `"files"`
 
-Defined in: [packages/agent-sdk/src/state-files.ts:58](https://github.com/zocomputer/zov2-code/blob/1e681aac14f2dac158459843dc60bdd734625bf0/packages/agent-sdk/src/state-files.ts#L58)
+Defined in: [packages/agent-sdk/src/state-files.ts:58](https://github.com/zocomputer/zov2-code/blob/f95a48c7e1f1a7b1961c045374fb5540573a3627/packages/agent-sdk/src/state-files.ts#L58)

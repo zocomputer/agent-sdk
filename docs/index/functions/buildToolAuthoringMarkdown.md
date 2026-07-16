@@ -8,7 +8,7 @@
 
 > **buildToolAuthoringMarkdown**(`opts?`): `string`
 
-Defined in: [packages/agent-sdk/src/instructions.ts:673](https://github.com/zocomputer/zov2-code/blob/1e681aac14f2dac158459843dc60bdd734625bf0/packages/agent-sdk/src/instructions.ts#L673)
+Defined in: [packages/agent-sdk/src/instructions.ts:673](https://github.com/zocomputer/zov2-code/blob/f95a48c7e1f1a7b1961c045374fb5540573a3627/packages/agent-sdk/src/instructions.ts#L673)
 
 Pure markdown for the tool-authoring contract; see [toolAuthoringSection](toolAuthoringSection.md).
 
