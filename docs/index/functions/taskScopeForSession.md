@@ -8,7 +8,7 @@
 
 > **taskScopeForSession**(`sessionId`): [`TaskScope`](../interfaces/TaskScope.md)
 
-Defined in: [packages/agent-sdk/src/async-tasks.ts:60](https://github.com/zocomputer/zov2-code/blob/f537e0a90da222390e69bcbf7e329142b9e8d4b0/packages/agent-sdk/src/async-tasks.ts#L60)
+Defined in: [packages/agent-sdk/src/async-tasks.ts:60](https://github.com/zocomputer/zov2-code/blob/1a1a37f3d58d0a8e082224aec255aec2ea7fce28/packages/agent-sdk/src/async-tasks.ts#L60)
 
 Build the mandatory task scope for an Eve tool call. Missing session
 context fails closed before work starts or task state is read.

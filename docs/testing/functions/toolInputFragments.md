@@ -8,7 +8,7 @@
 
 > **toolInputFragments**(`inputJson`, `fragmentSize?`): readonly `string`[]
 
-Defined in: [packages/agent-sdk/src/mock-model.ts:328](https://github.com/zocomputer/zov2-code/blob/f537e0a90da222390e69bcbf7e329142b9e8d4b0/packages/agent-sdk/src/mock-model.ts#L328)
+Defined in: [packages/agent-sdk/src/mock-model.ts:328](https://github.com/zocomputer/zov2-code/blob/1a1a37f3d58d0a8e082224aec255aec2ea7fce28/packages/agent-sdk/src/mock-model.ts#L328)
 
 Split a tool call's JSON input into small fragments, the way real models
 stream tool arguments — so arg-streaming renderers see many partial-JSON

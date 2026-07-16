@@ -8,7 +8,7 @@
 
 > **subagentSection**(`opts?`): [`PromptSection`](../interfaces/PromptSection.md)
 
-Defined in: [packages/agent-sdk/src/instructions.ts:554](https://github.com/zocomputer/zov2-code/blob/f537e0a90da222390e69bcbf7e329142b9e8d4b0/packages/agent-sdk/src/instructions.ts#L554)
+Defined in: [packages/agent-sdk/src/instructions.ts:554](https://github.com/zocomputer/zov2-code/blob/1a1a37f3d58d0a8e082224aec255aec2ea7fce28/packages/agent-sdk/src/instructions.ts#L554)
 
 The delegation section for eve's built-in `agent` tool (a fresh clone with
 a blank conversation) and, when `roster` names declared subagents, the

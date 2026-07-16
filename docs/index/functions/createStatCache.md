@@ -8,7 +8,7 @@
 
 > **createStatCache**\<`T`\>(`limit`): [`StatCache`](../interfaces/StatCache.md)\<`T`\>
 
-Defined in: [packages/agent-sdk/src/extract/cache.ts:37](https://github.com/zocomputer/zov2-code/blob/f537e0a90da222390e69bcbf7e329142b9e8d4b0/packages/agent-sdk/src/extract/cache.ts#L37)
+Defined in: [packages/agent-sdk/src/extract/cache.ts:37](https://github.com/zocomputer/zov2-code/blob/1a1a37f3d58d0a8e082224aec255aec2ea7fce28/packages/agent-sdk/src/extract/cache.ts#L37)
 
 Build a stat-validated extraction cache with the given entry limit. LRU
 eviction when full; Map iteration order is insertion order, so the first
