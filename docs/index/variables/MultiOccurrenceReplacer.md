@@ -8,7 +8,7 @@
 
 > `const` **MultiOccurrenceReplacer**: [`Replacer`](../type-aliases/Replacer.md)
 
-Defined in: [packages/agent-sdk/src/edit-match.ts:440](https://github.com/zocomputer/zov2-code/blob/1a1a37f3d58d0a8e082224aec255aec2ea7fce28/packages/agent-sdk/src/edit-match.ts#L440)
+Defined in: [packages/agent-sdk/src/edit-match.ts:440](https://github.com/zocomputer/zov2-code/blob/2085c476e1f2b993443fa305a981a524da2250f3/packages/agent-sdk/src/edit-match.ts#L440)
 
 Yields every exact occurrence of the find. In-cascade this is shadowed by
 SimpleReplacer (which already yields the find, and `replace_all` replaces

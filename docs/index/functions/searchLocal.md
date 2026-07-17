@@ -8,7 +8,7 @@
 
 > **searchLocal**(`root`, `options`, `abortSignal?`): `Promise`\<[`IoSearchResult`](../interfaces/IoSearchResult.md)\>
 
-Defined in: [packages/agent-sdk/src/workspace-io.ts:225](https://github.com/zocomputer/zov2-code/blob/1a1a37f3d58d0a8e082224aec255aec2ea7fce28/packages/agent-sdk/src/workspace-io.ts#L225)
+Defined in: [packages/agent-sdk/src/workspace-io.ts:225](https://github.com/zocomputer/zov2-code/blob/2085c476e1f2b993443fa305a981a524da2250f3/packages/agent-sdk/src/workspace-io.ts#L225)
 
 The in-process scan the local grep has always run; exported for tests.
 

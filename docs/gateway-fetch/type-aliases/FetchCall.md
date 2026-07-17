@@ -8,7 +8,7 @@
 
 > **FetchCall** = (`input`, `init?`) => `Promise`\<`Response`\>
 
-Defined in: [packages/runtime-ai/src/stream-guards.ts:27](https://github.com/zocomputer/zov2-code/blob/1a1a37f3d58d0a8e082224aec255aec2ea7fce28/packages/runtime-ai/src/stream-guards.ts#L27)
+Defined in: [packages/runtime-ai/src/stream-guards.ts:27](https://github.com/zocomputer/zov2-code/blob/2085c476e1f2b993443fa305a981a524da2250f3/packages/runtime-ai/src/stream-guards.ts#L27)
 
 The fetch call signature alone: Bun's `typeof fetch` also carries
 `preconnect`, which test doubles (and the wrapper itself) shouldn't have to

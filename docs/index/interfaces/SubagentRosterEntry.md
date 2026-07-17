@@ -6,7 +6,7 @@
 
 # Interface: SubagentRosterEntry
 
-Defined in: [packages/agent-sdk/src/instructions.ts:542](https://github.com/zocomputer/zov2-code/blob/1a1a37f3d58d0a8e082224aec255aec2ea7fce28/packages/agent-sdk/src/instructions.ts#L542)
+Defined in: [packages/agent-sdk/src/instructions.ts:542](https://github.com/zocomputer/zov2-code/blob/2085c476e1f2b993443fa305a981a524da2250f3/packages/agent-sdk/src/instructions.ts#L542)
 
 One declared subagent the delegation playbook should route work to.
 
@@ -16,7 +16,7 @@ One declared subagent the delegation playbook should route work to.
 
 > `readonly` **name**: `string`
 
-Defined in: [packages/agent-sdk/src/instructions.ts:544](https://github.com/zocomputer/zov2-code/blob/1a1a37f3d58d0a8e082224aec255aec2ea7fce28/packages/agent-sdk/src/instructions.ts#L544)
+Defined in: [packages/agent-sdk/src/instructions.ts:544](https://github.com/zocomputer/zov2-code/blob/2085c476e1f2b993443fa305a981a524da2250f3/packages/agent-sdk/src/instructions.ts#L544)
 
 The subagent's tool name (its `agent/subagents/<id>/` directory name).
 
@@ -26,6 +26,6 @@ The subagent's tool name (its `agent/subagents/<id>/` directory name).
 
 > `readonly` **when**: `string`
 
-Defined in: [packages/agent-sdk/src/instructions.ts:546](https://github.com/zocomputer/zov2-code/blob/1a1a37f3d58d0a8e082224aec255aec2ea7fce28/packages/agent-sdk/src/instructions.ts#L546)
+Defined in: [packages/agent-sdk/src/instructions.ts:546](https://github.com/zocomputer/zov2-code/blob/2085c476e1f2b993443fa305a981a524da2250f3/packages/agent-sdk/src/instructions.ts#L546)
 
 When the parent should pick it, e.g. "read-only codebase questions".

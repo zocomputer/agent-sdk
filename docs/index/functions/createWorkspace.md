@@ -8,7 +8,7 @@
 
 > **createWorkspace**(`root`): [`Workspace`](../interfaces/Workspace.md)
 
-Defined in: [packages/agent-sdk/src/workspace.ts:39](https://github.com/zocomputer/zov2-code/blob/1a1a37f3d58d0a8e082224aec255aec2ea7fce28/packages/agent-sdk/src/workspace.ts#L39)
+Defined in: [packages/agent-sdk/src/workspace.ts:39](https://github.com/zocomputer/zov2-code/blob/2085c476e1f2b993443fa305a981a524da2250f3/packages/agent-sdk/src/workspace.ts#L39)
 
 Build a Workspace bound to one root directory.
 

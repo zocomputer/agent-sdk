@@ -6,7 +6,7 @@
 
 # Interface: SheetMeta
 
-Defined in: [packages/agent-sdk/src/extract/sheet.ts:13](https://github.com/zocomputer/zov2-code/blob/1a1a37f3d58d0a8e082224aec255aec2ea7fce28/packages/agent-sdk/src/extract/sheet.ts#L13)
+Defined in: [packages/agent-sdk/src/extract/sheet.ts:13](https://github.com/zocomputer/zov2-code/blob/2085c476e1f2b993443fa305a981a524da2250f3/packages/agent-sdk/src/extract/sheet.ts#L13)
 
 Metadata for one sheet in a workbook: its name, row count, and column count.
 
@@ -16,7 +16,7 @@ Metadata for one sheet in a workbook: its name, row count, and column count.
 
 > `readonly` **cols**: `number`
 
-Defined in: [packages/agent-sdk/src/extract/sheet.ts:16](https://github.com/zocomputer/zov2-code/blob/1a1a37f3d58d0a8e082224aec255aec2ea7fce28/packages/agent-sdk/src/extract/sheet.ts#L16)
+Defined in: [packages/agent-sdk/src/extract/sheet.ts:16](https://github.com/zocomputer/zov2-code/blob/2085c476e1f2b993443fa305a981a524da2250f3/packages/agent-sdk/src/extract/sheet.ts#L16)
 
 ***
 
@@ -24,7 +24,7 @@ Defined in: [packages/agent-sdk/src/extract/sheet.ts:16](https://github.com/zoco
 
 > `readonly` **name**: `string`
 
-Defined in: [packages/agent-sdk/src/extract/sheet.ts:14](https://github.com/zocomputer/zov2-code/blob/1a1a37f3d58d0a8e082224aec255aec2ea7fce28/packages/agent-sdk/src/extract/sheet.ts#L14)
+Defined in: [packages/agent-sdk/src/extract/sheet.ts:14](https://github.com/zocomputer/zov2-code/blob/2085c476e1f2b993443fa305a981a524da2250f3/packages/agent-sdk/src/extract/sheet.ts#L14)
 
 ***
 
@@ -32,4 +32,4 @@ Defined in: [packages/agent-sdk/src/extract/sheet.ts:14](https://github.com/zoco
 
 > `readonly` **rows**: `number`
 
-Defined in: [packages/agent-sdk/src/extract/sheet.ts:15](https://github.com/zocomputer/zov2-code/blob/1a1a37f3d58d0a8e082224aec255aec2ea7fce28/packages/agent-sdk/src/extract/sheet.ts#L15)
+Defined in: [packages/agent-sdk/src/extract/sheet.ts:15](https://github.com/zocomputer/zov2-code/blob/2085c476e1f2b993443fa305a981a524da2250f3/packages/agent-sdk/src/extract/sheet.ts#L15)

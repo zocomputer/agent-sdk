@@ -8,7 +8,7 @@
 
 > **createPlanningInstruction**(`opts?`): `DynamicSentinel`\<\{ `markdown`: `string`; \}\>
 
-Defined in: [packages/agent-sdk/src/instructions.ts:208](https://github.com/zocomputer/zov2-code/blob/1a1a37f3d58d0a8e082224aec255aec2ea7fce28/packages/agent-sdk/src/instructions.ts#L208)
+Defined in: [packages/agent-sdk/src/instructions.ts:208](https://github.com/zocomputer/zov2-code/blob/2085c476e1f2b993443fa305a981a524da2250f3/packages/agent-sdk/src/instructions.ts#L208)
 
 The planning playbook for eve's built-in `todo` tool: when to plan, step
 quality, and status discipline. Static and session-stable (prompt-cache

@@ -8,7 +8,7 @@
 
 > `const` **SHEET\_ROW\_CAP**: `5000` = `5_000`
 
-Defined in: [packages/agent-sdk/src/extract/sheet.ts:31](https://github.com/zocomputer/zov2-code/blob/1a1a37f3d58d0a8e082224aec255aec2ea7fce28/packages/agent-sdk/src/extract/sheet.ts#L31)
+Defined in: [packages/agent-sdk/src/extract/sheet.ts:31](https://github.com/zocomputer/zov2-code/blob/2085c476e1f2b993443fa305a981a524da2250f3/packages/agent-sdk/src/extract/sheet.ts#L31)
 
 Per-sheet row cap. The 50 KB view budget usually bites first; this keeps a
 pathological million-row sheet from being TSV-serialized at all.

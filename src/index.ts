@@ -349,6 +349,7 @@ export * from "./extract/zip";
 export * from "./file-kind";
 export * from "./file-view";
 export * from "./glob-match";
+export * from "./harness-protocol-v1";
 export * from "./web-fetch";
 export * from "./instructions";
 export * from "./list-files";

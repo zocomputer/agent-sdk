@@ -25,6 +25,10 @@
       "types": "./src/gateway-fetch.ts",
       "import": "./dist/gateway-fetch.js"
     },
+    "./harness-protocol-v1": {
+      "types": "./src/harness-protocol-v1.ts",
+      "import": "./dist/harness-protocol-v1.js"
+    },
     "./initiator-auth": {
       "types": "./src/initiator-auth.ts",
       "import": "./dist/initiator-auth.js"
