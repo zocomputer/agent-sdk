@@ -8,7 +8,7 @@
 
 > **formatTodoViolations**(`violations`): `string`
 
-Defined in: [packages/agent-sdk/src/todo-discipline.ts:168](https://github.com/zocomputer/zov2-code/blob/2085c476e1f2b993443fa305a981a524da2250f3/packages/agent-sdk/src/todo-discipline.ts#L168)
+Defined in: [packages/agent-sdk/src/todo-discipline.ts:168](https://github.com/zocomputer/zov2-code/blob/178825142421d42c04f57b0afbc80612a16fe4c6/packages/agent-sdk/src/todo-discipline.ts#L168)
 
 Render violations as the rejection message the tool throws. Leads with the
 fact that the list is unchanged, then one line per violation, so the model

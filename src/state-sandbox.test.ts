@@ -539,3 +539,203 @@ describe("shouldRefreshStateSandboxHandle", () => {
     ).toBe(true);
   });
 });
+
+// ─────────────────────────────────────────────────────────────────────────────
+// The U4 lease renewal loop: while work is live (an operation in flight or a
+// spawned process running) the client re-mints its handle on an interval so
+// the control-plane access lease stays renewed; a denial terminates the local
+// path; an idle or disposed client stops renewing (sweep-eligible).
+// ─────────────────────────────────────────────────────────────────────────────
+describe("lease renewal while work is live", () => {
+  function renewalHandle(): StateSandboxHandle {
+    const parsed = parseStateSandboxHandle({
+      handleId: "h_renew",
+      declarationName: "workspace",
+      interface: "exec",
+      access: "rw",
+      engine: "sandbox-daytona",
+      storeId: "sto_1",
+      stateInstanceId: "sti_1",
+      partition: "user",
+      sandboxResourceId: "sbr_1",
+      rootPath: "/root",
+      lifecycle: "ready",
+      sandbox: {
+        sandboxId: "sbx_1",
+        sshHost: "host",
+        sshUser: "token",
+        expiresAt: new Date(Date.now() + 60 * 60_000).toISOString(),
+      },
+    });
+    if (parsed === null) throw new Error("expected a valid handle");
+    return parsed;
+  }
+
+  function spawnableSession(): {
+    session: StateSandboxSessionLike;
+    exit: (code: number) => void;
+    kills: string[];
+  } {
+    let resolveExit: (code: number) => void = () => {};
+    const kills: string[] = [];
+    const exitCode = new Promise<number>((resolve) => {
+      resolveExit = resolve;
+    });
+    const session: StateSandboxSessionLike = {
+      run: () => Promise.resolve({ exitCode: 0, stdout: "", stderr: "" }),
+      spawn: () =>
+        Promise.resolve({
+          stdout: (async function* () {})(),
+          stderr: (async function* () {})(),
+          exitCode,
+          kill: (signal?: string) => {
+            kills.push(signal ?? "default");
+            resolveExit(137);
+          },
+        }),
+      readBinaryFile: () => Promise.resolve(null),
+      writeBinaryFile: () => Promise.resolve(),
+      removePath: () => Promise.resolve(),
+    };
+    return { session, exit: (code) => resolveExit(code), kills };
+  }
+
+  const tick = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+  test("a live spawned process renews the lease on the interval and stops after terminal exit", async () => {
+    let mints = 0;
+    const fake = spawnableSession();
+    const client = createStateSandboxClient({
+      loadHandle: () => {
+        mints += 1;
+        return Promise.resolve(renewalHandle());
+      },
+      createSession: () => Promise.resolve(fake.session),
+      renewIntervalMs: 10,
+    });
+
+    const process = await client.spawn("sleep 999");
+    const afterSpawn = mints; // the initial mint
+    await tick(45);
+    expect(mints).toBeGreaterThan(afterSpawn); // renewals while the spawn lives
+    fake.exit(0);
+    expect(await process.exitCode).toBe(0);
+    const atExit = mints;
+    await tick(40);
+    expect(mints).toBe(atExit); // renewals stop once work ends
+    await client.dispose();
+  });
+
+  test("a renewal denial (revoked binding) kills live processes and drops the session", async () => {
+    let mints = 0;
+    const fake = spawnableSession();
+    const client = createStateSandboxClient({
+      loadHandle: () => {
+        mints += 1;
+        if (mints > 1) {
+          return Promise.reject(
+            new StateSandboxHandleError("binding revoked", { status: 409, code: "binding_revoked" }),
+          );
+        }
+        return Promise.resolve(renewalHandle());
+      },
+      createSession: () => Promise.resolve(fake.session),
+      renewIntervalMs: 10,
+    });
+
+    const process = await client.spawn("serve");
+    await tick(40);
+    expect(fake.kills.length).toBeGreaterThan(0); // terminated on denial
+    expect(await process.exitCode).toBe(137);
+    expect(client.status()).toEqual({ status: "idle" });
+  });
+
+  test("a transient renewal failure keeps renewing (no termination)", async () => {
+    let mints = 0;
+    const fake = spawnableSession();
+    const client = createStateSandboxClient({
+      loadHandle: () => {
+        mints += 1;
+        if (mints === 2) return Promise.reject(new Error("network blip"));
+        return Promise.resolve(renewalHandle());
+      },
+      createSession: () => Promise.resolve(fake.session),
+      renewIntervalMs: 10,
+    });
+    await client.spawn("job");
+    await tick(50);
+    expect(fake.kills).toHaveLength(0);
+    expect(mints).toBeGreaterThan(2); // kept going past the blip
+    fake.exit(0);
+    await client.dispose();
+  });
+
+  test("a retryable 409 (instance transitioning) never kills live work — it backs off and keeps renewing", async () => {
+    let mints = 0;
+    const fake = spawnableSession();
+    const client = createStateSandboxClient({
+      loadHandle: () => {
+        mints += 1;
+        if (mints === 2) {
+          return Promise.reject(
+            new StateSandboxHandleError("instance is transitioning; retry shortly", {
+              status: 409,
+              code: "instance_transitioning",
+            }),
+          );
+        }
+        return Promise.resolve(renewalHandle());
+      },
+      createSession: () => Promise.resolve(fake.session),
+      renewIntervalMs: 10,
+    });
+    const process = await client.spawn("serve");
+    await tick(60);
+    expect(fake.kills).toHaveLength(0); // a lifecycle transition is not a revocation
+    expect(mints).toBeGreaterThan(2); // renewal resumed past the transition
+    fake.exit(0);
+    expect(await process.exitCode).toBe(0);
+    await client.dispose();
+  });
+
+  test("work starting late in a cached handle's life renews immediately (mint-anchored, not work-anchored)", async () => {
+    let mints = 0;
+    const fake = spawnableSession();
+    const client = createStateSandboxClient({
+      loadHandle: () => {
+        mints += 1;
+        return Promise.resolve(renewalHandle());
+      },
+      createSession: () => Promise.resolve(fake.session),
+      renewIntervalMs: 60,
+    });
+    await client.exec("true"); // mints the handle, then goes idle
+    expect(mints).toBe(1);
+    await tick(80); // idle past a full renew interval — no renewals, handle now "old"
+    expect(mints).toBe(1);
+    await client.spawn("serve");
+    await tick(15); // well inside renewIntervalMs
+    // Anchored to the stale mint, the renewal fires immediately at work start —
+    // a work-start anchor would leave the lease unrenewed for a full interval.
+    expect(mints).toBeGreaterThanOrEqual(2);
+    fake.exit(0);
+    await client.dispose();
+  });
+
+  test("an idle client never renews", async () => {
+    let mints = 0;
+    const client = createStateSandboxClient({
+      loadHandle: () => {
+        mints += 1;
+        return Promise.resolve(renewalHandle());
+      },
+      createSession: () => Promise.resolve(spawnableSession().session),
+      renewIntervalMs: 5,
+    });
+    await client.exec("true");
+    const after = mints;
+    await tick(30);
+    expect(mints).toBe(after); // no live work → no renewals
+    await client.dispose();
+  });
+});

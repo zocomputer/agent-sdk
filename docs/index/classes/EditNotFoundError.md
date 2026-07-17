@@ -6,7 +6,7 @@
 
 # Class: EditNotFoundError
 
-Defined in: [packages/agent-sdk/src/edit-match.ts:39](https://github.com/zocomputer/zov2-code/blob/2085c476e1f2b993443fa305a981a524da2250f3/packages/agent-sdk/src/edit-match.ts#L39)
+Defined in: [packages/agent-sdk/src/edit-match.ts:39](https://github.com/zocomputer/zov2-code/blob/178825142421d42c04f57b0afbc80612a16fe4c6/packages/agent-sdk/src/edit-match.ts#L39)
 
 `old_string` (or any forgiving variant of it) does not occur in the content.
 
@@ -20,7 +20,7 @@ Defined in: [packages/agent-sdk/src/edit-match.ts:39](https://github.com/zocompu
 
 > **new EditNotFoundError**(): `EditNotFoundError`
 
-Defined in: [packages/agent-sdk/src/edit-match.ts:40](https://github.com/zocomputer/zov2-code/blob/2085c476e1f2b993443fa305a981a524da2250f3/packages/agent-sdk/src/edit-match.ts#L40)
+Defined in: [packages/agent-sdk/src/edit-match.ts:40](https://github.com/zocomputer/zov2-code/blob/178825142421d42c04f57b0afbc80612a16fe4c6/packages/agent-sdk/src/edit-match.ts#L40)
 
 #### Returns
 

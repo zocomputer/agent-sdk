@@ -53,3 +53,17 @@ describe("defineExternalState", () => {
     ).toThrow(/interface/);
   });
 });
+
+// KTD3 (plans/erik/external-state-sandbox-completion-plan.md): the declaration
+// module stays dependency-free and statically analyzable — importing and
+// evaluating a declaration must never load ssh2, Eve context, or network code.
+// The strongest pin is structural: the module has NO imports at all, so the
+// composed runtime (agent-sandbox's state-client.ts) cannot creep in.
+describe("declaration-module purity", () => {
+  test("state.ts imports nothing — evaluating a declaration loads no transport code", async () => {
+    const source = await Bun.file(new URL("./state.ts", import.meta.url)).text();
+    expect(source).not.toMatch(/^\s*import[\s{]/m);
+    expect(source).not.toMatch(/\bfrom\s+["']/);
+    expect(source).not.toMatch(/\brequire\s*\(/);
+  });
+});

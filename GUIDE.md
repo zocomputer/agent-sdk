@@ -870,7 +870,7 @@ its whole harness from this one dependency:
 
 | Import | What it is |
 | --- | --- |
-| `@zocomputer/agent-sdk/sandbox` | `zoSandbox()` — the Zo sandbox backend for eve's `agent/sandbox.ts` slot. The runtime holds no provider key; it asks the Zo control plane (`ZO_API_URL`, authenticated by `ZO_AGENT_TOKEN`) for a scoped, short-lived SSH session. |
+| `@zocomputer/agent-sdk/sandbox` | `zoSandbox()` — the Zo sandbox backend for eve's `agent/sandbox.ts` slot — and `zoStateSandbox()` — the declaration-bound client for a *named* external-state sandbox (see below). The runtime holds no provider key; it asks the Zo control plane (`ZO_API_URL`, authenticated by `ZO_AGENT_TOKEN`) for a scoped, short-lived SSH session. |
 | `@zocomputer/agent-sdk/ai` (+ `/ai/gateway`, `/ai/register`, `/ai/session-fetch`) | The Zo AI provider layer. `import "@zocomputer/agent-sdk/ai/register"` (first in `agent.ts`) points the AI SDK's default provider at Zo's metering gateway so bare catalog model slugs work. |
 | `@zocomputer/agent-sdk/cloud-tools` | Capability-aware batch media + search tools. Media subpaths are `/media-models`, `/image`, `/edit-image`, `/video`, `/edit-video`, `/generate-speech`, and `/transcribe-audio`; every paid tool resolves the latest accepted Gateway catalog profile and durable `files:` assets before calling a provider. Search subpaths are `/web-search` (Exa/Parallel/Perplexity via `/search-providers` discovery), `/x-search` (Grok's X search), and `/maps-search` (Gemini's Google Maps grounding); each runs a minimal driver-model call that forces the gateway- or provider-executed tool and returns bounded structured results. |
 | `@zocomputer/agent-sdk/runtime-auth` | The agent-token contract (header/env names, mint/verify) shared with the Zo control plane. |
@@ -884,6 +884,50 @@ In the [Zo monorepo](https://github.com/zocomputer/zov2-code) these are
 separate workspace packages; the mirror sync composes them into this one
 package so a deployed agent's `package.json` needs a single
 `github:zocomputer/agent-sdk#<ref>` (or npm) dependency.
+
+### Named state sandboxes (`zoStateSandbox`)
+
+Beyond the default per-session scratch sandbox, an agent can declare a *named*
+sandbox — a durable personal workspace, a team coordination space — as an
+external-state declaration and open it from tool code without touching the
+broker or SSH plumbing:
+
+```ts
+// agent/state/workspace.ts — the declaration (statically parsed at deploy)
+import { defineExternalState } from "@zocomputer/agent-sdk/state";
+
+export default defineExternalState({
+  name: "workspace",
+  interface: "exec",
+  access: "rw",
+  intent: "private",
+  suggestedDefaults: { engine: "sandbox-daytona", partition: "user" },
+});
+```
+
+```ts
+// agent/tools/build_report.ts — authored code opens the declared sandbox
+import { zoStateSandbox } from "@zocomputer/agent-sdk/sandbox";
+import workspace from "../state/workspace";
+
+const sandbox = zoStateSandbox(workspace);
+const result = await sandbox.exec("python analyze.py data/latest.csv");
+await sandbox.files.write("reports/latest.md", result.stdout);
+```
+
+What the composition handles for you: the control-plane binding resolution
+(`POST /state/handles`), the ambient Eve identity — a nested subagent shares
+its root conversation's session-partitioned instances, and the first resolved
+session key and trusted-channel capability stay latched across token renewals —
+the scoped short-lived SSH connection, handle refresh before expiry, and
+root-path scoping for `files` (a path can never escape the instance's root).
+Partition semantics follow the store, not the code: `session` is fresh per
+conversation, `user`/`team`/`none` persist. A `team` or unpartitioned sandbox
+is shared compute and requires the user's trust consent before it first
+provisions — the same consent rail as every shared state. Durable and shared
+sandboxes always run with a clean environment (the runtime never forwards its
+own env; pass command-level `env` explicitly); only the canonical session
+`scratch` declaration may opt into ambient env.
 
 ## Design rules
 

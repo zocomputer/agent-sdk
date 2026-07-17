@@ -8,7 +8,7 @@
 
 > **createInstructionStackInstruction**(`opts`): `DynamicSentinel`\<\{ `markdown`: `string`; \}\>
 
-Defined in: [packages/agent-sdk/src/instructions.ts:828](https://github.com/zocomputer/zov2-code/blob/2085c476e1f2b993443fa305a981a524da2250f3/packages/agent-sdk/src/instructions.ts#L828)
+Defined in: [packages/agent-sdk/src/instructions.ts:828](https://github.com/zocomputer/zov2-code/blob/178825142421d42c04f57b0afbc80612a16fe4c6/packages/agent-sdk/src/instructions.ts#L828)
 
 The whole baseline prompt as ONE dynamic instruction, in the SDK's
 canonical section order. Prefer this over the per-section factories: eve

@@ -8,6 +8,12 @@
 export { zoSandbox, type ZoSandboxOptions } from "./zo-sandbox";
 export { zoBackend, type ZoBackendOptions } from "./zo-backend";
 
+// The declaration-bound sandbox runtime: open a DECLARED external-state
+// sandbox (`agent/state/<name>.ts`) from authored code — broker resolution,
+// ambient Eve identity latching, and the SSH transport composed behind the
+// standard `StateSandboxClient` contract.
+export { zoStateSandbox, type ZoStateSandboxOptions } from "./state-client";
+
 // The connect-a-sandbox-by-eve-session-key primitives `zoBackend` composes
 // internally, exported for a caller that needs a standalone `SandboxSession`
 // OUTSIDE eve's own ALS-scoped tool/hook context — e.g. an eve channel HTTP

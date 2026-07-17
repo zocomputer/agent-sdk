@@ -21,6 +21,7 @@ const EVE_CONTEXT_STORAGE_KEY = Symbol.for("eve.context-storage");
 
 /** `ParentSessionKey.name` in eve — a durable serialized key, so it can't drift casually. */
 const PARENT_SESSION_KEY_NAME = "eve.parentSession";
+const SESSION_ID_KEY_NAME = "eve.sessionId";
 const SESSION_KEY_NAME = "eve.session";
 const SESSION_CAPABILITY_ATTRIBUTE = "zoSessionCapability";
 
@@ -81,6 +82,26 @@ export function ambientSessionParent(): AmbientSessionParent | null {
     return parseSessionParent(store.get({ name: PARENT_SESSION_KEY_NAME }));
   } catch {
     // Contract: never throw — a hostile/broken slot reads as "no lineage".
+    return null;
+  }
+}
+
+/**
+ * The eve session id of the call currently in ALS scope, or `null` outside eve
+ * or when the slot is absent/malformed. Mirrors `runtime-ai`'s
+ * `ambientEveSessionId` (same vendoring posture as the reads above): the value
+ * under `SessionIdKey` (name `"eve.sessionId"`) is the RAW session id
+ * (`wrun_…`) — the exact string the state broker partitions session instances
+ * on. Never throws.
+ */
+export function ambientEveSessionId(): string | null {
+  try {
+    const storage: unknown = Reflect.get(globalThis, EVE_CONTEXT_STORAGE_KEY);
+    if (!hasMethod(storage, "getStore")) return null;
+    const store = storage.getStore();
+    if (!hasMethod(store, "get")) return null;
+    return nonBlankString(store.get({ name: SESSION_ID_KEY_NAME }));
+  } catch {
     return null;
   }
 }

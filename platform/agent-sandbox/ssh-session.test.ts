@@ -172,4 +172,76 @@ describe("sshSandboxSession", () => {
 
     expect(execs).toEqual(["mkdir -p '/home/daytona/proj' && cd '/home/daytona/proj' && echo hi"]);
   });
+
+  // The U4 lease renewal on the SCRATCH path: only a mint stamps the
+  // control-plane activity/lease clocks, and the manager mints only at
+  // operation start — so a blocking run or a live spawned process must keep
+  // re-minting or the lifecycle sweep stops the VM under real work.
+  const tick = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+  /** A fake client whose exec channel stays open until the test finishes it. */
+  function hangingExecClient(): { client: Client; finish: () => void } {
+    let channel: FakeExecChannel | null = null;
+    const raw = {
+      exec(_command: string, cb: (err: Error | undefined, ch: FakeExecChannel) => void) {
+        channel = new FakeExecChannel();
+        cb(undefined, channel);
+      },
+    };
+    return {
+      client: raw as unknown as Client,
+      finish: () => {
+        channel?.emit("exit", 0);
+        channel?.emit("close");
+      },
+    };
+  }
+
+  test("a blocking run keeps re-minting the access lease until it completes", async () => {
+    let mints = 0;
+    const { client, finish } = hangingExecClient();
+    const ssh = sshSandboxSession(
+      "ses-1",
+      () => {
+        mints += 1;
+        return fakeAccess();
+      },
+      fakeConnector(client),
+      { intervalMs: 10 },
+    );
+
+    const run = ssh.session.run({ command: "sleep 999" });
+    await tick(50);
+    expect(mints).toBeGreaterThan(1); // the initial mint plus mid-run renewals
+    finish();
+    await run;
+    const atDone = mints;
+    await tick(40);
+    expect(mints).toBe(atDone); // renewals stop when the run settles
+    ssh.dispose();
+  });
+
+  test("a live spawned process keeps re-minting until it exits", async () => {
+    let mints = 0;
+    const { client, finish } = hangingExecClient();
+    const ssh = sshSandboxSession(
+      "ses-1",
+      () => {
+        mints += 1;
+        return fakeAccess();
+      },
+      fakeConnector(client),
+      { intervalMs: 10 },
+    );
+
+    const process = await ssh.session.spawn({ command: "serve" });
+    await tick(50);
+    expect(mints).toBeGreaterThan(1); // renewals while the process lives
+    finish();
+    await process.wait();
+    const atExit = mints;
+    await tick(40);
+    expect(mints).toBe(atExit); // renewals stop once the process exits
+    ssh.dispose();
+  });
 });

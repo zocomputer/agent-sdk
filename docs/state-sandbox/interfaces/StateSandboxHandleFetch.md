@@ -6,14 +6,14 @@
 
 # Interface: StateSandboxHandleFetch()
 
-Defined in: [packages/agent-sdk/src/state-sandbox.ts:83](https://github.com/zocomputer/zov2-code/blob/2085c476e1f2b993443fa305a981a524da2250f3/packages/agent-sdk/src/state-sandbox.ts#L83)
+Defined in: [packages/agent-sdk/src/state-sandbox.ts:89](https://github.com/zocomputer/zov2-code/blob/178825142421d42c04f57b0afbc80612a16fe4c6/packages/agent-sdk/src/state-sandbox.ts#L89)
 
 Fetch-compatible HTTP client for requesting sandbox handles.
 Accepts the same signature as global `fetch`.
 
 > **StateSandboxHandleFetch**(`input`, `init?`): `Promise`\<`Response`\>
 
-Defined in: [packages/agent-sdk/src/state-sandbox.ts:84](https://github.com/zocomputer/zov2-code/blob/2085c476e1f2b993443fa305a981a524da2250f3/packages/agent-sdk/src/state-sandbox.ts#L84)
+Defined in: [packages/agent-sdk/src/state-sandbox.ts:90](https://github.com/zocomputer/zov2-code/blob/178825142421d42c04f57b0afbc80612a16fe4c6/packages/agent-sdk/src/state-sandbox.ts#L90)
 
 Fetch-compatible HTTP client for requesting sandbox handles.
 Accepts the same signature as global `fetch`.

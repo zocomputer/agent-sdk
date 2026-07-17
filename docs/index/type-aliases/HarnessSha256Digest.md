@@ -8,7 +8,7 @@
 
 > **HarnessSha256Digest** = `object`
 
-Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:18](https://github.com/zocomputer/zov2-code/blob/2085c476e1f2b993443fa305a981a524da2250f3/packages/agent-sdk/src/harness-protocol-v1.ts#L18)
+Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:18](https://github.com/zocomputer/zov2-code/blob/178825142421d42c04f57b0afbc80612a16fe4c6/packages/agent-sdk/src/harness-protocol-v1.ts#L18)
 
 SHA-256 identity used for immutable artifacts and file states.
 
@@ -18,7 +18,7 @@ SHA-256 identity used for immutable artifacts and file states.
 
 > `readonly` **algorithm**: `"sha256"`
 
-Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:19](https://github.com/zocomputer/zov2-code/blob/2085c476e1f2b993443fa305a981a524da2250f3/packages/agent-sdk/src/harness-protocol-v1.ts#L19)
+Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:19](https://github.com/zocomputer/zov2-code/blob/178825142421d42c04f57b0afbc80612a16fe4c6/packages/agent-sdk/src/harness-protocol-v1.ts#L19)
 
 ***
 
@@ -26,4 +26,4 @@ Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:19](https://github.co
 
 > `readonly` **value**: `string`
 
-Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:20](https://github.com/zocomputer/zov2-code/blob/2085c476e1f2b993443fa305a981a524da2250f3/packages/agent-sdk/src/harness-protocol-v1.ts#L20)
+Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:20](https://github.com/zocomputer/zov2-code/blob/178825142421d42c04f57b0afbc80612a16fe4c6/packages/agent-sdk/src/harness-protocol-v1.ts#L20)

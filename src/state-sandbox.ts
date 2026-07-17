@@ -63,6 +63,12 @@ export interface StateSandboxHandle {
 export interface StateSandboxSuggestedDefaults {
   readonly engine?: StateSandboxEngine;
   readonly partition?: StateSandboxPartition;
+  /**
+   * The declaration's lifecycle overrides (e.g. `suspendAfterMinutes`). The
+   * broker consumes them only when the zero-config store first materializes;
+   * afterwards deploy is the only policy write path.
+   */
+  readonly lifecycle?: Readonly<Record<string, string | number | boolean>>;
 }
 
 /**
@@ -391,6 +397,23 @@ export interface CreateStateSandboxClientOptions {
    * Defaults to false so durable state clients are clean-env by construction.
    */
   readonly passAmbientEnvToSessionPartition?: boolean;
+  /**
+   * While work is live — an exec/file operation in flight or a spawned process
+   * still running — the client re-mints its handle this often so the
+   * control-plane access lease stays renewed and the lifecycle sweep never
+   * suspends the VM under real work (a long blocking exec counts the same as
+   * a spawned process). Renewals anchor to the last successful mint, so work
+   * starting late in a cached handle's life renews immediately rather than
+   * waiting a full interval. Each re-mint re-runs binding/subject
+   * authorization; a terminal denial (401/403, or a 409 whose code is
+   * `binding_revoked`/`consent_required`) kills the local processes and
+   * session instead of continuing on a revoked grant, while retryable 409s
+   * (`instance_transitioning`, `binding_repointing`) back off and retry.
+   * Defaults to 8 minutes (inside both the 10-minute SSH TTL and the
+   * 15-minute access lease). A disposed or abandoned client stops renewing
+   * and becomes sweep-eligible after the lease expires.
+   */
+  readonly renewIntervalMs?: number;
 }
 
 /**
@@ -402,6 +425,7 @@ export function createStateSandboxClient(
 ): StateSandboxClient {
   const now = options.now ?? (() => new Date());
   const refreshWindowMs = options.refreshWindowMs ?? 60_000;
+  const renewIntervalMs = options.renewIntervalMs ?? 8 * 60_000;
   interface CachedStateSandboxSession {
     readonly handle: StateSandboxHandle;
     readonly session: StateSandboxSessionLike;
@@ -412,6 +436,142 @@ export function createStateSandboxClient(
   let pending: Promise<CachedStateSandboxSession> | null = null;
   let pendingLeaseWaiters = 0;
   let status: StateSandboxStatus = { status: "idle" };
+
+  // ── the lease renewal loop (U4) ──────────────────────────────────────────
+  // While ANY work is live (exec/file op in flight, spawned process running)
+  // the client re-mints its handle so the control-plane access lease stays
+  // renewed and the lifecycle sweep never suspends the VM under real work.
+  // Renewals are anchored to the LAST SUCCESSFUL MINT, not to when work
+  // started: work that begins late in a cached handle's life renews
+  // immediately, so the lease can never lapse between work start and the
+  // first interval tick. When the last work ends the loop stops — an
+  // abandoned client naturally becomes sweep-eligible.
+  let liveWork = 0;
+  let renewTimer: ReturnType<typeof setTimeout> | null = null;
+  /** Epoch ms of the last successful handle mint — the renewal anchor. */
+  let lastMintMs = 0;
+  /** Earliest epoch ms the next renewal may run — backoff after a transient failure. */
+  let renewNotBeforeMs = 0;
+  const renewRetryDelayMs = Math.min(30_000, renewIntervalMs);
+  const liveProcesses = new Set<StateSandboxSpawnedProcess>();
+
+  function scheduleRenewal(): void {
+    if (renewTimer !== null || liveWork === 0) return;
+    const nowMs = now().getTime();
+    const delay = Math.max(lastMintMs + renewIntervalMs - nowMs, renewNotBeforeMs - nowMs, 0);
+    renewTimer = setTimeout(() => {
+      renewTimer = null;
+      void renewLease();
+    }, delay);
+    (renewTimer as { unref?: () => void }).unref?.();
+  }
+  function stopRenewal(): void {
+    if (renewTimer !== null) {
+      clearTimeout(renewTimer);
+      renewTimer = null;
+    }
+  }
+  function workStarted(): void {
+    liveWork += 1;
+    if (liveWork === 1) scheduleRenewal();
+  }
+  function workEnded(): void {
+    liveWork -= 1;
+    if (liveWork <= 0) {
+      liveWork = 0;
+      stopRenewal();
+    }
+  }
+  /**
+   * Only an explicit revocation is terminal. 401/403 mean the caller's
+   * authorization is gone; a 409 is the broker's busy/decision family — most
+   * of its codes (`instance_transitioning`, `binding_repointing`,
+   * `provisioning_failed`) are documented-retryable transients that must NOT
+   * kill live work, so only the codes that mean the grant itself was
+   * withdrawn (`binding_revoked`, `consent_required`) terminate.
+   */
+  function isLeaseDenial(error: unknown): boolean {
+    if (typeof error !== "object" || error === null) return false;
+    const statusCode = (error as { readonly status?: unknown }).status;
+    if (statusCode === 401 || statusCode === 403) return true;
+    if (statusCode !== 409) return false;
+    const code = (error as { readonly code?: unknown }).code;
+    return code === "binding_revoked" || code === "consent_required";
+  }
+  async function renewLease(): Promise<void> {
+    if (liveWork === 0) {
+      stopRenewal();
+      return;
+    }
+    try {
+      await options.loadHandle();
+      lastMintMs = now().getTime();
+    } catch (error) {
+      // A denial means the binding was revoked (or consent withdrawn): stop
+      // renewing, kill local processes, and drop the session — no further
+      // remote operation on a revoked path. Transient failures back off
+      // briefly and keep trying while work stays live.
+      if (isLeaseDenial(error)) {
+        await terminateOnDenial();
+        return;
+      }
+      renewNotBeforeMs = now().getTime() + renewRetryDelayMs;
+    }
+    scheduleRenewal();
+  }
+  async function terminateOnDenial(): Promise<void> {
+    stopRenewal();
+    liveWork = 0;
+    for (const process of liveProcesses) {
+      try {
+        await process.kill();
+      } catch {
+        // best-effort teardown
+      }
+    }
+    liveProcesses.clear();
+    const record = cached;
+    cached = null;
+    status = { status: "idle" };
+    if (record !== null) {
+      await record.session.dispose?.();
+    }
+  }
+  /** Track a spawned process as live work until it reaches a terminal state. */
+  function trackSpawned(process: StateSandboxSpawnedProcess): StateSandboxSpawnedProcess {
+    let live = true;
+    const settle = (): void => {
+      if (!live) return;
+      live = false;
+      liveProcesses.delete(wrapped);
+      workEnded();
+    };
+    const wrapped: StateSandboxSpawnedProcess = {
+      stdout: process.stdout,
+      stderr: process.stderr,
+      exitCode: process.exitCode.then(
+        (code) => {
+          settle();
+          return code;
+        },
+        (error: unknown) => {
+          settle();
+          throw error;
+        },
+      ),
+      kill: (signal) => {
+        const result = process.kill(signal);
+        settle();
+        return result;
+      },
+    };
+    workStarted();
+    liveProcesses.add(wrapped);
+    // A caller may never read exitCode; a process failure must not become an
+    // unhandled rejection just because tracking observed it.
+    wrapped.exitCode.catch(() => {});
+    return wrapped;
+  }
 
   async function disposeCachedSession(
     record: CachedStateSandboxSession,
@@ -453,6 +613,7 @@ export function createStateSandboxClient(
     pending = (async () => {
       try {
         const handle = await options.loadHandle();
+        lastMintMs = now().getTime();
         if (handle.lifecycle === "resuming") {
           status = { status: "resuming", handleId: handle.handleId };
         }
@@ -544,9 +705,11 @@ export function createStateSandboxClient(
     }) => Promise<T>,
   ): Promise<T> {
     const resolved = await leaseSession();
+    workStarted();
     try {
       return await use(resolved);
     } finally {
+      workEnded();
       await resolved.release();
     }
   }
@@ -621,8 +784,8 @@ export function createStateSandboxClient(
       );
     },
     async spawn(command, runOptions) {
-      return await withWriteSession(
-        async ({ handle, session }) =>
+      return await withWriteSession(async ({ handle, session }) =>
+        trackSpawned(
           await session.spawn({
             command,
             workingDirectory: workingDirectoryFor(
@@ -634,9 +797,11 @@ export function createStateSandboxClient(
               ? {}
               : { abortSignal: runOptions.abortSignal }),
           }),
+        ),
       );
     },
     async dispose() {
+      stopRenewal();
       const resolved = pending === null ? cached : await pending;
       if (resolved !== null) {
         await disposeCachedSession(resolved, { waitForPendingLeases: true });

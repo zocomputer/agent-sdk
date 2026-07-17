@@ -2,7 +2,11 @@ import { describe, expect, test } from "bun:test";
 import { createRequire } from "node:module";
 import { dirname, join } from "node:path";
 import { pathToFileURL } from "node:url";
-import { ambientSessionCapability, ambientSessionParent } from "./ambient";
+import {
+  ambientEveSessionId,
+  ambientSessionCapability,
+  ambientSessionParent,
+} from "./ambient";
 
 const SLOT = Symbol.for("eve.context-storage");
 
@@ -114,6 +118,43 @@ describe("ambientSessionParent", () => {
   });
 });
 
+describe("ambientEveSessionId", () => {
+  function storageWithSessionId(value: unknown): unknown {
+    return {
+      getStore: () => ({
+        get: (key: { name: string }) => (key.name === "eve.sessionId" ? value : undefined),
+      }),
+    };
+  }
+
+  test("returns the raw session id from the ALS slot", () => {
+    expect(withSlot(storageWithSessionId("wrun_current"), () => ambientEveSessionId())).toBe(
+      "wrun_current",
+    );
+  });
+
+  test("blank, non-string, and absent values → null", () => {
+    expect(withSlot(storageWithSessionId("   "), () => ambientEveSessionId())).toBeNull();
+    expect(withSlot(storageWithSessionId(42), () => ambientEveSessionId())).toBeNull();
+    expect(withSlot(storageWithSessionId(undefined), () => ambientEveSessionId())).toBeNull();
+  });
+
+  test("a hostile slot never throws — reads as null", () => {
+    expect(
+      withSlot(
+        {
+          getStore: () => ({
+            get: () => {
+              throw new Error("boom");
+            },
+          }),
+        },
+        () => ambientEveSessionId(),
+      ),
+    ).toBeNull();
+  });
+});
+
 describe("ambientSessionCapability", () => {
   test("reads the trusted capability from the current auth context", () => {
     const session = {
@@ -197,23 +238,31 @@ describe("eve contract", () => {
         run<T>(store: unknown, fn: () => T): T;
       };
     };
-    const { ParentSessionKey } = keysMod as {
+    const { ParentSessionKey, SessionIdKey } = keysMod as {
       ParentSessionKey: { name: string };
+      SessionIdKey: { name: string };
     };
     expect(ParentSessionKey.name).toBe("eve.parentSession");
+    // The current-session read's key, pinned against the same installed eve.
+    expect(SessionIdKey.name).toBe("eve.sessionId");
     // Importing eve's container module published the storage on the global slot.
     expect(Reflect.get(globalThis, Symbol.for("eve.context-storage"))).toBe(contextStorage);
 
     const container = new ContextContainer();
     // The SessionParent shape as eve seeds it (runtime-context.js).
     container.set(ParentSessionKey, PARENT);
+    container.set(SessionIdKey, "wrun_current");
 
-    const inScope = contextStorage.run(container, () => ambientSessionParent());
-    expect(inScope).toEqual({
+    const inScope = contextStorage.run(container, () => ({
+      parent: ambientSessionParent(),
+      sessionId: ambientEveSessionId(),
+    }));
+    expect(inScope.parent).toEqual({
       callId: "call_01ABC",
       rootSessionId: "wrun_root",
       sessionId: "wrun_parent",
     });
+    expect(inScope.sessionId).toBe("wrun_current");
   });
 
   test("outside the ALS scope (or for a root session) the read resolves null", async () => {

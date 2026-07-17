@@ -2,6 +2,7 @@ import type { Readable } from "node:stream";
 import { Client, type ClientChannel } from "ssh2";
 import type { SandboxSession } from "eve/sandbox";
 import { extractLines } from "@ai-sdk/provider-utils";
+import { createLeaseRenewer } from "./lease-renewal";
 import { decodeText, encodeText, resolveSandboxPath, shellSingleQuote } from "./pure";
 import { type Connector, SshConnectionManager, type SshSandboxAccess } from "./ssh-connection";
 import { awaitCommand } from "./ssh-exec";
@@ -388,30 +389,94 @@ export function sshSandboxSession(
       onClose: (cb) => void client.on("close", cb),
     };
   },
+  /** Lease-renewal tuning (tests); production uses the defaults. */
+  leaseOptions: { readonly intervalMs?: number; readonly retryDelayMs?: number } = {},
 ): SshSession {
   const resolvePath = (p: string): string => resolveSandboxPath(WORK_DIR, p);
+
+  // The control-plane access lease is stamped ONLY by a mint, and the manager
+  // mints only at operation start — so while work is live (a blocking run, a
+  // spawned process, a file op) the renewer re-mints on a mint-anchored
+  // interval to keep the lifecycle sweep from suspending the VM under real
+  // work (see ./lease-renewal.ts). Mints the manager performs re-anchor it.
+  const renewer = createLeaseRenewer({
+    renew: async () => {
+      await acquireAccess();
+    },
+    ...leaseOptions,
+  });
+  const mintTracked = async (): Promise<SshSandboxAccess> => {
+    const access = await acquireAccess();
+    renewer.noteMint();
+    return access;
+  };
 
   // The connection lifecycle (reuse / reconnect / re-mint / dispose) lives in
   // the manager; here we only wrap the (injected) connector's client.
   const manager = new SshConnectionManager<Client>({
-    acquireAccess,
+    acquireAccess: mintTracked,
     expirySkewMs: EXPIRY_SKEW_MS,
     connect,
   });
+
+  /** Run `fn` as lease-holding live work: the renewer keeps minting until it settles. */
+  const withLease = async <T>(fn: () => Promise<T>): Promise<T> => {
+    renewer.workStarted();
+    try {
+      return await fn();
+    } finally {
+      renewer.workEnded();
+    }
+  };
+
+  /** Keep a spawned process counted as live work until it exits or is killed. */
+  const trackSpawnedLease = (process: SpawnedProcess): SpawnedProcess => {
+    renewer.workStarted();
+    let settled = false;
+    const settle = (): void => {
+      if (settled) return;
+      settled = true;
+      renewer.workEnded();
+    };
+    const exit = process.wait();
+    exit.then(settle, settle);
+    return {
+      stdout: process.stdout,
+      stderr: process.stderr,
+      wait: () => exit.then(({ exitCode }) => ({ exitCode })),
+      kill: async () => {
+        try {
+          await process.kill();
+        } finally {
+          settle();
+        }
+      },
+    };
+  };
 
   const session: SandboxSession = {
     id,
     resolvePath,
 
     async run({ command, workingDirectory, env, abortSignal }) {
-      const c = (await manager.ensure()).client;
-      // env is inlined into the command (see anchored), not the SSH env channel.
-      return await runOverSsh(c, anchored(command, workingDirectory, env), { abortSignal });
+      return await withLease(async () => {
+        const c = (await manager.ensure()).client;
+        // env is inlined into the command (see anchored), not the SSH env channel.
+        return await runOverSsh(c, anchored(command, workingDirectory, env), { abortSignal });
+      });
     },
 
     async spawn({ command, workingDirectory, env, abortSignal }) {
-      const c = (await manager.ensure()).client;
-      return spawnOverSsh(c, anchored(command, workingDirectory, env), { abortSignal });
+      renewer.workStarted();
+      try {
+        const c = (await manager.ensure()).client;
+        const process = await spawnOverSsh(c, anchored(command, workingDirectory, env), { abortSignal });
+        return trackSpawnedLease(process);
+      } finally {
+        // trackSpawnedLease holds its own unit for the process lifetime; the
+        // spawn call's unit ends here (also on a failed spawn).
+        renewer.workEnded();
+      }
     },
 
     // --- file reads: resolve null when the file is absent (eve contract) ---
@@ -419,8 +484,10 @@ export function sshSandboxSession(
     // these ops are sub-second, so a mid-flight abort isn't honored (documented).
     async readBinaryFile({ path: p, abortSignal }) {
       throwIfAborted(abortSignal);
-      const c = (await manager.ensure()).client;
-      return await sftpReadBytes(c, resolvePath(p));
+      return await withLease(async () => {
+        const c = (await manager.ensure()).client;
+        return await sftpReadBytes(c, resolvePath(p));
+      });
     },
     async readFile({ path: p, abortSignal }) {
       const bytes = await this.readBinaryFile({
@@ -450,8 +517,10 @@ export function sshSandboxSession(
     // --- file writes: create parent dirs + overwrite (eve contract) ---
     async writeBinaryFile({ path: p, content, abortSignal }) {
       throwIfAborted(abortSignal);
-      const c = (await manager.ensure()).client;
-      await sftpWriteBytes(c, resolvePath(p), content);
+      await withLease(async () => {
+        const c = (await manager.ensure()).client;
+        await sftpWriteBytes(c, resolvePath(p), content);
+      });
     },
     async writeFile({ path: p, content, abortSignal }) {
       // Check before consuming the (possibly large) stream, and let an abort
@@ -474,8 +543,10 @@ export function sshSandboxSession(
 
     async removePath({ path: p, recursive, force, abortSignal }) {
       throwIfAborted(abortSignal);
-      const c = (await manager.ensure()).client;
-      await sftpRemovePath(c, resolvePath(p), { recursive, force });
+      await withLease(async () => {
+        const c = (await manager.ensure()).client;
+        await sftpRemovePath(c, resolvePath(p), { recursive, force });
+      });
     },
 
     // Network policy is a provision-time concern owned by the control plane, not
@@ -490,6 +561,9 @@ export function sshSandboxSession(
   return {
     session,
     currentSandboxId: () => manager.currentSandboxId(),
-    dispose: () => manager.dispose(),
+    dispose: () => {
+      renewer.dispose();
+      manager.dispose();
+    },
   };
 }

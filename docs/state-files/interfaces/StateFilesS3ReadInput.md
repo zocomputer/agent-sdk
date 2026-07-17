@@ -6,7 +6,7 @@
 
 # Interface: StateFilesS3ReadInput
 
-Defined in: [packages/agent-sdk/src/state-files.ts:219](https://github.com/zocomputer/zov2-code/blob/2085c476e1f2b993443fa305a981a524da2250f3/packages/agent-sdk/src/state-files.ts#L219)
+Defined in: [packages/agent-sdk/src/state-files.ts:219](https://github.com/zocomputer/zov2-code/blob/178825142421d42c04f57b0afbc80612a16fe4c6/packages/agent-sdk/src/state-files.ts#L219)
 
 S3-client input for reading an object from a state-files bucket.
 
@@ -16,7 +16,7 @@ S3-client input for reading an object from a state-files bucket.
 
 > `readonly` **bucketName**: `string`
 
-Defined in: [packages/agent-sdk/src/state-files.ts:221](https://github.com/zocomputer/zov2-code/blob/2085c476e1f2b993443fa305a981a524da2250f3/packages/agent-sdk/src/state-files.ts#L221)
+Defined in: [packages/agent-sdk/src/state-files.ts:221](https://github.com/zocomputer/zov2-code/blob/178825142421d42c04f57b0afbc80612a16fe4c6/packages/agent-sdk/src/state-files.ts#L221)
 
 ***
 
@@ -24,7 +24,7 @@ Defined in: [packages/agent-sdk/src/state-files.ts:221](https://github.com/zocom
 
 > `readonly` **credentials**: [`StateFilesCredentials`](StateFilesCredentials.md)
 
-Defined in: [packages/agent-sdk/src/state-files.ts:222](https://github.com/zocomputer/zov2-code/blob/2085c476e1f2b993443fa305a981a524da2250f3/packages/agent-sdk/src/state-files.ts#L222)
+Defined in: [packages/agent-sdk/src/state-files.ts:222](https://github.com/zocomputer/zov2-code/blob/178825142421d42c04f57b0afbc80612a16fe4c6/packages/agent-sdk/src/state-files.ts#L222)
 
 ***
 
@@ -32,7 +32,7 @@ Defined in: [packages/agent-sdk/src/state-files.ts:222](https://github.com/zocom
 
 > `readonly` **endpoint**: `string`
 
-Defined in: [packages/agent-sdk/src/state-files.ts:220](https://github.com/zocomputer/zov2-code/blob/2085c476e1f2b993443fa305a981a524da2250f3/packages/agent-sdk/src/state-files.ts#L220)
+Defined in: [packages/agent-sdk/src/state-files.ts:220](https://github.com/zocomputer/zov2-code/blob/178825142421d42c04f57b0afbc80612a16fe4c6/packages/agent-sdk/src/state-files.ts#L220)
 
 ***
 
@@ -40,4 +40,4 @@ Defined in: [packages/agent-sdk/src/state-files.ts:220](https://github.com/zocom
 
 > `readonly` **key**: `string`
 
-Defined in: [packages/agent-sdk/src/state-files.ts:223](https://github.com/zocomputer/zov2-code/blob/2085c476e1f2b993443fa305a981a524da2250f3/packages/agent-sdk/src/state-files.ts#L223)
+Defined in: [packages/agent-sdk/src/state-files.ts:223](https://github.com/zocomputer/zov2-code/blob/178825142421d42c04f57b0afbc80612a16fe4c6/packages/agent-sdk/src/state-files.ts#L223)

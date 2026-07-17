@@ -1,4 +1,4 @@
-// ../../../../../tmp/agent-sdk-mirror-lSZLxX/repo/src/state-consent-envelope.ts
+// ../../../../../tmp/agent-sdk-mirror-bccFoz/repo/src/state-consent-envelope.ts
 import { z } from "zod";
 var consentPartySchema = z.object({
   handle: z.string().min(1),
@@ -16,7 +16,7 @@ function parseConsentEnvelope(value) {
   return result.success ? result.data : null;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-lSZLxX/repo/src/state-files.ts
+// ../../../../../tmp/agent-sdk-mirror-bccFoz/repo/src/state-files.ts
 function normalizeStateFilePath(path) {
   if (path.length === 0) {
     throw new Error("state file path must not be empty");
@@ -31,7 +31,7 @@ function normalizeStateFilePath(path) {
   return path;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-lSZLxX/repo/src/state-sandbox.ts
+// ../../../../../tmp/agent-sdk-mirror-bccFoz/repo/src/state-sandbox.ts
 var STATE_SANDBOX_HANDLE_PATH = "/state/handles";
 var ZO_AGENT_TOKEN_HEADER = "x-zo-agent-token";
 var ZO_EVE_SESSION_HEADER = "x-zo-eve-session";
@@ -112,10 +112,120 @@ function parseStateSandboxHandle(value) {
 function createStateSandboxClient(options) {
   const now = options.now ?? (() => new Date);
   const refreshWindowMs = options.refreshWindowMs ?? 60000;
+  const renewIntervalMs = options.renewIntervalMs ?? 8 * 60000;
   let cached = null;
   let pending = null;
   let pendingLeaseWaiters = 0;
   let status = { status: "idle" };
+  let liveWork = 0;
+  let renewTimer = null;
+  let lastMintMs = 0;
+  let renewNotBeforeMs = 0;
+  const renewRetryDelayMs = Math.min(30000, renewIntervalMs);
+  const liveProcesses = new Set;
+  function scheduleRenewal() {
+    if (renewTimer !== null || liveWork === 0)
+      return;
+    const nowMs = now().getTime();
+    const delay = Math.max(lastMintMs + renewIntervalMs - nowMs, renewNotBeforeMs - nowMs, 0);
+    renewTimer = setTimeout(() => {
+      renewTimer = null;
+      renewLease();
+    }, delay);
+    renewTimer.unref?.();
+  }
+  function stopRenewal() {
+    if (renewTimer !== null) {
+      clearTimeout(renewTimer);
+      renewTimer = null;
+    }
+  }
+  function workStarted() {
+    liveWork += 1;
+    if (liveWork === 1)
+      scheduleRenewal();
+  }
+  function workEnded() {
+    liveWork -= 1;
+    if (liveWork <= 0) {
+      liveWork = 0;
+      stopRenewal();
+    }
+  }
+  function isLeaseDenial(error) {
+    if (typeof error !== "object" || error === null)
+      return false;
+    const statusCode = error.status;
+    if (statusCode === 401 || statusCode === 403)
+      return true;
+    if (statusCode !== 409)
+      return false;
+    const code = error.code;
+    return code === "binding_revoked" || code === "consent_required";
+  }
+  async function renewLease() {
+    if (liveWork === 0) {
+      stopRenewal();
+      return;
+    }
+    try {
+      await options.loadHandle();
+      lastMintMs = now().getTime();
+    } catch (error) {
+      if (isLeaseDenial(error)) {
+        await terminateOnDenial();
+        return;
+      }
+      renewNotBeforeMs = now().getTime() + renewRetryDelayMs;
+    }
+    scheduleRenewal();
+  }
+  async function terminateOnDenial() {
+    stopRenewal();
+    liveWork = 0;
+    for (const process of liveProcesses) {
+      try {
+        await process.kill();
+      } catch {}
+    }
+    liveProcesses.clear();
+    const record = cached;
+    cached = null;
+    status = { status: "idle" };
+    if (record !== null) {
+      await record.session.dispose?.();
+    }
+  }
+  function trackSpawned(process) {
+    let live = true;
+    const settle = () => {
+      if (!live)
+        return;
+      live = false;
+      liveProcesses.delete(wrapped);
+      workEnded();
+    };
+    const wrapped = {
+      stdout: process.stdout,
+      stderr: process.stderr,
+      exitCode: process.exitCode.then((code) => {
+        settle();
+        return code;
+      }, (error) => {
+        settle();
+        throw error;
+      }),
+      kill: (signal) => {
+        const result = process.kill(signal);
+        settle();
+        return result;
+      }
+    };
+    workStarted();
+    liveProcesses.add(wrapped);
+    wrapped.exitCode.catch(() => {});
+    return wrapped;
+  }
   async function disposeCachedSession(record, options2 = {}) {
     if (record.activeUses > 0 || options2.waitForPendingLeases === true && pendingLeaseWaiters > 0) {
       record.disposeWhenIdle = true;
@@ -143,6 +253,7 @@ function createStateSandboxClient(options) {
     pending = (async () => {
       try {
         const handle = await options.loadHandle();
+        lastMintMs = now().getTime();
         if (handle.lifecycle === "resuming") {
           status = { status: "resuming", handleId: handle.handleId };
         }
@@ -203,9 +314,11 @@ function createStateSandboxClient(options) {
   }
   async function withSession(use) {
     const resolved = await leaseSession();
+    workStarted();
     try {
       return await use(resolved);
     } finally {
+      workEnded();
       await resolved.release();
     }
   }
@@ -253,14 +366,15 @@ function createStateSandboxClient(options) {
       }));
     },
     async spawn(command, runOptions) {
-      return await withWriteSession(async ({ handle, session }) => await session.spawn({
+      return await withWriteSession(async ({ handle, session }) => trackSpawned(await session.spawn({
         command,
         workingDirectory: workingDirectoryFor(handle, runOptions?.workingDirectory),
         ...maybeEnv(handle, runOptions?.env),
         ...runOptions?.abortSignal === undefined ? {} : { abortSignal: runOptions.abortSignal }
-      }));
+      })));
     },
     async dispose() {
+      stopRenewal();
       const resolved = pending === null ? cached : await pending;
       if (resolved !== null) {
         await disposeCachedSession(resolved, { waitForPendingLeases: true });

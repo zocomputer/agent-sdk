@@ -8,7 +8,7 @@
 
 > `const` **BlockAnchorReplacer**: [`Replacer`](../type-aliases/Replacer.md)
 
-Defined in: [packages/agent-sdk/src/edit-match.ts:186](https://github.com/zocomputer/zov2-code/blob/2085c476e1f2b993443fa305a981a524da2250f3/packages/agent-sdk/src/edit-match.ts#L186)
+Defined in: [packages/agent-sdk/src/edit-match.ts:186](https://github.com/zocomputer/zov2-code/blob/178825142421d42c04f57b0afbc80612a16fe4c6/packages/agent-sdk/src/edit-match.ts#L186)
 
 First/last trimmed lines as anchors (finds of 3+ lines only); candidate
 block size within 25% of the search's; middle lines scored by Levenshtein

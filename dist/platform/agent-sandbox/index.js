@@ -1,9 +1,10 @@
-// ../../../../../tmp/agent-sdk-mirror-lSZLxX/repo/platform/agent-sandbox/zo-sandbox.ts
+// ../../../../../tmp/agent-sdk-mirror-bccFoz/repo/platform/agent-sandbox/zo-sandbox.ts
 import { defineSandbox } from "eve/sandbox";
 
-// ../../../../../tmp/agent-sdk-mirror-lSZLxX/repo/platform/agent-sandbox/ambient.ts
+// ../../../../../tmp/agent-sdk-mirror-bccFoz/repo/platform/agent-sandbox/ambient.ts
 var EVE_CONTEXT_STORAGE_KEY = Symbol.for("eve.context-storage");
 var PARENT_SESSION_KEY_NAME = "eve.parentSession";
+var SESSION_ID_KEY_NAME = "eve.sessionId";
 var SESSION_KEY_NAME = "eve.session";
 var SESSION_CAPABILITY_ATTRIBUTE = "zoSessionCapability";
 function hasMethod(value, name) {
@@ -32,6 +33,19 @@ function ambientSessionParent() {
     if (!hasMethod(store, "get"))
       return null;
     return parseSessionParent(store.get({ name: PARENT_SESSION_KEY_NAME }));
+  } catch {
+    return null;
+  }
+}
+function ambientEveSessionId() {
+  try {
+    const storage = Reflect.get(globalThis, EVE_CONTEXT_STORAGE_KEY);
+    if (!hasMethod(storage, "getStore"))
+      return null;
+    const store = storage.getStore();
+    if (!hasMethod(store, "get"))
+      return null;
+    return nonBlankString(store.get({ name: SESSION_ID_KEY_NAME }));
   } catch {
     return null;
   }
@@ -68,7 +82,7 @@ function ambientSessionCapability() {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-lSZLxX/repo/platform/runtime-auth/index.ts
+// ../../../../../tmp/agent-sdk-mirror-bccFoz/repo/platform/runtime-auth/index.ts
 import { SignJWT, errors as joseErrors, jwtVerify } from "jose";
 var AGENT_TOKEN_HEADER = "x-zo-agent-token";
 var EVE_SESSION_HEADER = "x-zo-eve-session";
@@ -92,7 +106,7 @@ var RESERVED_AGENT_PROJECT_IDS = [
   LOCAL_AGENT_IDENTITY.agentProjectId
 ];
 
-// ../../../../../tmp/agent-sdk-mirror-lSZLxX/repo/platform/agent-sandbox/api-client.ts
+// ../../../../../tmp/agent-sdk-mirror-bccFoz/repo/platform/agent-sandbox/api-client.ts
 var SCRATCH_DECLARATION = "scratch";
 var STATE_HANDLE_PATH = "/state/handles";
 
@@ -220,11 +234,75 @@ function describeBrokerError(status, code, message) {
   return `sandbox provisioning failed: ${status}${detail ? ` ${detail}` : ""}`.trim();
 }
 
-// ../../../../../tmp/agent-sdk-mirror-lSZLxX/repo/platform/agent-sandbox/ssh-session.ts
+// ../../../../../tmp/agent-sdk-mirror-bccFoz/repo/platform/agent-sandbox/ssh-session.ts
 import { Client } from "ssh2";
 import { extractLines } from "@ai-sdk/provider-utils";
 
-// ../../../../../tmp/agent-sdk-mirror-lSZLxX/repo/platform/agent-sandbox/pure.ts
+// ../../../../../tmp/agent-sdk-mirror-bccFoz/repo/platform/agent-sandbox/lease-renewal.ts
+var DEFAULT_LEASE_RENEW_INTERVAL_MS = 8 * 60000;
+var DEFAULT_LEASE_RETRY_DELAY_MS = 30000;
+function createLeaseRenewer(options) {
+  const intervalMs = options.intervalMs ?? DEFAULT_LEASE_RENEW_INTERVAL_MS;
+  const retryDelayMs = Math.min(options.retryDelayMs ?? DEFAULT_LEASE_RETRY_DELAY_MS, intervalMs);
+  const now = options.now ?? Date.now;
+  let liveWork = 0;
+  let timer = null;
+  let lastMintMs = now();
+  let notBeforeMs = 0;
+  let disposed = false;
+  function clearTimer() {
+    if (timer !== null) {
+      clearTimeout(timer);
+      timer = null;
+    }
+  }
+  function schedule() {
+    if (disposed || timer !== null || liveWork === 0)
+      return;
+    const nowMs = now();
+    const delay = Math.max(lastMintMs + intervalMs - nowMs, notBeforeMs - nowMs, 0);
+    timer = setTimeout(() => {
+      timer = null;
+      renew();
+    }, delay);
+    timer.unref?.();
+  }
+  async function renew() {
+    if (disposed || liveWork === 0)
+      return;
+    try {
+      await options.renew();
+      lastMintMs = now();
+    } catch {
+      notBeforeMs = now() + retryDelayMs;
+    }
+    schedule();
+  }
+  return {
+    workStarted() {
+      liveWork += 1;
+      if (liveWork === 1)
+        schedule();
+    },
+    workEnded() {
+      liveWork -= 1;
+      if (liveWork <= 0) {
+        liveWork = 0;
+        clearTimer();
+      }
+    },
+    noteMint() {
+      lastMintMs = now();
+    },
+    dispose() {
+      disposed = true;
+      liveWork = 0;
+      clearTimer();
+    }
+  };
+}
+
+// ../../../../../tmp/agent-sdk-mirror-bccFoz/repo/platform/agent-sandbox/pure.ts
 import { Buffer as Buffer2 } from "node:buffer";
 import path from "node:path";
 var NOMINAL_WORKSPACE_ROOT = "/workspace";
@@ -281,7 +359,7 @@ function encodeText(text, encoding) {
   return new Uint8Array(Buffer2.from(text, enc));
 }
 
-// ../../../../../tmp/agent-sdk-mirror-lSZLxX/repo/platform/agent-sandbox/ssh-connection.ts
+// ../../../../../tmp/agent-sdk-mirror-bccFoz/repo/platform/agent-sandbox/ssh-connection.ts
 function isExpired(access, skewMs, now) {
   const expiry = Date.parse(access.expiresAt);
   if (Number.isNaN(expiry))
@@ -372,7 +450,7 @@ class SshConnectionManager {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-lSZLxX/repo/platform/agent-sandbox/ssh-exec.ts
+// ../../../../../tmp/agent-sdk-mirror-bccFoz/repo/platform/agent-sandbox/ssh-exec.ts
 var SIGNAL_EXIT_CODE = 137;
 function abortError(signal) {
   return signal.reason instanceof Error ? signal.reason : new Error(typeof signal.reason === "string" ? signal.reason : "aborted");
@@ -425,7 +503,7 @@ function awaitCommand(stream, abortSignal) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-lSZLxX/repo/platform/agent-sandbox/sftp.ts
+// ../../../../../tmp/agent-sdk-mirror-bccFoz/repo/platform/agent-sandbox/sftp.ts
 import path2 from "node:path";
 var SFTP_NO_SUCH_FILE = 2;
 function isNoSuchFile(error) {
@@ -510,7 +588,7 @@ async function removePath(client, remotePath, opts = {}) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-lSZLxX/repo/platform/agent-sandbox/ssh-session.ts
+// ../../../../../tmp/agent-sdk-mirror-bccFoz/repo/platform/agent-sandbox/ssh-session.ts
 var WORK_DIR = "/home/daytona";
 var EXPIRY_SKEW_MS = 30000;
 var SSH_PORT = 22;
@@ -685,28 +763,81 @@ function sshSandboxSession(id, acquireAccess, connect = async (access) => {
     end: () => client.end(),
     onClose: (cb) => void client.on("close", cb)
   };
-}) {
+}, leaseOptions = {}) {
   const resolvePath = (p) => resolveSandboxPath(WORK_DIR, p);
+  const renewer = createLeaseRenewer({
+    renew: async () => {
+      await acquireAccess();
+    },
+    ...leaseOptions
+  });
+  const mintTracked = async () => {
+    const access = await acquireAccess();
+    renewer.noteMint();
+    return access;
+  };
   const manager = new SshConnectionManager({
-    acquireAccess,
+    acquireAccess: mintTracked,
     expirySkewMs: EXPIRY_SKEW_MS,
     connect
   });
+  const withLease = async (fn) => {
+    renewer.workStarted();
+    try {
+      return await fn();
+    } finally {
+      renewer.workEnded();
+    }
+  };
+  const trackSpawnedLease = (process2) => {
+    renewer.workStarted();
+    let settled = false;
+    const settle = () => {
+      if (settled)
+        return;
+      settled = true;
+      renewer.workEnded();
+    };
+    const exit = process2.wait();
+    exit.then(settle, settle);
+    return {
+      stdout: process2.stdout,
+      stderr: process2.stderr,
+      wait: () => exit.then(({ exitCode }) => ({ exitCode })),
+      kill: async () => {
+        try {
+          await process2.kill();
+        } finally {
+          settle();
+        }
+      }
+    };
+  };
   const session = {
     id,
     resolvePath,
     async run({ command, workingDirectory, env, abortSignal }) {
-      const c = (await manager.ensure()).client;
-      return await runOverSsh(c, anchored(command, workingDirectory, env), { abortSignal });
+      return await withLease(async () => {
+        const c = (await manager.ensure()).client;
+        return await runOverSsh(c, anchored(command, workingDirectory, env), { abortSignal });
+      });
     },
     async spawn({ command, workingDirectory, env, abortSignal }) {
-      const c = (await manager.ensure()).client;
-      return spawnOverSsh(c, anchored(command, workingDirectory, env), { abortSignal });
+      renewer.workStarted();
+      try {
+        const c = (await manager.ensure()).client;
+        const process2 = await spawnOverSsh(c, anchored(command, workingDirectory, env), { abortSignal });
+        return trackSpawnedLease(process2);
+      } finally {
+        renewer.workEnded();
+      }
     },
     async readBinaryFile({ path: p, abortSignal }) {
       throwIfAborted(abortSignal);
-      const c = (await manager.ensure()).client;
-      return await sftpReadBytes(c, resolvePath(p));
+      return await withLease(async () => {
+        const c = (await manager.ensure()).client;
+        return await sftpReadBytes(c, resolvePath(p));
+      });
     },
     async readFile({ path: p, abortSignal }) {
       const bytes = await this.readBinaryFile({
@@ -731,8 +862,10 @@ function sshSandboxSession(id, acquireAccess, connect = async (access) => {
     },
     async writeBinaryFile({ path: p, content, abortSignal }) {
       throwIfAborted(abortSignal);
-      const c = (await manager.ensure()).client;
-      await sftpWriteBytes(c, resolvePath(p), content);
+      await withLease(async () => {
+        const c = (await manager.ensure()).client;
+        await sftpWriteBytes(c, resolvePath(p), content);
+      });
     },
     async writeFile({ path: p, content, abortSignal }) {
       throwIfAborted(abortSignal);
@@ -752,8 +885,10 @@ function sshSandboxSession(id, acquireAccess, connect = async (access) => {
     },
     async removePath({ path: p, recursive, force, abortSignal }) {
       throwIfAborted(abortSignal);
-      const c = (await manager.ensure()).client;
-      await removePath(c, resolvePath(p), { recursive, force });
+      await withLease(async () => {
+        const c = (await manager.ensure()).client;
+        await removePath(c, resolvePath(p), { recursive, force });
+      });
     },
     setNetworkPolicy: () => {
       throw new Error("zo sandbox: setNetworkPolicy() is not supported from the runtime — network policy is set when the control plane provisions the sandbox.");
@@ -762,11 +897,14 @@ function sshSandboxSession(id, acquireAccess, connect = async (access) => {
   return {
     session,
     currentSandboxId: () => manager.currentSandboxId(),
-    dispose: () => manager.dispose()
+    dispose: () => {
+      renewer.dispose();
+      manager.dispose();
+    }
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-lSZLxX/repo/platform/agent-sandbox/zo-backend.ts
+// ../../../../../tmp/agent-sdk-mirror-bccFoz/repo/platform/agent-sandbox/zo-backend.ts
 var BACKEND_NAME = "zo";
 function zoBackend(options) {
   return {
@@ -826,7 +964,7 @@ function zoBackend(options) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-lSZLxX/repo/platform/agent-sandbox/zo-sandbox.ts
+// ../../../../../tmp/agent-sdk-mirror-bccFoz/repo/platform/agent-sandbox/zo-sandbox.ts
 var DEFAULT_API_URL = "http://api.zo.localhost:4000";
 function zoSandbox(options = {}) {
   return defineSandbox({
@@ -835,7 +973,626 @@ function zoSandbox(options = {}) {
     })
   });
 }
+// ../../../../../tmp/agent-sdk-mirror-bccFoz/repo/src/state-consent-envelope.ts
+import { z } from "zod";
+var consentPartySchema = z.object({
+  handle: z.string().min(1),
+  external: z.boolean(),
+  intentDivergenceNote: z.string().min(1).optional()
+});
+var requestStateConsentInputSchema = z.object({
+  bindingId: z.string().min(1),
+  declarationName: z.string().min(1),
+  resourceName: z.string().min(1),
+  party: consentPartySchema
+});
+function parseConsentEnvelope(value) {
+  const result = requestStateConsentInputSchema.safeParse(value);
+  return result.success ? result.data : null;
+}
+
+// ../../../../../tmp/agent-sdk-mirror-bccFoz/repo/src/state-files.ts
+function normalizeStateFilePath(path3) {
+  if (path3.length === 0) {
+    throw new Error("state file path must not be empty");
+  }
+  if (path3.startsWith("/")) {
+    throw new Error(`state file path "${path3}" must be relative`);
+  }
+  const segments = path3.split("/");
+  if (segments.some((segment) => segment.length === 0 || segment === "." || segment === "..")) {
+    throw new Error(`state file path "${path3}" must not contain empty, . or .. segments`);
+  }
+  return path3;
+}
+
+// ../../../../../tmp/agent-sdk-mirror-bccFoz/repo/src/state-sandbox.ts
+var STATE_SANDBOX_HANDLE_PATH = "/state/handles";
+var ZO_AGENT_TOKEN_HEADER = "x-zo-agent-token";
+var ZO_EVE_SESSION_HEADER = "x-zo-eve-session";
+var ZO_SESSION_CAPABILITY_HEADER = "x-zo-session-capability";
+
+class StateSandboxHandleError extends Error {
+  status;
+  code;
+  consent;
+  constructor(message, options) {
+    super(message);
+    this.name = "StateSandboxHandleError";
+    this.status = options.status;
+    this.code = options.code ?? null;
+    this.consent = options.consent ?? null;
+  }
+}
+async function requestStateSandboxHandle(options) {
+  const response = await options.fetch(buildStateSandboxHandleUrl(options.apiBaseUrl), {
+    method: "POST",
+    headers: buildStateSandboxHandleHeaders(options),
+    body: JSON.stringify(buildStateSandboxHandleRequest(options))
+  });
+  const json = await response.json().catch(() => null);
+  if (!response.ok) {
+    const error = parseStateSandboxBrokerError(json);
+    throw new StateSandboxHandleError(error.message, {
+      status: response.status,
+      code: error.code,
+      consent: error.code === "consent_required" ? parseConsentEnvelope(json) : null
+    });
+  }
+  const handle = parseStateSandboxHandle(json);
+  if (handle === null) {
+    throw new StateSandboxHandleError("state sandbox broker returned a malformed handle", {
+      status: response.status,
+      code: "malformed_handle"
+    });
+  }
+  return handle;
+}
+function parseStateSandboxHandle(value) {
+  if (!isRecord(value)) {
+    return null;
+  }
+  const access = parseStateSandboxAccess(value.access);
+  const iface = parseStateSandboxInterface(value.interface);
+  const partition = parseStateSandboxPartition(value.partition);
+  const lifecycle = parseStateSandboxLifecycle(value.lifecycle ?? value.status);
+  const sandbox = parseStateSandboxSshAccess(value.sandbox ?? value.ssh ?? value.accessHandle ?? value.sshAccess);
+  if (access === null || iface === null || partition === null || lifecycle === null || sandbox === null || value.engine !== "sandbox-daytona") {
+    return null;
+  }
+  const handleId = readString(value, "handleId");
+  const declarationName = readString(value, "declarationName");
+  const storeId = readString(value, "storeId");
+  const stateInstanceId = readString(value, "stateInstanceId");
+  const sandboxResourceId = readString(value, "sandboxResourceId");
+  const rootPath = readString(value, "rootPath");
+  if (handleId === null || declarationName === null || storeId === null || stateInstanceId === null || sandboxResourceId === null || rootPath === null || !rootPath.startsWith("/")) {
+    return null;
+  }
+  return Object.freeze({
+    handleId,
+    declarationName,
+    interface: iface,
+    access,
+    engine: "sandbox-daytona",
+    storeId,
+    stateInstanceId,
+    partition,
+    sandboxResourceId,
+    rootPath,
+    lifecycle,
+    sandbox
+  });
+}
+function createStateSandboxClient(options) {
+  const now = options.now ?? (() => new Date);
+  const refreshWindowMs = options.refreshWindowMs ?? 60000;
+  const renewIntervalMs = options.renewIntervalMs ?? 8 * 60000;
+  let cached = null;
+  let pending = null;
+  let pendingLeaseWaiters = 0;
+  let status = { status: "idle" };
+  let liveWork = 0;
+  let renewTimer = null;
+  let lastMintMs = 0;
+  let renewNotBeforeMs = 0;
+  const renewRetryDelayMs = Math.min(30000, renewIntervalMs);
+  const liveProcesses = new Set;
+  function scheduleRenewal() {
+    if (renewTimer !== null || liveWork === 0)
+      return;
+    const nowMs = now().getTime();
+    const delay = Math.max(lastMintMs + renewIntervalMs - nowMs, renewNotBeforeMs - nowMs, 0);
+    renewTimer = setTimeout(() => {
+      renewTimer = null;
+      renewLease();
+    }, delay);
+    renewTimer.unref?.();
+  }
+  function stopRenewal() {
+    if (renewTimer !== null) {
+      clearTimeout(renewTimer);
+      renewTimer = null;
+    }
+  }
+  function workStarted() {
+    liveWork += 1;
+    if (liveWork === 1)
+      scheduleRenewal();
+  }
+  function workEnded() {
+    liveWork -= 1;
+    if (liveWork <= 0) {
+      liveWork = 0;
+      stopRenewal();
+    }
+  }
+  function isLeaseDenial(error) {
+    if (typeof error !== "object" || error === null)
+      return false;
+    const statusCode = error.status;
+    if (statusCode === 401 || statusCode === 403)
+      return true;
+    if (statusCode !== 409)
+      return false;
+    const code = error.code;
+    return code === "binding_revoked" || code === "consent_required";
+  }
+  async function renewLease() {
+    if (liveWork === 0) {
+      stopRenewal();
+      return;
+    }
+    try {
+      await options.loadHandle();
+      lastMintMs = now().getTime();
+    } catch (error) {
+      if (isLeaseDenial(error)) {
+        await terminateOnDenial();
+        return;
+      }
+      renewNotBeforeMs = now().getTime() + renewRetryDelayMs;
+    }
+    scheduleRenewal();
+  }
+  async function terminateOnDenial() {
+    stopRenewal();
+    liveWork = 0;
+    for (const process2 of liveProcesses) {
+      try {
+        await process2.kill();
+      } catch {}
+    }
+    liveProcesses.clear();
+    const record = cached;
+    cached = null;
+    status = { status: "idle" };
+    if (record !== null) {
+      await record.session.dispose?.();
+    }
+  }
+  function trackSpawned(process2) {
+    let live = true;
+    const settle = () => {
+      if (!live)
+        return;
+      live = false;
+      liveProcesses.delete(wrapped);
+      workEnded();
+    };
+    const wrapped = {
+      stdout: process2.stdout,
+      stderr: process2.stderr,
+      exitCode: process2.exitCode.then((code) => {
+        settle();
+        return code;
+      }, (error) => {
+        settle();
+        throw error;
+      }),
+      kill: (signal) => {
+        const result = process2.kill(signal);
+        settle();
+        return result;
+      }
+    };
+    workStarted();
+    liveProcesses.add(wrapped);
+    wrapped.exitCode.catch(() => {});
+    return wrapped;
+  }
+  async function disposeCachedSession(record, options2 = {}) {
+    if (record.activeUses > 0 || options2.waitForPendingLeases === true && pendingLeaseWaiters > 0) {
+      record.disposeWhenIdle = true;
+      return;
+    }
+    if (cached === record) {
+      cached = null;
+    }
+    await record.session.dispose?.();
+  }
+  async function releaseCachedSession(record) {
+    record.activeUses -= 1;
+    if (record.activeUses === 0 && record.disposeWhenIdle) {
+      await disposeCachedSession(record);
+    }
+  }
+  function ensureSession() {
+    const current = cached;
+    if (current !== null && !shouldRefreshStateSandboxHandle(current.handle, now(), refreshWindowMs)) {
+      return Promise.resolve(current);
+    }
+    if (pending !== null)
+      return pending;
+    const previous = cached;
+    pending = (async () => {
+      try {
+        const handle = await options.loadHandle();
+        lastMintMs = now().getTime();
+        if (handle.lifecycle === "resuming") {
+          status = { status: "resuming", handleId: handle.handleId };
+        }
+        const session = await options.createSession(handle);
+        const next = {
+          handle,
+          session,
+          activeUses: 0,
+          disposeWhenIdle: false
+        };
+        cached = next;
+        status = { status: "ready", handleId: handle.handleId };
+        if (previous !== null) {
+          await disposeCachedSession(previous, { waitForPendingLeases: false });
+        }
+        return next;
+      } finally {
+        pending = null;
+      }
+    })();
+    return pending;
+  }
+  async function leaseSession() {
+    const sessionPromise = ensureSession();
+    pendingLeaseWaiters += 1;
+    let record;
+    try {
+      record = await sessionPromise;
+    } finally {
+      pendingLeaseWaiters -= 1;
+    }
+    record.activeUses += 1;
+    return {
+      handle: record.handle,
+      session: record.session,
+      release: () => releaseCachedSession(record)
+    };
+  }
+  function buildRemotePath(handle, path3) {
+    return `${handle.rootPath}/${normalizeStateFilePath(path3)}`;
+  }
+  function workingDirectoryFor(handle, explicit) {
+    return explicit === undefined ? handle.rootPath : buildRemotePath(handle, explicit);
+  }
+  function commandEnv(handle, explicit) {
+    const base = options.passAmbientEnvToSessionPartition === true && handle.partition === "session" ? options.ambientEnv : undefined;
+    if (base === undefined) {
+      return explicit;
+    }
+    if (explicit === undefined) {
+      return base;
+    }
+    return { ...base, ...explicit };
+  }
+  function maybeEnv(handle, explicit) {
+    const env = commandEnv(handle, explicit);
+    return env === undefined ? {} : { env };
+  }
+  async function withSession(use) {
+    const resolved = await leaseSession();
+    workStarted();
+    try {
+      return await use(resolved);
+    } finally {
+      workEnded();
+      await resolved.release();
+    }
+  }
+  async function withWriteSession(use) {
+    return await withSession(async (resolved) => {
+      if (resolved.handle.access !== "rw") {
+        throw new Error(`state sandbox handle "${resolved.handle.handleId}" is read-only`);
+      }
+      return await use(resolved);
+    });
+  }
+  return {
+    files: {
+      async read(path3) {
+        return await withSession(async ({ handle, session }) => await session.readBinaryFile({
+          path: buildRemotePath(handle, path3)
+        }));
+      },
+      async write(path3, content) {
+        await withWriteSession(async ({ handle, session }) => {
+          const bytes = typeof content === "string" ? new TextEncoder().encode(content) : content;
+          await session.writeBinaryFile({
+            path: buildRemotePath(handle, path3),
+            content: bytes
+          });
+        });
+      },
+      async delete(path3, deleteOptions) {
+        await withWriteSession(async ({ handle, session }) => {
+          await session.removePath({
+            path: buildRemotePath(handle, path3),
+            ...deleteOptions?.recursive === undefined ? {} : { recursive: deleteOptions.recursive },
+            ...deleteOptions?.force === undefined ? {} : { force: deleteOptions.force }
+          });
+        });
+      }
+    },
+    status: () => status,
+    async exec(command, runOptions) {
+      return await withWriteSession(async ({ handle, session }) => await session.run({
+        command,
+        workingDirectory: workingDirectoryFor(handle, runOptions?.workingDirectory),
+        ...maybeEnv(handle, runOptions?.env),
+        ...runOptions?.abortSignal === undefined ? {} : { abortSignal: runOptions.abortSignal }
+      }));
+    },
+    async spawn(command, runOptions) {
+      return await withWriteSession(async ({ handle, session }) => trackSpawned(await session.spawn({
+        command,
+        workingDirectory: workingDirectoryFor(handle, runOptions?.workingDirectory),
+        ...maybeEnv(handle, runOptions?.env),
+        ...runOptions?.abortSignal === undefined ? {} : { abortSignal: runOptions.abortSignal }
+      })));
+    },
+    async dispose() {
+      stopRenewal();
+      const resolved = pending === null ? cached : await pending;
+      if (resolved !== null) {
+        await disposeCachedSession(resolved, { waitForPendingLeases: true });
+      }
+      status = { status: "idle" };
+    }
+  };
+}
+function shouldRefreshStateSandboxHandle(handle, now, refreshWindowMs = 60000) {
+  const expiresAtMs = Date.parse(handle.sandbox.expiresAt);
+  if (!Number.isFinite(expiresAtMs)) {
+    return true;
+  }
+  return expiresAtMs - now.getTime() <= refreshWindowMs;
+}
+function buildStateSandboxHandleRequest(options) {
+  return {
+    declarationName: options.declarationName,
+    interface: options.interface,
+    access: options.access,
+    suggestedDefaults: {
+      ...options.suggestedDefaults,
+      engine: options.suggestedDefaults?.engine ?? "sandbox-daytona"
+    }
+  };
+}
+function buildStateSandboxHandleUrl(apiBaseUrl) {
+  const url = new URL(String(apiBaseUrl));
+  url.pathname = joinUrlPath(url.pathname, STATE_SANDBOX_HANDLE_PATH);
+  url.search = "";
+  url.hash = "";
+  return url.toString();
+}
+function joinUrlPath(basePath, childPath) {
+  const base = basePath.replace(/\/+$/, "");
+  const child = childPath.replace(/^\/+/, "");
+  return `${base}/${child}`;
+}
+function buildStateSandboxHandleHeaders(options) {
+  const headers = createHeaders(options.headers);
+  headers.set("content-type", "application/json");
+  if (options.agentToken !== undefined) {
+    headers.set(ZO_AGENT_TOKEN_HEADER, options.agentToken);
+  }
+  if (options.eveSessionKey !== undefined) {
+    headers.set(ZO_EVE_SESSION_HEADER, options.eveSessionKey);
+  }
+  if (options.sessionCapability !== undefined) {
+    headers.set(ZO_SESSION_CAPABILITY_HEADER, options.sessionCapability);
+  }
+  return headers;
+}
+function createHeaders(init) {
+  const headers = new Headers;
+  if (init === undefined) {
+    return headers;
+  }
+  if (init instanceof Headers) {
+    init.forEach((value, key) => headers.set(key, value));
+    return headers;
+  }
+  if (Array.isArray(init)) {
+    for (const [key, value] of init) {
+      headers.set(key, value);
+    }
+    return headers;
+  }
+  for (const [key, value] of Object.entries(init)) {
+    headers.set(key, value);
+  }
+  return headers;
+}
+function parseStateSandboxBrokerError(value) {
+  if (!isRecord(value)) {
+    return { message: "state sandbox broker request failed", code: null };
+  }
+  const routeError = readString(value, "error");
+  if (routeError !== null) {
+    return {
+      message: readString(value, "message") ?? "state sandbox broker request failed",
+      code: routeError
+    };
+  }
+  const error = isRecord(value.error) ? value.error : value;
+  const message = readString(error, "message") ?? "state sandbox broker request failed";
+  const code = readString(error, "code") ?? readString(error, "error");
+  return { message, code };
+}
+function parseStateSandboxSshAccess(value) {
+  if (!isRecord(value)) {
+    return null;
+  }
+  const sandboxId = readString(value, "sandboxId");
+  const sshHost = readString(value, "sshHost");
+  const sshUser = readString(value, "sshUser");
+  const expiresAt = readString(value, "expiresAt");
+  if (sandboxId === null || sshHost === null || sshUser === null || expiresAt === null || !Number.isFinite(Date.parse(expiresAt))) {
+    return null;
+  }
+  return Object.freeze({ sandboxId, sshHost, sshUser, expiresAt });
+}
+function parseStateSandboxPartition(value) {
+  if (value === "none" || value === "team" || value === "user" || value === "session") {
+    return value;
+  }
+  return null;
+}
+function parseStateSandboxAccess(value) {
+  if (value === "r" || value === "rw") {
+    return value;
+  }
+  return null;
+}
+function parseStateSandboxInterface(value) {
+  if (value === "exec" || value === "files") {
+    return value;
+  }
+  return null;
+}
+function parseStateSandboxLifecycle(value) {
+  if (value === "ready" || value === undefined || value === null) {
+    return "ready";
+  }
+  if (value === "resuming") {
+    return "resuming";
+  }
+  return null;
+}
+function isRecord(value) {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+function readString(record, key) {
+  const value = record[key];
+  return typeof value === "string" && value.length > 0 ? value : null;
+}
+
+// ../../../../../tmp/agent-sdk-mirror-bccFoz/repo/platform/agent-sandbox/state-client.ts
+var DEFAULT_API_URL2 = "http://api.zo.localhost:4000";
+var SCRATCH_DECLARATION_NAME = "scratch";
+function zoStateSandbox(declaration, options = {}) {
+  if (declaration.interface !== "exec" && declaration.interface !== "files") {
+    throw new Error(`zoStateSandbox: declaration "${declaration.name}" has interface "${declaration.interface}" — only "exec" and "files" declarations are sandbox-backed`);
+  }
+  const iface = declaration.interface;
+  const readAmbientParent = options.ambientParent ?? ambientSessionParent;
+  const readAmbientSessionId = options.ambientSessionId ?? ambientEveSessionId;
+  const readAmbientCapability = options.ambientCapability ?? ambientSessionCapability;
+  let latchedSessionKey = readAmbientParent()?.rootSessionId ?? readAmbientSessionId();
+  const brokerSessionKey = () => {
+    latchedSessionKey ??= readAmbientParent()?.rootSessionId ?? readAmbientSessionId();
+    return latchedSessionKey;
+  };
+  let latchedCapability = readAmbientCapability();
+  const brokerSessionCapability = () => {
+    latchedCapability ??= readAmbientCapability();
+    return latchedCapability;
+  };
+  const loadHandle = async () => {
+    const sessionKey = brokerSessionKey();
+    const sessionCapability = brokerSessionCapability();
+    const agentToken = (options.agentToken ?? process.env[AGENT_TOKEN_ENV])?.trim() || undefined;
+    return await requestStateSandboxHandle({
+      fetch: options.fetch ?? fetch,
+      apiBaseUrl: options.apiBaseUrl ?? process.env.ZO_API_URL ?? DEFAULT_API_URL2,
+      declarationName: declaration.name,
+      interface: iface,
+      access: declaration.access,
+      ...agentToken === undefined ? {} : { agentToken },
+      ...sessionKey === null ? {} : { eveSessionKey: sessionKey },
+      ...sessionCapability === undefined ? {} : { sessionCapability },
+      suggestedDefaults: {
+        engine: "sandbox-daytona",
+        ...declaration.suggestedDefaults?.partition === undefined ? {} : { partition: declaration.suggestedDefaults.partition },
+        ...declaration.suggestedDefaults?.lifecycle === undefined ? {} : { lifecycle: declaration.suggestedDefaults.lifecycle }
+      }
+    });
+  };
+  return createStateSandboxClient({
+    loadHandle,
+    createSession: options.createSession ?? ((handle) => sshStateSession(handle, loadHandle)),
+    ...options.now === undefined ? {} : { now: options.now },
+    ...options.refreshWindowMs === undefined ? {} : { refreshWindowMs: options.refreshWindowMs },
+    ...options.ambientEnv === undefined ? {} : { ambientEnv: options.ambientEnv },
+    passAmbientEnvToSessionPartition: declaration.name === SCRATCH_DECLARATION_NAME && options.ambientEnv !== undefined
+  });
+}
+function sshStateSession(handle, remint) {
+  const initialAccess = {
+    sandboxId: handle.sandbox.sandboxId,
+    sshHost: handle.sandbox.sshHost,
+    sshUser: handle.sandbox.sshUser,
+    expiresAt: handle.sandbox.expiresAt
+  };
+  let mintedInitial = false;
+  const acquireAccess = async () => {
+    if (!mintedInitial) {
+      mintedInitial = true;
+      return initialAccess;
+    }
+    if (remint === undefined)
+      return initialAccess;
+    const fresh = await remint();
+    return {
+      sandboxId: fresh.sandbox.sandboxId,
+      sshHost: fresh.sandbox.sshHost,
+      sshUser: fresh.sandbox.sshUser,
+      expiresAt: fresh.sandbox.expiresAt
+    };
+  };
+  const ssh = sshSandboxSession(handle.stateInstanceId, acquireAccess);
+  const session = {
+    async run(runOptions) {
+      return await ssh.session.run(runOptions);
+    },
+    async spawn(spawnOptions) {
+      const process2 = await ssh.session.spawn(spawnOptions);
+      const exitCode = Promise.resolve(process2.wait()).then(({ exitCode: code }) => code);
+      exitCode.catch(() => {});
+      const spawned = {
+        stdout: process2.stdout,
+        stderr: process2.stderr,
+        exitCode,
+        kill: () => Promise.resolve(process2.kill())
+      };
+      return spawned;
+    },
+    async readBinaryFile(readOptions) {
+      return await ssh.session.readBinaryFile(readOptions);
+    },
+    async writeBinaryFile(writeOptions) {
+      await ssh.session.writeBinaryFile(writeOptions);
+    },
+    async removePath(removeOptions) {
+      await ssh.session.removePath(removeOptions);
+    },
+    dispose() {
+      ssh.dispose();
+    }
+  };
+  return Promise.resolve(session);
+}
 export {
+  zoStateSandbox,
   zoSandbox,
   zoBackend,
   sshSandboxSession,

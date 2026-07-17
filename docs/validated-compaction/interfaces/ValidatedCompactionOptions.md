@@ -6,7 +6,7 @@
 
 # Interface: ValidatedCompactionOptions
 
-Defined in: [packages/runtime-ai/src/validated-compaction.ts:99](https://github.com/zocomputer/zov2-code/blob/2085c476e1f2b993443fa305a981a524da2250f3/packages/runtime-ai/src/validated-compaction.ts#L99)
+Defined in: [packages/runtime-ai/src/validated-compaction.ts:99](https://github.com/zocomputer/zov2-code/blob/178825142421d42c04f57b0afbc80612a16fe4c6/packages/runtime-ai/src/validated-compaction.ts#L99)
 
 Options for [withValidatedCompaction](../functions/withValidatedCompaction.md).
 
@@ -16,7 +16,7 @@ Options for [withValidatedCompaction](../functions/withValidatedCompaction.md).
 
 > `optional` **judgeMaxOutputTokens?**: `number`
 
-Defined in: [packages/runtime-ai/src/validated-compaction.ts:124](https://github.com/zocomputer/zov2-code/blob/2085c476e1f2b993443fa305a981a524da2250f3/packages/runtime-ai/src/validated-compaction.ts#L124)
+Defined in: [packages/runtime-ai/src/validated-compaction.ts:124](https://github.com/zocomputer/zov2-code/blob/178825142421d42c04f57b0afbc80612a16fe4c6/packages/runtime-ai/src/validated-compaction.ts#L124)
 
 `maxOutputTokens` for the judge call. Defaults to
 [DEFAULT\_JUDGE\_MAX\_OUTPUT\_TOKENS](../variables/DEFAULT_JUDGE_MAX_OUTPUT_TOKENS.md).
@@ -27,7 +27,7 @@ Defined in: [packages/runtime-ai/src/validated-compaction.ts:124](https://github
 
 > `optional` **judgeTimeoutMs?**: `number`
 
-Defined in: [packages/runtime-ai/src/validated-compaction.ts:129](https://github.com/zocomputer/zov2-code/blob/2085c476e1f2b993443fa305a981a524da2250f3/packages/runtime-ai/src/validated-compaction.ts#L129)
+Defined in: [packages/runtime-ai/src/validated-compaction.ts:129](https://github.com/zocomputer/zov2-code/blob/178825142421d42c04f57b0afbc80612a16fe4c6/packages/runtime-ai/src/validated-compaction.ts#L129)
 
 Judge-call timeout in milliseconds; on expiry the facade fails open.
 Defaults to [DEFAULT\_JUDGE\_TIMEOUT\_MS](../variables/DEFAULT_JUDGE_TIMEOUT_MS.md).
@@ -38,7 +38,7 @@ Defaults to [DEFAULT\_JUDGE\_TIMEOUT\_MS](../variables/DEFAULT_JUDGE_TIMEOUT_MS.
 
 > `optional` **maxRecoveredChars?**: `number`
 
-Defined in: [packages/runtime-ai/src/validated-compaction.ts:113](https://github.com/zocomputer/zov2-code/blob/2085c476e1f2b993443fa305a981a524da2250f3/packages/runtime-ai/src/validated-compaction.ts#L113)
+Defined in: [packages/runtime-ai/src/validated-compaction.ts:113](https://github.com/zocomputer/zov2-code/blob/178825142421d42c04f57b0afbc80612a16fe4c6/packages/runtime-ai/src/validated-compaction.ts#L113)
 
 Cap on the appended recovery section, in characters. Facts are kept
 whole — the last one that would cross the cap is dropped, not clipped.
@@ -50,7 +50,7 @@ Defaults to [DEFAULT\_MAX\_RECOVERED\_CHARS](../variables/DEFAULT_MAX_RECOVERED_
 
 > `optional` **maxRecoveredFacts?**: `number`
 
-Defined in: [packages/runtime-ai/src/validated-compaction.ts:119](https://github.com/zocomputer/zov2-code/blob/2085c476e1f2b993443fa305a981a524da2250f3/packages/runtime-ai/src/validated-compaction.ts#L119)
+Defined in: [packages/runtime-ai/src/validated-compaction.ts:119](https://github.com/zocomputer/zov2-code/blob/178825142421d42c04f57b0afbc80612a16fe4c6/packages/runtime-ai/src/validated-compaction.ts#L119)
 
 Cap on how many judge-reported facts are considered (the judge is told to
 order most-important-first). Defaults to
@@ -62,7 +62,7 @@ order most-important-first). Defaults to
 
 > `optional` **onValidation?**: (`report`) => `void`
 
-Defined in: [packages/runtime-ai/src/validated-compaction.ts:135](https://github.com/zocomputer/zov2-code/blob/2085c476e1f2b993443fa305a981a524da2250f3/packages/runtime-ai/src/validated-compaction.ts#L135)
+Defined in: [packages/runtime-ai/src/validated-compaction.ts:135](https://github.com/zocomputer/zov2-code/blob/178825142421d42c04f57b0afbc80612a16fe4c6/packages/runtime-ai/src/validated-compaction.ts#L135)
 
 Observer for each validated compaction. Called once per intercepted
 compaction call with the [CompactionValidationReport](../type-aliases/CompactionValidationReport.md); exceptions it
@@ -84,7 +84,7 @@ throws are swallowed (observability must not fail the compaction).
 
 > `optional` **validationSystemPrompt?**: `string`
 
-Defined in: [packages/runtime-ai/src/validated-compaction.ts:107](https://github.com/zocomputer/zov2-code/blob/2085c476e1f2b993443fa305a981a524da2250f3/packages/runtime-ai/src/validated-compaction.ts#L107)
+Defined in: [packages/runtime-ai/src/validated-compaction.ts:107](https://github.com/zocomputer/zov2-code/blob/178825142421d42c04f57b0afbc80612a16fe4c6/packages/runtime-ai/src/validated-compaction.ts#L107)
 
 The judge's system prompt. Defaults to
 [buildValidationSystemPrompt](../functions/buildValidationSystemPrompt.md) over `maxRecoveredFacts`. Replace it to
