@@ -8,7 +8,7 @@
 
 > **buildRecoverySection**(`facts`, `maxChars`): \{ `kept`: `number`; `text`: `string`; `truncated`: `boolean`; \} \| `null`
 
-Defined in: [packages/runtime-ai/src/validated-compaction.ts:190](https://github.com/zocomputer/zov2-code/blob/178825142421d42c04f57b0afbc80612a16fe4c6/packages/runtime-ai/src/validated-compaction.ts#L190)
+Defined in: [packages/runtime-ai/src/validated-compaction.ts:190](https://github.com/zocomputer/zov2-code/blob/d9e9bc136ecf8175c3ca15852a35b081ef1a8a38/packages/runtime-ai/src/validated-compaction.ts#L190)
 
 Render recovered facts as the section appended to a repaired summary: the
 [RECOVERED\_CONTEXT\_HEADER](../variables/RECOVERED_CONTEXT_HEADER.md), an intro line, and one `- ` bullet per

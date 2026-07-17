@@ -8,7 +8,7 @@
 
 > **createEditTool**(`opts`): `ToolDefinition`\<\{ `new_string`: `string`; `old_string`: `string`; `path`: `string`; `replace_all?`: `boolean`; \}, \{ `matched`: [`MatchStrategy`](../type-aliases/MatchStrategy.md); `ok`: `boolean`; `path`: `string`; `replacements`: `number`; \}\>
 
-Defined in: [packages/agent-sdk/src/tools/edit.ts:23](https://github.com/zocomputer/zov2-code/blob/178825142421d42c04f57b0afbc80612a16fe4c6/packages/agent-sdk/src/tools/edit.ts#L23)
+Defined in: [packages/agent-sdk/src/tools/edit.ts:23](https://github.com/zocomputer/zov2-code/blob/d9e9bc136ecf8175c3ca15852a35b081ef1a8a38/packages/agent-sdk/src/tools/edit.ts#L23)
 
 Build the edit tool for string replacement in existing files.
 

@@ -8,7 +8,7 @@
 
 > `const` **DEFAULT\_JUDGE\_TIMEOUT\_MS**: `60000` = `60_000`
 
-Defined in: [packages/runtime-ai/src/validated-compaction.ts:70](https://github.com/zocomputer/zov2-code/blob/178825142421d42c04f57b0afbc80612a16fe4c6/packages/runtime-ai/src/validated-compaction.ts#L70)
+Defined in: [packages/runtime-ai/src/validated-compaction.ts:70](https://github.com/zocomputer/zov2-code/blob/d9e9bc136ecf8175c3ca15852a35b081ef1a8a38/packages/runtime-ai/src/validated-compaction.ts#L70)
 
 Default judge-call timeout in milliseconds. Compaction already costs one
 model call; the judge call is the "slight delay" the validation trades for

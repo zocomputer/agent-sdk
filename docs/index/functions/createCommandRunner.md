@@ -8,7 +8,7 @@
 
 > **createCommandRunner**(`opts`): [`CommandRunner`](../interfaces/CommandRunner.md)
 
-Defined in: [packages/agent-sdk/src/run.ts:100](https://github.com/zocomputer/zov2-code/blob/178825142421d42c04f57b0afbc80612a16fe4c6/packages/agent-sdk/src/run.ts#L100)
+Defined in: [packages/agent-sdk/src/run.ts:100](https://github.com/zocomputer/zov2-code/blob/d9e9bc136ecf8175c3ca15852a35b081ef1a8a38/packages/agent-sdk/src/run.ts#L100)
 
 Create a command runner rooted at the workspace. Commands run in a real
 shell (no sandbox), cwd resolves within the workspace, and overflowing

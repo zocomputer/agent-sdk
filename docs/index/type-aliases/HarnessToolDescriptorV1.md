@@ -8,7 +8,7 @@
 
 > **HarnessToolDescriptorV1** = `object`
 
-Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:44](https://github.com/zocomputer/zov2-code/blob/178825142421d42c04f57b0afbc80612a16fe4c6/packages/agent-sdk/src/harness-protocol-v1.ts#L44)
+Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:44](https://github.com/zocomputer/zov2-code/blob/d9e9bc136ecf8175c3ca15852a35b081ef1a8a38/packages/agent-sdk/src/harness-protocol-v1.ts#L44)
 
 Trusted behavior and presentation metadata for one model-facing tool name.
 
@@ -18,7 +18,7 @@ Trusted behavior and presentation metadata for one model-facing tool name.
 
 > `readonly` **behaviorVersion**: `string`
 
-Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:48](https://github.com/zocomputer/zov2-code/blob/178825142421d42c04f57b0afbc80612a16fe4c6/packages/agent-sdk/src/harness-protocol-v1.ts#L48)
+Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:48](https://github.com/zocomputer/zov2-code/blob/d9e9bc136ecf8175c3ca15852a35b081ef1a8a38/packages/agent-sdk/src/harness-protocol-v1.ts#L48)
 
 ***
 
@@ -26,7 +26,7 @@ Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:48](https://github.co
 
 > `readonly` **canonicalName**: `string`
 
-Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:46](https://github.com/zocomputer/zov2-code/blob/178825142421d42c04f57b0afbc80612a16fe4c6/packages/agent-sdk/src/harness-protocol-v1.ts#L46)
+Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:46](https://github.com/zocomputer/zov2-code/blob/d9e9bc136ecf8175c3ca15852a35b081ef1a8a38/packages/agent-sdk/src/harness-protocol-v1.ts#L46)
 
 ***
 
@@ -34,7 +34,7 @@ Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:46](https://github.co
 
 > `readonly` **effect**: [`HarnessToolEffectV1`](HarnessToolEffectV1.md)
 
-Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:49](https://github.com/zocomputer/zov2-code/blob/178825142421d42c04f57b0afbc80612a16fe4c6/packages/agent-sdk/src/harness-protocol-v1.ts#L49)
+Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:49](https://github.com/zocomputer/zov2-code/blob/d9e9bc136ecf8175c3ca15852a35b081ef1a8a38/packages/agent-sdk/src/harness-protocol-v1.ts#L49)
 
 ***
 
@@ -42,7 +42,7 @@ Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:49](https://github.co
 
 > `readonly` **honorsAbortSignal**: `boolean`
 
-Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:53](https://github.com/zocomputer/zov2-code/blob/178825142421d42c04f57b0afbc80612a16fe4c6/packages/agent-sdk/src/harness-protocol-v1.ts#L53)
+Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:53](https://github.com/zocomputer/zov2-code/blob/d9e9bc136ecf8175c3ca15852a35b081ef1a8a38/packages/agent-sdk/src/harness-protocol-v1.ts#L53)
 
 Describes only the implementation. It grants no client cancellation control.
 
@@ -52,7 +52,7 @@ Describes only the implementation. It grants no client cancellation control.
 
 > `readonly` **modelName**: `string`
 
-Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:47](https://github.com/zocomputer/zov2-code/blob/178825142421d42c04f57b0afbc80612a16fe4c6/packages/agent-sdk/src/harness-protocol-v1.ts#L47)
+Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:47](https://github.com/zocomputer/zov2-code/blob/d9e9bc136ecf8175c3ca15852a35b081ef1a8a38/packages/agent-sdk/src/harness-protocol-v1.ts#L47)
 
 ***
 
@@ -60,7 +60,7 @@ Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:47](https://github.co
 
 > `readonly` **presentation**: [`HarnessToolPresentationV1`](HarnessToolPresentationV1.md)
 
-Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:50](https://github.com/zocomputer/zov2-code/blob/178825142421d42c04f57b0afbc80612a16fe4c6/packages/agent-sdk/src/harness-protocol-v1.ts#L50)
+Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:50](https://github.com/zocomputer/zov2-code/blob/d9e9bc136ecf8175c3ca15852a35b081ef1a8a38/packages/agent-sdk/src/harness-protocol-v1.ts#L50)
 
 ***
 
@@ -68,7 +68,7 @@ Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:50](https://github.co
 
 > `readonly` **resultKind**: `string`
 
-Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:51](https://github.com/zocomputer/zov2-code/blob/178825142421d42c04f57b0afbc80612a16fe4c6/packages/agent-sdk/src/harness-protocol-v1.ts#L51)
+Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:51](https://github.com/zocomputer/zov2-code/blob/d9e9bc136ecf8175c3ca15852a35b081ef1a8a38/packages/agent-sdk/src/harness-protocol-v1.ts#L51)
 
 ***
 
@@ -76,4 +76,4 @@ Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:51](https://github.co
 
 > `readonly` **schemaVersion**: `1`
 
-Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:45](https://github.com/zocomputer/zov2-code/blob/178825142421d42c04f57b0afbc80612a16fe4c6/packages/agent-sdk/src/harness-protocol-v1.ts#L45)
+Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:45](https://github.com/zocomputer/zov2-code/blob/d9e9bc136ecf8175c3ca15852a35b081ef1a8a38/packages/agent-sdk/src/harness-protocol-v1.ts#L45)

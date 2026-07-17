@@ -6,7 +6,7 @@
 
 # Class: EditNotUniqueError
 
-Defined in: [packages/agent-sdk/src/edit-match.ts:47](https://github.com/zocomputer/zov2-code/blob/178825142421d42c04f57b0afbc80612a16fe4c6/packages/agent-sdk/src/edit-match.ts#L47)
+Defined in: [packages/agent-sdk/src/edit-match.ts:47](https://github.com/zocomputer/zov2-code/blob/d9e9bc136ecf8175c3ca15852a35b081ef1a8a38/packages/agent-sdk/src/edit-match.ts#L47)
 
 Every candidate span occurs more than once, so a single replacement would be ambiguous.
 
@@ -20,7 +20,7 @@ Every candidate span occurs more than once, so a single replacement would be amb
 
 > **new EditNotUniqueError**(): `EditNotUniqueError`
 
-Defined in: [packages/agent-sdk/src/edit-match.ts:48](https://github.com/zocomputer/zov2-code/blob/178825142421d42c04f57b0afbc80612a16fe4c6/packages/agent-sdk/src/edit-match.ts#L48)
+Defined in: [packages/agent-sdk/src/edit-match.ts:48](https://github.com/zocomputer/zov2-code/blob/d9e9bc136ecf8175c3ca15852a35b081ef1a8a38/packages/agent-sdk/src/edit-match.ts#L48)
 
 #### Returns
 

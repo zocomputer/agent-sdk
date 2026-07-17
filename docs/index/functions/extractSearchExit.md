@@ -8,7 +8,7 @@
 
 > **extractSearchExit**(`stdout`): `object`
 
-Defined in: [packages/agent-sdk/src/sandbox-io.ts:305](https://github.com/zocomputer/zov2-code/blob/178825142421d42c04f57b0afbc80612a16fe4c6/packages/agent-sdk/src/sandbox-io.ts#L305)
+Defined in: [packages/agent-sdk/src/sandbox-io.ts:305](https://github.com/zocomputer/zov2-code/blob/d9e9bc136ecf8175c3ca15852a35b081ef1a8a38/packages/agent-sdk/src/sandbox-io.ts#L305)
 
 Split a search's stdout from its trailing exit sentinel. Exported for
 tests. `exitCode: null` = sentinel missing (output was cut by the cap, or

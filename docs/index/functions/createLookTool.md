@@ -8,7 +8,7 @@
 
 > **createLookTool**(`opts`): `ToolDefinition`\<\{ `path`: `string`; `prompt`: `string`; \}, \{ `answer`: `string`; `media_type`: `string`; `model`: `string`; `path`: `string`; \}\>
 
-Defined in: [packages/agent-sdk/src/tools/look.ts:193](https://github.com/zocomputer/zov2-code/blob/178825142421d42c04f57b0afbc80612a16fe4c6/packages/agent-sdk/src/tools/look.ts#L193)
+Defined in: [packages/agent-sdk/src/tools/look.ts:193](https://github.com/zocomputer/zov2-code/blob/d9e9bc136ecf8175c3ca15852a35b081ef1a8a38/packages/agent-sdk/src/tools/look.ts#L193)
 
 Build the `look` tool: ask the pinned oracle model one question about a
 media file the session's own model can't view. Sends the file's bytes and

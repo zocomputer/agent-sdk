@@ -8,7 +8,7 @@
 
 > **DeploymentToolManifestV1** = `object`
 
-Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:186](https://github.com/zocomputer/zov2-code/blob/178825142421d42c04f57b0afbc80612a16fe4c6/packages/agent-sdk/src/harness-protocol-v1.ts#L186)
+Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:186](https://github.com/zocomputer/zov2-code/blob/d9e9bc136ecf8175c3ca15852a35b081ef1a8a38/packages/agent-sdk/src/harness-protocol-v1.ts#L186)
 
 Exact SDK and source authority for one selectable deployment.
 
@@ -18,7 +18,7 @@ Exact SDK and source authority for one selectable deployment.
 
 > `readonly` **completionContracts**: readonly [`CompletionContractV1`](CompletionContractV1.md)[]
 
-Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:198](https://github.com/zocomputer/zov2-code/blob/178825142421d42c04f57b0afbc80612a16fe4c6/packages/agent-sdk/src/harness-protocol-v1.ts#L198)
+Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:198](https://github.com/zocomputer/zov2-code/blob/d9e9bc136ecf8175c3ca15852a35b081ef1a8a38/packages/agent-sdk/src/harness-protocol-v1.ts#L198)
 
 ***
 
@@ -26,7 +26,7 @@ Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:198](https://github.c
 
 > `readonly` **deploymentId**: `string`
 
-Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:188](https://github.com/zocomputer/zov2-code/blob/178825142421d42c04f57b0afbc80612a16fe4c6/packages/agent-sdk/src/harness-protocol-v1.ts#L188)
+Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:188](https://github.com/zocomputer/zov2-code/blob/d9e9bc136ecf8175c3ca15852a35b081ef1a8a38/packages/agent-sdk/src/harness-protocol-v1.ts#L188)
 
 ***
 
@@ -34,7 +34,7 @@ Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:188](https://github.c
 
 > `readonly` **descriptorCatalogDigest**: [`HarnessSha256Digest`](HarnessSha256Digest.md)
 
-Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:195](https://github.com/zocomputer/zov2-code/blob/178825142421d42c04f57b0afbc80612a16fe4c6/packages/agent-sdk/src/harness-protocol-v1.ts#L195)
+Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:195](https://github.com/zocomputer/zov2-code/blob/d9e9bc136ecf8175c3ca15852a35b081ef1a8a38/packages/agent-sdk/src/harness-protocol-v1.ts#L195)
 
 ***
 
@@ -42,7 +42,7 @@ Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:195](https://github.c
 
 > `readonly` **schemaVersion**: `1`
 
-Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:187](https://github.com/zocomputer/zov2-code/blob/178825142421d42c04f57b0afbc80612a16fe4c6/packages/agent-sdk/src/harness-protocol-v1.ts#L187)
+Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:187](https://github.com/zocomputer/zov2-code/blob/d9e9bc136ecf8175c3ca15852a35b081ef1a8a38/packages/agent-sdk/src/harness-protocol-v1.ts#L187)
 
 ***
 
@@ -50,7 +50,7 @@ Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:187](https://github.c
 
 > `readonly` **sdk**: `object`
 
-Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:189](https://github.com/zocomputer/zov2-code/blob/178825142421d42c04f57b0afbc80612a16fe4c6/packages/agent-sdk/src/harness-protocol-v1.ts#L189)
+Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:189](https://github.com/zocomputer/zov2-code/blob/d9e9bc136ecf8175c3ca15852a35b081ef1a8a38/packages/agent-sdk/src/harness-protocol-v1.ts#L189)
 
 #### immutableRef
 
@@ -72,7 +72,7 @@ Immutable package/tree identity. Mutable ranges are rejected at preflight.
 
 > `readonly` **tools**: readonly [`DeploymentToolBindingV1`](DeploymentToolBindingV1.md)[]
 
-Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:197](https://github.com/zocomputer/zov2-code/blob/178825142421d42c04f57b0afbc80612a16fe4c6/packages/agent-sdk/src/harness-protocol-v1.ts#L197)
+Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:197](https://github.com/zocomputer/zov2-code/blob/d9e9bc136ecf8175c3ca15852a35b081ef1a8a38/packages/agent-sdk/src/harness-protocol-v1.ts#L197)
 
 ***
 
@@ -80,4 +80,4 @@ Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:197](https://github.c
 
 > `readonly` **toolSourceDigest**: [`HarnessSha256Digest`](HarnessSha256Digest.md)
 
-Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:196](https://github.com/zocomputer/zov2-code/blob/178825142421d42c04f57b0afbc80612a16fe4c6/packages/agent-sdk/src/harness-protocol-v1.ts#L196)
+Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:196](https://github.com/zocomputer/zov2-code/blob/d9e9bc136ecf8175c3ca15852a35b081ef1a8a38/packages/agent-sdk/src/harness-protocol-v1.ts#L196)

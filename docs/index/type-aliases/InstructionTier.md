@@ -8,7 +8,7 @@
 
 > **InstructionTier** = `"full"` \| `"compact"`
 
-Defined in: [packages/agent-sdk/src/prompt-sections.ts:22](https://github.com/zocomputer/zov2-code/blob/178825142421d42c04f57b0afbc80612a16fe4c6/packages/agent-sdk/src/prompt-sections.ts#L22)
+Defined in: [packages/agent-sdk/src/prompt-sections.ts:22](https://github.com/zocomputer/zov2-code/blob/d9e9bc136ecf8175c3ca15852a35b081ef1a8a38/packages/agent-sdk/src/prompt-sections.ts#L22)
 
 Depth variant for the instruction prose. `"full"` is the default — every
 rule with its rationale and examples. `"compact"` keeps every load-bearing
