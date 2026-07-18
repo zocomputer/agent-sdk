@@ -16,6 +16,7 @@ const workspace = createWorkspace(root);
 const ctx: ToolContext = {
   abortSignal: new AbortController().signal,
   callId: "call-1",
+  toolName: "write",
   session: {
     id: "write-test-session",
     auth: { current: null, initiator: null },

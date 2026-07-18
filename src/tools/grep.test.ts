@@ -21,6 +21,7 @@ const workspace = createWorkspace(root);
 const ctx: ToolContext = {
   abortSignal: new AbortController().signal,
   callId: "call-1",
+  toolName: "grep",
   session: {
     id: "grep-test",
     auth: { current: null, initiator: null },

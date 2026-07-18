@@ -8,7 +8,7 @@
 
 > **renderWebText**(`content`, `contentType`, `format`, `url`): [`RenderedWebText`](../interfaces/RenderedWebText.md)
 
-Defined in: [packages/agent-sdk/src/web-fetch.ts:171](https://github.com/zocomputer/zov2-code/blob/d9e9bc136ecf8175c3ca15852a35b081ef1a8a38/packages/agent-sdk/src/web-fetch.ts#L171)
+Defined in: [packages/agent-sdk/src/web-fetch.ts:171](https://github.com/zocomputer/zov2-code/blob/3717bd4ab29bacfe3ae9a5e05df2947880cbf6c9/packages/agent-sdk/src/web-fetch.ts#L171)
 
 Render fetched text per the requested format; non-HTML (and format "html")
 passes through untouched. For markdown/text, the page first reduces to its

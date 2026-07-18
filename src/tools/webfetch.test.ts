@@ -17,6 +17,7 @@ const spillDir = join(root, ".agent", "tool-outputs");
 const ctx: ToolContext = {
   abortSignal: new AbortController().signal,
   callId: "call-1",
+  toolName: "webfetch",
   session: {
     id: "test-session",
     auth: { current: null, initiator: null },

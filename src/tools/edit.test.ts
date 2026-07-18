@@ -33,6 +33,7 @@ const slowReadIo: WorkspaceIoProvider = (ctx) => {
 const ctx: ToolContext = {
   abortSignal: new AbortController().signal,
   callId: "call-1",
+  toolName: "edit",
   session: {
     id: "edit-test-session",
     auth: { current: null, initiator: null },

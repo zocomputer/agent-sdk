@@ -28,6 +28,7 @@ function ctxWith(sessionId: string): ToolContext {
   return {
     abortSignal: new AbortController().signal,
     callId: "call-1",
+    toolName: "task",
     session: {
       id: sessionId,
       auth: { current: null, initiator: null },

@@ -8,7 +8,7 @@
 
 > **MutationGuardFingerprintV1** = `object`
 
-Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:212](https://github.com/zocomputer/zov2-code/blob/d9e9bc136ecf8175c3ca15852a35b081ef1a8a38/packages/agent-sdk/src/harness-protocol-v1.ts#L212)
+Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:212](https://github.com/zocomputer/zov2-code/blob/3717bd4ab29bacfe3ae9a5e05df2947880cbf6c9/packages/agent-sdk/src/harness-protocol-v1.ts#L212)
 
 Canonical identity of one guarded mutation attempt.
 
@@ -18,7 +18,7 @@ Canonical identity of one guarded mutation attempt.
 
 > `readonly` **behaviorVersion**: `string`
 
-Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:214](https://github.com/zocomputer/zov2-code/blob/d9e9bc136ecf8175c3ca15852a35b081ef1a8a38/packages/agent-sdk/src/harness-protocol-v1.ts#L214)
+Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:214](https://github.com/zocomputer/zov2-code/blob/3717bd4ab29bacfe3ae9a5e05df2947880cbf6c9/packages/agent-sdk/src/harness-protocol-v1.ts#L214)
 
 ***
 
@@ -26,7 +26,7 @@ Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:214](https://github.c
 
 > `readonly` **canonicalInputSha256**: `string`
 
-Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:215](https://github.com/zocomputer/zov2-code/blob/d9e9bc136ecf8175c3ca15852a35b081ef1a8a38/packages/agent-sdk/src/harness-protocol-v1.ts#L215)
+Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:215](https://github.com/zocomputer/zov2-code/blob/3717bd4ab29bacfe3ae9a5e05df2947880cbf6c9/packages/agent-sdk/src/harness-protocol-v1.ts#L215)
 
 ***
 
@@ -34,4 +34,4 @@ Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:215](https://github.c
 
 > `readonly` **canonicalName**: `string`
 
-Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:213](https://github.com/zocomputer/zov2-code/blob/d9e9bc136ecf8175c3ca15852a35b081ef1a8a38/packages/agent-sdk/src/harness-protocol-v1.ts#L213)
+Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:213](https://github.com/zocomputer/zov2-code/blob/3717bd4ab29bacfe3ae9a5e05df2947880cbf6c9/packages/agent-sdk/src/harness-protocol-v1.ts#L213)

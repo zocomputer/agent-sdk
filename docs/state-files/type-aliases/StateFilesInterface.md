@@ -8,6 +8,6 @@
 
 > **StateFilesInterface** = `"files"`
 
-Defined in: [packages/agent-sdk/src/state-files.ts:9](https://github.com/zocomputer/zov2-code/blob/d9e9bc136ecf8175c3ca15852a35b081ef1a8a38/packages/agent-sdk/src/state-files.ts#L9)
+Defined in: [packages/agent-sdk/src/state-files.ts:9](https://github.com/zocomputer/zov2-code/blob/3717bd4ab29bacfe3ae9a5e05df2947880cbf6c9/packages/agent-sdk/src/state-files.ts#L9)
 
 The external-state interface type for object-store file access.

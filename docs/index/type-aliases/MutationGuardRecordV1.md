@@ -8,7 +8,7 @@
 
 > **MutationGuardRecordV1** = `object`
 
-Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:219](https://github.com/zocomputer/zov2-code/blob/d9e9bc136ecf8175c3ca15852a35b081ef1a8a38/packages/agent-sdk/src/harness-protocol-v1.ts#L219)
+Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:219](https://github.com/zocomputer/zov2-code/blob/3717bd4ab29bacfe3ae9a5e05df2947880cbf6c9/packages/agent-sdk/src/harness-protocol-v1.ts#L219)
 
 Durable consecutive-run state scoped to one Eve session and turn.
 
@@ -18,7 +18,7 @@ Durable consecutive-run state scoped to one Eve session and turn.
 
 > `readonly` **count**: `number`
 
-Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:224](https://github.com/zocomputer/zov2-code/blob/d9e9bc136ecf8175c3ca15852a35b081ef1a8a38/packages/agent-sdk/src/harness-protocol-v1.ts#L224)
+Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:224](https://github.com/zocomputer/zov2-code/blob/3717bd4ab29bacfe3ae9a5e05df2947880cbf6c9/packages/agent-sdk/src/harness-protocol-v1.ts#L224)
 
 ***
 
@@ -26,7 +26,7 @@ Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:224](https://github.c
 
 > `readonly` **lastFingerprint**: [`MutationGuardFingerprintV1`](MutationGuardFingerprintV1.md)
 
-Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:223](https://github.com/zocomputer/zov2-code/blob/d9e9bc136ecf8175c3ca15852a35b081ef1a8a38/packages/agent-sdk/src/harness-protocol-v1.ts#L223)
+Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:223](https://github.com/zocomputer/zov2-code/blob/3717bd4ab29bacfe3ae9a5e05df2947880cbf6c9/packages/agent-sdk/src/harness-protocol-v1.ts#L223)
 
 ***
 
@@ -34,7 +34,7 @@ Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:223](https://github.c
 
 > `readonly` **schemaVersion**: `1`
 
-Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:220](https://github.com/zocomputer/zov2-code/blob/d9e9bc136ecf8175c3ca15852a35b081ef1a8a38/packages/agent-sdk/src/harness-protocol-v1.ts#L220)
+Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:220](https://github.com/zocomputer/zov2-code/blob/3717bd4ab29bacfe3ae9a5e05df2947880cbf6c9/packages/agent-sdk/src/harness-protocol-v1.ts#L220)
 
 ***
 
@@ -42,7 +42,7 @@ Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:220](https://github.c
 
 > `readonly` **sessionId**: `string`
 
-Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:221](https://github.com/zocomputer/zov2-code/blob/d9e9bc136ecf8175c3ca15852a35b081ef1a8a38/packages/agent-sdk/src/harness-protocol-v1.ts#L221)
+Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:221](https://github.com/zocomputer/zov2-code/blob/3717bd4ab29bacfe3ae9a5e05df2947880cbf6c9/packages/agent-sdk/src/harness-protocol-v1.ts#L221)
 
 ***
 
@@ -50,4 +50,4 @@ Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:221](https://github.c
 
 > `readonly` **turnId**: `string`
 
-Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:222](https://github.com/zocomputer/zov2-code/blob/d9e9bc136ecf8175c3ca15852a35b081ef1a8a38/packages/agent-sdk/src/harness-protocol-v1.ts#L222)
+Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:222](https://github.com/zocomputer/zov2-code/blob/3717bd4ab29bacfe3ae9a5e05df2947880cbf6c9/packages/agent-sdk/src/harness-protocol-v1.ts#L222)

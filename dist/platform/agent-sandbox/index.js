@@ -1,7 +1,7 @@
-// ../../../../../tmp/agent-sdk-mirror-yRMivo/repo/platform/agent-sandbox/zo-sandbox.ts
+// ../../../../../tmp/agent-sdk-mirror-4ersyE/repo/platform/agent-sandbox/zo-sandbox.ts
 import { defineSandbox } from "eve/sandbox";
 
-// ../../../../../tmp/agent-sdk-mirror-yRMivo/repo/platform/agent-sandbox/ambient.ts
+// ../../../../../tmp/agent-sdk-mirror-4ersyE/repo/platform/agent-sandbox/ambient.ts
 var EVE_CONTEXT_STORAGE_KEY = Symbol.for("eve.context-storage");
 var PARENT_SESSION_KEY_NAME = "eve.parentSession";
 var SESSION_ID_KEY_NAME = "eve.sessionId";
@@ -82,7 +82,7 @@ function ambientSessionCapability() {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-yRMivo/repo/platform/runtime-auth/index.ts
+// ../../../../../tmp/agent-sdk-mirror-4ersyE/repo/platform/runtime-auth/index.ts
 import { SignJWT, errors as joseErrors, jwtVerify } from "jose";
 var AGENT_TOKEN_HEADER = "x-zo-agent-token";
 var EVE_SESSION_HEADER = "x-zo-eve-session";
@@ -106,7 +106,7 @@ var RESERVED_AGENT_PROJECT_IDS = [
   LOCAL_AGENT_IDENTITY.agentProjectId
 ];
 
-// ../../../../../tmp/agent-sdk-mirror-yRMivo/repo/platform/agent-sandbox/api-client.ts
+// ../../../../../tmp/agent-sdk-mirror-4ersyE/repo/platform/agent-sandbox/api-client.ts
 var SCRATCH_DECLARATION = "scratch";
 var STATE_HANDLE_PATH = "/state/handles";
 
@@ -234,11 +234,11 @@ function describeBrokerError(status, code, message) {
   return `sandbox provisioning failed: ${status}${detail ? ` ${detail}` : ""}`.trim();
 }
 
-// ../../../../../tmp/agent-sdk-mirror-yRMivo/repo/platform/agent-sandbox/ssh-session.ts
+// ../../../../../tmp/agent-sdk-mirror-4ersyE/repo/platform/agent-sandbox/ssh-session.ts
 import { Client } from "ssh2";
 import { extractLines } from "@ai-sdk/provider-utils";
 
-// ../../../../../tmp/agent-sdk-mirror-yRMivo/repo/platform/agent-sandbox/lease-renewal.ts
+// ../../../../../tmp/agent-sdk-mirror-4ersyE/repo/platform/agent-sandbox/lease-renewal.ts
 var DEFAULT_LEASE_RENEW_INTERVAL_MS = 8 * 60000;
 var DEFAULT_LEASE_RETRY_DELAY_MS = 30000;
 function createLeaseRenewer(options) {
@@ -302,7 +302,7 @@ function createLeaseRenewer(options) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-yRMivo/repo/platform/agent-sandbox/pure.ts
+// ../../../../../tmp/agent-sdk-mirror-4ersyE/repo/platform/agent-sandbox/pure.ts
 import { Buffer as Buffer2 } from "node:buffer";
 import path from "node:path";
 var NOMINAL_WORKSPACE_ROOT = "/workspace";
@@ -359,7 +359,7 @@ function encodeText(text, encoding) {
   return new Uint8Array(Buffer2.from(text, enc));
 }
 
-// ../../../../../tmp/agent-sdk-mirror-yRMivo/repo/platform/agent-sandbox/ssh-connection.ts
+// ../../../../../tmp/agent-sdk-mirror-4ersyE/repo/platform/agent-sandbox/ssh-connection.ts
 function isExpired(access, skewMs, now) {
   const expiry = Date.parse(access.expiresAt);
   if (Number.isNaN(expiry))
@@ -450,7 +450,7 @@ class SshConnectionManager {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-yRMivo/repo/platform/agent-sandbox/ssh-exec.ts
+// ../../../../../tmp/agent-sdk-mirror-4ersyE/repo/platform/agent-sandbox/ssh-exec.ts
 var SIGNAL_EXIT_CODE = 137;
 function abortError(signal) {
   return signal.reason instanceof Error ? signal.reason : new Error(typeof signal.reason === "string" ? signal.reason : "aborted");
@@ -503,7 +503,7 @@ function awaitCommand(stream, abortSignal) {
   });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-yRMivo/repo/platform/agent-sandbox/sftp.ts
+// ../../../../../tmp/agent-sdk-mirror-4ersyE/repo/platform/agent-sandbox/sftp.ts
 import path2 from "node:path";
 var SFTP_NO_SUCH_FILE = 2;
 function isNoSuchFile(error) {
@@ -588,7 +588,7 @@ async function removePath(client, remotePath, opts = {}) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-yRMivo/repo/platform/agent-sandbox/ssh-session.ts
+// ../../../../../tmp/agent-sdk-mirror-4ersyE/repo/platform/agent-sandbox/ssh-session.ts
 var WORK_DIR = "/home/daytona";
 var EXPIRY_SKEW_MS = 30000;
 var SSH_PORT = 22;
@@ -904,7 +904,7 @@ function sshSandboxSession(id, acquireAccess, connect = async (access) => {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-yRMivo/repo/platform/agent-sandbox/zo-backend.ts
+// ../../../../../tmp/agent-sdk-mirror-4ersyE/repo/platform/agent-sandbox/zo-backend.ts
 var BACKEND_NAME = "zo";
 function zoBackend(options) {
   return {
@@ -964,7 +964,7 @@ function zoBackend(options) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-yRMivo/repo/platform/agent-sandbox/zo-sandbox.ts
+// ../../../../../tmp/agent-sdk-mirror-4ersyE/repo/platform/agent-sandbox/zo-sandbox.ts
 var DEFAULT_API_URL = "http://api.zo.localhost:4000";
 function zoSandbox(options = {}) {
   return defineSandbox({
@@ -973,7 +973,7 @@ function zoSandbox(options = {}) {
     })
   });
 }
-// ../../../../../tmp/agent-sdk-mirror-yRMivo/repo/src/state-consent-envelope.ts
+// ../../../../../tmp/agent-sdk-mirror-4ersyE/repo/src/state-consent-envelope.ts
 import { z } from "zod";
 var consentPartySchema = z.object({
   handle: z.string().min(1),
@@ -991,7 +991,7 @@ function parseConsentEnvelope(value) {
   return result.success ? result.data : null;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-yRMivo/repo/src/state-files.ts
+// ../../../../../tmp/agent-sdk-mirror-4ersyE/repo/src/state-files.ts
 function normalizeStateFilePath(path3) {
   if (path3.length === 0) {
     throw new Error("state file path must not be empty");
@@ -1006,7 +1006,7 @@ function normalizeStateFilePath(path3) {
   return path3;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-yRMivo/repo/src/state-sandbox.ts
+// ../../../../../tmp/agent-sdk-mirror-4ersyE/repo/src/state-sandbox.ts
 var STATE_SANDBOX_HANDLE_PATH = "/state/handles";
 var ZO_AGENT_TOKEN_HEADER = "x-zo-agent-token";
 var ZO_EVE_SESSION_HEADER = "x-zo-eve-session";
@@ -1486,7 +1486,7 @@ function readString(record, key) {
   return typeof value === "string" && value.length > 0 ? value : null;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-yRMivo/repo/platform/agent-sandbox/state-client.ts
+// ../../../../../tmp/agent-sdk-mirror-4ersyE/repo/platform/agent-sandbox/state-client.ts
 var DEFAULT_API_URL2 = "http://api.zo.localhost:4000";
 var SCRATCH_DECLARATION_NAME = "scratch";
 function zoStateSandbox(declaration, options = {}) {

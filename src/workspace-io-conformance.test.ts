@@ -66,6 +66,7 @@ function stubContext(sessionId: string, getSandbox: ToolContext["getSandbox"]): 
   return {
     abortSignal: new AbortController().signal,
     callId: "call-1",
+    toolName: "workspace-io",
     session: {
       id: sessionId,
       auth: { current: null, initiator: null },

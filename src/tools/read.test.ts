@@ -65,6 +65,7 @@ function sessionCtx(id: string): ToolContext {
   return {
     abortSignal: new AbortController().signal,
     callId: "call-1",
+    toolName: "read",
     session: {
       id,
       auth: { current: null, initiator: null },

@@ -8,6 +8,6 @@
 
 > **ImageFormat** = `"png"` \| `"jpeg"` \| `"gif"` \| `"webp"`
 
-Defined in: [packages/agent-sdk/src/file-kind.ts:10](https://github.com/zocomputer/zov2-code/blob/d9e9bc136ecf8175c3ca15852a35b081ef1a8a38/packages/agent-sdk/src/file-kind.ts#L10)
+Defined in: [packages/agent-sdk/src/file-kind.ts:10](https://github.com/zocomputer/zov2-code/blob/3717bd4ab29bacfe3ae9a5e05df2947880cbf6c9/packages/agent-sdk/src/file-kind.ts#L10)
 
 Image formats the read tool detects and delivers to vision models.

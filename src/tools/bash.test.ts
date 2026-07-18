@@ -21,6 +21,7 @@ function context(signal: AbortSignal): ToolContext {
   return {
     abortSignal: signal,
     callId: "call-1",
+    toolName: "bash",
     session: {
       id: "session-1",
       auth: { current: null, initiator: null },

@@ -8,7 +8,7 @@
 
 > **requestStateFilesHandle**(`options`): `Promise`\<[`StateFilesHandle`](../interfaces/StateFilesHandle.md)\>
 
-Defined in: [packages/agent-sdk/src/state-files.ts:121](https://github.com/zocomputer/zov2-code/blob/d9e9bc136ecf8175c3ca15852a35b081ef1a8a38/packages/agent-sdk/src/state-files.ts#L121)
+Defined in: [packages/agent-sdk/src/state-files.ts:121](https://github.com/zocomputer/zov2-code/blob/3717bd4ab29bacfe3ae9a5e05df2947880cbf6c9/packages/agent-sdk/src/state-files.ts#L121)
 
 Requests a state-files handle from the runtime broker.
 Throws `StateFilesHandleError` on failure or malformed response.
