@@ -1,4 +1,4 @@
-// ../../../../../tmp/agent-sdk-mirror-wItKVV/repo/platform/runtime-auth/index.ts
+// ../../../../../tmp/agent-sdk-mirror-rIJSFY/repo/platform/runtime-auth/index.ts
 import { SignJWT, errors as joseErrors, jwtVerify } from "jose";
 var AGENT_TOKEN_HEADER = "x-zo-agent-token";
 var EVE_SESSION_HEADER = "x-zo-eve-session";
@@ -6,7 +6,6 @@ var SESSION_CAPABILITY_HEADER = "x-zo-session-capability";
 var SESSION_CAPABILITY_ATTRIBUTE = "zoSessionCapability";
 var EVE_TURN_HEADER = "x-zo-eve-turn";
 var EVE_SUBAGENT_SESSION_HEADER = "x-zo-eve-subagent-session";
-var BUILDER_TURN_LEASE_HEADER = "x-zo-builder-lease";
 var HOSTED_TURN_LEASE_HEADER = "x-zo-turn-lease";
 var MAX_HOSTED_TURN_LEASE_ID_LENGTH = 128;
 function isHostedTurnLeaseId(value) {
@@ -221,7 +220,6 @@ export {
   EVE_TURN_HEADER,
   EVE_SUBAGENT_SESSION_HEADER,
   EVE_SESSION_HEADER,
-  BUILDER_TURN_LEASE_HEADER,
   BUILDER_AGENT_IDENTITY,
   AGENT_TOKEN_HEADER,
   AGENT_TOKEN_ENV

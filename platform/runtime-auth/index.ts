@@ -50,9 +50,6 @@ export const EVE_TURN_HEADER = "x-zo-eve-turn";
  */
 export const EVE_SUBAGENT_SESSION_HEADER = "x-zo-eve-subagent-session";
 
-/** The database-backed Builder writer lease validated by the Builder proxy. */
-export const BUILDER_TURN_LEASE_HEADER = "x-zo-builder-lease";
-
 /** The accepted hosted turn allowed to settle its Conversation row. */
 export const HOSTED_TURN_LEASE_HEADER = "x-zo-turn-lease";
 /** HTTP/database bound shared by the proxy, settle route, and clients. */

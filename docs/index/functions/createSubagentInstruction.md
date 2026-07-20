@@ -8,7 +8,7 @@
 
 > **createSubagentInstruction**(`opts?`): `DynamicSentinel`\<\{ `markdown`: `string`; \}\>
 
-Defined in: [packages/agent-sdk/src/instructions.ts:618](https://github.com/zocomputer/zov2-code/blob/9a2687559528851e1e25b6b64341058d2d74e9dc/packages/agent-sdk/src/instructions.ts#L618)
+Defined in: [packages/agent-sdk/src/instructions.ts:618](https://github.com/zocomputer/zov2-code/blob/3f99c6555eb919be314852ec3a36b08e02504d85/packages/agent-sdk/src/instructions.ts#L618)
 
 Delegation guidance for eve's built-in `agent` tool (a clone of the calling
 agent) and, when `roster` names declared subagents, the routing guidance

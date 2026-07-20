@@ -8,7 +8,7 @@
 
 > **DeploymentToolBindingV1** = `object`
 
-Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:180](https://github.com/zocomputer/zov2-code/blob/9a2687559528851e1e25b6b64341058d2d74e9dc/packages/agent-sdk/src/harness-protocol-v1.ts#L180)
+Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:180](https://github.com/zocomputer/zov2-code/blob/3f99c6555eb919be314852ec3a36b08e02504d85/packages/agent-sdk/src/harness-protocol-v1.ts#L180)
 
 One model-facing tool name bound to its trusted canonical descriptor.
 
@@ -18,7 +18,7 @@ One model-facing tool name bound to its trusted canonical descriptor.
 
 > `readonly` **descriptor**: [`HarnessToolDescriptorV1`](HarnessToolDescriptorV1.md)
 
-Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:182](https://github.com/zocomputer/zov2-code/blob/9a2687559528851e1e25b6b64341058d2d74e9dc/packages/agent-sdk/src/harness-protocol-v1.ts#L182)
+Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:182](https://github.com/zocomputer/zov2-code/blob/3f99c6555eb919be314852ec3a36b08e02504d85/packages/agent-sdk/src/harness-protocol-v1.ts#L182)
 
 ***
 
@@ -26,4 +26,4 @@ Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:182](https://github.c
 
 > `readonly` **modelName**: `string`
 
-Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:181](https://github.com/zocomputer/zov2-code/blob/9a2687559528851e1e25b6b64341058d2d74e9dc/packages/agent-sdk/src/harness-protocol-v1.ts#L181)
+Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:181](https://github.com/zocomputer/zov2-code/blob/3f99c6555eb919be314852ec3a36b08e02504d85/packages/agent-sdk/src/harness-protocol-v1.ts#L181)

@@ -8,6 +8,6 @@
 
 > **MatchStrategy** = `"simple"` \| `"line_trimmed"` \| `"block_anchor"` \| `"whitespace_normalized"` \| `"indentation_flexible"` \| `"escape_normalized"` \| `"trimmed_boundary"` \| `"context_aware"` \| `"multi_occurrence"`
 
-Defined in: [packages/agent-sdk/src/edit-match.ts:27](https://github.com/zocomputer/zov2-code/blob/9a2687559528851e1e25b6b64341058d2d74e9dc/packages/agent-sdk/src/edit-match.ts#L27)
+Defined in: [packages/agent-sdk/src/edit-match.ts:27](https://github.com/zocomputer/zov2-code/blob/3f99c6555eb919be314852ec3a36b08e02504d85/packages/agent-sdk/src/edit-match.ts#L27)
 
 Which replacer strategy resolved the edit, in the tool result's `matched` field.

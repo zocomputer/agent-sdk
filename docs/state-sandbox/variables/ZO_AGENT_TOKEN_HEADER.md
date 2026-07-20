@@ -8,6 +8,6 @@
 
 > `const` **ZO\_AGENT\_TOKEN\_HEADER**: `"x-zo-agent-token"` = `"x-zo-agent-token"`
 
-Defined in: [packages/agent-sdk/src/state-sandbox.ts:20](https://github.com/zocomputer/zov2-code/blob/9a2687559528851e1e25b6b64341058d2d74e9dc/packages/agent-sdk/src/state-sandbox.ts#L20)
+Defined in: [packages/agent-sdk/src/state-sandbox.ts:20](https://github.com/zocomputer/zov2-code/blob/3f99c6555eb919be314852ec3a36b08e02504d85/packages/agent-sdk/src/state-sandbox.ts#L20)
 
 HTTP header for the agent's long-lived bearer token when requesting a sandbox handle.

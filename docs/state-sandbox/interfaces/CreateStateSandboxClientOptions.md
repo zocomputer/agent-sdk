@@ -6,7 +6,7 @@
 
 # Interface: CreateStateSandboxClientOptions
 
-Defined in: [packages/agent-sdk/src/state-sandbox.ts:381](https://github.com/zocomputer/zov2-code/blob/9a2687559528851e1e25b6b64341058d2d74e9dc/packages/agent-sdk/src/state-sandbox.ts#L381)
+Defined in: [packages/agent-sdk/src/state-sandbox.ts:381](https://github.com/zocomputer/zov2-code/blob/3f99c6555eb919be314852ec3a36b08e02504d85/packages/agent-sdk/src/state-sandbox.ts#L381)
 
 Options for creating a sandbox client with automatic handle renewal and session caching.
 The client calls `loadHandle` when the handle expires or on first use, then builds a session via `createSession`.
@@ -17,7 +17,7 @@ The client calls `loadHandle` when the handle expires or on first use, then buil
 
 > `readonly` `optional` **ambientEnv?**: `Readonly`\<`Record`\<`string`, `string`\>\>
 
-Defined in: [packages/agent-sdk/src/state-sandbox.ts:394](https://github.com/zocomputer/zov2-code/blob/9a2687559528851e1e25b6b64341058d2d74e9dc/packages/agent-sdk/src/state-sandbox.ts#L394)
+Defined in: [packages/agent-sdk/src/state-sandbox.ts:394](https://github.com/zocomputer/zov2-code/blob/3f99c6555eb919be314852ec3a36b08e02504d85/packages/agent-sdk/src/state-sandbox.ts#L394)
 
 Ambient runtime env a caller wants to preserve for session-scratch exec.
 Durable/shared handles (`team`, `user`, `none`) never receive it.
@@ -28,7 +28,7 @@ Durable/shared handles (`team`, `user`, `none`) never receive it.
 
 > `readonly` **createSession**: [`StateSandboxSessionFactory`](StateSandboxSessionFactory.md)
 
-Defined in: [packages/agent-sdk/src/state-sandbox.ts:385](https://github.com/zocomputer/zov2-code/blob/9a2687559528851e1e25b6b64341058d2d74e9dc/packages/agent-sdk/src/state-sandbox.ts#L385)
+Defined in: [packages/agent-sdk/src/state-sandbox.ts:385](https://github.com/zocomputer/zov2-code/blob/3f99c6555eb919be314852ec3a36b08e02504d85/packages/agent-sdk/src/state-sandbox.ts#L385)
 
 Creates a session from a handle, typically an SSH client connection.
 
@@ -38,7 +38,7 @@ Creates a session from a handle, typically an SSH client connection.
 
 > `readonly` **loadHandle**: () => `Promise`\<[`StateSandboxHandle`](StateSandboxHandle.md)\>
 
-Defined in: [packages/agent-sdk/src/state-sandbox.ts:383](https://github.com/zocomputer/zov2-code/blob/9a2687559528851e1e25b6b64341058d2d74e9dc/packages/agent-sdk/src/state-sandbox.ts#L383)
+Defined in: [packages/agent-sdk/src/state-sandbox.ts:383](https://github.com/zocomputer/zov2-code/blob/3f99c6555eb919be314852ec3a36b08e02504d85/packages/agent-sdk/src/state-sandbox.ts#L383)
 
 Loads a fresh sandbox handle, typically by calling `requestStateSandboxHandle`.
 
@@ -52,7 +52,7 @@ Loads a fresh sandbox handle, typically by calling `requestStateSandboxHandle`.
 
 > `readonly` `optional` **now?**: () => `Date`
 
-Defined in: [packages/agent-sdk/src/state-sandbox.ts:387](https://github.com/zocomputer/zov2-code/blob/9a2687559528851e1e25b6b64341058d2d74e9dc/packages/agent-sdk/src/state-sandbox.ts#L387)
+Defined in: [packages/agent-sdk/src/state-sandbox.ts:387](https://github.com/zocomputer/zov2-code/blob/3f99c6555eb919be314852ec3a36b08e02504d85/packages/agent-sdk/src/state-sandbox.ts#L387)
 
 Returns the current time for expiry checks. Defaults to `() => new Date()`.
 
@@ -66,7 +66,7 @@ Returns the current time for expiry checks. Defaults to `() => new Date()`.
 
 > `readonly` `optional` **passAmbientEnvToSessionPartition?**: `boolean`
 
-Defined in: [packages/agent-sdk/src/state-sandbox.ts:399](https://github.com/zocomputer/zov2-code/blob/9a2687559528851e1e25b6b64341058d2d74e9dc/packages/agent-sdk/src/state-sandbox.ts#L399)
+Defined in: [packages/agent-sdk/src/state-sandbox.ts:399](https://github.com/zocomputer/zov2-code/blob/3f99c6555eb919be314852ec3a36b08e02504d85/packages/agent-sdk/src/state-sandbox.ts#L399)
 
 Session-partitioned scratch is the only state class allowed to inherit ambient env.
 Defaults to false so durable state clients are clean-env by construction.
@@ -77,7 +77,7 @@ Defaults to false so durable state clients are clean-env by construction.
 
 > `readonly` `optional` **refreshWindowMs?**: `number`
 
-Defined in: [packages/agent-sdk/src/state-sandbox.ts:389](https://github.com/zocomputer/zov2-code/blob/9a2687559528851e1e25b6b64341058d2d74e9dc/packages/agent-sdk/src/state-sandbox.ts#L389)
+Defined in: [packages/agent-sdk/src/state-sandbox.ts:389](https://github.com/zocomputer/zov2-code/blob/3f99c6555eb919be314852ec3a36b08e02504d85/packages/agent-sdk/src/state-sandbox.ts#L389)
 
 Reload the handle and rebuild the session when it expires within this window. Defaults to 60 seconds.
 
@@ -87,7 +87,7 @@ Reload the handle and rebuild the session when it expires within this window. De
 
 > `readonly` `optional` **renewIntervalMs?**: `number`
 
-Defined in: [packages/agent-sdk/src/state-sandbox.ts:416](https://github.com/zocomputer/zov2-code/blob/9a2687559528851e1e25b6b64341058d2d74e9dc/packages/agent-sdk/src/state-sandbox.ts#L416)
+Defined in: [packages/agent-sdk/src/state-sandbox.ts:416](https://github.com/zocomputer/zov2-code/blob/3f99c6555eb919be314852ec3a36b08e02504d85/packages/agent-sdk/src/state-sandbox.ts#L416)
 
 While work is live — an exec/file operation in flight or a spawned process
 still running — the client re-mints its handle this often so the

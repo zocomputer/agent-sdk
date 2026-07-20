@@ -6,7 +6,7 @@
 
 # Interface: StateSandboxSshAccess
 
-Defined in: [packages/agent-sdk/src/state-sandbox.ts:31](https://github.com/zocomputer/zov2-code/blob/9a2687559528851e1e25b6b64341058d2d74e9dc/packages/agent-sdk/src/state-sandbox.ts#L31)
+Defined in: [packages/agent-sdk/src/state-sandbox.ts:31](https://github.com/zocomputer/zov2-code/blob/3f99c6555eb919be314852ec3a36b08e02504d85/packages/agent-sdk/src/state-sandbox.ts#L31)
 
 Short-lived SSH access for a broker-owned sandbox state instance.
 
@@ -18,7 +18,7 @@ Short-lived SSH access for a broker-owned sandbox state instance.
 
 > `readonly` **expiresAt**: `string`
 
-Defined in: [packages/agent-sdk/src/state-sandbox.ts:35](https://github.com/zocomputer/zov2-code/blob/9a2687559528851e1e25b6b64341058d2d74e9dc/packages/agent-sdk/src/state-sandbox.ts#L35)
+Defined in: [packages/agent-sdk/src/state-sandbox.ts:35](https://github.com/zocomputer/zov2-code/blob/3f99c6555eb919be314852ec3a36b08e02504d85/packages/agent-sdk/src/state-sandbox.ts#L35)
 
 ***
 
@@ -26,7 +26,7 @@ Defined in: [packages/agent-sdk/src/state-sandbox.ts:35](https://github.com/zoco
 
 > `readonly` **sandboxId**: `string`
 
-Defined in: [packages/agent-sdk/src/state-sandbox.ts:32](https://github.com/zocomputer/zov2-code/blob/9a2687559528851e1e25b6b64341058d2d74e9dc/packages/agent-sdk/src/state-sandbox.ts#L32)
+Defined in: [packages/agent-sdk/src/state-sandbox.ts:32](https://github.com/zocomputer/zov2-code/blob/3f99c6555eb919be314852ec3a36b08e02504d85/packages/agent-sdk/src/state-sandbox.ts#L32)
 
 ***
 
@@ -34,7 +34,7 @@ Defined in: [packages/agent-sdk/src/state-sandbox.ts:32](https://github.com/zoco
 
 > `readonly` **sshHost**: `string`
 
-Defined in: [packages/agent-sdk/src/state-sandbox.ts:33](https://github.com/zocomputer/zov2-code/blob/9a2687559528851e1e25b6b64341058d2d74e9dc/packages/agent-sdk/src/state-sandbox.ts#L33)
+Defined in: [packages/agent-sdk/src/state-sandbox.ts:33](https://github.com/zocomputer/zov2-code/blob/3f99c6555eb919be314852ec3a36b08e02504d85/packages/agent-sdk/src/state-sandbox.ts#L33)
 
 ***
 
@@ -42,4 +42,4 @@ Defined in: [packages/agent-sdk/src/state-sandbox.ts:33](https://github.com/zoco
 
 > `readonly` **sshUser**: `string`
 
-Defined in: [packages/agent-sdk/src/state-sandbox.ts:34](https://github.com/zocomputer/zov2-code/blob/9a2687559528851e1e25b6b64341058d2d74e9dc/packages/agent-sdk/src/state-sandbox.ts#L34)
+Defined in: [packages/agent-sdk/src/state-sandbox.ts:34](https://github.com/zocomputer/zov2-code/blob/3f99c6555eb919be314852ec3a36b08e02504d85/packages/agent-sdk/src/state-sandbox.ts#L34)
