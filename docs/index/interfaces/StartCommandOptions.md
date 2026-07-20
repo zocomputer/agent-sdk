@@ -6,7 +6,7 @@
 
 # Interface: StartCommandOptions
 
-Defined in: [packages/agent-sdk/src/run.ts:53](https://github.com/zocomputer/zov2-code/blob/3717bd4ab29bacfe3ae9a5e05df2947880cbf6c9/packages/agent-sdk/src/run.ts#L53)
+Defined in: [packages/agent-sdk/src/run.ts:53](https://github.com/zocomputer/zov2-code/blob/9a2687559528851e1e25b6b64341058d2d74e9dc/packages/agent-sdk/src/run.ts#L53)
 
 Options for starting a shell command: working directory, timeout, and an
 optional raw-output tap called with every chunk before truncation.
@@ -17,7 +17,7 @@ optional raw-output tap called with every chunk before truncation.
 
 > `optional` **cwd?**: `string`
 
-Defined in: [packages/agent-sdk/src/run.ts:54](https://github.com/zocomputer/zov2-code/blob/3717bd4ab29bacfe3ae9a5e05df2947880cbf6c9/packages/agent-sdk/src/run.ts#L54)
+Defined in: [packages/agent-sdk/src/run.ts:54](https://github.com/zocomputer/zov2-code/blob/9a2687559528851e1e25b6b64341058d2d74e9dc/packages/agent-sdk/src/run.ts#L54)
 
 ***
 
@@ -25,7 +25,7 @@ Defined in: [packages/agent-sdk/src/run.ts:54](https://github.com/zocomputer/zov
 
 > `optional` **onOutput?**: (`chunk`) => `void`
 
-Defined in: [packages/agent-sdk/src/run.ts:60](https://github.com/zocomputer/zov2-code/blob/3717bd4ab29bacfe3ae9a5e05df2947880cbf6c9/packages/agent-sdk/src/run.ts#L60)
+Defined in: [packages/agent-sdk/src/run.ts:60](https://github.com/zocomputer/zov2-code/blob/9a2687559528851e1e25b6b64341058d2d74e9dc/packages/agent-sdk/src/run.ts#L60)
 
 Raw output tap, called with every stdout/stderr chunk as it arrives
 (before any preview truncation). Powers background-output watchers.
@@ -46,4 +46,4 @@ Raw output tap, called with every stdout/stderr chunk as it arrives
 
 > `optional` **timeoutMs?**: `number`
 
-Defined in: [packages/agent-sdk/src/run.ts:55](https://github.com/zocomputer/zov2-code/blob/3717bd4ab29bacfe3ae9a5e05df2947880cbf6c9/packages/agent-sdk/src/run.ts#L55)
+Defined in: [packages/agent-sdk/src/run.ts:55](https://github.com/zocomputer/zov2-code/blob/9a2687559528851e1e25b6b64341058d2d74e9dc/packages/agent-sdk/src/run.ts#L55)

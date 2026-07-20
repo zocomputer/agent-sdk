@@ -1,7 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { z } from "zod";
 import { createSandboxFileTools } from "./index";
-import { buildTasksToolset } from "./tools/tasks";
 
 // Model-facing schema shape is a contract (design/foundation/03, extended by
 // rib/learnings/35): newer Anthropic models garble off-prior tool shapes —
@@ -21,11 +20,7 @@ import { buildTasksToolset } from "./tools/tasks";
 // form.)
 
 const sandbox = createSandboxFileTools({ workspaceRoot: "/workspace", mediaOracle: true });
-const tasks = buildTasksToolset({
-  registry: sandbox.registry,
-  backgroundables: sandbox.backgroundables,
-});
-if (tasks === null) throw new Error("sandbox tools always include bash");
+const tasks = sandbox.taskTools;
 
 // `todo` is exempt from the zod sweep by design: it wraps eve's framework
 // tool and passes eve's own JSON schema through byte-identical — an array of

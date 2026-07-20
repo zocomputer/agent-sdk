@@ -8,7 +8,7 @@
 
 > **extractRtf**(`bytes`): [`RtfExtraction`](../type-aliases/RtfExtraction.md)
 
-Defined in: [packages/agent-sdk/src/extract/rtf.ts:110](https://github.com/zocomputer/zov2-code/blob/3717bd4ab29bacfe3ae9a5e05df2947880cbf6c9/packages/agent-sdk/src/extract/rtf.ts#L110)
+Defined in: [packages/agent-sdk/src/extract/rtf.ts:110](https://github.com/zocomputer/zov2-code/blob/9a2687559528851e1e25b6b64341058d2d74e9dc/packages/agent-sdk/src/extract/rtf.ts#L110)
 
 Extract RTF bytes into plain text.
 

@@ -398,14 +398,28 @@ export const fileTools = createSandboxFileTools({
 // the built-ins by name), exactly like the Quick start.
 ```
 
+Workflow runtimes must register background-task executors as authored tools,
+not session-dynamic closures. Export the static entries from separate tool
+files so the compiler gives each executor a durable workflow step:
+
+```ts
+// agent/tools/run_async.ts
+import { fileTools } from "../lib/file-tools";
+export default fileTools.taskTools.run_async;
+```
+
+Repeat that shape for `taskTools.check_tasks` and `taskTools.await_task`.
+`fileTools.tools.tasks` remains the dynamic convenience for runtimes that
+replay session-local closures safely.
+
 Every effect routes through the session sandbox, resolved per tool call:
 bytes over `readBinaryFile`/`writeBinaryFile`, stat/list/search executed
 remotely via `run` (ripgrep when present, POSIX grep fallback) so a search
 never pulls file contents over the wire. The rich-read pipeline (extraction,
 media detection, metadata, `AGENTS.md` riders) is byte-identical to the
 local backend — a shared conformance suite pins the two together. `bash` and
-the task machinery stay host-side by design: on a sandboxed runtime, keep
-eve's built-in `bash` (already sandbox-native).
+its background-task machinery execute through the same sandbox command
+runner, so foreground and detached work see the same remote workspace.
 
 Eve 0.22 supplies a required `ctx.callId` and `ctx.abortSignal` on every
 authored tool execution. The SDK's structural context keeps both fields

@@ -33,7 +33,7 @@ import {
   type MediaOracleOption,
 } from "./tools/look";
 import { createReadTool } from "./tools/read";
-import { createTasksTools } from "./tools/tasks";
+import { buildTasksToolset, createTasksTools } from "./tools/tasks";
 import { createTodoTool } from "./tools/todo";
 import { createWebFetchTool } from "./tools/webfetch";
 import { createWriteTool } from "./tools/write";
@@ -159,6 +159,10 @@ export function createSandboxFileTools(options: SandboxFileToolsOptions) {
       join(tmpdir(), "agent-sdk", `sandbox-tasks-${process.pid}.json`),
   });
   const backgroundables: readonly BackgroundableOp[] = [createBashOp(runner)];
+  const taskTools = buildTasksToolset({ registry, backgroundables });
+  if (taskTools === null) {
+    throw new Error("sandbox file tools require at least one backgroundable operation");
+  }
   const conventionsFileName = options.conventionsFileName ?? "AGENTS.md";
   const dirConventions =
     (options.injectDirConventions ?? true)
@@ -186,6 +190,8 @@ export function createSandboxFileTools(options: SandboxFileToolsOptions) {
     registry,
     /** The run_async-able ops (bash). */
     backgroundables,
+    /** Static authored-tool entrypoints for hosted workflow runtimes. */
+    taskTools,
     /** The resolved look oracle (`null` when `mediaOracle` wasn't set) — same contract as `Stdlib.mediaOracle`. */
     mediaOracle: oracle,
     tools: {

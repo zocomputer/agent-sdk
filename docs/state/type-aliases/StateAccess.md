@@ -8,6 +8,6 @@
 
 > **StateAccess** = `"r"` \| `"rw"`
 
-Defined in: [packages/agent-sdk/src/state.ts:16](https://github.com/zocomputer/zov2-code/blob/3717bd4ab29bacfe3ae9a5e05df2947880cbf6c9/packages/agent-sdk/src/state.ts#L16)
+Defined in: [packages/agent-sdk/src/state.ts:16](https://github.com/zocomputer/zov2-code/blob/9a2687559528851e1e25b6b64341058d2d74e9dc/packages/agent-sdk/src/state.ts#L16)
 
 Read-only or read-write, as the code needs.

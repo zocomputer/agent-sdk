@@ -44,7 +44,14 @@ export interface ZoBackendOptions {
   readonly ambientCapability?: () => string | undefined;
 }
 
-export function zoBackend(options: ZoBackendOptions): SandboxBackend {
+export interface ZoBackendSessionOptions {
+  /** Trusted capability read directly from Eve's `onSession` context. */
+  readonly sessionCapability?: string;
+}
+
+export function zoBackend(
+  options: ZoBackendOptions,
+): SandboxBackend<Record<string, never>, ZoBackendSessionOptions> {
   return {
     name: BACKEND_NAME,
 
@@ -52,7 +59,9 @@ export function zoBackend(options: ZoBackendOptions): SandboxBackend {
     // inside `sshSandboxSession`'s lazily-called `acquireAccess`, plumbed
     // through as a callback rather than awaited here — so they return an
     // already-resolved Promise instead of using `async` with no `await`.
-    create(input: SandboxBackendCreateInput): Promise<SandboxBackendHandle> {
+    create(
+      input: SandboxBackendCreateInput,
+    ): Promise<SandboxBackendHandle<ZoBackendSessionOptions>> {
       // The sandbox id eve remembered, if any — kept only for eve's own
       // reconnect state (captureState below). The API doesn't take it: it keys
       // this session's sandbox off the eve session key + caller's org itself.
@@ -153,8 +162,17 @@ export function zoBackend(options: ZoBackendOptions): SandboxBackend {
       // the root's. The broker key is what matters; the label is diagnostic.
       const ssh = sshSandboxSession(lineageRootId ?? eveSessionKey, acquireAccess);
 
-      // No per-session options for MVP, so `use()` just yields the session.
-      const useSessionFn = (): Promise<SandboxSession> => Promise.resolve(ssh.session);
+      // `onSession` supplies the trusted capability explicitly. Latch only the
+      // first proof so a later request can never redirect an existing handle.
+      const useSessionFn = (
+        sessionOptions?: ZoBackendSessionOptions,
+      ): Promise<SandboxSession> => {
+        const directCapability = sessionOptions?.sessionCapability?.trim();
+        if (directCapability !== undefined && directCapability.length > 0) {
+          latchedCapability ??= directCapability;
+        }
+        return Promise.resolve(ssh.session);
+      };
 
       return Promise.resolve({
         session: ssh.session,

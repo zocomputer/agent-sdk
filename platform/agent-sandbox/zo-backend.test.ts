@@ -352,6 +352,39 @@ describe("zoBackend", () => {
     }
   });
 
+  test("onSession supplies the capability when every ambient read misses", async () => {
+    const requests = brokerCapture();
+    const handle = await zoBackend({
+      apiBaseUrl: "http://api.test",
+      ambientCapability: () => undefined,
+    }).create(createInput(WRAPPED_KEY, { rawSessionId: RAW_SESSION_ID }));
+
+    await handle.useSessionFn({ sessionCapability: "direct-session-capability" });
+    await expect(handle.session.run({ command: "echo hi" })).rejects.toThrow(/provider_unconfigured|503/);
+
+    const request = requests[0];
+    if (request === undefined) throw new Error("scratch broker request was not captured");
+    expect(header(request.init, SESSION_CAPABILITY_HEADER)).toBe(
+      "direct-session-capability",
+    );
+  });
+
+  test("onSession cannot replace an already-latched capability", async () => {
+    const requests = brokerCapture();
+    const handle = await zoBackend({
+      apiBaseUrl: "http://api.test",
+      ambientCapability: () => undefined,
+    }).create(createInput(WRAPPED_KEY, { rawSessionId: RAW_SESSION_ID }));
+
+    await handle.useSessionFn({ sessionCapability: "first-capability" });
+    await handle.useSessionFn({ sessionCapability: "second-capability" });
+    await expect(handle.session.run({ command: "echo hi" })).rejects.toThrow(/provider_unconfigured|503/);
+
+    const request = requests[0];
+    if (request === undefined) throw new Error("scratch broker request was not captured");
+    expect(header(request.init, SESSION_CAPABILITY_HEADER)).toBe("first-capability");
+  });
+
   test("no capability ever appearing keeps every mint capability-less (unchanged behavior)", async () => {
     const requests = brokerCapture();
     const handle = await zoBackend({

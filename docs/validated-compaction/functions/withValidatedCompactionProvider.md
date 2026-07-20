@@ -8,7 +8,7 @@
 
 > **withValidatedCompactionProvider**(`provider`, `options?`): `GatewayProvider`
 
-Defined in: [packages/runtime-ai/src/validated-compaction.ts:384](https://github.com/zocomputer/zov2-code/blob/3717bd4ab29bacfe3ae9a5e05df2947880cbf6c9/packages/runtime-ai/src/validated-compaction.ts#L384)
+Defined in: [packages/runtime-ai/src/validated-compaction.ts:384](https://github.com/zocomputer/zov2-code/blob/9a2687559528851e1e25b6b64341058d2d74e9dc/packages/runtime-ai/src/validated-compaction.ts#L384)
 
 Lift [withValidatedCompaction](withValidatedCompaction.md) onto a gateway provider: every language
 model it mints (`languageModel`, `chat`, or the callable form — `ai`'s

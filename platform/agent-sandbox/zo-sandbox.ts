@@ -1,5 +1,6 @@
+import { readSessionCapability } from "../../src/initiator-auth.ts";
 import { defineSandbox, type SandboxDefinition } from "eve/sandbox";
-import { zoBackend } from "./zo-backend";
+import { type ZoBackendSessionOptions, zoBackend } from "./zo-backend";
 
 // Author-facing helper for an agent's `agent/sandbox.ts`. Agents write
 // `export default zoSandbox()` and never name the provider — the built-in
@@ -28,12 +29,23 @@ export interface ZoSandboxOptions {
  * The backend is a factory so it reads `ZO_API_URL` lazily at first use, not at
  * module load (eve's recommended form for env-dependent options).
  */
-export function zoSandbox(options: ZoSandboxOptions = {}): SandboxDefinition {
-  return defineSandbox({
+export function zoSandbox(
+  options: ZoSandboxOptions = {},
+): SandboxDefinition<Record<string, never>, ZoBackendSessionOptions> {
+  return defineSandbox<Record<string, never>, ZoBackendSessionOptions>({
     backend: () =>
       zoBackend({
         apiBaseUrl:
           options.apiBaseUrl ?? process.env.ZO_API_URL ?? DEFAULT_API_URL,
       }),
+    onSession: async ({ ctx, use }) => {
+      const sessionCapability = readSessionCapability(
+        ctx.session.auth.current,
+        ctx.session.auth.initiator,
+      );
+      await use(
+        sessionCapability === undefined ? undefined : { sessionCapability },
+      );
+    },
   });
 }

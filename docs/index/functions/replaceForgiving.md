@@ -8,7 +8,7 @@
 
 > **replaceForgiving**(`content`, `oldString`, `newString`, `replaceAll?`): [`ForgivingReplaceResult`](../interfaces/ForgivingReplaceResult.md)
 
-Defined in: [packages/agent-sdk/src/edit-match.ts:492](https://github.com/zocomputer/zov2-code/blob/3717bd4ab29bacfe3ae9a5e05df2947880cbf6c9/packages/agent-sdk/src/edit-match.ts#L492)
+Defined in: [packages/agent-sdk/src/edit-match.ts:492](https://github.com/zocomputer/zov2-code/blob/9a2687559528851e1e25b6b64341058d2d74e9dc/packages/agent-sdk/src/edit-match.ts#L492)
 
 Resolve `oldString` to a span of `content` via the replacer cascade and
 replace it with `newString`.

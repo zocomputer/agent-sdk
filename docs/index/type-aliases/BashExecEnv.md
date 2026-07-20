@@ -8,7 +8,7 @@
 
 > **BashExecEnv** = `"host"` \| `"sandbox"`
 
-Defined in: [packages/agent-sdk/src/tools/bash.ts:29](https://github.com/zocomputer/zov2-code/blob/3717bd4ab29bacfe3ae9a5e05df2947880cbf6c9/packages/agent-sdk/src/tools/bash.ts#L29)
+Defined in: [packages/agent-sdk/src/tools/bash.ts:29](https://github.com/zocomputer/zov2-code/blob/9a2687559528851e1e25b6b64341058d2d74e9dc/packages/agent-sdk/src/tools/bash.ts#L29)
 
 Where the bash tool's commands execute. Wording only — the actual backend
 is whatever `runner` does; this keeps the description honest about it.
