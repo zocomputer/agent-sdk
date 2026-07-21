@@ -8,7 +8,7 @@
 
 > `const` **RECOVERED\_CONTEXT\_HEADER**: `"## Recovered context (compaction audit)"` = `"## Recovered context (compaction audit)"`
 
-Defined in: [packages/runtime-ai/src/validated-compaction.ts:53](https://github.com/zocomputer/zov2-code/blob/bc82d445ad6dedff4ca3f700330838d6a3441bf7/packages/runtime-ai/src/validated-compaction.ts#L53)
+Defined in: [packages/runtime-ai/src/validated-compaction.ts:53](https://github.com/zocomputer/zov2-code/blob/48650141bb7b851495928e6463ae438988b79a49/packages/runtime-ai/src/validated-compaction.ts#L53)
 
 Heading of the section [withValidatedCompaction](../functions/withValidatedCompaction.md) appends to a summary
 when the judge finds facts the summary dropped. Exported so tests and log

@@ -6,7 +6,7 @@
 
 # Interface: StateSandboxClient
 
-Defined in: [packages/agent-sdk/src/state-sandbox.ts:385](https://github.com/zocomputer/zov2-code/blob/bc82d445ad6dedff4ca3f700330838d6a3441bf7/packages/agent-sdk/src/state-sandbox.ts#L385)
+Defined in: [packages/agent-sdk/src/state-sandbox.ts:385](https://github.com/zocomputer/zov2-code/blob/48650141bb7b851495928e6463ae438988b79a49/packages/agent-sdk/src/state-sandbox.ts#L385)
 
 High-level client for a state sandbox with automatic handle renewal and session caching.
 Exposes exec, spawn, and file I/O; manages the underlying session lifecycle transparently.
@@ -17,7 +17,7 @@ Exposes exec, spawn, and file I/O; manages the underlying session lifecycle tran
 
 > `readonly` **files**: [`StateSandboxFilesClient`](StateSandboxFilesClient.md)
 
-Defined in: [packages/agent-sdk/src/state-sandbox.ts:386](https://github.com/zocomputer/zov2-code/blob/bc82d445ad6dedff4ca3f700330838d6a3441bf7/packages/agent-sdk/src/state-sandbox.ts#L386)
+Defined in: [packages/agent-sdk/src/state-sandbox.ts:386](https://github.com/zocomputer/zov2-code/blob/48650141bb7b851495928e6463ae438988b79a49/packages/agent-sdk/src/state-sandbox.ts#L386)
 
 ## Methods
 
@@ -25,7 +25,7 @@ Defined in: [packages/agent-sdk/src/state-sandbox.ts:386](https://github.com/zoc
 
 > **dispose**(): `Promise`\<`void`\>
 
-Defined in: [packages/agent-sdk/src/state-sandbox.ts:400](https://github.com/zocomputer/zov2-code/blob/bc82d445ad6dedff4ca3f700330838d6a3441bf7/packages/agent-sdk/src/state-sandbox.ts#L400)
+Defined in: [packages/agent-sdk/src/state-sandbox.ts:400](https://github.com/zocomputer/zov2-code/blob/48650141bb7b851495928e6463ae438988b79a49/packages/agent-sdk/src/state-sandbox.ts#L400)
 
 Disposes the client, closing the underlying session and any pending operations.
 
@@ -39,7 +39,7 @@ Disposes the client, closing the underlying session and any pending operations.
 
 > **exec**(`command`, `options?`): `Promise`\<[`StateSandboxRunResult`](StateSandboxRunResult.md)\>
 
-Defined in: [packages/agent-sdk/src/state-sandbox.ts:390](https://github.com/zocomputer/zov2-code/blob/bc82d445ad6dedff4ca3f700330838d6a3441bf7/packages/agent-sdk/src/state-sandbox.ts#L390)
+Defined in: [packages/agent-sdk/src/state-sandbox.ts:390](https://github.com/zocomputer/zov2-code/blob/48650141bb7b851495928e6463ae438988b79a49/packages/agent-sdk/src/state-sandbox.ts#L390)
 
 Runs a shell command to completion in the sandbox. Requires `rw` access.
 
@@ -63,7 +63,7 @@ Runs a shell command to completion in the sandbox. Requires `rw` access.
 
 > **spawn**(`command`, `options?`): `Promise`\<[`StateSandboxSpawnedProcess`](StateSandboxSpawnedProcess.md)\>
 
-Defined in: [packages/agent-sdk/src/state-sandbox.ts:395](https://github.com/zocomputer/zov2-code/blob/bc82d445ad6dedff4ca3f700330838d6a3441bf7/packages/agent-sdk/src/state-sandbox.ts#L395)
+Defined in: [packages/agent-sdk/src/state-sandbox.ts:395](https://github.com/zocomputer/zov2-code/blob/48650141bb7b851495928e6463ae438988b79a49/packages/agent-sdk/src/state-sandbox.ts#L395)
 
 Spawns a long-running shell command with streaming output. Requires `rw` access.
 
@@ -87,7 +87,7 @@ Spawns a long-running shell command with streaming output. Requires `rw` access.
 
 > **status**(): [`StateSandboxStatus`](../type-aliases/StateSandboxStatus.md)
 
-Defined in: [packages/agent-sdk/src/state-sandbox.ts:388](https://github.com/zocomputer/zov2-code/blob/bc82d445ad6dedff4ca3f700330838d6a3441bf7/packages/agent-sdk/src/state-sandbox.ts#L388)
+Defined in: [packages/agent-sdk/src/state-sandbox.ts:388](https://github.com/zocomputer/zov2-code/blob/48650141bb7b851495928e6463ae438988b79a49/packages/agent-sdk/src/state-sandbox.ts#L388)
 
 Returns the current lifecycle state of the client.
 

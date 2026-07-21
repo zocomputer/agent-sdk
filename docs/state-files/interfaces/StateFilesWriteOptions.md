@@ -6,7 +6,7 @@
 
 # Interface: StateFilesWriteOptions
 
-Defined in: [packages/agent-sdk/src/state-files.ts:257](https://github.com/zocomputer/zov2-code/blob/bc82d445ad6dedff4ca3f700330838d6a3441bf7/packages/agent-sdk/src/state-files.ts#L257)
+Defined in: [packages/agent-sdk/src/state-files.ts:257](https://github.com/zocomputer/zov2-code/blob/48650141bb7b851495928e6463ae438988b79a49/packages/agent-sdk/src/state-files.ts#L257)
 
 Optional settings for writing a file to the state-files store.
 
@@ -16,4 +16,4 @@ Optional settings for writing a file to the state-files store.
 
 > `readonly` `optional` **contentType?**: `string`
 
-Defined in: [packages/agent-sdk/src/state-files.ts:258](https://github.com/zocomputer/zov2-code/blob/bc82d445ad6dedff4ca3f700330838d6a3441bf7/packages/agent-sdk/src/state-files.ts#L258)
+Defined in: [packages/agent-sdk/src/state-files.ts:258](https://github.com/zocomputer/zov2-code/blob/48650141bb7b851495928e6463ae438988b79a49/packages/agent-sdk/src/state-files.ts#L258)

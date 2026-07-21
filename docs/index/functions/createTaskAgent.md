@@ -8,7 +8,7 @@
 
 > **createTaskAgent**(`options`): `object`
 
-Defined in: [packages/agent-sdk/src/task.ts:223](https://github.com/zocomputer/zov2-code/blob/bc82d445ad6dedff4ca3f700330838d6a3441bf7/packages/agent-sdk/src/task.ts#L223)
+Defined in: [packages/agent-sdk/src/task.ts:223](https://github.com/zocomputer/zov2-code/blob/48650141bb7b851495928e6463ae438988b79a49/packages/agent-sdk/src/task.ts#L223)
 
 The `defineAgent` config for a consumer's
 `agent/subagents/task_<tier>/agent.ts`. The description is what the parent

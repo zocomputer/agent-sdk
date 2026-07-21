@@ -8,7 +8,7 @@
 
 > **convertHtmlToMarkdown**(`html`): `string`
 
-Defined in: [packages/agent-sdk/src/web-fetch.ts:74](https://github.com/zocomputer/zov2-code/blob/bc82d445ad6dedff4ca3f700330838d6a3441bf7/packages/agent-sdk/src/web-fetch.ts#L74)
+Defined in: [packages/agent-sdk/src/web-fetch.ts:74](https://github.com/zocomputer/zov2-code/blob/48650141bb7b851495928e6463ae438988b79a49/packages/agent-sdk/src/web-fetch.ts#L74)
 
 Convert HTML to markdown via TurndownService, parsing with linkedom instead
 of handing turndown a string directly so polyfilled DOM hosts (happy-dom

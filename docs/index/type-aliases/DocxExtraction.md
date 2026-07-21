@@ -8,7 +8,7 @@
 
 > **DocxExtraction** = \{ `ok`: `true`; `text`: `string`; \} \| \{ `ok`: `false`; `reason`: `string`; \}
 
-Defined in: [packages/agent-sdk/src/extract/docx.ts:11](https://github.com/zocomputer/zov2-code/blob/bc82d445ad6dedff4ca3f700330838d6a3441bf7/packages/agent-sdk/src/extract/docx.ts#L11)
+Defined in: [packages/agent-sdk/src/extract/docx.ts:11](https://github.com/zocomputer/zov2-code/blob/48650141bb7b851495928e6463ae438988b79a49/packages/agent-sdk/src/extract/docx.ts#L11)
 
 Result of DOCX extraction: either plain text (not HTML/markdown — the model
 wants the words, and read's line-numbered view supplies structure), or a

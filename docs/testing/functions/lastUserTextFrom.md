@@ -8,7 +8,7 @@
 
 > **lastUserTextFrom**(`prompt`): `string` \| `undefined`
 
-Defined in: [packages/agent-sdk/src/mock-model.ts:195](https://github.com/zocomputer/zov2-code/blob/bc82d445ad6dedff4ca3f700330838d6a3441bf7/packages/agent-sdk/src/mock-model.ts#L195)
+Defined in: [packages/agent-sdk/src/mock-model.ts:195](https://github.com/zocomputer/zov2-code/blob/48650141bb7b851495928e6463ae438988b79a49/packages/agent-sdk/src/mock-model.ts#L195)
 
 The last user message's plain text, for topic echo + directive parsing.
 

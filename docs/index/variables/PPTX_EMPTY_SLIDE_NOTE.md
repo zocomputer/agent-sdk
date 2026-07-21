@@ -8,6 +8,6 @@
 
 > `const` **PPTX\_EMPTY\_SLIDE\_NOTE**: `"[no text on this slide — likely image-only; images cannot be extracted]"` = `"[no text on this slide — likely image-only; images cannot be extracted]"`
 
-Defined in: [packages/agent-sdk/src/extract/pptx.ts:20](https://github.com/zocomputer/zov2-code/blob/bc82d445ad6dedff4ca3f700330838d6a3441bf7/packages/agent-sdk/src/extract/pptx.ts#L20)
+Defined in: [packages/agent-sdk/src/extract/pptx.ts:20](https://github.com/zocomputer/zov2-code/blob/48650141bb7b851495928e6463ae438988b79a49/packages/agent-sdk/src/extract/pptx.ts#L20)
 
 Shown in place of a slide whose shapes carry no text at all.

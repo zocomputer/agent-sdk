@@ -8,7 +8,7 @@
 
 > **NotebookExtraction** = \{ `cells`: `number`; `ok`: `true`; `text`: `string`; \} \| \{ `ok`: `false`; `reason`: `string`; \}
 
-Defined in: [packages/agent-sdk/src/extract/ipynb.ts:12](https://github.com/zocomputer/zov2-code/blob/bc82d445ad6dedff4ca3f700330838d6a3441bf7/packages/agent-sdk/src/extract/ipynb.ts#L12)
+Defined in: [packages/agent-sdk/src/extract/ipynb.ts:12](https://github.com/zocomputer/zov2-code/blob/48650141bb7b851495928e6463ae438988b79a49/packages/agent-sdk/src/extract/ipynb.ts#L12)
 
 Result of notebook extraction: text with explicit cell markers plus the
 cell count, or a failure reason (malformed JSON, a pre-v4 nbformat).

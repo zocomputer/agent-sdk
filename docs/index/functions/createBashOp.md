@@ -8,7 +8,7 @@
 
 > **createBashOp**(`runner`): [`BackgroundableOp`](../interfaces/BackgroundableOp.md)
 
-Defined in: [packages/agent-sdk/src/backgroundable.ts:96](https://github.com/zocomputer/zov2-code/blob/bc82d445ad6dedff4ca3f700330838d6a3441bf7/packages/agent-sdk/src/backgroundable.ts#L96)
+Defined in: [packages/agent-sdk/src/backgroundable.ts:96](https://github.com/zocomputer/zov2-code/blob/48650141bb7b851495928e6463ae438988b79a49/packages/agent-sdk/src/backgroundable.ts#L96)
 
 Build the bash backgroundable op: a shell command through the stdlib's
 runner. The one op every agent wants backgroundable; agents with their own

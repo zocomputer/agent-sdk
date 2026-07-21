@@ -6,7 +6,7 @@
 
 # Interface: StreamGuardOptions
 
-Defined in: [packages/runtime-ai/src/stream-guards.ts:33](https://github.com/zocomputer/zov2-code/blob/bc82d445ad6dedff4ca3f700330838d6a3441bf7/packages/runtime-ai/src/stream-guards.ts#L33)
+Defined in: [packages/runtime-ai/src/stream-guards.ts:33](https://github.com/zocomputer/zov2-code/blob/48650141bb7b851495928e6463ae438988b79a49/packages/runtime-ai/src/stream-guards.ts#L33)
 
 First-byte and idle timeout options for stream guards.
 
@@ -16,7 +16,7 @@ First-byte and idle timeout options for stream guards.
 
 > `readonly` **firstByteMs**: `number`
 
-Defined in: [packages/runtime-ai/src/stream-guards.ts:35](https://github.com/zocomputer/zov2-code/blob/bc82d445ad6dedff4ca3f700330838d6a3441bf7/packages/runtime-ai/src/stream-guards.ts#L35)
+Defined in: [packages/runtime-ai/src/stream-guards.ts:35](https://github.com/zocomputer/zov2-code/blob/48650141bb7b851495928e6463ae438988b79a49/packages/runtime-ai/src/stream-guards.ts#L35)
 
 Max wait for response headers, ms.
 
@@ -26,6 +26,6 @@ Max wait for response headers, ms.
 
 > `readonly` **idleMs**: `number`
 
-Defined in: [packages/runtime-ai/src/stream-guards.ts:37](https://github.com/zocomputer/zov2-code/blob/bc82d445ad6dedff4ca3f700330838d6a3441bf7/packages/runtime-ai/src/stream-guards.ts#L37)
+Defined in: [packages/runtime-ai/src/stream-guards.ts:37](https://github.com/zocomputer/zov2-code/blob/48650141bb7b851495928e6463ae438988b79a49/packages/runtime-ai/src/stream-guards.ts#L37)
 
 Max quiet gap between response-body chunks, ms.

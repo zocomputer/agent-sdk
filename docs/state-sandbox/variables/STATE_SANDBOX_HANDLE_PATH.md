@@ -8,6 +8,6 @@
 
 > `const` **STATE\_SANDBOX\_HANDLE\_PATH**: `"/state/handles"` = `"/state/handles"`
 
-Defined in: [packages/agent-sdk/src/state-sandbox.ts:18](https://github.com/zocomputer/zov2-code/blob/bc82d445ad6dedff4ca3f700330838d6a3441bf7/packages/agent-sdk/src/state-sandbox.ts#L18)
+Defined in: [packages/agent-sdk/src/state-sandbox.ts:18](https://github.com/zocomputer/zov2-code/blob/48650141bb7b851495928e6463ae438988b79a49/packages/agent-sdk/src/state-sandbox.ts#L18)
 
 API path for requesting a state sandbox handle from the runtime broker.

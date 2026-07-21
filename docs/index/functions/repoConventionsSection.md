@@ -8,7 +8,7 @@
 
 > **repoConventionsSection**(`opts`): [`PromptSection`](../interfaces/PromptSection.md)
 
-Defined in: [packages/agent-sdk/src/instructions.ts:53](https://github.com/zocomputer/zov2-code/blob/bc82d445ad6dedff4ca3f700330838d6a3441bf7/packages/agent-sdk/src/instructions.ts#L53)
+Defined in: [packages/agent-sdk/src/instructions.ts:53](https://github.com/zocomputer/zov2-code/blob/48650141bb7b851495928e6463ae438988b79a49/packages/agent-sdk/src/instructions.ts#L53)
 
 The root-AGENTS.md section: the workspace's root conventions file wrapped
 in a `<root-agents-md>` block. Empty body (renders nothing) when the file

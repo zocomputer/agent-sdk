@@ -8,6 +8,6 @@
 
 > **TodoStatus** = *typeof* [`TODO_STATUSES`](../variables/TODO_STATUSES.md)\[`number`\]
 
-Defined in: [packages/agent-sdk/src/todo-discipline.ts:24](https://github.com/zocomputer/zov2-code/blob/bc82d445ad6dedff4ca3f700330838d6a3441bf7/packages/agent-sdk/src/todo-discipline.ts#L24)
+Defined in: [packages/agent-sdk/src/todo-discipline.ts:24](https://github.com/zocomputer/zov2-code/blob/48650141bb7b851495928e6463ae438988b79a49/packages/agent-sdk/src/todo-discipline.ts#L24)
 
 Lifecycle status of one todo item.

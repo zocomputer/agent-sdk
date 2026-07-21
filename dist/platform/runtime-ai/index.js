@@ -1,7 +1,7 @@
-// ../../../../../tmp/agent-sdk-mirror-JVL2mN/repo/platform/runtime-ai/gateway.ts
+// ../../../../../tmp/agent-sdk-mirror-8osWcm/repo/platform/runtime-ai/gateway.ts
 import { createGateway } from "ai";
 
-// ../../../../../tmp/agent-sdk-mirror-JVL2mN/repo/platform/runtime-ai/credential-fetch.ts
+// ../../../../../tmp/agent-sdk-mirror-8osWcm/repo/platform/runtime-ai/credential-fetch.ts
 var VERCEL_OIDC_HEADER = "x-zo-vercel-oidc";
 var VERCEL_DEPLOYMENT_HINT_HEADER = "x-zo-vercel-deployment-id";
 var LOCAL_AGENT_HEADER = "x-zo-local-agent";
@@ -86,7 +86,7 @@ function credentialFetch(baseFetch = globalThis.fetch) {
   }, baseFetch);
 }
 
-// ../../../../../tmp/agent-sdk-mirror-JVL2mN/repo/platform/runtime-ai/session-fetch.ts
+// ../../../../../tmp/agent-sdk-mirror-8osWcm/repo/platform/runtime-ai/session-fetch.ts
 var EVE_SESSION_HEADER = "x-zo-eve-session";
 var EVE_TURN_HEADER = "x-zo-eve-turn";
 var EVE_SUBAGENT_SESSION_HEADER = "x-zo-eve-subagent-session";
@@ -179,7 +179,7 @@ function eveSessionFetch(getSessionId = ambientEveSessionId, baseFetch = globalT
   }, baseFetch);
 }
 
-// ../../../../../tmp/agent-sdk-mirror-JVL2mN/repo/platform/runtime-ai/stream-guards.ts
+// ../../../../../tmp/agent-sdk-mirror-8osWcm/repo/platform/runtime-ai/stream-guards.ts
 var DEFAULT_STREAM_GUARDS = {
   firstByteMs: 60000,
   idleMs: 180000
@@ -243,7 +243,7 @@ function withStreamGuards(baseFetch, options = DEFAULT_STREAM_GUARDS) {
   return Object.assign(guarded, { preconnect: globalThis.fetch.preconnect });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-JVL2mN/repo/platform/runtime-ai/gateway-config.ts
+// ../../../../../tmp/agent-sdk-mirror-8osWcm/repo/platform/runtime-ai/gateway-config.ts
 var ZO_TOOL_HEADER = "x-zo-tool";
 var DEFAULT_ZO_AI_BASE_URL = "http://localhost:4000/runtime/ai/v4/ai";
 var DEFAULT_ZO_AI_KEY = "dev-proxy";
@@ -265,11 +265,11 @@ function zoGatewaySettings(options = {}) {
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-JVL2mN/repo/platform/runtime-ai/gateway.ts
+// ../../../../../tmp/agent-sdk-mirror-8osWcm/repo/platform/runtime-ai/gateway.ts
 function zoGateway(options = {}) {
   return createGateway(zoGatewaySettings(options));
 }
-// ../../../../../tmp/agent-sdk-mirror-JVL2mN/repo/platform/runtime-ai/catalog.ts
+// ../../../../../tmp/agent-sdk-mirror-8osWcm/repo/platform/runtime-ai/catalog.ts
 function resolveZoGatewayCatalogUrl(baseURL) {
   const url = new URL(resolveZoGatewayBaseUrl(baseURL));
   if (!/\/v4\/ai\/?$/u.test(url.pathname)) {

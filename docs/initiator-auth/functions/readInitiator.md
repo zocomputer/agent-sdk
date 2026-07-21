@@ -8,7 +8,7 @@
 
 > **readInitiator**(`initiator`): [`InitiatorIdentity`](../interfaces/InitiatorIdentity.md) \| `null`
 
-Defined in: [packages/agent-sdk/src/initiator-auth.ts:83](https://github.com/zocomputer/zov2-code/blob/bc82d445ad6dedff4ca3f700330838d6a3441bf7/packages/agent-sdk/src/initiator-auth.ts#L83)
+Defined in: [packages/agent-sdk/src/initiator-auth.ts:83](https://github.com/zocomputer/zov2-code/blob/48650141bb7b851495928e6463ae438988b79a49/packages/agent-sdk/src/initiator-auth.ts#L83)
 
 Pull `{ userId, agentId }` off a session's `initiator` SessionAuthContext, or
 `null` when it's absent (local dev, unscoped session) or malformed —

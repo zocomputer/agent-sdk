@@ -8,7 +8,7 @@
 
 > **HarnessEffectTurnIdentityV1** = `object`
 
-Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:75](https://github.com/zocomputer/zov2-code/blob/bc82d445ad6dedff4ca3f700330838d6a3441bf7/packages/agent-sdk/src/harness-protocol-v1.ts#L75)
+Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:75](https://github.com/zocomputer/zov2-code/blob/48650141bb7b851495928e6463ae438988b79a49/packages/agent-sdk/src/harness-protocol-v1.ts#L75)
 
 Optional Eve turn identity attached by the executing runtime.
 
@@ -18,7 +18,7 @@ Optional Eve turn identity attached by the executing runtime.
 
 > `readonly` **sessionId**: `string`
 
-Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:76](https://github.com/zocomputer/zov2-code/blob/bc82d445ad6dedff4ca3f700330838d6a3441bf7/packages/agent-sdk/src/harness-protocol-v1.ts#L76)
+Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:76](https://github.com/zocomputer/zov2-code/blob/48650141bb7b851495928e6463ae438988b79a49/packages/agent-sdk/src/harness-protocol-v1.ts#L76)
 
 ***
 
@@ -26,4 +26,4 @@ Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:76](https://github.co
 
 > `readonly` **turnId**: `string`
 
-Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:77](https://github.com/zocomputer/zov2-code/blob/bc82d445ad6dedff4ca3f700330838d6a3441bf7/packages/agent-sdk/src/harness-protocol-v1.ts#L77)
+Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:77](https://github.com/zocomputer/zov2-code/blob/48650141bb7b851495928e6463ae438988b79a49/packages/agent-sdk/src/harness-protocol-v1.ts#L77)

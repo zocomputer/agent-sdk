@@ -8,7 +8,7 @@
 
 > **requestStateFilesHandleWithConsent**(`options`): `Promise`\<[`StateHandleOutcome`](../type-aliases/StateHandleOutcome.md)\<[`StateFilesHandle`](../../state-files/interfaces/StateFilesHandle.md)\>\>
 
-Defined in: [packages/agent-sdk/src/state-consent-wrapper.ts:60](https://github.com/zocomputer/zov2-code/blob/bc82d445ad6dedff4ca3f700330838d6a3441bf7/packages/agent-sdk/src/state-consent-wrapper.ts#L60)
+Defined in: [packages/agent-sdk/src/state-consent-wrapper.ts:60](https://github.com/zocomputer/zov2-code/blob/48650141bb7b851495928e6463ae438988b79a49/packages/agent-sdk/src/state-consent-wrapper.ts#L60)
 
 Request a state-FILES handle, turning a `consent_required` gate into a steer.
 Re-throws every other `StateFilesHandleError` (and any non-consent error) — a

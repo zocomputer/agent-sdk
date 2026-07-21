@@ -8,7 +8,7 @@
 
 > `const` **COMPACTION\_SENTINEL**: `"You are a conversation summarizer."` = `"You are a conversation summarizer."`
 
-Defined in: [packages/runtime-ai/src/validated-compaction.ts:46](https://github.com/zocomputer/zov2-code/blob/bc82d445ad6dedff4ca3f700330838d6a3441bf7/packages/runtime-ai/src/validated-compaction.ts#L46)
+Defined in: [packages/runtime-ai/src/validated-compaction.ts:46](https://github.com/zocomputer/zov2-code/blob/48650141bb7b851495928e6463ae438988b79a49/packages/runtime-ai/src/validated-compaction.ts#L46)
 
 The opening sentence of eve's compaction system prompt, used to recognize a
 compaction call on the wrapped model.
