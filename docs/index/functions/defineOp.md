@@ -8,7 +8,7 @@
 
 > **defineOp**\<`I`\>(`cfg`): [`BackgroundableOp`](../interfaces/BackgroundableOp.md)
 
-Defined in: [packages/agent-sdk/src/backgroundable.ts:56](https://github.com/zocomputer/zov2-code/blob/431612973a5c06efcad7920699932d7fe7145ddd/packages/agent-sdk/src/backgroundable.ts#L56)
+Defined in: [packages/agent-sdk/src/backgroundable.ts:56](https://github.com/zocomputer/zov2-code/blob/4b68538420ff1392c629a63ef43ccfd25f463014/packages/agent-sdk/src/backgroundable.ts#L56)
 
 Define a backgroundable operation: typed input schema, label builder, and
 the work function. The returned `BackgroundableOp` erases the input type

@@ -1,4 +1,4 @@
-// ../../../../../tmp/agent-sdk-mirror-rsA8Zc/repo/src/harness-protocol-v1.ts
+// ../../../../../tmp/agent-sdk-mirror-vf1nrX/repo/src/harness-protocol-v1.ts
 var HARNESS_PROTOCOL_V1_LIMITS = {
   maxEffectsPerResult: 16,
   maxPathUtf8Bytes: 4 * 1024,

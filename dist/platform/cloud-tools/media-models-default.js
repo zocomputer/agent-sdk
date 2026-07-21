@@ -1,7 +1,7 @@
-// ../../../../../tmp/agent-sdk-mirror-rsA8Zc/repo/platform/runtime-ai/gateway.ts
+// ../../../../../tmp/agent-sdk-mirror-vf1nrX/repo/platform/runtime-ai/gateway.ts
 import { createGateway } from "ai";
 
-// ../../../../../tmp/agent-sdk-mirror-rsA8Zc/repo/platform/runtime-ai/session-fetch.ts
+// ../../../../../tmp/agent-sdk-mirror-vf1nrX/repo/platform/runtime-ai/session-fetch.ts
 var EVE_SESSION_HEADER = "x-zo-eve-session";
 var EVE_TURN_HEADER = "x-zo-eve-turn";
 var EVE_SUBAGENT_SESSION_HEADER = "x-zo-eve-subagent-session";
@@ -68,7 +68,7 @@ function eveSessionFetch(getSessionId = ambientEveSessionId, baseFetch = globalT
   }, baseFetch);
 }
 
-// ../../../../../tmp/agent-sdk-mirror-rsA8Zc/repo/platform/runtime-ai/gateway-config.ts
+// ../../../../../tmp/agent-sdk-mirror-vf1nrX/repo/platform/runtime-ai/gateway-config.ts
 var DEFAULT_ZO_AI_BASE_URL = "http://localhost:4000/runtime/ai/v4/ai";
 var DEFAULT_ZO_AI_KEY = "dev-proxy";
 var AGENT_TOKEN_HEADER = "x-zo-agent-token";
@@ -85,7 +85,7 @@ function resolveZoGatewayApiKey(apiKey = process.env.ZO_AI_KEY) {
   const trimmed = apiKey?.trim();
   return trimmed && trimmed.length > 0 ? trimmed : DEFAULT_ZO_AI_KEY;
 }
-// ../../../../../tmp/agent-sdk-mirror-rsA8Zc/repo/platform/runtime-ai/catalog.ts
+// ../../../../../tmp/agent-sdk-mirror-vf1nrX/repo/platform/runtime-ai/catalog.ts
 function resolveZoGatewayCatalogUrl(baseURL) {
   const url = new URL(resolveZoGatewayBaseUrl(baseURL));
   if (!/\/v4\/ai\/?$/u.test(url.pathname)) {
@@ -126,7 +126,7 @@ async function fetchMediaCatalog(options = {}) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-rsA8Zc/repo/platform/cloud-tools/media-catalog-parser.ts
+// ../../../../../tmp/agent-sdk-mirror-vf1nrX/repo/platform/cloud-tools/media-catalog-parser.ts
 var isRecord = (value) => typeof value === "object" && value !== null && !Array.isArray(value);
 var scalarRecordArray = (value) => Array.isArray(value) && value.every((row) => isRecord(row) && Object.values(row).every((v) => ["string", "number", "boolean"].includes(typeof v))) ? value : undefined;
 function parsePricing(value) {
@@ -175,7 +175,7 @@ function isMediaKind(value) {
   return value === "image" || value === "video" || value === "speech" || value === "transcription";
 }
 
-// ../../../../../tmp/agent-sdk-mirror-rsA8Zc/repo/platform/cloud-tools/media-catalog-snapshot.ts
+// ../../../../../tmp/agent-sdk-mirror-vf1nrX/repo/platform/cloud-tools/media-catalog-snapshot.ts
 import { createHash } from "node:crypto";
 function canonical(value) {
   if (Array.isArray(value))
@@ -189,7 +189,7 @@ function mediaCatalogSnapshotId(models) {
   return `sha256:${createHash("sha256").update(canonical(ordered)).digest("hex")}`;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-rsA8Zc/repo/platform/cloud-tools/media-catalog-cache.ts
+// ../../../../../tmp/agent-sdk-mirror-vf1nrX/repo/platform/cloud-tools/media-catalog-cache.ts
 function createMediaCatalogCache(options) {
   const now = options.now ?? Date.now;
   const freshMs = options.freshMs ?? 5 * 60000;
@@ -236,7 +236,7 @@ function mergeValidators(previous, next) {
   return Object.keys(merged).length === 0 ? undefined : merged;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-rsA8Zc/repo/platform/cloud-tools/media-models.ts
+// ../../../../../tmp/agent-sdk-mirror-vf1nrX/repo/platform/cloud-tools/media-models.ts
 import { defineTool } from "eve/tools";
 import { z } from "zod";
 var MediaModelsInputSchema = z.object({
@@ -285,7 +285,7 @@ function compact(item) {
   return { id: item.id, name: item.name, kind: item.kind, availability: item.availability, catalog_snapshot_id: item.lineage.snapshotId, fetched_at: item.lineage.fetchedAt, stale: item.lineage.stale, adapter_revision: item.adapterRevision, verified_at: item.verifiedAt, pricing: item.pricing, operations: item.operations.map((op) => ({ operation: op.operation, inputs: op.inputs, settings: op.settings, outputs: op.outputs, provenance: op.provenance })) };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-rsA8Zc/repo/platform/cloud-tools/media-adapters.ts
+// ../../../../../tmp/agent-sdk-mirror-vf1nrX/repo/platform/cloud-tools/media-adapters.ts
 function adapter(modelId, operation, output, options = {}) {
   const acceptedKinds = options.acceptedKinds ?? [];
   const curatedSettings = options.settings ?? [];
@@ -467,7 +467,7 @@ function isRecord2(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-// ../../../../../tmp/agent-sdk-mirror-rsA8Zc/repo/platform/cloud-tools/media-registry.ts
+// ../../../../../tmp/agent-sdk-mirror-vf1nrX/repo/platform/cloud-tools/media-registry.ts
 function createMediaRegistry(models, lineage, adapters = MEDIA_PROVIDER_ADAPTERS) {
   const live = new Map(models.map((model) => [model.id, model]));
   const profile = (id) => {
@@ -533,7 +533,7 @@ function kindFor(operation) {
   return "transcription";
 }
 
-// ../../../../../tmp/agent-sdk-mirror-rsA8Zc/repo/platform/cloud-tools/media-models-default.ts
+// ../../../../../tmp/agent-sdk-mirror-vf1nrX/repo/platform/cloud-tools/media-models-default.ts
 var catalog = createMediaCatalogCache({
   refresh: (validators) => fetchMediaCatalog(validators === undefined ? {} : { validators })
 });

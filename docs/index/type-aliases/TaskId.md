@@ -8,6 +8,6 @@
 
 > **TaskId** = `z.infer`\<*typeof* [`TaskIdSchema`](../variables/TaskIdSchema.md)\>
 
-Defined in: [packages/agent-sdk/src/async-tasks.ts:37](https://github.com/zocomputer/zov2-code/blob/431612973a5c06efcad7920699932d7fe7145ddd/packages/agent-sdk/src/async-tasks.ts#L37)
+Defined in: [packages/agent-sdk/src/async-tasks.ts:37](https://github.com/zocomputer/zov2-code/blob/4b68538420ff1392c629a63ef43ccfd25f463014/packages/agent-sdk/src/async-tasks.ts#L37)
 
 Opaque id returned by [TaskRegistry.spawnTask](../interfaces/TaskRegistry.md#spawntask).

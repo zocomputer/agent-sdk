@@ -8,6 +8,6 @@
 
 > **StateSandboxLifecycle** = `"ready"` \| `"resuming"`
 
-Defined in: [packages/agent-sdk/src/state-sandbox.ts:15](https://github.com/zocomputer/zov2-code/blob/431612973a5c06efcad7920699932d7fe7145ddd/packages/agent-sdk/src/state-sandbox.ts#L15)
+Defined in: [packages/agent-sdk/src/state-sandbox.ts:15](https://github.com/zocomputer/zov2-code/blob/4b68538420ff1392c629a63ef43ccfd25f463014/packages/agent-sdk/src/state-sandbox.ts#L15)
 
 The sandbox lifecycle state when a handle is issued: ready to use or still resuming from hibernation.

@@ -1,6 +1,6 @@
 // Schema drift guard: the mock's scripted `ask_question` and `todo` inputs
 // are hand-written, but the real tools they target are eve's framework tools
-// with eve-owned JSON schemas. If eve renames a field, tightens an enum, or
+// with eve-owned schemas. If eve renames a field, tightens an enum, or
 // adds a required property, a hand-written input goes stale SILENTLY — the
 // scenario then exercises the cockpits against a tool error nobody scripted.
 // This suite validates every scripted input against the schemas the installed
@@ -18,6 +18,19 @@ import { MOCK_SCENARIOS, scriptActionFor, type MockScriptedScenario } from "./mo
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function hasToJSONSchema(
+  value: Record<string, unknown>,
+): value is Record<string, unknown> & { toJSONSchema(): unknown } {
+  return typeof value.toJSONSchema === "function";
+}
+
+function normalizeJSONSchema(value: unknown, label: string): Record<string, unknown> {
+  if (!isRecord(value)) throw new Error(`${label} is not an object`);
+  const schema = hasToJSONSchema(value) ? value.toJSONSchema() : value;
+  if (!isRecord(schema)) throw new Error(`${label} did not produce a JSON Schema object`);
+  return schema;
 }
 
 /**
@@ -39,6 +52,7 @@ function schemaViolations(value: unknown, schema: unknown, path = "$"): string[]
     "items",
     "enum",
     "description",
+    "$schema",
   ]);
   for (const keyword of Object.keys(schema)) {
     if (!supported.has(keyword)) {
@@ -111,9 +125,10 @@ async function loadEveInternal(relativePath: string): Promise<Record<string, unk
 
 async function askQuestionInputSchema(): Promise<unknown> {
   const module = await loadEveInternal("dist/src/runtime/framework-tools/ask-question.js");
-  const schema = module.ASK_QUESTION_INPUT_SCHEMA;
-  if (!isRecord(schema)) throw new Error("eve no longer exports ASK_QUESTION_INPUT_SCHEMA");
-  return schema;
+  return normalizeJSONSchema(
+    module.ASK_QUESTION_INPUT_SCHEMA,
+    "eve ASK_QUESTION_INPUT_SCHEMA",
+  );
 }
 
 async function todoInputSchema(): Promise<unknown> {
@@ -122,7 +137,10 @@ async function todoInputSchema(): Promise<unknown> {
   if (!isRecord(definition) || !isRecord(definition.inputSchema)) {
     throw new Error("eve no longer exports TODO_TOOL_DEFINITION.inputSchema");
   }
-  return definition.inputSchema;
+  return normalizeJSONSchema(
+    definition.inputSchema,
+    "eve TODO_TOOL_DEFINITION.inputSchema",
+  );
 }
 
 // --- The suite ---------------------------------------------------------------

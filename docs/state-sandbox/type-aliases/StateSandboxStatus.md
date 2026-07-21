@@ -8,7 +8,7 @@
 
 > **StateSandboxStatus** = \{ `status`: `"idle"`; \} \| \{ `handleId`: `string`; `status`: `"resuming"`; \} \| \{ `handleId`: `string`; `status`: `"ready"`; \}
 
-Defined in: [packages/agent-sdk/src/state-sandbox.ts:376](https://github.com/zocomputer/zov2-code/blob/431612973a5c06efcad7920699932d7fe7145ddd/packages/agent-sdk/src/state-sandbox.ts#L376)
+Defined in: [packages/agent-sdk/src/state-sandbox.ts:376](https://github.com/zocomputer/zov2-code/blob/4b68538420ff1392c629a63ef43ccfd25f463014/packages/agent-sdk/src/state-sandbox.ts#L376)
 
 The lifecycle state of a sandbox client: idle (no handle loaded), resuming (handle loaded but sandbox still waking), or ready.
 Transitions from idle to resuming when a handle is requested, then to ready once the session establishes.

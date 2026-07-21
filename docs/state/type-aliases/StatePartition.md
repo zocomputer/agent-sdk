@@ -8,6 +8,6 @@
 
 > **StatePartition** = `"none"` \| `"team"` \| `"user"` \| `"session"`
 
-Defined in: [packages/agent-sdk/src/state.ts:25](https://github.com/zocomputer/zov2-code/blob/431612973a5c06efcad7920699932d7fe7145ddd/packages/agent-sdk/src/state.ts#L25)
+Defined in: [packages/agent-sdk/src/state.ts:25](https://github.com/zocomputer/zov2-code/blob/4b68538420ff1392c629a63ef43ccfd25f463014/packages/agent-sdk/src/state.ts#L25)
 
 How instances subdivide. There is deliberately no `turn` (use eve's defineState).

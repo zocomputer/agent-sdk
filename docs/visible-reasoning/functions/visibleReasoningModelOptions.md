@@ -8,7 +8,7 @@
 
 > **visibleReasoningModelOptions**(`modelId`): [`VisibleReasoningModelOptions`](../interfaces/VisibleReasoningModelOptions.md) \| `undefined`
 
-Defined in: [packages/agent-sdk/src/visible-reasoning.ts:94](https://github.com/zocomputer/zov2-code/blob/431612973a5c06efcad7920699932d7fe7145ddd/packages/agent-sdk/src/visible-reasoning.ts#L94)
+Defined in: [packages/agent-sdk/src/visible-reasoning.ts:94](https://github.com/zocomputer/zov2-code/blob/4b68538420ff1392c629a63ef43ccfd25f463014/packages/agent-sdk/src/visible-reasoning.ts#L94)
 
 The `modelOptions` a gateway model needs for its reasoning to stream as
 visible text, or `undefined` when the model's default already streams it

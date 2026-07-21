@@ -1,4 +1,4 @@
-// ../../../../../tmp/agent-sdk-mirror-rsA8Zc/repo/src/initiator-auth.ts
+// ../../../../../tmp/agent-sdk-mirror-vf1nrX/repo/src/initiator-auth.ts
 var INITIATOR_HEADER = "x-zo-initiator";
 var SESSION_CAPABILITY_HEADER = "x-zo-session-capability";
 var SESSION_CAPABILITY_ATTRIBUTE = "zoSessionCapability";
