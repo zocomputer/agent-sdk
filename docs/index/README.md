@@ -225,6 +225,7 @@
 - [createParallelToolsInstruction](functions/createParallelToolsInstruction.md)
 - [createPlanningInstruction](functions/createPlanningInstruction.md)
 - [createReadTool](functions/createReadTool.md)
+- [createReadWorkspace](functions/createReadWorkspace.md)
 - [createRepoConventionsInstruction](functions/createRepoConventionsInstruction.md)
 - [createSandboxArtifactsInstruction](functions/createSandboxArtifactsInstruction.md)
 - [createSandboxFileTools](functions/createSandboxFileTools.md)

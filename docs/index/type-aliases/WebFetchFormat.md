@@ -8,6 +8,6 @@
 
 > **WebFetchFormat** = `"markdown"` \| `"text"` \| `"html"`
 
-Defined in: [packages/agent-sdk/src/web-fetch.ts:32](https://github.com/zocomputer/zov2-code/blob/4b68538420ff1392c629a63ef43ccfd25f463014/packages/agent-sdk/src/web-fetch.ts#L32)
+Defined in: [packages/agent-sdk/src/web-fetch.ts:32](https://github.com/zocomputer/zov2-code/blob/c064bb48e9a6d214ad3688019aaf958920a35455/packages/agent-sdk/src/web-fetch.ts#L32)
 
 Output format for HTML rendering: markdown (default), raw text, or untouched HTML.

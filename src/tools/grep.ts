@@ -49,17 +49,21 @@ export function createGrepTool(opts: {
   spillDir?: string;
   /** Per-call I/O backend (../workspace-io.ts). Defaults to local node:fs. */
   io?: WorkspaceIoProvider;
+  /** Extra path guidance for consumers with explicit read-only roots. */
+  pathHint?: string;
 }) {
   const { workspace, noun, spillDir } = opts;
   const io = opts.io ?? localIoProvider(workspace.root);
   return defineTool({
-    description: `Search ${noun} file contents by regular expression, returning matching lines with their file and line number. Scope with \`path\` (a file or directory) and/or a \`glob\` on the filename. Gitignored files, build/VCS dirs, binaries, and files over ~1.5 MB are skipped.${spillDir === undefined ? "" : " When more lines match than max_results, the collected matches are saved to a file named in the result (the note says whether that list is complete) — read or grep that file instead of re-searching."}`,
+    description: `Search ${noun} file contents by regular expression, returning matching lines with their file and line number. Scope with \`path\` (a file or directory) and/or a \`glob\` on the filename.${opts.pathHint ?? ""} Gitignored files, build/VCS dirs, binaries, and files over ~1.5 MB are skipped.${spillDir === undefined ? "" : " When more lines match than max_results, the collected matches are saved to a file named in the result (the note says whether that list is complete) — read or grep that file instead of re-searching."}`,
     inputSchema: z.object({
       pattern: z.string().min(1).describe("JavaScript regular expression to search for."),
       path: z
         .string()
         .optional()
-        .describe(`A file or directory (relative to the ${noun} root) to limit the search to.`),
+        .describe(
+          `A file or directory (relative to the ${noun} root) to limit the search to.${opts.pathHint ?? ""}`,
+        ),
       glob: z
         .string()
         .optional()

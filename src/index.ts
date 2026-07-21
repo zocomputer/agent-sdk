@@ -37,7 +37,7 @@ import { buildTasksToolset, createTasksTools } from "./tools/tasks";
 import { createTodoTool } from "./tools/todo";
 import { createWebFetchTool } from "./tools/webfetch";
 import { createWriteTool } from "./tools/write";
-import { createWorkspace } from "./workspace";
+import { createReadWorkspace, createWorkspace } from "./workspace";
 import { sandboxIoProvider, type SandboxIoOptions } from "./sandbox-io";
 import { sandboxRunnerProvider } from "./sandbox-run";
 
@@ -68,6 +68,12 @@ export interface SandboxFileToolsOptions {
    * File tools refuse paths that escape it.
    */
   workspaceRoot: string;
+  /**
+   * Absolute sandbox roots accepted by direct read surfaces (`read`, `look`,
+   * and `grep` when scoped with `path`). Edit/write and unscoped searches stay
+   * rooted at `workspaceRoot`.
+   */
+  additionalReadRoots?: readonly string[];
   /** What tool descriptions call the workspace. Defaults to "workspace". */
   workspaceNoun?: string;
   /**
@@ -140,6 +146,12 @@ export interface SandboxFileToolsOptions {
 export function createSandboxFileTools(options: SandboxFileToolsOptions) {
   const noun = options.workspaceNoun ?? "workspace";
   const workspace = createWorkspace(options.workspaceRoot);
+  const additionalReadRoots = options.additionalReadRoots ?? [];
+  const readWorkspace = createReadWorkspace(workspace.root, additionalReadRoots);
+  const readPathHint =
+    additionalReadRoots.length === 0
+      ? undefined
+      : ` Absolute paths under ${additionalReadRoots.join(", ")} are also readable.`;
   const io = sandboxIoProvider({
     root: workspace.root,
     ...(options.resolveSession !== undefined
@@ -196,10 +208,11 @@ export function createSandboxFileTools(options: SandboxFileToolsOptions) {
     mediaOracle: oracle,
     tools: {
       read: createReadTool({
-        workspace,
+        workspace: readWorkspace,
         noun,
         io,
         dirConventions,
+        ...(readPathHint !== undefined ? { pathHint: readPathHint } : {}),
         ...(readImageHint !== undefined
           ? { imageUnavailableHint: readImageHint }
           : {}),
@@ -212,9 +225,10 @@ export function createSandboxFileTools(options: SandboxFileToolsOptions) {
       write: createWriteTool({ workspace, noun, io }),
       glob: createGlobTool({ workspace, noun, io }),
       grep: createGrepTool({
-        workspace,
+        workspace: readWorkspace,
         noun,
         io,
+        ...(readPathHint !== undefined ? { pathHint: readPathHint } : {}),
         ...(options.spillDir !== undefined ? { spillDir: options.spillDir } : {}),
       }),
       bash: createBashTool({
@@ -236,7 +250,17 @@ export function createSandboxFileTools(options: SandboxFileToolsOptions) {
           ? { mediaUnavailableHint: fetchedMediaHint }
           : {}),
       }),
-      ...(oracle !== null ? { look: createLookTool({ workspace, noun, oracle, io }) } : {}),
+      ...(oracle !== null
+        ? {
+            look: createLookTool({
+              workspace: readWorkspace,
+              noun,
+              oracle,
+              io,
+              ...(readPathHint !== undefined ? { pathHint: readPathHint } : {}),
+            }),
+          }
+        : {}),
     },
     instructions: {
       /**

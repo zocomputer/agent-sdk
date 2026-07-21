@@ -44,3 +44,41 @@ export function createWorkspace(root: string): Workspace {
     relativize: (path) => relativizeWithin(abs, path),
   };
 }
+
+function isWithin(root: string, path: string): boolean {
+  return path === root || path.startsWith(root + sep);
+}
+
+/**
+ * Build a read-only path resolver with one workspace root plus explicit
+ * absolute roots. Relative paths still resolve from the workspace. Consumers
+ * must use this only for read surfaces; edit/write keep `createWorkspace`.
+ */
+export function createReadWorkspace(
+  root: string,
+  additionalRoots: readonly string[],
+): Workspace {
+  const primary = resolve(root);
+  const readableRoots = [
+    primary,
+    ...additionalRoots.map((candidate) => resolve(candidate)),
+  ].filter((candidate, index, roots) => roots.indexOf(candidate) === index);
+
+  return {
+    root: primary,
+    resolve(path) {
+      const abs = isAbsolute(path) ? resolve(path) : resolve(primary, path);
+      if (!readableRoots.some((candidate) => isWithin(candidate, abs))) {
+        throw new Error(
+          `Path escapes the readable roots (${readableRoots.join(", ")}): ${path}. ` +
+            "Use a path inside the workspace or an allowed read-only root.",
+        );
+      }
+      return abs;
+    },
+    relativize(path) {
+      const abs = resolve(path);
+      return isWithin(primary, abs) ? relativizeWithin(primary, abs) : abs;
+    },
+  };
+}

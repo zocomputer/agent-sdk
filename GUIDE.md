@@ -391,12 +391,18 @@ import { createSandboxFileTools } from "@zocomputer/agent-sdk";
 
 export const fileTools = createSandboxFileTools({
   workspaceRoot: "/workspace", // absolute path INSIDE the sandbox
+  additionalReadRoots: ["/attachments"], // explicit read-only roots
   spillDir: "/workspace/.agent/tool-outputs", // grep overflow, readable by `read`
 });
 // then re-export fileTools.tools.read / edit / write / glob / grep per file,
 // with disableTool() shims for eve's read_file/write_file (glob/grep shadow
 // the built-ins by name), exactly like the Quick start.
 ```
+
+`additionalReadRoots` is for framework-owned inputs staged beside the
+workspace, such as chat attachments. Exact paths under those roots work with
+`read`, `look`, and path-scoped `grep`. Edit/write, glob, unscoped grep, and
+the shell working directory remain bound to `workspaceRoot`.
 
 Workflow runtimes must register background-task executors as authored tools,
 not session-dynamic closures. Export the static entries from separate tool

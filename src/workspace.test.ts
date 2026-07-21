@@ -1,6 +1,10 @@
 import { expect, test } from "bun:test";
 import { resolve } from "node:path";
-import { relativizeWithin, resolveWithin } from "./workspace";
+import {
+  createReadWorkspace,
+  relativizeWithin,
+  resolveWithin,
+} from "./workspace";
 
 const root = resolve("/repo");
 
@@ -40,4 +44,28 @@ test("rejects a sibling directory that shares a name prefix", () => {
 test("relativizeWithin returns a forward-slash, root-relative path", () => {
   expect(relativizeWithin(root, resolve(root, "a/b.ts"))).toBe("a/b.ts");
   expect(relativizeWithin(root, root)).toBe(".");
+});
+
+test("read workspace accepts explicit absolute roots", () => {
+  const attachments = resolve("/attachments");
+  const workspace = createReadWorkspace(root, [attachments]);
+
+  expect(workspace.resolve("/attachments/upload/report.pdf")).toBe(
+    resolve(attachments, "upload/report.pdf"),
+  );
+  expect(workspace.resolve("../attachments/upload/report.pdf")).toBe(
+    resolve(attachments, "upload/report.pdf"),
+  );
+  expect(workspace.relativize("/attachments/upload/report.pdf")).toBe(
+    resolve(attachments, "upload/report.pdf"),
+  );
+});
+
+test("read workspace rejects paths outside every explicit root", () => {
+  const workspace = createReadWorkspace(root, [resolve("/attachments")]);
+
+  expect(() => workspace.resolve("/etc/hosts")).toThrow(/escapes the readable roots/);
+  expect(() => workspace.resolve("/attachments-evil/secret")).toThrow(
+    /escapes the readable roots/,
+  );
 });

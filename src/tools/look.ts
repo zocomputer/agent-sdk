@@ -174,6 +174,8 @@ export interface LookToolOptions {
   maxInputBytes?: number;
   /** The generate seam; defaults to `ai`'s `generateText`. */
   generateFn?: LookGenerateFn;
+  /** Extra path guidance for consumers with explicit read-only roots. */
+  pathHint?: string;
 }
 
 const KIND_LABELS: Record<keyof ModelInputCapabilities, string> = {
@@ -203,9 +205,13 @@ export function createLookTool(opts: LookToolOptions) {
       `Sends the file's bytes and your prompt in a single call and returns the model's answer as text. ` +
       `The model sees only the file and your prompt — none of your conversation — so pack the prompt with everything it needs and name the exact deliverable ` +
       `(e.g. "describe the UI layout and transcribe all visible text", "summarize what happens in this recording"). ` +
-      `Text-readable files (source, PDFs-as-text, DOCX, spreadsheets) are cheaper through read; use look for pixels, video, and audio.`,
+      `Text-readable files (source, PDFs-as-text, DOCX, spreadsheets) are cheaper through read; use look for pixels, video, and audio.` +
+      (opts.pathHint ?? ""),
     inputSchema: z.object({
-      path: z.string().min(1).describe(`Media file path, relative to the ${noun} root.`),
+      path: z
+        .string()
+        .min(1)
+        .describe(`Media file path, relative to the ${noun} root.${opts.pathHint ?? ""}`),
       prompt: z
         .string()
         .min(1)

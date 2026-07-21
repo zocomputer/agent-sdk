@@ -150,3 +150,26 @@ describe("model-facing schema shape", () => {
     }
   });
 });
+
+test("additional read roots stay off mutation surfaces", () => {
+  const withAttachments = createSandboxFileTools({
+    workspaceRoot: "/workspace",
+    additionalReadRoots: ["/attachments"],
+    mediaOracle: true,
+  });
+
+  expect(withAttachments.tools.read.description).toContain(
+    "Absolute paths under /attachments are also readable.",
+  );
+  expect(withAttachments.tools.grep.description).toContain(
+    "Absolute paths under /attachments are also readable.",
+  );
+  expect(withAttachments.tools.look?.description).toContain(
+    "Absolute paths under /attachments are also readable.",
+  );
+  expect(withAttachments.tools.edit.description).not.toContain("/attachments");
+  expect(withAttachments.tools.write.description).not.toContain("/attachments");
+  expect(() => withAttachments.workspace.resolve("/attachments/file.txt")).toThrow(
+    /escapes the workspace root/,
+  );
+});

@@ -8,7 +8,7 @@
 
 > **CompletionApplicabilityV1** = \{ `kind`: `"always"`; \} \| \{ `kind`: `"host-predicate"`; `predicateId`: `string`; \}
 
-Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:129](https://github.com/zocomputer/zov2-code/blob/4b68538420ff1392c629a63ef43ccfd25f463014/packages/agent-sdk/src/harness-protocol-v1.ts#L129)
+Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:129](https://github.com/zocomputer/zov2-code/blob/c064bb48e9a6d214ad3688019aaf958920a35455/packages/agent-sdk/src/harness-protocol-v1.ts#L129)
 
 Trusted rule deciding whether a completion contract applies to a turn.
 

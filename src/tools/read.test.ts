@@ -5,7 +5,7 @@ import { join } from "node:path";
 import type { ToolContext } from "eve/tools";
 import { createDirConventionsTracker } from "../dir-conventions";
 import { createLocalIo, type WorkspaceIO, type WorkspaceIoProvider } from "../workspace-io";
-import { createWorkspace } from "../workspace";
+import { createReadWorkspace, createWorkspace } from "../workspace";
 import { createReadTool } from "./read";
 
 // The broad read behavior (formats, attachments, riders, both IO backends)
@@ -13,11 +13,16 @@ import { createReadTool } from "./read";
 // file covers the failure seams that need a fault-injecting IO.
 
 const root = realpathSync(mkdtempSync(join(tmpdir(), "agent-sdk-read-")));
-afterAll(() => rmSync(root, { recursive: true, force: true }));
+const attachments = realpathSync(mkdtempSync(join(tmpdir(), "agent-sdk-attachments-")));
+afterAll(() => {
+  rmSync(root, { recursive: true, force: true });
+  rmSync(attachments, { recursive: true, force: true });
+});
 
 mkdirSync(join(root, "docs"), { recursive: true });
 writeFileSync(join(root, "docs/AGENTS.md"), "# docs conventions\n");
 writeFileSync(join(root, "docs/guide.md"), "welcome\n");
+writeFileSync(join(attachments, "brief.md"), "attached context\n");
 
 const workspace = createWorkspace(root);
 
@@ -58,6 +63,22 @@ describe("read riders under a failing IO", () => {
     const second = await read.execute({ path: "docs/guide.md" }, sessionCtx("s-flaky"));
     expect("directory_conventions" in second).toBe(true);
   });
+});
+
+test("reads an explicit external root without looking for its conventions", async () => {
+  const tracker = createDirConventionsTracker({ workspaceRoot: root });
+  const read = createReadTool({
+    workspace: createReadWorkspace(root, [attachments]),
+    noun: "repo",
+    io: () => createLocalIo(root),
+    dirConventions: { tracker, fileName: "AGENTS.md" },
+  });
+
+  const result = await read.execute({ path: join(attachments, "brief.md") }, sessionCtx("s-external"));
+
+  expect("content" in result && result.content).toContain("attached context");
+  expect(result.path).toBe(join(attachments, "brief.md"));
+  expect("directory_conventions" in result).toBe(false);
 });
 
 /** A stub ToolContext whose capabilities all throw (read touches only `session.id`). */

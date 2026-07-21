@@ -1,4 +1,5 @@
 import { defineTool } from "eve/tools";
+import { isAbsolute } from "node:path";
 import { z } from "zod";
 import type { DirConventionsRider, DirConventionsTracker } from "../dir-conventions";
 import { audioMediaType, videoMediaType } from "../file-kind";
@@ -61,6 +62,8 @@ export function createReadTool(opts: {
    * read-only consumers turn it off — there is no edit.
    */
   includeEditGuidance?: boolean;
+  /** Extra path guidance for consumers with explicit read-only roots. */
+  pathHint?: string;
 }) {
   const { workspace, noun, dirConventions } = opts;
   const io = opts.io ?? localIoProvider(workspace.root);
@@ -87,9 +90,13 @@ export function createReadTool(opts: {
   return defineTool({
     description:
       `Read a file from the ${noun}, returning line-numbered text. Documents are converted to plain text: PDF (per-page markers), DOCX/ODT/RTF, PPTX/ODP decks (per-slide markers, speaker notes), spreadsheets (.xlsx, .xlsm, .xls, .ods; TSV per sheet), EPUB (per-section markers), and Jupyter notebooks (per-cell markers); ${mediaHint}.${editHint} Returns up to 2000 lines per call by default; page bigger files with offset/limit.` +
-      conventionsHint,
+      conventionsHint +
+      (opts.pathHint ?? ""),
     inputSchema: z.object({
-      path: z.string().min(1).describe(`File path, relative to the ${noun} root.`),
+      path: z
+        .string()
+        .min(1)
+        .describe(`File path, relative to the ${noun} root.${opts.pathHint ?? ""}`),
       offset: z
         .number()
         .int()
@@ -131,6 +138,7 @@ export function createReadTool(opts: {
       // on a later read.
       const riders: DirConventionsRider[] = await (async () => {
         try {
+          if (isAbsolute(rel)) return [];
           return (
             (await dirConventions?.tracker.collect(
               ctx?.session?.id,
