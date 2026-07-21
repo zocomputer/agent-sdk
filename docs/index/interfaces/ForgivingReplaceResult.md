@@ -6,7 +6,7 @@
 
 # Interface: ForgivingReplaceResult
 
-Defined in: [packages/agent-sdk/src/edit-match.ts:65](https://github.com/zocomputer/zov2-code/blob/9d3f4b0b6ac2b9a8a8d1307a4590af07d0d7978f/packages/agent-sdk/src/edit-match.ts#L65)
+Defined in: [packages/agent-sdk/src/edit-match.ts:65](https://github.com/zocomputer/zov2-code/blob/af9677372192b613a9430e022ed9c3a186791633/packages/agent-sdk/src/edit-match.ts#L65)
 
 A successful forgiving replacement.
 
@@ -16,7 +16,7 @@ A successful forgiving replacement.
 
 > **content**: `string`
 
-Defined in: [packages/agent-sdk/src/edit-match.ts:67](https://github.com/zocomputer/zov2-code/blob/9d3f4b0b6ac2b9a8a8d1307a4590af07d0d7978f/packages/agent-sdk/src/edit-match.ts#L67)
+Defined in: [packages/agent-sdk/src/edit-match.ts:67](https://github.com/zocomputer/zov2-code/blob/af9677372192b613a9430e022ed9c3a186791633/packages/agent-sdk/src/edit-match.ts#L67)
 
 The content after the replacement.
 
@@ -26,7 +26,7 @@ The content after the replacement.
 
 > **matched**: [`MatchStrategy`](../type-aliases/MatchStrategy.md)
 
-Defined in: [packages/agent-sdk/src/edit-match.ts:69](https://github.com/zocomputer/zov2-code/blob/9d3f4b0b6ac2b9a8a8d1307a4590af07d0d7978f/packages/agent-sdk/src/edit-match.ts#L69)
+Defined in: [packages/agent-sdk/src/edit-match.ts:69](https://github.com/zocomputer/zov2-code/blob/af9677372192b613a9430e022ed9c3a186791633/packages/agent-sdk/src/edit-match.ts#L69)
 
 The strategy that resolved the match.
 
@@ -36,6 +36,6 @@ The strategy that resolved the match.
 
 > **replacements**: `number`
 
-Defined in: [packages/agent-sdk/src/edit-match.ts:71](https://github.com/zocomputer/zov2-code/blob/9d3f4b0b6ac2b9a8a8d1307a4590af07d0d7978f/packages/agent-sdk/src/edit-match.ts#L71)
+Defined in: [packages/agent-sdk/src/edit-match.ts:71](https://github.com/zocomputer/zov2-code/blob/af9677372192b613a9430e022ed9c3a186791633/packages/agent-sdk/src/edit-match.ts#L71)
 
 How many spans were replaced (1 unless `replaceAll`).

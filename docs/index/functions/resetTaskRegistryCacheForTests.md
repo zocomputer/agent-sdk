@@ -8,7 +8,7 @@
 
 > **\_\_resetTaskRegistryCacheForTests**(): `void`
 
-Defined in: [packages/agent-sdk/src/async-tasks.ts:173](https://github.com/zocomputer/zov2-code/blob/9d3f4b0b6ac2b9a8a8d1307a4590af07d0d7978f/packages/agent-sdk/src/async-tasks.ts#L173)
+Defined in: [packages/agent-sdk/src/async-tasks.ts:173](https://github.com/zocomputer/zov2-code/blob/af9677372192b613a9430e022ed9c3a186791633/packages/agent-sdk/src/async-tasks.ts#L173)
 
 Test-only: drop the per-process registry dedupe so a test can simulate an
 agent restart (a fresh registry over an existing store).

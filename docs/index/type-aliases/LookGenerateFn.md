@@ -8,7 +8,7 @@
 
 > **LookGenerateFn** = (`options`) => `Promise`\<\{ `text`: `string`; \}\>
 
-Defined in: [packages/agent-sdk/src/tools/look.ts:121](https://github.com/zocomputer/zov2-code/blob/9d3f4b0b6ac2b9a8a8d1307a4590af07d0d7978f/packages/agent-sdk/src/tools/look.ts#L121)
+Defined in: [packages/agent-sdk/src/tools/look.ts:121](https://github.com/zocomputer/zov2-code/blob/af9677372192b613a9430e022ed9c3a186791633/packages/agent-sdk/src/tools/look.ts#L121)
 
 The one generate call `look` makes, as an injectable seam (tests pass a
 fake; the default is `ai`'s `generateText`). Only the fields the tool

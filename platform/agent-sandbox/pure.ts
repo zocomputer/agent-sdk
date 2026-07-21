@@ -36,7 +36,7 @@ function withinWorkDir(workDir: string, resolved: string): boolean {
  *
  * Why `<workDir>/<rest>` and not `<workDir>/workspace/<rest>`: relative paths
  * already anchor to the work dir, the seed agents root their file tools at
- * `/home/daytona` directly (see apps/api/seed/lib/file-tools.ts), and the
+ * `/home/daytona` directly (see apps/api/seed/shared/file-tools.ts), and the
  * Builder checkout lives at `/home/daytona/agent` — so eve-materialized skills
  * at `/workspace/skills/x` stay visible to all of them at the `skills/x`
  * relative path. A `/home/daytona/workspace/…` mirror would hide them in a

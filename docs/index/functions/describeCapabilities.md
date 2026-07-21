@@ -8,7 +8,7 @@
 
 > **describeCapabilities**(`caps`): `string`
 
-Defined in: [packages/agent-sdk/src/model-capabilities.ts:120](https://github.com/zocomputer/zov2-code/blob/9d3f4b0b6ac2b9a8a8d1307a4590af07d0d7978f/packages/agent-sdk/src/model-capabilities.ts#L120)
+Defined in: [packages/agent-sdk/src/model-capabilities.ts:120](https://github.com/zocomputer/zov2-code/blob/af9677372192b613a9430e022ed9c3a186791633/packages/agent-sdk/src/model-capabilities.ts#L120)
 
 The one human/model-facing phrase for a capability set — "can view images
 and PDFs, but not video or audio" — so every surface (tool descriptions,

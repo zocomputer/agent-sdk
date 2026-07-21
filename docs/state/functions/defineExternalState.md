@@ -8,7 +8,7 @@
 
 > **defineExternalState**(`declaration`): [`ExternalStateDeclaration`](../interfaces/ExternalStateDeclaration.md)
 
-Defined in: [packages/agent-sdk/src/state.ts:67](https://github.com/zocomputer/zov2-code/blob/9d3f4b0b6ac2b9a8a8d1307a4590af07d0d7978f/packages/agent-sdk/src/state.ts#L67)
+Defined in: [packages/agent-sdk/src/state.ts:67](https://github.com/zocomputer/zov2-code/blob/af9677372192b613a9430e022ed9c3a186791633/packages/agent-sdk/src/state.ts#L67)
 
 The declaration helper an agent default-exports from `agent/state/<name>.ts`.
 Validates eagerly so a bad declaration fails at module load in local dev, not
