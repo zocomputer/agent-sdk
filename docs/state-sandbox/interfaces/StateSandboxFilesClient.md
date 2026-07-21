@@ -6,7 +6,7 @@
 
 # Interface: StateSandboxFilesClient
 
-Defined in: [packages/agent-sdk/src/state-sandbox.ts:360](https://github.com/zocomputer/zov2-code/blob/3530b39a94e929be74c3d9202bace84f47b21b44/packages/agent-sdk/src/state-sandbox.ts#L360)
+Defined in: [packages/agent-sdk/src/state-sandbox.ts:360](https://github.com/zocomputer/zov2-code/blob/431612973a5c06efcad7920699932d7fe7145ddd/packages/agent-sdk/src/state-sandbox.ts#L360)
 
 High-level file I/O client for a state sandbox.
 Paths are relative to the sandbox's root; the client resolves them automatically.
@@ -17,7 +17,7 @@ Paths are relative to the sandbox's root; the client resolves them automatically
 
 > **delete**(`path`, `options?`): `Promise`\<`void`\>
 
-Defined in: [packages/agent-sdk/src/state-sandbox.ts:366](https://github.com/zocomputer/zov2-code/blob/3530b39a94e929be74c3d9202bace84f47b21b44/packages/agent-sdk/src/state-sandbox.ts#L366)
+Defined in: [packages/agent-sdk/src/state-sandbox.ts:366](https://github.com/zocomputer/zov2-code/blob/431612973a5c06efcad7920699932d7fe7145ddd/packages/agent-sdk/src/state-sandbox.ts#L366)
 
 Deletes a file or directory.
 
@@ -47,7 +47,7 @@ Deletes a file or directory.
 
 > **read**(`path`): `Promise`\<`Uint8Array`\<`ArrayBufferLike`\> \| `null`\>
 
-Defined in: [packages/agent-sdk/src/state-sandbox.ts:362](https://github.com/zocomputer/zov2-code/blob/3530b39a94e929be74c3d9202bace84f47b21b44/packages/agent-sdk/src/state-sandbox.ts#L362)
+Defined in: [packages/agent-sdk/src/state-sandbox.ts:362](https://github.com/zocomputer/zov2-code/blob/431612973a5c06efcad7920699932d7fe7145ddd/packages/agent-sdk/src/state-sandbox.ts#L362)
 
 Reads a file as binary. Returns `null` if the file does not exist.
 
@@ -67,7 +67,7 @@ Reads a file as binary. Returns `null` if the file does not exist.
 
 > **write**(`path`, `content`): `Promise`\<`void`\>
 
-Defined in: [packages/agent-sdk/src/state-sandbox.ts:364](https://github.com/zocomputer/zov2-code/blob/3530b39a94e929be74c3d9202bace84f47b21b44/packages/agent-sdk/src/state-sandbox.ts#L364)
+Defined in: [packages/agent-sdk/src/state-sandbox.ts:364](https://github.com/zocomputer/zov2-code/blob/431612973a5c06efcad7920699932d7fe7145ddd/packages/agent-sdk/src/state-sandbox.ts#L364)
 
 Writes a file from a UTF-8 string or binary content, creating parent directories if needed.
 

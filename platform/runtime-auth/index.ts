@@ -26,6 +26,18 @@ export const AGENT_TOKEN_HEADER = "x-zo-agent-token";
  */
 export const EVE_SESSION_HEADER = "x-zo-eve-session";
 
+/** Remaining server budget for Builder checkpoint-and-save recovery requests. */
+export const BUILDER_SAVE_TIMEOUT_HEADER = "x-zo-builder-save-timeout-ms";
+
+/** API save budget inside the wider Builder recovery request. */
+export const BUILDER_SAVE_API_TIMEOUT_MS = 45_000;
+
+/** Builder checkpoint-and-save budget inside the browser transport deadline. */
+export const BUILDER_FLUSH_TIMEOUT_MS = 50_000;
+
+/** Browser transport deadline, leaving response headroom above Builder recovery. */
+export const BUILDER_SAVE_TRANSPORT_TIMEOUT_MS = 60_000;
+
 /** Short-lived proof that a trusted channel bound this agent call to one user session. */
 export const SESSION_CAPABILITY_HEADER = "x-zo-session-capability";
 

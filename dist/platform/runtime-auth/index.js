@@ -1,7 +1,11 @@
-// ../../../../../tmp/agent-sdk-mirror-vM4zNa/repo/platform/runtime-auth/index.ts
+// ../../../../../tmp/agent-sdk-mirror-rsA8Zc/repo/platform/runtime-auth/index.ts
 import { SignJWT, errors as joseErrors, jwtVerify } from "jose";
 var AGENT_TOKEN_HEADER = "x-zo-agent-token";
 var EVE_SESSION_HEADER = "x-zo-eve-session";
+var BUILDER_SAVE_TIMEOUT_HEADER = "x-zo-builder-save-timeout-ms";
+var BUILDER_SAVE_API_TIMEOUT_MS = 45000;
+var BUILDER_FLUSH_TIMEOUT_MS = 50000;
+var BUILDER_SAVE_TRANSPORT_TIMEOUT_MS = 60000;
 var SESSION_CAPABILITY_HEADER = "x-zo-session-capability";
 var SESSION_CAPABILITY_ATTRIBUTE = "zoSessionCapability";
 var EVE_TURN_HEADER = "x-zo-eve-turn";
@@ -220,6 +224,10 @@ export {
   EVE_TURN_HEADER,
   EVE_SUBAGENT_SESSION_HEADER,
   EVE_SESSION_HEADER,
+  BUILDER_SAVE_TRANSPORT_TIMEOUT_MS,
+  BUILDER_SAVE_TIMEOUT_HEADER,
+  BUILDER_SAVE_API_TIMEOUT_MS,
+  BUILDER_FLUSH_TIMEOUT_MS,
   BUILDER_AGENT_IDENTITY,
   AGENT_TOKEN_HEADER,
   AGENT_TOKEN_ENV

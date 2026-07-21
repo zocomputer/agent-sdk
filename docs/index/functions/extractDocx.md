@@ -8,7 +8,7 @@
 
 > **extractDocx**(`buffer`): `Promise`\<[`DocxExtraction`](../type-aliases/DocxExtraction.md)\>
 
-Defined in: [packages/agent-sdk/src/extract/docx.ts:20](https://github.com/zocomputer/zov2-code/blob/3530b39a94e929be74c3d9202bace84f47b21b44/packages/agent-sdk/src/extract/docx.ts#L20)
+Defined in: [packages/agent-sdk/src/extract/docx.ts:20](https://github.com/zocomputer/zov2-code/blob/431612973a5c06efcad7920699932d7fe7145ddd/packages/agent-sdk/src/extract/docx.ts#L20)
 
 Extract DOCX bytes into plain text via mammoth. Paragraph breaks are
 normalized (mammoth ends every paragraph with two newlines; the trailing

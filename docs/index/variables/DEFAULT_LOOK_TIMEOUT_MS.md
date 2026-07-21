@@ -8,7 +8,7 @@
 
 > `const` **DEFAULT\_LOOK\_TIMEOUT\_MS**: `180000` = `180_000`
 
-Defined in: [packages/agent-sdk/src/tools/look.ts:50](https://github.com/zocomputer/zov2-code/blob/3530b39a94e929be74c3d9202bace84f47b21b44/packages/agent-sdk/src/tools/look.ts#L50)
+Defined in: [packages/agent-sdk/src/tools/look.ts:50](https://github.com/zocomputer/zov2-code/blob/431612973a5c06efcad7920699932d7fe7145ddd/packages/agent-sdk/src/tools/look.ts#L50)
 
 Default total timeout for the oracle call, in ms. The session model's own
 calls ride a guarded fetch (see ../gateway-fetch.ts) so a dead connection
