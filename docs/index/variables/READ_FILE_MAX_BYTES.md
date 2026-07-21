@@ -8,7 +8,7 @@
 
 > `const` **READ\_FILE\_MAX\_BYTES**: `10000000` = `10_000_000`
 
-Defined in: [packages/agent-sdk/src/file-view.ts:18](https://github.com/zocomputer/zov2-code/blob/af9677372192b613a9430e022ed9c3a186791633/packages/agent-sdk/src/file-view.ts#L18)
+Defined in: [packages/agent-sdk/src/file-view.ts:18](https://github.com/zocomputer/zov2-code/blob/3530b39a94e929be74c3d9202bace84f47b21b44/packages/agent-sdk/src/file-view.ts#L18)
 
 `read` refuses files bigger than this outright (stat guard — the file is
 never read); the model is steered to bash for surgical extraction.

@@ -6,7 +6,7 @@
 
 # Interface: StateSandboxSuggestedDefaults
 
-Defined in: [packages/agent-sdk/src/state-sandbox.ts:63](https://github.com/zocomputer/zov2-code/blob/af9677372192b613a9430e022ed9c3a186791633/packages/agent-sdk/src/state-sandbox.ts#L63)
+Defined in: [packages/agent-sdk/src/state-sandbox.ts:63](https://github.com/zocomputer/zov2-code/blob/3530b39a94e929be74c3d9202bace84f47b21b44/packages/agent-sdk/src/state-sandbox.ts#L63)
 
 Optional engine and partition defaults to suggest when requesting a sandbox handle.
 The broker may ignore these; they influence zero-config binding, not enforcement.
@@ -17,7 +17,7 @@ The broker may ignore these; they influence zero-config binding, not enforcement
 
 > `readonly` `optional` **engine?**: `"sandbox-daytona"`
 
-Defined in: [packages/agent-sdk/src/state-sandbox.ts:64](https://github.com/zocomputer/zov2-code/blob/af9677372192b613a9430e022ed9c3a186791633/packages/agent-sdk/src/state-sandbox.ts#L64)
+Defined in: [packages/agent-sdk/src/state-sandbox.ts:64](https://github.com/zocomputer/zov2-code/blob/3530b39a94e929be74c3d9202bace84f47b21b44/packages/agent-sdk/src/state-sandbox.ts#L64)
 
 ***
 
@@ -25,7 +25,7 @@ Defined in: [packages/agent-sdk/src/state-sandbox.ts:64](https://github.com/zoco
 
 > `readonly` `optional` **lifecycle?**: `Readonly`\<`Record`\<`string`, `string` \| `number` \| `boolean`\>\>
 
-Defined in: [packages/agent-sdk/src/state-sandbox.ts:71](https://github.com/zocomputer/zov2-code/blob/af9677372192b613a9430e022ed9c3a186791633/packages/agent-sdk/src/state-sandbox.ts#L71)
+Defined in: [packages/agent-sdk/src/state-sandbox.ts:71](https://github.com/zocomputer/zov2-code/blob/3530b39a94e929be74c3d9202bace84f47b21b44/packages/agent-sdk/src/state-sandbox.ts#L71)
 
 The declaration's lifecycle overrides (e.g. `suspendAfterMinutes`). The
 broker consumes them only when the zero-config store first materializes;
@@ -37,4 +37,4 @@ afterwards deploy is the only policy write path.
 
 > `readonly` `optional` **partition?**: [`StateSandboxPartition`](../type-aliases/StateSandboxPartition.md)
 
-Defined in: [packages/agent-sdk/src/state-sandbox.ts:65](https://github.com/zocomputer/zov2-code/blob/af9677372192b613a9430e022ed9c3a186791633/packages/agent-sdk/src/state-sandbox.ts#L65)
+Defined in: [packages/agent-sdk/src/state-sandbox.ts:65](https://github.com/zocomputer/zov2-code/blob/3530b39a94e929be74c3d9202bace84f47b21b44/packages/agent-sdk/src/state-sandbox.ts#L65)

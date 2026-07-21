@@ -8,7 +8,7 @@
 
 > **buildSubagentMarkdown**(`opts?`): `string`
 
-Defined in: [packages/agent-sdk/src/instructions.ts:603](https://github.com/zocomputer/zov2-code/blob/af9677372192b613a9430e022ed9c3a186791633/packages/agent-sdk/src/instructions.ts#L603)
+Defined in: [packages/agent-sdk/src/instructions.ts:603](https://github.com/zocomputer/zov2-code/blob/3530b39a94e929be74c3d9202bace84f47b21b44/packages/agent-sdk/src/instructions.ts#L603)
 
 Pure markdown for the subagent delegation playbook.
 

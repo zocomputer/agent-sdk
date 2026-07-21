@@ -6,7 +6,7 @@
 
 # Interface: StateFilesClient
 
-Defined in: [packages/agent-sdk/src/state-files.ts:262](https://github.com/zocomputer/zov2-code/blob/af9677372192b613a9430e022ed9c3a186791633/packages/agent-sdk/src/state-files.ts#L262)
+Defined in: [packages/agent-sdk/src/state-files.ts:262](https://github.com/zocomputer/zov2-code/blob/3530b39a94e929be74c3d9202bace84f47b21b44/packages/agent-sdk/src/state-files.ts#L262)
 
 High-level client for state-files operations. Paths are relative; handles are managed internally.
 
@@ -16,7 +16,7 @@ High-level client for state-files operations. Paths are relative; handles are ma
 
 > **delete**(`path`): `Promise`\<`void`\>
 
-Defined in: [packages/agent-sdk/src/state-files.ts:270](https://github.com/zocomputer/zov2-code/blob/af9677372192b613a9430e022ed9c3a186791633/packages/agent-sdk/src/state-files.ts#L270)
+Defined in: [packages/agent-sdk/src/state-files.ts:270](https://github.com/zocomputer/zov2-code/blob/3530b39a94e929be74c3d9202bace84f47b21b44/packages/agent-sdk/src/state-files.ts#L270)
 
 Deletes a file. Requires a handle with `rw` access.
 
@@ -36,7 +36,7 @@ Deletes a file. Requires a handle with `rw` access.
 
 > **list**(`prefix?`): `Promise`\<readonly [`StateFilesObject`](StateFilesObject.md)[]\>
 
-Defined in: [packages/agent-sdk/src/state-files.ts:264](https://github.com/zocomputer/zov2-code/blob/af9677372192b613a9430e022ed9c3a186791633/packages/agent-sdk/src/state-files.ts#L264)
+Defined in: [packages/agent-sdk/src/state-files.ts:264](https://github.com/zocomputer/zov2-code/blob/3530b39a94e929be74c3d9202bace84f47b21b44/packages/agent-sdk/src/state-files.ts#L264)
 
 Lists files under the optional prefix. Returns metadata for each match.
 
@@ -56,7 +56,7 @@ Lists files under the optional prefix. Returns metadata for each match.
 
 > **read**(`path`): `Promise`\<`Uint8Array`\<`ArrayBufferLike`\>\>
 
-Defined in: [packages/agent-sdk/src/state-files.ts:266](https://github.com/zocomputer/zov2-code/blob/af9677372192b613a9430e022ed9c3a186791633/packages/agent-sdk/src/state-files.ts#L266)
+Defined in: [packages/agent-sdk/src/state-files.ts:266](https://github.com/zocomputer/zov2-code/blob/3530b39a94e929be74c3d9202bace84f47b21b44/packages/agent-sdk/src/state-files.ts#L266)
 
 Reads a file's body as bytes.
 
@@ -76,7 +76,7 @@ Reads a file's body as bytes.
 
 > **write**(`path`, `body`, `options?`): `Promise`\<`void`\>
 
-Defined in: [packages/agent-sdk/src/state-files.ts:268](https://github.com/zocomputer/zov2-code/blob/af9677372192b613a9430e022ed9c3a186791633/packages/agent-sdk/src/state-files.ts#L268)
+Defined in: [packages/agent-sdk/src/state-files.ts:268](https://github.com/zocomputer/zov2-code/blob/3530b39a94e929be74c3d9202bace84f47b21b44/packages/agent-sdk/src/state-files.ts#L268)
 
 Writes a file. Requires a handle with `rw` access.
 

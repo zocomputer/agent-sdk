@@ -8,7 +8,7 @@
 
 > **capabilitiesFromCatalogEntry**(`entry`): [`ModelInputCapabilities`](../interfaces/ModelInputCapabilities.md)
 
-Defined in: [packages/agent-sdk/src/model-capabilities.ts:59](https://github.com/zocomputer/zov2-code/blob/af9677372192b613a9430e022ed9c3a186791633/packages/agent-sdk/src/model-capabilities.ts#L59)
+Defined in: [packages/agent-sdk/src/model-capabilities.ts:59](https://github.com/zocomputer/zov2-code/blob/3530b39a94e929be74c3d9202bace84f47b21b44/packages/agent-sdk/src/model-capabilities.ts#L59)
 
 Capabilities attested by one catalog entry's tags: `vision` → image,
 `file-input` → PDF. Video/audio are always false here — the catalog can't

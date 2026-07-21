@@ -8,6 +8,6 @@
 
 > **HarnessFileEffectContentV1** = \{ `kind`: `"unified-patch"`; `patch`: `string`; \} \| \{ `kind`: `"binary"`; \} \| \{ `kind`: `"truncated"`; `originalBytes`: `number`; \}
 
-Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:63](https://github.com/zocomputer/zov2-code/blob/af9677372192b613a9430e022ed9c3a186791633/packages/agent-sdk/src/harness-protocol-v1.ts#L63)
+Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:63](https://github.com/zocomputer/zov2-code/blob/3530b39a94e929be74c3d9202bace84f47b21b44/packages/agent-sdk/src/harness-protocol-v1.ts#L63)
 
 Bounded model-facing representation of one workspace file change.

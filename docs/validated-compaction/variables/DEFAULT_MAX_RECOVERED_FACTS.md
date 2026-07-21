@@ -8,6 +8,6 @@
 
 > `const` **DEFAULT\_MAX\_RECOVERED\_FACTS**: `12` = `12`
 
-Defined in: [packages/runtime-ai/src/validated-compaction.ts:59](https://github.com/zocomputer/zov2-code/blob/af9677372192b613a9430e022ed9c3a186791633/packages/runtime-ai/src/validated-compaction.ts#L59)
+Defined in: [packages/runtime-ai/src/validated-compaction.ts:59](https://github.com/zocomputer/zov2-code/blob/3530b39a94e929be74c3d9202bace84f47b21b44/packages/runtime-ai/src/validated-compaction.ts#L59)
 
 Default cap on how many judge-reported facts are appended.

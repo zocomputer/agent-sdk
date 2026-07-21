@@ -6,7 +6,7 @@
 
 # Interface: TaskToolManifestOptions
 
-Defined in: [packages/agent-sdk/src/task.ts:45](https://github.com/zocomputer/zov2-code/blob/af9677372192b613a9430e022ed9c3a186791633/packages/agent-sdk/src/task.ts#L45)
+Defined in: [packages/agent-sdk/src/task.ts:45](https://github.com/zocomputer/zov2-code/blob/3530b39a94e929be74c3d9202bace84f47b21b44/packages/agent-sdk/src/task.ts#L45)
 
 Options for `expectedTaskToolNames`: the parent's authored tool names and
 the subset deliberately excluded from the child. A typo in the exclusion
@@ -18,7 +18,7 @@ list would silently weaken the manifest guard, so it throws on bad names.
 
 > `optional` **excludedParentTools?**: readonly `string`[]
 
-Defined in: [packages/agent-sdk/src/task.ts:58](https://github.com/zocomputer/zov2-code/blob/af9677372192b613a9430e022ed9c3a186791633/packages/agent-sdk/src/task.ts#L58)
+Defined in: [packages/agent-sdk/src/task.ts:58](https://github.com/zocomputer/zov2-code/blob/3530b39a94e929be74c3d9202bace84f47b21b44/packages/agent-sdk/src/task.ts#L58)
 
 Parent tools deliberately not re-exported into the child — the
 parent-session/cockpit-coupled ones (e.g. a tool that queues messages
@@ -31,7 +31,7 @@ a typo here would silently weaken the manifest guard, so it throws.
 
 > **parentToolNames**: readonly `string`[]
 
-Defined in: [packages/agent-sdk/src/task.ts:51](https://github.com/zocomputer/zov2-code/blob/af9677372192b613a9430e022ed9c3a186791633/packages/agent-sdk/src/task.ts#L51)
+Defined in: [packages/agent-sdk/src/task.ts:51](https://github.com/zocomputer/zov2-code/blob/3530b39a94e929be74c3d9202bace84f47b21b44/packages/agent-sdk/src/task.ts#L51)
 
 The parent's authored tool names — file names (without `.ts`) under the
 parent's `agent/tools/`, disable shims included (re-exporting a parent
