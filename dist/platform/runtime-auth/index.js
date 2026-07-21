@@ -1,7 +1,7 @@
-// ../../../../../tmp/agent-sdk-mirror-jMEmZh/repo/platform/runtime-auth/index.ts
+// ../../../../../tmp/agent-sdk-mirror-JVL2mN/repo/platform/runtime-auth/index.ts
 import { SignJWT, errors as joseErrors, jwtVerify } from "jose";
 
-// ../../../../../tmp/agent-sdk-mirror-jMEmZh/repo/platform/runtime-auth/runtime-credential.ts
+// ../../../../../tmp/agent-sdk-mirror-JVL2mN/repo/platform/runtime-auth/runtime-credential.ts
 var VERCEL_OIDC_HEADER = "x-zo-vercel-oidc";
 var VERCEL_DEPLOYMENT_HINT_HEADER = "x-zo-vercel-deployment-id";
 var LOCAL_AGENT_HEADER = "x-zo-local-agent";
@@ -121,7 +121,7 @@ function currentInvocationOidcToken() {
   return readInvocationOidcTokenFromContext();
 }
 
-// ../../../../../tmp/agent-sdk-mirror-jMEmZh/repo/platform/runtime-auth/index.ts
+// ../../../../../tmp/agent-sdk-mirror-JVL2mN/repo/platform/runtime-auth/index.ts
 var AGENT_TOKEN_HEADER2 = "x-zo-agent-token";
 var EVE_SESSION_HEADER = "x-zo-eve-session";
 var BUILDER_SAVE_TIMEOUT_HEADER = "x-zo-builder-save-timeout-ms";

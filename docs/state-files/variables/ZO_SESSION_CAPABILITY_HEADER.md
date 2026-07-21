@@ -8,6 +8,6 @@
 
 > `const` **ZO\_SESSION\_CAPABILITY\_HEADER**: `"x-zo-session-capability"` = `"x-zo-session-capability"`
 
-Defined in: [packages/agent-sdk/src/state-files.ts:27](https://github.com/zocomputer/zov2-code/blob/fc65ac4f3ad029ed138ee11331693cba0bd295b4/packages/agent-sdk/src/state-files.ts#L27)
+Defined in: [packages/agent-sdk/src/state-files.ts:27](https://github.com/zocomputer/zov2-code/blob/bc82d445ad6dedff4ca3f700330838d6a3441bf7/packages/agent-sdk/src/state-files.ts#L27)
 
 Header carrying a trusted channel's opaque user/session capability.

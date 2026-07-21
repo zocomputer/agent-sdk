@@ -8,7 +8,7 @@
 
 > **SectionPlacement** = \{ `before`: `string`; \} \| \{ `after`: `string`; \}
 
-Defined in: [packages/agent-sdk/src/prompt-sections.ts:64](https://github.com/zocomputer/zov2-code/blob/fc65ac4f3ad029ed138ee11331693cba0bd295b4/packages/agent-sdk/src/prompt-sections.ts#L64)
+Defined in: [packages/agent-sdk/src/prompt-sections.ts:64](https://github.com/zocomputer/zov2-code/blob/bc82d445ad6dedff4ca3f700330838d6a3441bf7/packages/agent-sdk/src/prompt-sections.ts#L64)
 
 Where an extra section lands relative to a baseline section id:
 `{ before: id }` or `{ after: id }`. An unknown (or omitted) anchor appends

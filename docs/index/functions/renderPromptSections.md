@@ -8,7 +8,7 @@
 
 > **renderPromptSections**(`sections`): `string`
 
-Defined in: [packages/agent-sdk/src/prompt-sections.ts:52](https://github.com/zocomputer/zov2-code/blob/fc65ac4f3ad029ed138ee11331693cba0bd295b4/packages/agent-sdk/src/prompt-sections.ts#L52)
+Defined in: [packages/agent-sdk/src/prompt-sections.ts:52](https://github.com/zocomputer/zov2-code/blob/bc82d445ad6dedff4ca3f700330838d6a3441bf7/packages/agent-sdk/src/prompt-sections.ts#L52)
 
 Render sections in order, skipping empty ones, joined by blank lines —
 the markdown for one composed instruction.

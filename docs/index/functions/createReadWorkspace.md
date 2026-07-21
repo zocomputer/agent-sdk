@@ -8,7 +8,7 @@
 
 > **createReadWorkspace**(`root`, `additionalRoots`): [`Workspace`](../interfaces/Workspace.md)
 
-Defined in: [packages/agent-sdk/src/workspace.ts:57](https://github.com/zocomputer/zov2-code/blob/fc65ac4f3ad029ed138ee11331693cba0bd295b4/packages/agent-sdk/src/workspace.ts#L57)
+Defined in: [packages/agent-sdk/src/workspace.ts:57](https://github.com/zocomputer/zov2-code/blob/bc82d445ad6dedff4ca3f700330838d6a3441bf7/packages/agent-sdk/src/workspace.ts#L57)
 
 Build a read-only path resolver with one workspace root plus explicit
 absolute roots. Relative paths still resolve from the workspace. Consumers

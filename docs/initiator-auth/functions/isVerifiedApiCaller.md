@@ -8,7 +8,7 @@
 
 > **isVerifiedApiCaller**(`token`, `subjects`): `boolean`
 
-Defined in: [packages/agent-sdk/src/initiator-auth.ts:162](https://github.com/zocomputer/zov2-code/blob/fc65ac4f3ad029ed138ee11331693cba0bd295b4/packages/agent-sdk/src/initiator-auth.ts#L162)
+Defined in: [packages/agent-sdk/src/initiator-auth.ts:162](https://github.com/zocomputer/zov2-code/blob/bc82d445ad6dedff4ca3f700330838d6a3441bf7/packages/agent-sdk/src/initiator-auth.ts#L162)
 
 Whether an already-verified `token`'s `sub` matches one of the configured API
 `subjects` — i.e. the caller is Zo's API, not the agent's own current-project

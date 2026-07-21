@@ -8,7 +8,7 @@
 
 > **MutationGuardBlockedDataV1** = `object`
 
-Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:240](https://github.com/zocomputer/zov2-code/blob/fc65ac4f3ad029ed138ee11331693cba0bd295b4/packages/agent-sdk/src/harness-protocol-v1.ts#L240)
+Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:240](https://github.com/zocomputer/zov2-code/blob/bc82d445ad6dedff4ca3f700330838d6a3441bf7/packages/agent-sdk/src/harness-protocol-v1.ts#L240)
 
 Typed `data` payload for a normally returned blocked tool result.
 
@@ -18,7 +18,7 @@ Typed `data` payload for a normally returned blocked tool result.
 
 > `readonly` **attempt**: `number`
 
-Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:245](https://github.com/zocomputer/zov2-code/blob/fc65ac4f3ad029ed138ee11331693cba0bd295b4/packages/agent-sdk/src/harness-protocol-v1.ts#L245)
+Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:245](https://github.com/zocomputer/zov2-code/blob/bc82d445ad6dedff4ca3f700330838d6a3441bf7/packages/agent-sdk/src/harness-protocol-v1.ts#L245)
 
 ***
 
@@ -26,7 +26,7 @@ Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:245](https://github.c
 
 > `readonly` **correctiveMessage**: `string`
 
-Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:247](https://github.com/zocomputer/zov2-code/blob/fc65ac4f3ad029ed138ee11331693cba0bd295b4/packages/agent-sdk/src/harness-protocol-v1.ts#L247)
+Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:247](https://github.com/zocomputer/zov2-code/blob/bc82d445ad6dedff4ca3f700330838d6a3441bf7/packages/agent-sdk/src/harness-protocol-v1.ts#L247)
 
 ***
 
@@ -34,7 +34,7 @@ Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:247](https://github.c
 
 > `readonly` **fingerprint**: [`MutationGuardFingerprintV1`](MutationGuardFingerprintV1.md)
 
-Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:244](https://github.com/zocomputer/zov2-code/blob/fc65ac4f3ad029ed138ee11331693cba0bd295b4/packages/agent-sdk/src/harness-protocol-v1.ts#L244)
+Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:244](https://github.com/zocomputer/zov2-code/blob/bc82d445ad6dedff4ca3f700330838d6a3441bf7/packages/agent-sdk/src/harness-protocol-v1.ts#L244)
 
 ***
 
@@ -42,7 +42,7 @@ Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:244](https://github.c
 
 > `readonly` **guardVersion**: `1`
 
-Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:241](https://github.com/zocomputer/zov2-code/blob/fc65ac4f3ad029ed138ee11331693cba0bd295b4/packages/agent-sdk/src/harness-protocol-v1.ts#L241)
+Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:241](https://github.com/zocomputer/zov2-code/blob/bc82d445ad6dedff4ca3f700330838d6a3441bf7/packages/agent-sdk/src/harness-protocol-v1.ts#L241)
 
 ***
 
@@ -50,7 +50,7 @@ Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:241](https://github.c
 
 > `readonly` **kind**: `"mutation-guard"`
 
-Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:242](https://github.com/zocomputer/zov2-code/blob/fc65ac4f3ad029ed138ee11331693cba0bd295b4/packages/agent-sdk/src/harness-protocol-v1.ts#L242)
+Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:242](https://github.com/zocomputer/zov2-code/blob/bc82d445ad6dedff4ca3f700330838d6a3441bf7/packages/agent-sdk/src/harness-protocol-v1.ts#L242)
 
 ***
 
@@ -58,7 +58,7 @@ Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:242](https://github.c
 
 > `readonly` **reason**: `"repeated-mutation-threshold"` \| `"guard-unavailable"`
 
-Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:243](https://github.com/zocomputer/zov2-code/blob/fc65ac4f3ad029ed138ee11331693cba0bd295b4/packages/agent-sdk/src/harness-protocol-v1.ts#L243)
+Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:243](https://github.com/zocomputer/zov2-code/blob/bc82d445ad6dedff4ca3f700330838d6a3441bf7/packages/agent-sdk/src/harness-protocol-v1.ts#L243)
 
 ***
 
@@ -66,4 +66,4 @@ Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:243](https://github.c
 
 > `readonly` **threshold**: `number`
 
-Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:246](https://github.com/zocomputer/zov2-code/blob/fc65ac4f3ad029ed138ee11331693cba0bd295b4/packages/agent-sdk/src/harness-protocol-v1.ts#L246)
+Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:246](https://github.com/zocomputer/zov2-code/blob/bc82d445ad6dedff4ca3f700330838d6a3441bf7/packages/agent-sdk/src/harness-protocol-v1.ts#L246)

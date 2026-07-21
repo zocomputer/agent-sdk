@@ -8,7 +8,7 @@
 
 > **requestStateSandboxHandle**(`options`): `Promise`\<[`StateSandboxHandle`](../interfaces/StateSandboxHandle.md)\>
 
-Defined in: [packages/agent-sdk/src/state-sandbox.ts:184](https://github.com/zocomputer/zov2-code/blob/fc65ac4f3ad029ed138ee11331693cba0bd295b4/packages/agent-sdk/src/state-sandbox.ts#L184)
+Defined in: [packages/agent-sdk/src/state-sandbox.ts:184](https://github.com/zocomputer/zov2-code/blob/bc82d445ad6dedff4ca3f700330838d6a3441bf7/packages/agent-sdk/src/state-sandbox.ts#L184)
 
 Requests a state sandbox handle from the runtime broker.
 Throws `StateSandboxHandleError` if the request fails or the response is malformed.

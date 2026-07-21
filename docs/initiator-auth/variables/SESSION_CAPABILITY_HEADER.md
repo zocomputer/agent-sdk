@@ -8,6 +8,6 @@
 
 > `const` **SESSION\_CAPABILITY\_HEADER**: `"x-zo-session-capability"` = `"x-zo-session-capability"`
 
-Defined in: [packages/agent-sdk/src/initiator-auth.ts:25](https://github.com/zocomputer/zov2-code/blob/fc65ac4f3ad029ed138ee11331693cba0bd295b4/packages/agent-sdk/src/initiator-auth.ts#L25)
+Defined in: [packages/agent-sdk/src/initiator-auth.ts:25](https://github.com/zocomputer/zov2-code/blob/bc82d445ad6dedff4ca3f700330838d6a3441bf7/packages/agent-sdk/src/initiator-auth.ts#L25)
 
 The trusted channel's opaque per-session user capability header.
