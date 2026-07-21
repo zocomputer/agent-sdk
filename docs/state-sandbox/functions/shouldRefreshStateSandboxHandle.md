@@ -8,7 +8,7 @@
 
 > **shouldRefreshStateSandboxHandle**(`handle`, `now`, `refreshWindowMs?`): `boolean`
 
-Defined in: [packages/agent-sdk/src/state-sandbox.ts:844](https://github.com/zocomputer/zov2-code/blob/c064bb48e9a6d214ad3688019aaf958920a35455/packages/agent-sdk/src/state-sandbox.ts#L844)
+Defined in: [packages/agent-sdk/src/state-sandbox.ts:844](https://github.com/zocomputer/zov2-code/blob/fc65ac4f3ad029ed138ee11331693cba0bd295b4/packages/agent-sdk/src/state-sandbox.ts#L844)
 
 Checks whether a sandbox handle should be refreshed based on its SSH access expiry.
 Returns `true` if the handle expires within the refresh window or has an invalid expiry timestamp.

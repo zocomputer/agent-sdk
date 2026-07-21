@@ -1,7 +1,92 @@
-// ../../../../../tmp/agent-sdk-mirror-amKYLe/repo/platform/runtime-ai/gateway.ts
+// ../../../../../tmp/agent-sdk-mirror-jMEmZh/repo/platform/runtime-ai/gateway.ts
 import { createGateway } from "ai";
 
-// ../../../../../tmp/agent-sdk-mirror-amKYLe/repo/platform/runtime-ai/session-fetch.ts
+// ../../../../../tmp/agent-sdk-mirror-jMEmZh/repo/platform/runtime-ai/credential-fetch.ts
+var VERCEL_OIDC_HEADER = "x-zo-vercel-oidc";
+var VERCEL_DEPLOYMENT_HINT_HEADER = "x-zo-vercel-deployment-id";
+var LOCAL_AGENT_HEADER = "x-zo-local-agent";
+var AGENT_TOKEN_HEADER = "x-zo-agent-token";
+function invocationContextHeaders() {
+  const holder = globalThis[Symbol.for("@vercel/request-context")];
+  if (typeof holder !== "object" || holder === null)
+    return null;
+  const get = holder.get;
+  if (typeof get !== "function")
+    return null;
+  let ctx;
+  try {
+    ctx = get.call(holder);
+  } catch {
+    return null;
+  }
+  if (typeof ctx !== "object" || ctx === null)
+    return null;
+  const headers = ctx.headers;
+  if (typeof headers !== "object" || headers === null)
+    return null;
+  return headers;
+}
+function oidcTokenFromHeaders(headers) {
+  const token = headers["x-vercel-oidc-token"];
+  if (typeof token !== "string")
+    return;
+  const trimmed = token.trim();
+  return trimmed.length > 0 ? trimmed : undefined;
+}
+function trimmedEnv(name) {
+  const v = process.env[name];
+  return typeof v === "string" && v.trim().length > 0 ? v.trim() : undefined;
+}
+var ALL_CREDENTIAL_HEADERS = [
+  VERCEL_OIDC_HEADER,
+  VERCEL_DEPLOYMENT_HINT_HEADER,
+  LOCAL_AGENT_HEADER,
+  AGENT_TOKEN_HEADER
+];
+function runtimeCredentialHeaders() {
+  if (trimmedEnv("ZO_RUNTIME_OIDC") !== undefined) {
+    const contextHeaders = invocationContextHeaders();
+    if (contextHeaders) {
+      const invocation = oidcTokenFromHeaders(contextHeaders);
+      if (invocation)
+        return oidcHeaders(invocation);
+    } else {
+      const sandbox = trimmedEnv("VERCEL_OIDC_TOKEN");
+      if (sandbox)
+        return oidcHeaders(sandbox);
+    }
+  }
+  const legacy = trimmedEnv("ZO_AGENT_TOKEN");
+  if (legacy)
+    return { [AGENT_TOKEN_HEADER]: legacy };
+  const local = trimmedEnv("ZO_LOCAL_AGENT_ID");
+  if (local)
+    return { [LOCAL_AGENT_HEADER]: local };
+  return {};
+}
+function oidcHeaders(token) {
+  const hint = trimmedEnv("VERCEL_DEPLOYMENT_ID");
+  return {
+    [VERCEL_OIDC_HEADER]: token,
+    ...hint ? { [VERCEL_DEPLOYMENT_HINT_HEADER]: hint } : {}
+  };
+}
+function credentialFetch(baseFetch = globalThis.fetch) {
+  return Object.assign((input, init) => {
+    const credential = runtimeCredentialHeaders();
+    if (Object.keys(credential).length === 0)
+      return baseFetch(input, init);
+    const headers = new Headers(init?.headers ?? (input instanceof Request ? input.headers : undefined));
+    for (const name of ALL_CREDENTIAL_HEADERS)
+      headers.delete(name);
+    for (const [name, value] of Object.entries(credential)) {
+      headers.set(name, value);
+    }
+    return baseFetch(input, { ...init, headers });
+  }, baseFetch);
+}
+
+// ../../../../../tmp/agent-sdk-mirror-jMEmZh/repo/platform/runtime-ai/session-fetch.ts
 var EVE_SESSION_HEADER = "x-zo-eve-session";
 var EVE_TURN_HEADER = "x-zo-eve-turn";
 var EVE_SUBAGENT_SESSION_HEADER = "x-zo-eve-subagent-session";
@@ -68,15 +153,9 @@ function eveSessionFetch(getSessionId = ambientEveSessionId, baseFetch = globalT
   }, baseFetch);
 }
 
-// ../../../../../tmp/agent-sdk-mirror-amKYLe/repo/platform/runtime-ai/gateway-config.ts
+// ../../../../../tmp/agent-sdk-mirror-jMEmZh/repo/platform/runtime-ai/gateway-config.ts
 var DEFAULT_ZO_AI_BASE_URL = "http://localhost:4000/runtime/ai/v4/ai";
 var DEFAULT_ZO_AI_KEY = "dev-proxy";
-var AGENT_TOKEN_HEADER = "x-zo-agent-token";
-var AGENT_TOKEN_ENV = "ZO_AGENT_TOKEN";
-function agentAuthHeaders(token = process.env[AGENT_TOKEN_ENV]) {
-  const trimmed = token?.trim();
-  return trimmed ? { [AGENT_TOKEN_HEADER]: trimmed } : {};
-}
 function resolveZoGatewayBaseUrl(baseURL = process.env.ZO_AI_BASE_URL) {
   const trimmed = baseURL?.trim();
   return trimmed && trimmed.length > 0 ? trimmed : DEFAULT_ZO_AI_BASE_URL;
@@ -85,7 +164,7 @@ function resolveZoGatewayApiKey(apiKey = process.env.ZO_AI_KEY) {
   const trimmed = apiKey?.trim();
   return trimmed && trimmed.length > 0 ? trimmed : DEFAULT_ZO_AI_KEY;
 }
-// ../../../../../tmp/agent-sdk-mirror-amKYLe/repo/platform/runtime-ai/catalog.ts
+// ../../../../../tmp/agent-sdk-mirror-jMEmZh/repo/platform/runtime-ai/catalog.ts
 function resolveZoGatewayCatalogUrl(baseURL) {
   const url = new URL(resolveZoGatewayBaseUrl(baseURL));
   if (!/\/v4\/ai\/?$/u.test(url.pathname)) {
@@ -101,13 +180,12 @@ async function fetchMediaCatalog(options = {}) {
   const controller = new AbortController;
   const timeout = setTimeout(() => controller.abort(), options.timeoutMs ?? 1e4);
   const now = options.now ?? (() => new Date);
-  const fetcher = eveSessionFetch(undefined, options.fetch);
+  const fetcher = eveSessionFetch(undefined, credentialFetch(options.fetch));
   try {
     const response = await fetcher(url, {
       signal: controller.signal,
       headers: {
         authorization: `Bearer ${resolveZoGatewayApiKey(options.apiKey)}`,
-        ...agentAuthHeaders(),
         ...options.validators?.etag ? { "if-none-match": options.validators.etag } : {},
         ...options.validators?.lastModified ? { "if-modified-since": options.validators.lastModified } : {}
       }
@@ -126,7 +204,7 @@ async function fetchMediaCatalog(options = {}) {
   }
 }
 
-// ../../../../../tmp/agent-sdk-mirror-amKYLe/repo/platform/cloud-tools/media-catalog-parser.ts
+// ../../../../../tmp/agent-sdk-mirror-jMEmZh/repo/platform/cloud-tools/media-catalog-parser.ts
 var isRecord = (value) => typeof value === "object" && value !== null && !Array.isArray(value);
 var scalarRecordArray = (value) => Array.isArray(value) && value.every((row) => isRecord(row) && Object.values(row).every((v) => ["string", "number", "boolean"].includes(typeof v))) ? value : undefined;
 function parsePricing(value) {
@@ -175,7 +253,7 @@ function isMediaKind(value) {
   return value === "image" || value === "video" || value === "speech" || value === "transcription";
 }
 
-// ../../../../../tmp/agent-sdk-mirror-amKYLe/repo/platform/cloud-tools/media-catalog-snapshot.ts
+// ../../../../../tmp/agent-sdk-mirror-jMEmZh/repo/platform/cloud-tools/media-catalog-snapshot.ts
 import { createHash } from "node:crypto";
 function canonical(value) {
   if (Array.isArray(value))
@@ -189,7 +267,7 @@ function mediaCatalogSnapshotId(models) {
   return `sha256:${createHash("sha256").update(canonical(ordered)).digest("hex")}`;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-amKYLe/repo/platform/cloud-tools/media-catalog-cache.ts
+// ../../../../../tmp/agent-sdk-mirror-jMEmZh/repo/platform/cloud-tools/media-catalog-cache.ts
 function createMediaCatalogCache(options) {
   const now = options.now ?? Date.now;
   const freshMs = options.freshMs ?? 5 * 60000;
@@ -236,7 +314,7 @@ function mergeValidators(previous, next) {
   return Object.keys(merged).length === 0 ? undefined : merged;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-amKYLe/repo/platform/cloud-tools/media-models.ts
+// ../../../../../tmp/agent-sdk-mirror-jMEmZh/repo/platform/cloud-tools/media-models.ts
 import { defineTool } from "eve/tools";
 import { z } from "zod";
 var MediaModelsInputSchema = z.object({
@@ -285,7 +363,7 @@ function compact(item) {
   return { id: item.id, name: item.name, kind: item.kind, availability: item.availability, catalog_snapshot_id: item.lineage.snapshotId, fetched_at: item.lineage.fetchedAt, stale: item.lineage.stale, adapter_revision: item.adapterRevision, verified_at: item.verifiedAt, pricing: item.pricing, operations: item.operations.map((op) => ({ operation: op.operation, inputs: op.inputs, settings: op.settings, outputs: op.outputs, provenance: op.provenance })) };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-amKYLe/repo/platform/cloud-tools/media-adapters.ts
+// ../../../../../tmp/agent-sdk-mirror-jMEmZh/repo/platform/cloud-tools/media-adapters.ts
 function adapter(modelId, operation, output, options = {}) {
   const acceptedKinds = options.acceptedKinds ?? [];
   const curatedSettings = options.settings ?? [];
@@ -467,7 +545,7 @@ function isRecord2(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-// ../../../../../tmp/agent-sdk-mirror-amKYLe/repo/platform/cloud-tools/media-registry.ts
+// ../../../../../tmp/agent-sdk-mirror-jMEmZh/repo/platform/cloud-tools/media-registry.ts
 function createMediaRegistry(models, lineage, adapters = MEDIA_PROVIDER_ADAPTERS) {
   const live = new Map(models.map((model) => [model.id, model]));
   const profile = (id) => {
@@ -533,7 +611,7 @@ function kindFor(operation) {
   return "transcription";
 }
 
-// ../../../../../tmp/agent-sdk-mirror-amKYLe/repo/platform/cloud-tools/media-models-default.ts
+// ../../../../../tmp/agent-sdk-mirror-jMEmZh/repo/platform/cloud-tools/media-models-default.ts
 var catalog = createMediaCatalogCache({
   refresh: (validators) => fetchMediaCatalog(validators === undefined ? {} : { validators })
 });

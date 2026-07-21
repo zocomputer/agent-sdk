@@ -20,6 +20,8 @@
 
 ## Functions
 
+- [isVerifiedApiCaller](functions/isVerifiedApiCaller.md)
+- [parseApiSubjects](functions/parseApiSubjects.md)
 - [parseInitiator](functions/parseInitiator.md)
 - [readInitiator](functions/readInitiator.md)
 - [readSessionCapability](functions/readSessionCapability.md)

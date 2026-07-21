@@ -1,7 +1,7 @@
-// ../../../../../tmp/agent-sdk-mirror-amKYLe/repo/platform/runtime-ai/validated-compaction.ts
+// ../../../../../tmp/agent-sdk-mirror-jMEmZh/repo/platform/runtime-ai/validated-compaction.ts
 var COMPACTION_SENTINEL = "You are a conversation summarizer.";
 var RECOVERED_CONTEXT_HEADER = "## Recovered context (compaction audit)";
-// ../../../../../tmp/agent-sdk-mirror-amKYLe/repo/src/mock-model.ts
+// ../../../../../tmp/agent-sdk-mirror-jMEmZh/repo/src/mock-model.ts
 var STORY_SENTENCES = [
   "The lighthouse keeper counted the waves as they broke against the rocks.",
   "Every seventh wave carried a whisper from the old town beneath the sea.",

@@ -107,3 +107,62 @@ function capabilityFromAuth(
     ? capability
     : undefined;
 }
+
+// ── Vercel OIDC caller-subject gate (shared by the channel owners) ────────────
+//
+// A hosted channel trusts `x-zo-initiator` ONLY when the (already
+// signature-verified) caller is Zo's API — its OIDC token's `sub` matches a
+// configured API subject. eve's `verifyVercelOidc` ALSO accepts the agent's OWN
+// project token (the always-on current-project bypass) for internal/subagent
+// calls; those must NOT be able to assert a user initiator, or a tenant could
+// forge one with its own project's token. This gate is the security-critical
+// decision, factored here so the tenant seed and Builder channel share ONE
+// tested implementation instead of diverging copies. Pure (no `eve` import).
+
+/** Parse the comma-separated `ZO_API_OIDC_SUBJECTS` env into trimmed matchers. */
+export function parseApiSubjects(raw: string | undefined): string[] {
+  if (!raw) return [];
+  return raw
+    .split(",")
+    .map((s) => s.trim())
+    .filter((s) => s.length > 0);
+}
+
+/** IAM-style `*`-wildcard match of a Vercel `sub` against a subject pattern. */
+function subjectMatches(sub: string, pattern: string): boolean {
+  const escaped = pattern
+    .split("*")
+    .map((part) => part.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
+    .join(".*");
+  return new RegExp(`^${escaped}$`).test(sub);
+}
+
+/** The `sub` claim of an already-signature-verified JWT; `null` on malformed. */
+function verifiedTokenSubject(token: string): string | null {
+  const parts = token.split(".");
+  if (parts.length !== 3 || !parts[1]) return null;
+  try {
+    const payload: unknown = JSON.parse(
+      Buffer.from(parts[1], "base64url").toString("utf8"),
+    );
+    if (typeof payload !== "object" || payload === null) return null;
+    const sub = (payload as Record<string, unknown>).sub;
+    return typeof sub === "string" ? sub : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Whether an already-verified `token`'s `sub` matches one of the configured API
+ * `subjects` — i.e. the caller is Zo's API, not the agent's own current-project
+ * bypass token. The channel owner calls this AFTER `verifyVercelOidc` succeeds,
+ * and only trusts `x-zo-initiator` when it returns `true`.
+ */
+export function isVerifiedApiCaller(
+  token: string,
+  subjects: readonly string[],
+): boolean {
+  const sub = verifiedTokenSubject(token);
+  return sub !== null && subjects.some((s) => subjectMatches(sub, s));
+}

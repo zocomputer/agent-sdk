@@ -7,7 +7,6 @@ import { zoGatewaySettings, type ZoGatewayOptions } from "./gateway-config";
 // consumers can inline it into an agent.ts bundle — this module only adds the
 // `createGateway` call.
 export {
-  agentAuthHeaders,
   DEFAULT_ZO_AI_BASE_URL,
   DEFAULT_ZO_AI_KEY,
   resolveZoGatewayApiKey,

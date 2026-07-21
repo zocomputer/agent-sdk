@@ -8,6 +8,7 @@
 // make the `createGateway` call from their own app-root module where `ai`
 // externalizes cleanly.
 import type { createGateway } from "ai";
+import { credentialFetch } from "./credential-fetch";
 import { eveSessionFetch } from "./session-fetch";
 import { withStreamGuards } from "./stream-guards";
 
@@ -22,27 +23,6 @@ export const ZO_TOOL_HEADER = "x-zo-tool";
 
 export const DEFAULT_ZO_AI_BASE_URL = "http://localhost:4000/runtime/ai/v4/ai";
 export const DEFAULT_ZO_AI_KEY = "dev-proxy";
-
-// The agent-token header + env var — deliberate duplicates of
-// @zocomputer/runtime-auth's constants (this package is vendored self-contained;
-// same rationale as ZO_TOOL_HEADER above and session-fetch's EVE_SESSION_HEADER).
-// Whoever launches the runtime mints the token and injects ZO_AGENT_TOKEN (the
-// dev launchers; deploys bake it into the project env); attaching it here is
-// what makes every zoGateway call attributed — the api proxy rejects anonymous
-// calls once RUNTIME_AUTH_SECRET is configured.
-const AGENT_TOKEN_HEADER = "x-zo-agent-token";
-const AGENT_TOKEN_ENV = "ZO_AGENT_TOKEN";
-
-/**
- * The runtime's agent-token header, from its launcher-injected env — `{}` when
- * none was minted (secretless dev). Exported for tests.
- */
-export function agentAuthHeaders(
-  token: string | undefined = process.env[AGENT_TOKEN_ENV],
-): Record<string, string> {
-  const trimmed = token?.trim();
-  return trimmed ? { [AGENT_TOKEN_HEADER]: trimmed } : {};
-}
 
 type GatewaySettings = NonNullable<Parameters<typeof createGateway>[0]>;
 
@@ -74,17 +54,24 @@ export function resolveZoGatewayApiKey(
 export function zoGatewaySettings(options: ZoGatewayOptions = {}): GatewaySettings {
   return {
     ...options,
-    // The runtime's own agent token rides every call (attribution); explicit
-    // caller headers win on collision.
-    headers: { ...agentAuthHeaders(), ...options.headers },
+    // Caller headers only. The runtime's own identity credential is attached
+    // PER REQUEST in the fetch chain (`credentialFetch`), not as a static header
+    // resolved once here — a warm function's Vercel OIDC token changes between
+    // invocations, so a captured static token would go stale.
+    headers: { ...options.headers },
     apiKey: resolveZoGatewayApiKey(options.apiKey),
     baseURL: resolveZoGatewayBaseUrl(options.baseURL),
     // Stamp the ambient eve session id on every call (see session-fetch.ts) — the
     // join key apps/api uses to recover the session's owner when persisting usage.
     // A caller-supplied fetch still gets wrapped, so custom fetches keep the stamp.
-    // Stream guards wrap outermost (see stream-guards.ts): Eve 0.22 handles
-    // provider-reported transient failures, while this layer turns a silent
-    // connection into an error the Eve/Workflow recovery path can handle.
-    fetch: withStreamGuards(eveSessionFetch(undefined, options.fetch)),
+    // Layering (innermost → outermost): the caller's fetch is wrapped by
+    // `credentialFetch` (attaches the one per-request identity credential),
+    // then `eveSessionFetch` (stamps the billing session), then the stream
+    // guards outermost (stream-guards.ts): Eve 0.22 handles provider-reported
+    // transient failures, while this layer turns a silent connection into an
+    // error the Eve/Workflow recovery path can handle.
+    fetch: withStreamGuards(
+      eveSessionFetch(undefined, credentialFetch(options.fetch)),
+    ),
   };
 }

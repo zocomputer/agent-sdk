@@ -8,7 +8,7 @@
 
 > **lookOversizeHint**(`oracle`, `maxInputBytes?`): `string` \| `undefined`
 
-Defined in: [packages/agent-sdk/src/tools/look.ts:430](https://github.com/zocomputer/zov2-code/blob/c064bb48e9a6d214ad3688019aaf958920a35455/packages/agent-sdk/src/tools/look.ts#L430)
+Defined in: [packages/agent-sdk/src/tools/look.ts:430](https://github.com/zocomputer/zov2-code/blob/fc65ac4f3ad029ed138ee11331693cba0bd295b4/packages/agent-sdk/src/tools/look.ts#L430)
 
 `read`'s file-too-large hint when a look oracle is wired. `read` rejects
 files over its byte cap (~10 MB) before kind detection, but `look` sends up

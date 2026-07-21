@@ -6,7 +6,7 @@
 
 # Interface: InstructionStackOptions
 
-Defined in: [packages/agent-sdk/src/instructions.ts:727](https://github.com/zocomputer/zov2-code/blob/c064bb48e9a6d214ad3688019aaf958920a35455/packages/agent-sdk/src/instructions.ts#L727)
+Defined in: [packages/agent-sdk/src/instructions.ts:727](https://github.com/zocomputer/zov2-code/blob/fc65ac4f3ad029ed138ee11331693cba0bd295b4/packages/agent-sdk/src/instructions.ts#L727)
 
 Options for the composed instruction stack: workspace + prose parameters
 for the baseline sections, the depth tier, and the consumer-edit seams
@@ -18,7 +18,7 @@ for the baseline sections, the depth tier, and the consumer-edit seams
 
 > `optional` **extraSections?**: readonly [`PlacedPromptSection`](PlacedPromptSection.md)[] \| (() => readonly [`PlacedPromptSection`](PlacedPromptSection.md)[])
 
-Defined in: [packages/agent-sdk/src/instructions.ts:772](https://github.com/zocomputer/zov2-code/blob/c064bb48e9a6d214ad3688019aaf958920a35455/packages/agent-sdk/src/instructions.ts#L772)
+Defined in: [packages/agent-sdk/src/instructions.ts:772](https://github.com/zocomputer/zov2-code/blob/fc65ac4f3ad029ed138ee11331693cba0bd295b4/packages/agent-sdk/src/instructions.ts#L772)
 
 Consumer sections to insert at baseline anchors. Pass a function to defer
 building until "session.started" — for sections that read the filesystem
@@ -31,7 +31,7 @@ within the session.
 
 > `optional` **media?**: `object`
 
-Defined in: [packages/agent-sdk/src/instructions.ts:754](https://github.com/zocomputer/zov2-code/blob/c064bb48e9a6d214ad3688019aaf958920a35455/packages/agent-sdk/src/instructions.ts#L754)
+Defined in: [packages/agent-sdk/src/instructions.ts:754](https://github.com/zocomputer/zov2-code/blob/fc65ac4f3ad029ed138ee11331693cba0bd295b4/packages/agent-sdk/src/instructions.ts#L754)
 
 The look oracle's identity, when wired — includes the media section.
 Omitted → no media section (and extras anchored to `"media"` append at
@@ -61,7 +61,7 @@ The session model's own capabilities, when resolved.
 
 > `optional` **omitSections?**: readonly (`"repo-conventions"` \| `"workflow"` \| `"planning"` \| `"parallel-tools"` \| `"communication"` \| `"hitl"` \| `"media"` \| `"subagents"`)[]
 
-Defined in: [packages/agent-sdk/src/instructions.ts:765](https://github.com/zocomputer/zov2-code/blob/c064bb48e9a6d214ad3688019aaf958920a35455/packages/agent-sdk/src/instructions.ts#L765)
+Defined in: [packages/agent-sdk/src/instructions.ts:765](https://github.com/zocomputer/zov2-code/blob/fc65ac4f3ad029ed138ee11331693cba0bd295b4/packages/agent-sdk/src/instructions.ts#L765)
 
 Baseline sections to drop, by id.
 
@@ -71,7 +71,7 @@ Baseline sections to drop, by id.
 
 > `optional` **subagentRoster?**: readonly [`SubagentRosterEntry`](SubagentRosterEntry.md)[]
 
-Defined in: [packages/agent-sdk/src/instructions.ts:748](https://github.com/zocomputer/zov2-code/blob/c064bb48e9a6d214ad3688019aaf958920a35455/packages/agent-sdk/src/instructions.ts#L748)
+Defined in: [packages/agent-sdk/src/instructions.ts:748](https://github.com/zocomputer/zov2-code/blob/fc65ac4f3ad029ed138ee11331693cba0bd295b4/packages/agent-sdk/src/instructions.ts#L748)
 
 Declared subagents for the delegation section's routing guidance.
 
@@ -81,7 +81,7 @@ Declared subagents for the delegation section's routing guidance.
 
 > `optional` **tier?**: [`InstructionTier`](../type-aliases/InstructionTier.md)
 
-Defined in: [packages/agent-sdk/src/instructions.ts:742](https://github.com/zocomputer/zov2-code/blob/c064bb48e9a6d214ad3688019aaf958920a35455/packages/agent-sdk/src/instructions.ts#L742)
+Defined in: [packages/agent-sdk/src/instructions.ts:742](https://github.com/zocomputer/zov2-code/blob/fc65ac4f3ad029ed138ee11331693cba0bd295b4/packages/agent-sdk/src/instructions.ts#L742)
 
 Prose depth for every section: `"full"` (default) or `"compact"` (~⅓ the
 prose, same rules and tool names — for small/code-tuned models where a
@@ -93,7 +93,7 @@ long behavioral prompt crowds the context).
 
 > `optional` **verifyCommandHint?**: `string`
 
-Defined in: [packages/agent-sdk/src/instructions.ts:746](https://github.com/zocomputer/zov2-code/blob/c064bb48e9a6d214ad3688019aaf958920a35455/packages/agent-sdk/src/instructions.ts#L746)
+Defined in: [packages/agent-sdk/src/instructions.ts:746](https://github.com/zocomputer/zov2-code/blob/fc65ac4f3ad029ed138ee11331693cba0bd295b4/packages/agent-sdk/src/instructions.ts#L746)
 
 Verify command the workflow section names (e.g. "bun run check").
 
@@ -103,7 +103,7 @@ Verify command the workflow section names (e.g. "bun run check").
 
 > `optional` **workspaceNoun?**: `string`
 
-Defined in: [packages/agent-sdk/src/instructions.ts:744](https://github.com/zocomputer/zov2-code/blob/c064bb48e9a6d214ad3688019aaf958920a35455/packages/agent-sdk/src/instructions.ts#L744)
+Defined in: [packages/agent-sdk/src/instructions.ts:744](https://github.com/zocomputer/zov2-code/blob/fc65ac4f3ad029ed138ee11331693cba0bd295b4/packages/agent-sdk/src/instructions.ts#L744)
 
 What the prose calls the workspace ("repo", "project"…).
 
@@ -113,7 +113,7 @@ What the prose calls the workspace ("repo", "project"…).
 
 > `optional` **workspaceRoot?**: `string`
 
-Defined in: [packages/agent-sdk/src/instructions.ts:736](https://github.com/zocomputer/zov2-code/blob/c064bb48e9a6d214ad3688019aaf958920a35455/packages/agent-sdk/src/instructions.ts#L736)
+Defined in: [packages/agent-sdk/src/instructions.ts:736](https://github.com/zocomputer/zov2-code/blob/fc65ac4f3ad029ed138ee11331693cba0bd295b4/packages/agent-sdk/src/instructions.ts#L736)
 
 Local workspace root — the repo-conventions section reads its `AGENTS.md`
 off this process's own disk. Omit when the workspace isn't on that disk

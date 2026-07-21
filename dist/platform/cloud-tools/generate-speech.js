@@ -1,13 +1,98 @@
-// ../../../../../tmp/agent-sdk-mirror-amKYLe/repo/platform/cloud-tools/generate-speech.ts
+// ../../../../../tmp/agent-sdk-mirror-jMEmZh/repo/platform/cloud-tools/generate-speech.ts
 import { randomUUID } from "node:crypto";
 import { generateSpeech } from "ai";
 import { defineTool as defineTool2 } from "eve/tools";
 import { z as z5 } from "zod";
 
-// ../../../../../tmp/agent-sdk-mirror-amKYLe/repo/platform/runtime-ai/gateway.ts
+// ../../../../../tmp/agent-sdk-mirror-jMEmZh/repo/platform/runtime-ai/gateway.ts
 import { createGateway } from "ai";
 
-// ../../../../../tmp/agent-sdk-mirror-amKYLe/repo/platform/runtime-ai/session-fetch.ts
+// ../../../../../tmp/agent-sdk-mirror-jMEmZh/repo/platform/runtime-ai/credential-fetch.ts
+var VERCEL_OIDC_HEADER = "x-zo-vercel-oidc";
+var VERCEL_DEPLOYMENT_HINT_HEADER = "x-zo-vercel-deployment-id";
+var LOCAL_AGENT_HEADER = "x-zo-local-agent";
+var AGENT_TOKEN_HEADER = "x-zo-agent-token";
+function invocationContextHeaders() {
+  const holder = globalThis[Symbol.for("@vercel/request-context")];
+  if (typeof holder !== "object" || holder === null)
+    return null;
+  const get = holder.get;
+  if (typeof get !== "function")
+    return null;
+  let ctx;
+  try {
+    ctx = get.call(holder);
+  } catch {
+    return null;
+  }
+  if (typeof ctx !== "object" || ctx === null)
+    return null;
+  const headers = ctx.headers;
+  if (typeof headers !== "object" || headers === null)
+    return null;
+  return headers;
+}
+function oidcTokenFromHeaders(headers) {
+  const token = headers["x-vercel-oidc-token"];
+  if (typeof token !== "string")
+    return;
+  const trimmed = token.trim();
+  return trimmed.length > 0 ? trimmed : undefined;
+}
+function trimmedEnv(name) {
+  const v = process.env[name];
+  return typeof v === "string" && v.trim().length > 0 ? v.trim() : undefined;
+}
+var ALL_CREDENTIAL_HEADERS = [
+  VERCEL_OIDC_HEADER,
+  VERCEL_DEPLOYMENT_HINT_HEADER,
+  LOCAL_AGENT_HEADER,
+  AGENT_TOKEN_HEADER
+];
+function runtimeCredentialHeaders() {
+  if (trimmedEnv("ZO_RUNTIME_OIDC") !== undefined) {
+    const contextHeaders = invocationContextHeaders();
+    if (contextHeaders) {
+      const invocation = oidcTokenFromHeaders(contextHeaders);
+      if (invocation)
+        return oidcHeaders(invocation);
+    } else {
+      const sandbox = trimmedEnv("VERCEL_OIDC_TOKEN");
+      if (sandbox)
+        return oidcHeaders(sandbox);
+    }
+  }
+  const legacy = trimmedEnv("ZO_AGENT_TOKEN");
+  if (legacy)
+    return { [AGENT_TOKEN_HEADER]: legacy };
+  const local = trimmedEnv("ZO_LOCAL_AGENT_ID");
+  if (local)
+    return { [LOCAL_AGENT_HEADER]: local };
+  return {};
+}
+function oidcHeaders(token) {
+  const hint = trimmedEnv("VERCEL_DEPLOYMENT_ID");
+  return {
+    [VERCEL_OIDC_HEADER]: token,
+    ...hint ? { [VERCEL_DEPLOYMENT_HINT_HEADER]: hint } : {}
+  };
+}
+function credentialFetch(baseFetch = globalThis.fetch) {
+  return Object.assign((input, init) => {
+    const credential = runtimeCredentialHeaders();
+    if (Object.keys(credential).length === 0)
+      return baseFetch(input, init);
+    const headers = new Headers(init?.headers ?? (input instanceof Request ? input.headers : undefined));
+    for (const name of ALL_CREDENTIAL_HEADERS)
+      headers.delete(name);
+    for (const [name, value] of Object.entries(credential)) {
+      headers.set(name, value);
+    }
+    return baseFetch(input, { ...init, headers });
+  }, baseFetch);
+}
+
+// ../../../../../tmp/agent-sdk-mirror-jMEmZh/repo/platform/runtime-ai/session-fetch.ts
 var EVE_SESSION_HEADER = "x-zo-eve-session";
 var EVE_TURN_HEADER = "x-zo-eve-turn";
 var EVE_SUBAGENT_SESSION_HEADER = "x-zo-eve-subagent-session";
@@ -100,7 +185,7 @@ function eveSessionFetch(getSessionId = ambientEveSessionId, baseFetch = globalT
   }, baseFetch);
 }
 
-// ../../../../../tmp/agent-sdk-mirror-amKYLe/repo/platform/runtime-ai/stream-guards.ts
+// ../../../../../tmp/agent-sdk-mirror-jMEmZh/repo/platform/runtime-ai/stream-guards.ts
 var DEFAULT_STREAM_GUARDS = {
   firstByteMs: 60000,
   idleMs: 180000
@@ -164,16 +249,10 @@ function withStreamGuards(baseFetch, options = DEFAULT_STREAM_GUARDS) {
   return Object.assign(guarded, { preconnect: globalThis.fetch.preconnect });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-amKYLe/repo/platform/runtime-ai/gateway-config.ts
+// ../../../../../tmp/agent-sdk-mirror-jMEmZh/repo/platform/runtime-ai/gateway-config.ts
 var ZO_TOOL_HEADER = "x-zo-tool";
 var DEFAULT_ZO_AI_BASE_URL = "http://localhost:4000/runtime/ai/v4/ai";
 var DEFAULT_ZO_AI_KEY = "dev-proxy";
-var AGENT_TOKEN_HEADER = "x-zo-agent-token";
-var AGENT_TOKEN_ENV = "ZO_AGENT_TOKEN";
-function agentAuthHeaders(token = process.env[AGENT_TOKEN_ENV]) {
-  const trimmed = token?.trim();
-  return trimmed ? { [AGENT_TOKEN_HEADER]: trimmed } : {};
-}
 function resolveZoGatewayBaseUrl(baseURL = process.env.ZO_AI_BASE_URL) {
   const trimmed = baseURL?.trim();
   return trimmed && trimmed.length > 0 ? trimmed : DEFAULT_ZO_AI_BASE_URL;
@@ -185,18 +264,18 @@ function resolveZoGatewayApiKey(apiKey = process.env.ZO_AI_KEY) {
 function zoGatewaySettings(options = {}) {
   return {
     ...options,
-    headers: { ...agentAuthHeaders(), ...options.headers },
+    headers: { ...options.headers },
     apiKey: resolveZoGatewayApiKey(options.apiKey),
     baseURL: resolveZoGatewayBaseUrl(options.baseURL),
-    fetch: withStreamGuards(eveSessionFetch(undefined, options.fetch))
+    fetch: withStreamGuards(eveSessionFetch(undefined, credentialFetch(options.fetch)))
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-amKYLe/repo/platform/runtime-ai/gateway.ts
+// ../../../../../tmp/agent-sdk-mirror-jMEmZh/repo/platform/runtime-ai/gateway.ts
 function zoGateway(options = {}) {
   return createGateway(zoGatewaySettings(options));
 }
-// ../../../../../tmp/agent-sdk-mirror-amKYLe/repo/platform/runtime-ai/catalog.ts
+// ../../../../../tmp/agent-sdk-mirror-jMEmZh/repo/platform/runtime-ai/catalog.ts
 function resolveZoGatewayCatalogUrl(baseURL) {
   const url = new URL(resolveZoGatewayBaseUrl(baseURL));
   if (!/\/v4\/ai\/?$/u.test(url.pathname)) {
@@ -212,13 +291,12 @@ async function fetchMediaCatalog(options = {}) {
   const controller = new AbortController;
   const timeout = setTimeout(() => controller.abort(), options.timeoutMs ?? 1e4);
   const now = options.now ?? (() => new Date);
-  const fetcher = eveSessionFetch(undefined, options.fetch);
+  const fetcher = eveSessionFetch(undefined, credentialFetch(options.fetch));
   try {
     const response = await fetcher(url, {
       signal: controller.signal,
       headers: {
         authorization: `Bearer ${resolveZoGatewayApiKey(options.apiKey)}`,
-        ...agentAuthHeaders(),
         ...options.validators?.etag ? { "if-none-match": options.validators.etag } : {},
         ...options.validators?.lastModified ? { "if-modified-since": options.validators.lastModified } : {}
       }
@@ -236,11 +314,11 @@ async function fetchMediaCatalog(options = {}) {
     clearTimeout(timeout);
   }
 }
-// ../../../../../tmp/agent-sdk-mirror-amKYLe/repo/platform/cloud-tools/asset-path.ts
+// ../../../../../tmp/agent-sdk-mirror-jMEmZh/repo/platform/cloud-tools/asset-path.ts
 import { z } from "zod";
 var OutputDirSchema = z.string().trim().min(1).max(200).regex(/^(?!\/)(?!.*\/$)(?!.*\/\/)(?!.*(?:^|\/)(?:\.|\.\.)(?:\/|$))[A-Za-z0-9._/-]+$/u, "Use a relative state file path without empty, . or .. segments.");
 
-// ../../../../../tmp/agent-sdk-mirror-amKYLe/repo/platform/cloud-tools/media-asset.ts
+// ../../../../../tmp/agent-sdk-mirror-jMEmZh/repo/platform/cloud-tools/media-asset.ts
 var ASSET_SCALAR_PREFIX = "files:";
 function parseMediaAssetRef(value, declarationName = "files") {
   if (!value.startsWith(ASSET_SCALAR_PREFIX))
@@ -336,7 +414,7 @@ function ascii(bytes, offset, length) {
   return String.fromCharCode(...bytes.slice(offset, offset + length));
 }
 
-// ../../../../../tmp/agent-sdk-mirror-amKYLe/repo/platform/cloud-tools/media-catalog-parser.ts
+// ../../../../../tmp/agent-sdk-mirror-jMEmZh/repo/platform/cloud-tools/media-catalog-parser.ts
 var isRecord = (value) => typeof value === "object" && value !== null && !Array.isArray(value);
 var scalarRecordArray = (value) => Array.isArray(value) && value.every((row) => isRecord(row) && Object.values(row).every((v) => ["string", "number", "boolean"].includes(typeof v))) ? value : undefined;
 function parsePricing(value) {
@@ -385,7 +463,7 @@ function isMediaKind(value) {
   return value === "image" || value === "video" || value === "speech" || value === "transcription";
 }
 
-// ../../../../../tmp/agent-sdk-mirror-amKYLe/repo/platform/cloud-tools/media-catalog-snapshot.ts
+// ../../../../../tmp/agent-sdk-mirror-jMEmZh/repo/platform/cloud-tools/media-catalog-snapshot.ts
 import { createHash } from "node:crypto";
 function canonical(value) {
   if (Array.isArray(value))
@@ -399,7 +477,7 @@ function mediaCatalogSnapshotId(models) {
   return `sha256:${createHash("sha256").update(canonical(ordered)).digest("hex")}`;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-amKYLe/repo/platform/cloud-tools/media-catalog-cache.ts
+// ../../../../../tmp/agent-sdk-mirror-jMEmZh/repo/platform/cloud-tools/media-catalog-cache.ts
 function createMediaCatalogCache(options) {
   const now = options.now ?? Date.now;
   const freshMs = options.freshMs ?? 5 * 60000;
@@ -446,7 +524,7 @@ function mergeValidators(previous, next) {
   return Object.keys(merged).length === 0 ? undefined : merged;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-amKYLe/repo/platform/cloud-tools/media-models.ts
+// ../../../../../tmp/agent-sdk-mirror-jMEmZh/repo/platform/cloud-tools/media-models.ts
 import { defineTool } from "eve/tools";
 import { z as z2 } from "zod";
 var MediaModelsInputSchema = z2.object({
@@ -495,7 +573,7 @@ function compact(item) {
   return { id: item.id, name: item.name, kind: item.kind, availability: item.availability, catalog_snapshot_id: item.lineage.snapshotId, fetched_at: item.lineage.fetchedAt, stale: item.lineage.stale, adapter_revision: item.adapterRevision, verified_at: item.verifiedAt, pricing: item.pricing, operations: item.operations.map((op) => ({ operation: op.operation, inputs: op.inputs, settings: op.settings, outputs: op.outputs, provenance: op.provenance })) };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-amKYLe/repo/platform/cloud-tools/media-adapters.ts
+// ../../../../../tmp/agent-sdk-mirror-jMEmZh/repo/platform/cloud-tools/media-adapters.ts
 function adapter(modelId, operation, output, options = {}) {
   const acceptedKinds = options.acceptedKinds ?? [];
   const curatedSettings = options.settings ?? [];
@@ -677,7 +755,7 @@ function isRecord2(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-// ../../../../../tmp/agent-sdk-mirror-amKYLe/repo/platform/cloud-tools/media-registry.ts
+// ../../../../../tmp/agent-sdk-mirror-jMEmZh/repo/platform/cloud-tools/media-registry.ts
 function createMediaRegistry(models, lineage, adapters = MEDIA_PROVIDER_ADAPTERS) {
   const live = new Map(models.map((model) => [model.id, model]));
   const profile = (id) => {
@@ -743,7 +821,7 @@ function kindFor(operation) {
   return "transcription";
 }
 
-// ../../../../../tmp/agent-sdk-mirror-amKYLe/repo/platform/cloud-tools/media-models-default.ts
+// ../../../../../tmp/agent-sdk-mirror-jMEmZh/repo/platform/cloud-tools/media-models-default.ts
 var catalog = createMediaCatalogCache({
   refresh: (validators) => fetchMediaCatalog(validators === undefined ? {} : { validators })
 });
@@ -753,7 +831,7 @@ async function defaultMediaRegistry() {
 }
 var media_models_default_default = mediaModelsTool({ registry: defaultMediaRegistry });
 
-// ../../../../../tmp/agent-sdk-mirror-amKYLe/repo/platform/cloud-tools/media-preflight.ts
+// ../../../../../tmp/agent-sdk-mirror-jMEmZh/repo/platform/cloud-tools/media-preflight.ts
 function createMediaPreflight(options) {
   const run = async (request) => {
     const registry = await options.registry();
@@ -870,7 +948,7 @@ function isRecord3(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-// ../../../../../tmp/agent-sdk-mirror-amKYLe/repo/platform/cloud-tools/audio-lane.ts
+// ../../../../../tmp/agent-sdk-mirror-jMEmZh/repo/platform/cloud-tools/audio-lane.ts
 var DEFAULT_AUDIO_READ_LIMIT_BYTES = 25 * 1024 * 1024;
 function createAudioPreflight(options) {
   const shared = createMediaPreflight({
@@ -972,7 +1050,7 @@ function audioOutputPath(options) {
   return `${dir}/${stem}-${options.id}.${options.extension}`;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-amKYLe/repo/platform/cloud-tools/media-lineage.ts
+// ../../../../../tmp/agent-sdk-mirror-jMEmZh/repo/platform/cloud-tools/media-lineage.ts
 var ZO_MEDIA_LINEAGE_HEADER = "x-zo-media-lineage";
 var MAX_MEDIA_LINEAGE_HEADER_LENGTH = 1024;
 function serializeMediaInvocationLineage(lineage) {
@@ -986,10 +1064,10 @@ function mediaInvocationHeaders(lineage) {
   return { [ZO_MEDIA_LINEAGE_HEADER]: serializeMediaInvocationLineage(lineage) };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-amKYLe/repo/platform/cloud-tools/tool-shared.ts
+// ../../../../../tmp/agent-sdk-mirror-jMEmZh/repo/platform/cloud-tools/tool-shared.ts
 import { z as z4 } from "zod";
 
-// ../../../../../tmp/agent-sdk-mirror-amKYLe/repo/platform/cloud-tools/state-consent.ts
+// ../../../../../tmp/agent-sdk-mirror-jMEmZh/repo/platform/cloud-tools/state-consent.ts
 import { z as z3 } from "zod";
 var REQUEST_STATE_CONSENT_TOOL_NAME = "request_state_consent";
 var consentPartySchema = z3.object({
@@ -1017,7 +1095,7 @@ function buildConsentSteer(envelope) {
 `);
 }
 
-// ../../../../../tmp/agent-sdk-mirror-amKYLe/repo/platform/cloud-tools/state-files.ts
+// ../../../../../tmp/agent-sdk-mirror-jMEmZh/repo/platform/cloud-tools/state-files.ts
 var DEFAULT_STATE_ASSET_DECLARATION_NAME = "files";
 var STATE_FILES_HANDLE_PATH = "/state/handles";
 var STATE_ASSET_INTEGRITY_PATH = "/state/assets/integrity";
@@ -1570,7 +1648,7 @@ function readString(record, key) {
   return typeof value === "string" && value.length > 0 ? value : null;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-amKYLe/repo/platform/cloud-tools/tool-shared.ts
+// ../../../../../tmp/agent-sdk-mirror-jMEmZh/repo/platform/cloud-tools/tool-shared.ts
 var StateAssetReferenceSchema = z4.object({
   bytes: z4.number().int().nonnegative().optional(),
   contentType: z4.string().optional(),
@@ -1599,7 +1677,7 @@ function errorDetail(error) {
   return `${raw.slice(0, ERROR_DETAIL_MAX_CHARS)} … [truncated]`;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-amKYLe/repo/platform/cloud-tools/generate-speech.ts
+// ../../../../../tmp/agent-sdk-mirror-jMEmZh/repo/platform/cloud-tools/generate-speech.ts
 var DEFAULT_SPEECH_MODEL = "openai/tts-1";
 var GenerateSpeechInputSchema = z5.object({
   format: z5.enum(["mp3", "wav"]).optional().describe("Audio format; omit for the model default."),

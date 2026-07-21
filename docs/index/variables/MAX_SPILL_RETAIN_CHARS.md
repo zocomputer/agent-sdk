@@ -8,7 +8,7 @@
 
 > `const` **MAX\_SPILL\_RETAIN\_CHARS**: `number`
 
-Defined in: [packages/agent-sdk/src/sandbox-run.ts:69](https://github.com/zocomputer/zov2-code/blob/c064bb48e9a6d214ad3688019aaf958920a35455/packages/agent-sdk/src/sandbox-run.ts#L69)
+Defined in: [packages/agent-sdk/src/sandbox-run.ts:69](https://github.com/zocomputer/zov2-code/blob/fc65ac4f3ad029ed138ee11331693cba0bd295b4/packages/agent-sdk/src/sandbox-run.ts#L69)
 
 Host-memory retention cap per stream for the settle-time spill. Output
 beyond this is no longer retained in full, so a truncated result renders

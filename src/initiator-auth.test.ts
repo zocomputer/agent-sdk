@@ -4,10 +4,19 @@ import {
   SESSION_CAPABILITY_ATTRIBUTE,
   SESSION_CAPABILITY_HEADER,
   initiatorAuth,
+  isVerifiedApiCaller,
+  parseApiSubjects,
   parseInitiator,
   readInitiator,
   readSessionCapability,
 } from "./initiator-auth";
+
+/** Build a JWT with the given `sub` (unsigned — the gate reads the decoded sub). */
+function jwtWithSub(sub: string): string {
+  const b64 = (o: unknown) =>
+    Buffer.from(JSON.stringify(o)).toString("base64url");
+  return `${b64({ alg: "RS256" })}.${b64({ sub })}.sig`;
+}
 
 function requestWith(headers: Record<string, string>): Request {
   return new Request("http://agent.test/eve/v1/session", { headers });
@@ -111,5 +120,43 @@ describe("readSessionCapability", () => {
     ).toBe("current-cap");
     expect(readSessionCapability(null, initiator)).toBe("initiator-cap");
     expect(readSessionCapability(null, null)).toBeUndefined();
+  });
+});
+
+describe("parseApiSubjects", () => {
+  test("splits, trims, and drops blanks", () => {
+    expect(parseApiSubjects(" a:b , , c:d ")).toEqual(["a:b", "c:d"]);
+    expect(parseApiSubjects(undefined)).toEqual([]);
+    expect(parseApiSubjects("")).toEqual([]);
+  });
+});
+
+describe("isVerifiedApiCaller", () => {
+  const API = "owner:substrate-labs:project:zov2-api:environment:*";
+
+  test("matches the API subject across the wildcard environment segment", () => {
+    const prod = jwtWithSub("owner:substrate-labs:project:zov2-api:environment:production");
+    const preview = jwtWithSub("owner:substrate-labs:project:zov2-api:environment:preview");
+    expect(isVerifiedApiCaller(prod, [API])).toBe(true);
+    expect(isVerifiedApiCaller(preview, [API])).toBe(true);
+  });
+
+  test("rejects the agent's OWN project token (current-project bypass)", () => {
+    const own = jwtWithSub("owner:zo-tenant-staging:project:some-agent:environment:production");
+    expect(isVerifiedApiCaller(own, [API])).toBe(false);
+  });
+
+  test("the wildcard does not span the project segment", () => {
+    const other = jwtWithSub("owner:substrate-labs:project:zov2-other:environment:production");
+    expect(isVerifiedApiCaller(other, [API])).toBe(false);
+  });
+
+  test("a malformed token (no decodable sub) is not an API caller", () => {
+    expect(isVerifiedApiCaller("not-a-jwt", [API])).toBe(false);
+    expect(isVerifiedApiCaller("a.b.c", [API])).toBe(false);
+  });
+
+  test("no configured subjects → never an API caller", () => {
+    expect(isVerifiedApiCaller(jwtWithSub("anything"), [])).toBe(false);
   });
 });

@@ -119,18 +119,21 @@ export interface RuntimeAuthContext {
    * grants nothing until the control-plane `Conversation` ownership join vouches
    * for it — a consumer must branch on `binding` to reach either field.
    */
-  readonly trustedSession?:
-    | {
-        readonly binding: "exact";
-        readonly eveSessionId: string;
-        readonly userId: string;
-      }
-    | {
-        readonly binding: "bootstrap";
-        readonly unverifiedEveSessionId: string;
-        readonly userId: string;
-      };
+  readonly trustedSession?: TrustedSession;
 }
+
+/** A verified channel-issued session binding (see {@link RuntimeAuthContext}). */
+export type TrustedSession =
+  | {
+      readonly binding: "exact";
+      readonly eveSessionId: string;
+      readonly userId: string;
+    }
+  | {
+      readonly binding: "bootstrap";
+      readonly unverifiedEveSessionId: string;
+      readonly userId: string;
+    };
 
 // ── reserved identities ──────────────────────────────────────────────────────
 
@@ -356,6 +359,43 @@ export async function verifySessionCapability(
   return verification.outcome === "verified" ? verification.claims : null;
 }
 
+/** The actor facts a verified session capability must be consistent with. */
+export interface TrustedSessionActor {
+  readonly agentProjectId: string;
+  readonly deploymentId?: string;
+}
+
+/**
+ * Bind a VERIFIED session capability's claims to the resolved actor + request
+ * session, producing the `trustedSession` binding, or `null` when the claims
+ * don't match the actor/session (a misdirected or forged-for-another-agent
+ * capability the caller must reject). Pure — the caller does the signature
+ * grading (`inspectSessionCapability`) and passes only `verified` claims here.
+ * Shared by the HMAC (`resolveAgentContext`) and Vercel OIDC runtime-auth paths
+ * so both treat channel capabilities identically.
+ */
+export function bindTrustedSession(
+  claims: SessionCapabilityClaims,
+  actor: TrustedSessionActor,
+  eveSessionId: string | undefined,
+): TrustedSession | null {
+  if (
+    claims.agentProjectId !== actor.agentProjectId ||
+    claims.deploymentId !== actor.deploymentId ||
+    eveSessionId === undefined ||
+    (claims.eveSessionId !== undefined && claims.eveSessionId !== eveSessionId)
+  ) {
+    return null;
+  }
+  return claims.eveSessionId === undefined
+    ? {
+        binding: "bootstrap",
+        unverifiedEveSessionId: eveSessionId,
+        userId: claims.userId,
+      }
+    : { binding: "exact", eveSessionId, userId: claims.userId };
+}
+
 /**
  * Resolve a verified agent token into a `RuntimeAuthContext`, or `null` when the
  * token is invalid. `eveSessionId` is the session the runtime reports for this call
@@ -384,29 +424,11 @@ export async function resolveAgentContext(
     const verification = await inspectSessionCapability(sessionCapability, secret, clock);
     if (verification.outcome === "invalid") return null;
     if (verification.outcome === "verified") {
-      const verified = verification.claims;
-      const requestEveSessionId = eveSessionId;
-      if (
-        verified.agentProjectId !== claims.agentProjectId ||
-        verified.deploymentId !== claims.deploymentId ||
-        requestEveSessionId === undefined ||
-        (verified.eveSessionId !== undefined &&
-          verified.eveSessionId !== requestEveSessionId)
-      ) {
-        return null;
-      }
-      trustedSession =
-        verified.eveSessionId === undefined
-          ? {
-              binding: "bootstrap",
-              unverifiedEveSessionId: requestEveSessionId,
-              userId: verified.userId,
-            }
-          : {
-              binding: "exact",
-              eveSessionId: requestEveSessionId,
-              userId: verified.userId,
-            };
+      // A verified capability whose claims don't match the actor/session is a
+      // hard reject (a capability minted for another agent/session).
+      const bound = bindTrustedSession(verification.claims, claims, eveSessionId);
+      if (bound === null) return null;
+      trustedSession = bound;
     }
     // `expired`: authentic but stale — grants nothing, same as no capability.
   }
@@ -532,3 +554,19 @@ export function parseInitiator(value: string | null | undefined): InitiatorIdent
   if (typeof agentId !== "string" || !agentId) return null;
   return { userId, agentId };
 }
+
+// ── request-time runtime credential (Vercel OIDC / local) ─────────────────────
+
+export {
+  type CredentialEnv,
+  credentialHeaders,
+  currentInvocationOidcToken,
+  currentRuntimeCredential,
+  defaultCredentialEnv,
+  LOCAL_AGENT_ENV,
+  LOCAL_AGENT_HEADER,
+  resolveRuntimeCredential,
+  type RuntimeCredential,
+  VERCEL_DEPLOYMENT_HINT_HEADER,
+  VERCEL_OIDC_HEADER,
+} from "./runtime-credential";

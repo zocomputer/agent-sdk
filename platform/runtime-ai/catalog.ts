@@ -1,4 +1,5 @@
-import { agentAuthHeaders, resolveZoGatewayApiKey, resolveZoGatewayBaseUrl } from "./gateway";
+import { resolveZoGatewayApiKey, resolveZoGatewayBaseUrl } from "./gateway";
+import { credentialFetch } from "./credential-fetch";
 import { eveSessionFetch } from "./session-fetch";
 
 export interface CatalogValidators { readonly etag?: string; readonly lastModified?: string }
@@ -32,13 +33,15 @@ export async function fetchMediaCatalog(options: FetchMediaCatalogOptions = {}):
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), options.timeoutMs ?? 10_000);
   const now = options.now ?? (() => new Date());
-  const fetcher = eveSessionFetch(undefined, options.fetch);
+  // Per-request identity credential (credentialFetch) under the session stamp,
+  // same layering as the model-call fetch — this authenticated catalog read
+  // carries the runtime's one credential too.
+  const fetcher = eveSessionFetch(undefined, credentialFetch(options.fetch));
   try {
     const response = await fetcher(url, {
       signal: controller.signal,
       headers: {
         authorization: `Bearer ${resolveZoGatewayApiKey(options.apiKey)}`,
-        ...agentAuthHeaders(),
         ...(options.validators?.etag ? { "if-none-match": options.validators.etag } : {}),
         ...(options.validators?.lastModified ? { "if-modified-since": options.validators.lastModified } : {}),
       },

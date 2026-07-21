@@ -1,11 +1,11 @@
-// ../../../../../tmp/agent-sdk-mirror-amKYLe/repo/platform/cloud-tools/search-providers.ts
+// ../../../../../tmp/agent-sdk-mirror-jMEmZh/repo/platform/cloud-tools/search-providers.ts
 import { defineTool } from "eve/tools";
 import { z } from "zod";
 
-// ../../../../../tmp/agent-sdk-mirror-amKYLe/repo/platform/cloud-tools/search-adapters.ts
+// ../../../../../tmp/agent-sdk-mirror-jMEmZh/repo/platform/cloud-tools/search-adapters.ts
 import { gateway } from "@ai-sdk/gateway";
 
-// ../../../../../tmp/agent-sdk-mirror-amKYLe/repo/platform/cloud-tools/search-contracts.ts
+// ../../../../../tmp/agent-sdk-mirror-jMEmZh/repo/platform/cloud-tools/search-contracts.ts
 var MAX_SEARCH_RESULTS = 20;
 var MAX_EXCERPT_CHARS = 2000;
 var MAX_TOTAL_EXCERPT_CHARS = 24000;
@@ -35,7 +35,7 @@ function boundSearchResults(items) {
   return bounded;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-amKYLe/repo/platform/cloud-tools/search-adapters.ts
+// ../../../../../tmp/agent-sdk-mirror-jMEmZh/repo/platform/cloud-tools/search-adapters.ts
 var gatewayTools = gateway.tools;
 var SHARED_SETTINGS = [
   { kind: "integer", name: "max_results", description: "Maximum results to return", min: 1, max: 20 },
@@ -216,7 +216,7 @@ function isRecord(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-// ../../../../../tmp/agent-sdk-mirror-amKYLe/repo/platform/cloud-tools/tool-meta.ts
+// ../../../../../tmp/agent-sdk-mirror-jMEmZh/repo/platform/cloud-tools/tool-meta.ts
 var CLOUD_TOOL_META = {
   image: {
     description: "Generate images from text and optional durable references. Use media_models to inspect model-specific settings and prices."
@@ -253,7 +253,7 @@ var CLOUD_TOOL_META = {
   }
 };
 
-// ../../../../../tmp/agent-sdk-mirror-amKYLe/repo/platform/cloud-tools/search-providers.ts
+// ../../../../../tmp/agent-sdk-mirror-jMEmZh/repo/platform/cloud-tools/search-providers.ts
 var SearchProvidersInputSchema = z.object({
   provider: z.enum(["exa", "parallel", "perplexity"]).optional().describe("Inspect one provider; omit to list all.")
 });

@@ -1,6 +1,128 @@
-// ../../../../../tmp/agent-sdk-mirror-amKYLe/repo/platform/runtime-auth/index.ts
+// ../../../../../tmp/agent-sdk-mirror-jMEmZh/repo/platform/runtime-auth/index.ts
 import { SignJWT, errors as joseErrors, jwtVerify } from "jose";
+
+// ../../../../../tmp/agent-sdk-mirror-jMEmZh/repo/platform/runtime-auth/runtime-credential.ts
+var VERCEL_OIDC_HEADER = "x-zo-vercel-oidc";
+var VERCEL_DEPLOYMENT_HINT_HEADER = "x-zo-vercel-deployment-id";
+var LOCAL_AGENT_HEADER = "x-zo-local-agent";
+var LOCAL_AGENT_ENV = "ZO_LOCAL_AGENT_ID";
 var AGENT_TOKEN_HEADER = "x-zo-agent-token";
+function resolveRuntimeCredential(env) {
+  if (env.readOidcEnabled()) {
+    const invocation = env.readInvocationOidcToken()?.trim();
+    if (invocation) {
+      return oidcCredential(invocation, env, "request-context");
+    }
+    const sandbox = env.readSandboxOidcToken()?.trim();
+    if (sandbox) {
+      return oidcCredential(sandbox, env, "sandbox-env");
+    }
+  }
+  const legacy = env.readLegacyAgentToken()?.trim();
+  if (legacy) {
+    return { kind: "legacy-agent-token", token: legacy };
+  }
+  const local = env.readLocalAgentId()?.trim();
+  if (local) {
+    return { kind: "local-agent", agentProjectId: local };
+  }
+  return {
+    kind: "unavailable",
+    reason: "no runtime credential: no OIDC token, HMAC token, or local agent id"
+  };
+}
+function oidcCredential(token, env, source) {
+  const hint = env.readDeploymentId()?.trim();
+  return {
+    kind: "vercel-oidc",
+    token,
+    source,
+    ...hint ? { deploymentHint: hint } : {}
+  };
+}
+function credentialHeaders(credential) {
+  switch (credential.kind) {
+    case "vercel-oidc":
+      return {
+        [VERCEL_OIDC_HEADER]: credential.token,
+        ...credential.deploymentHint ? { [VERCEL_DEPLOYMENT_HINT_HEADER]: credential.deploymentHint } : {}
+      };
+    case "legacy-agent-token":
+      return { [AGENT_TOKEN_HEADER]: credential.token };
+    case "local-agent":
+      return { [LOCAL_AGENT_HEADER]: credential.agentProjectId };
+    case "unavailable":
+      return {};
+  }
+}
+function invocationContextHeaders() {
+  const holder = globalThis[Symbol.for("@vercel/request-context")];
+  if (typeof holder !== "object" || holder === null)
+    return null;
+  const get = holder.get;
+  if (typeof get !== "function")
+    return null;
+  let ctx;
+  try {
+    ctx = get.call(holder);
+  } catch {
+    return null;
+  }
+  if (typeof ctx !== "object" || ctx === null)
+    return null;
+  const headers = ctx.headers;
+  if (typeof headers !== "object" || headers === null)
+    return null;
+  return headers;
+}
+function readInvocationOidcTokenFromContext() {
+  const headers = invocationContextHeaders();
+  if (headers === null)
+    return;
+  const token = headers["x-vercel-oidc-token"];
+  if (typeof token !== "string")
+    return;
+  const trimmed = token.trim();
+  return trimmed.length > 0 ? trimmed : undefined;
+}
+function defaultCredentialEnv() {
+  return {
+    readInvocationOidcToken: readInvocationOidcTokenFromContext,
+    readSandboxOidcToken() {
+      if (invocationContextHeaders() !== null)
+        return;
+      return trimmedEnv("VERCEL_OIDC_TOKEN");
+    },
+    readDeploymentId() {
+      return trimmedEnv("VERCEL_DEPLOYMENT_ID");
+    },
+    readLocalAgentId() {
+      return trimmedEnv(LOCAL_AGENT_ENV);
+    },
+    readOidcEnabled() {
+      return trimmedEnv("ZO_RUNTIME_OIDC") !== undefined;
+    },
+    readLegacyAgentToken() {
+      return trimmedEnv("ZO_AGENT_TOKEN");
+    }
+  };
+}
+function trimmedEnv(name) {
+  const v = process.env[name];
+  if (typeof v !== "string")
+    return;
+  const trimmed = v.trim();
+  return trimmed.length > 0 ? trimmed : undefined;
+}
+function currentRuntimeCredential() {
+  return resolveRuntimeCredential(defaultCredentialEnv());
+}
+function currentInvocationOidcToken() {
+  return readInvocationOidcTokenFromContext();
+}
+
+// ../../../../../tmp/agent-sdk-mirror-jMEmZh/repo/platform/runtime-auth/index.ts
+var AGENT_TOKEN_HEADER2 = "x-zo-agent-token";
 var EVE_SESSION_HEADER = "x-zo-eve-session";
 var BUILDER_SAVE_TIMEOUT_HEADER = "x-zo-builder-save-timeout-ms";
 var BUILDER_SAVE_API_TIMEOUT_MS = 45000;
@@ -115,6 +237,16 @@ async function verifySessionCapability(token, secret, clock = defaultClock) {
   const verification = await inspectSessionCapability(token, secret, clock);
   return verification.outcome === "verified" ? verification.claims : null;
 }
+function bindTrustedSession(claims, actor, eveSessionId) {
+  if (claims.agentProjectId !== actor.agentProjectId || claims.deploymentId !== actor.deploymentId || eveSessionId === undefined || claims.eveSessionId !== undefined && claims.eveSessionId !== eveSessionId) {
+    return null;
+  }
+  return claims.eveSessionId === undefined ? {
+    binding: "bootstrap",
+    unverifiedEveSessionId: eveSessionId,
+    userId: claims.userId
+  } : { binding: "exact", eveSessionId, userId: claims.userId };
+}
 async function resolveAgentContext(agentToken, secret, eveSessionId, sessionCapability, clock = defaultClock) {
   const claims = await verifyAgentToken(agentToken, secret, clock);
   if (!claims)
@@ -125,20 +257,10 @@ async function resolveAgentContext(agentToken, secret, eveSessionId, sessionCapa
     if (verification.outcome === "invalid")
       return null;
     if (verification.outcome === "verified") {
-      const verified = verification.claims;
-      const requestEveSessionId = eveSessionId;
-      if (verified.agentProjectId !== claims.agentProjectId || verified.deploymentId !== claims.deploymentId || requestEveSessionId === undefined || verified.eveSessionId !== undefined && verified.eveSessionId !== requestEveSessionId) {
+      const bound = bindTrustedSession(verification.claims, claims, eveSessionId);
+      if (bound === null)
         return null;
-      }
-      trustedSession = verified.eveSessionId === undefined ? {
-        binding: "bootstrap",
-        unverifiedEveSessionId: requestEveSessionId,
-        userId: verified.userId
-      } : {
-        binding: "exact",
-        eveSessionId: requestEveSessionId,
-        userId: verified.userId
-      };
+      trustedSession = bound;
     }
   }
   return {
@@ -205,6 +327,7 @@ export {
   verifySessionCapability,
   verifyIdentityBearer,
   verifyAgentToken,
+  resolveRuntimeCredential,
   resolveAgentContext,
   parseInitiator,
   mintSessionCapability,
@@ -213,12 +336,21 @@ export {
   isHostedTurnLeaseId,
   inspectSessionCapability,
   formatInitiator,
+  defaultCredentialEnv,
+  currentRuntimeCredential,
+  currentInvocationOidcToken,
+  credentialHeaders,
+  bindTrustedSession,
   ZO_PLATFORM_ORG,
+  VERCEL_OIDC_HEADER,
+  VERCEL_DEPLOYMENT_HINT_HEADER,
   SESSION_CAPABILITY_HEADER,
   SESSION_CAPABILITY_ATTRIBUTE,
   RESERVED_AGENT_PROJECT_IDS,
   MAX_HOSTED_TURN_LEASE_ID_LENGTH,
   LOCAL_AGENT_IDENTITY,
+  LOCAL_AGENT_HEADER,
+  LOCAL_AGENT_ENV,
   INITIATOR_HEADER,
   HOSTED_TURN_LEASE_HEADER,
   EVE_TURN_HEADER,
@@ -229,6 +361,6 @@ export {
   BUILDER_SAVE_API_TIMEOUT_MS,
   BUILDER_FLUSH_TIMEOUT_MS,
   BUILDER_AGENT_IDENTITY,
-  AGENT_TOKEN_HEADER,
+  AGENT_TOKEN_HEADER2 as AGENT_TOKEN_HEADER,
   AGENT_TOKEN_ENV
 };

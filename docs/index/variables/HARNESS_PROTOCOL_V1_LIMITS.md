@@ -8,7 +8,7 @@
 
 > `const` **HARNESS\_PROTOCOL\_V1\_LIMITS**: `object`
 
-Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:202](https://github.com/zocomputer/zov2-code/blob/c064bb48e9a6d214ad3688019aaf958920a35455/packages/agent-sdk/src/harness-protocol-v1.ts#L202)
+Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:202](https://github.com/zocomputer/zov2-code/blob/fc65ac4f3ad029ed138ee11331693cba0bd295b4/packages/agent-sdk/src/harness-protocol-v1.ts#L202)
 
 Wire-size limits shared by protocol producers and validating hosts.
 

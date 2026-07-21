@@ -1,12 +1,97 @@
-// ../../../../../tmp/agent-sdk-mirror-amKYLe/repo/platform/cloud-tools/web-search.ts
+// ../../../../../tmp/agent-sdk-mirror-jMEmZh/repo/platform/cloud-tools/web-search.ts
 import { generateText } from "ai";
 import { defineTool } from "eve/tools";
 import { z } from "zod";
 
-// ../../../../../tmp/agent-sdk-mirror-amKYLe/repo/platform/runtime-ai/gateway.ts
+// ../../../../../tmp/agent-sdk-mirror-jMEmZh/repo/platform/runtime-ai/gateway.ts
 import { createGateway } from "ai";
 
-// ../../../../../tmp/agent-sdk-mirror-amKYLe/repo/platform/runtime-ai/session-fetch.ts
+// ../../../../../tmp/agent-sdk-mirror-jMEmZh/repo/platform/runtime-ai/credential-fetch.ts
+var VERCEL_OIDC_HEADER = "x-zo-vercel-oidc";
+var VERCEL_DEPLOYMENT_HINT_HEADER = "x-zo-vercel-deployment-id";
+var LOCAL_AGENT_HEADER = "x-zo-local-agent";
+var AGENT_TOKEN_HEADER = "x-zo-agent-token";
+function invocationContextHeaders() {
+  const holder = globalThis[Symbol.for("@vercel/request-context")];
+  if (typeof holder !== "object" || holder === null)
+    return null;
+  const get = holder.get;
+  if (typeof get !== "function")
+    return null;
+  let ctx;
+  try {
+    ctx = get.call(holder);
+  } catch {
+    return null;
+  }
+  if (typeof ctx !== "object" || ctx === null)
+    return null;
+  const headers = ctx.headers;
+  if (typeof headers !== "object" || headers === null)
+    return null;
+  return headers;
+}
+function oidcTokenFromHeaders(headers) {
+  const token = headers["x-vercel-oidc-token"];
+  if (typeof token !== "string")
+    return;
+  const trimmed = token.trim();
+  return trimmed.length > 0 ? trimmed : undefined;
+}
+function trimmedEnv(name) {
+  const v = process.env[name];
+  return typeof v === "string" && v.trim().length > 0 ? v.trim() : undefined;
+}
+var ALL_CREDENTIAL_HEADERS = [
+  VERCEL_OIDC_HEADER,
+  VERCEL_DEPLOYMENT_HINT_HEADER,
+  LOCAL_AGENT_HEADER,
+  AGENT_TOKEN_HEADER
+];
+function runtimeCredentialHeaders() {
+  if (trimmedEnv("ZO_RUNTIME_OIDC") !== undefined) {
+    const contextHeaders = invocationContextHeaders();
+    if (contextHeaders) {
+      const invocation = oidcTokenFromHeaders(contextHeaders);
+      if (invocation)
+        return oidcHeaders(invocation);
+    } else {
+      const sandbox = trimmedEnv("VERCEL_OIDC_TOKEN");
+      if (sandbox)
+        return oidcHeaders(sandbox);
+    }
+  }
+  const legacy = trimmedEnv("ZO_AGENT_TOKEN");
+  if (legacy)
+    return { [AGENT_TOKEN_HEADER]: legacy };
+  const local = trimmedEnv("ZO_LOCAL_AGENT_ID");
+  if (local)
+    return { [LOCAL_AGENT_HEADER]: local };
+  return {};
+}
+function oidcHeaders(token) {
+  const hint = trimmedEnv("VERCEL_DEPLOYMENT_ID");
+  return {
+    [VERCEL_OIDC_HEADER]: token,
+    ...hint ? { [VERCEL_DEPLOYMENT_HINT_HEADER]: hint } : {}
+  };
+}
+function credentialFetch(baseFetch = globalThis.fetch) {
+  return Object.assign((input, init) => {
+    const credential = runtimeCredentialHeaders();
+    if (Object.keys(credential).length === 0)
+      return baseFetch(input, init);
+    const headers = new Headers(init?.headers ?? (input instanceof Request ? input.headers : undefined));
+    for (const name of ALL_CREDENTIAL_HEADERS)
+      headers.delete(name);
+    for (const [name, value] of Object.entries(credential)) {
+      headers.set(name, value);
+    }
+    return baseFetch(input, { ...init, headers });
+  }, baseFetch);
+}
+
+// ../../../../../tmp/agent-sdk-mirror-jMEmZh/repo/platform/runtime-ai/session-fetch.ts
 var EVE_SESSION_HEADER = "x-zo-eve-session";
 var EVE_TURN_HEADER = "x-zo-eve-turn";
 var EVE_SUBAGENT_SESSION_HEADER = "x-zo-eve-subagent-session";
@@ -73,7 +158,7 @@ function eveSessionFetch(getSessionId = ambientEveSessionId, baseFetch = globalT
   }, baseFetch);
 }
 
-// ../../../../../tmp/agent-sdk-mirror-amKYLe/repo/platform/runtime-ai/stream-guards.ts
+// ../../../../../tmp/agent-sdk-mirror-jMEmZh/repo/platform/runtime-ai/stream-guards.ts
 var DEFAULT_STREAM_GUARDS = {
   firstByteMs: 60000,
   idleMs: 180000
@@ -137,16 +222,10 @@ function withStreamGuards(baseFetch, options = DEFAULT_STREAM_GUARDS) {
   return Object.assign(guarded, { preconnect: globalThis.fetch.preconnect });
 }
 
-// ../../../../../tmp/agent-sdk-mirror-amKYLe/repo/platform/runtime-ai/gateway-config.ts
+// ../../../../../tmp/agent-sdk-mirror-jMEmZh/repo/platform/runtime-ai/gateway-config.ts
 var ZO_TOOL_HEADER = "x-zo-tool";
 var DEFAULT_ZO_AI_BASE_URL = "http://localhost:4000/runtime/ai/v4/ai";
 var DEFAULT_ZO_AI_KEY = "dev-proxy";
-var AGENT_TOKEN_HEADER = "x-zo-agent-token";
-var AGENT_TOKEN_ENV = "ZO_AGENT_TOKEN";
-function agentAuthHeaders(token = process.env[AGENT_TOKEN_ENV]) {
-  const trimmed = token?.trim();
-  return trimmed ? { [AGENT_TOKEN_HEADER]: trimmed } : {};
-}
 function resolveZoGatewayBaseUrl(baseURL = process.env.ZO_AI_BASE_URL) {
   const trimmed = baseURL?.trim();
   return trimmed && trimmed.length > 0 ? trimmed : DEFAULT_ZO_AI_BASE_URL;
@@ -158,18 +237,18 @@ function resolveZoGatewayApiKey(apiKey = process.env.ZO_AI_KEY) {
 function zoGatewaySettings(options = {}) {
   return {
     ...options,
-    headers: { ...agentAuthHeaders(), ...options.headers },
+    headers: { ...options.headers },
     apiKey: resolveZoGatewayApiKey(options.apiKey),
     baseURL: resolveZoGatewayBaseUrl(options.baseURL),
-    fetch: withStreamGuards(eveSessionFetch(undefined, options.fetch))
+    fetch: withStreamGuards(eveSessionFetch(undefined, credentialFetch(options.fetch)))
   };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-amKYLe/repo/platform/runtime-ai/gateway.ts
+// ../../../../../tmp/agent-sdk-mirror-jMEmZh/repo/platform/runtime-ai/gateway.ts
 function zoGateway(options = {}) {
   return createGateway(zoGatewaySettings(options));
 }
-// ../../../../../tmp/agent-sdk-mirror-amKYLe/repo/platform/cloud-tools/media-lineage.ts
+// ../../../../../tmp/agent-sdk-mirror-jMEmZh/repo/platform/cloud-tools/media-lineage.ts
 var ZO_MEDIA_LINEAGE_HEADER = "x-zo-media-lineage";
 var MAX_MEDIA_LINEAGE_HEADER_LENGTH = 1024;
 function serializeMediaInvocationLineage(lineage) {
@@ -183,10 +262,10 @@ function mediaInvocationHeaders(lineage) {
   return { [ZO_MEDIA_LINEAGE_HEADER]: serializeMediaInvocationLineage(lineage) };
 }
 
-// ../../../../../tmp/agent-sdk-mirror-amKYLe/repo/platform/cloud-tools/search-adapters.ts
+// ../../../../../tmp/agent-sdk-mirror-jMEmZh/repo/platform/cloud-tools/search-adapters.ts
 import { gateway } from "@ai-sdk/gateway";
 
-// ../../../../../tmp/agent-sdk-mirror-amKYLe/repo/platform/cloud-tools/search-contracts.ts
+// ../../../../../tmp/agent-sdk-mirror-jMEmZh/repo/platform/cloud-tools/search-contracts.ts
 function validateSearchSettings(settings, definitions, providerId) {
   const declared = new Map(definitions.map((definition) => [definition.name, definition]));
   for (const [name, value] of Object.entries(settings)) {
@@ -247,7 +326,7 @@ function boundSearchResults(items) {
   return bounded;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-amKYLe/repo/platform/cloud-tools/search-adapters.ts
+// ../../../../../tmp/agent-sdk-mirror-jMEmZh/repo/platform/cloud-tools/search-adapters.ts
 var gatewayTools = gateway.tools;
 var DEFAULT_SEARCH_PROVIDER = "exa";
 var SHARED_SETTINGS = [
@@ -432,7 +511,7 @@ function isRecord(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-// ../../../../../tmp/agent-sdk-mirror-amKYLe/repo/platform/cloud-tools/tool-meta.ts
+// ../../../../../tmp/agent-sdk-mirror-jMEmZh/repo/platform/cloud-tools/tool-meta.ts
 var CLOUD_TOOL_META = {
   image: {
     description: "Generate images from text and optional durable references. Use media_models to inspect model-specific settings and prices."
@@ -469,7 +548,7 @@ var CLOUD_TOOL_META = {
   }
 };
 
-// ../../../../../tmp/agent-sdk-mirror-amKYLe/repo/platform/cloud-tools/web-search.ts
+// ../../../../../tmp/agent-sdk-mirror-jMEmZh/repo/platform/cloud-tools/web-search.ts
 var DEFAULT_SEARCH_DRIVER_MODEL = "google/gemini-3-flash";
 var WebSearchInputSchema = z.object({
   query: z.string().trim().min(1).max(2000).describe("What to search the web for."),
