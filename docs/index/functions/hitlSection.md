@@ -8,7 +8,7 @@
 
 > **hitlSection**(`opts?`): [`PromptSection`](../interfaces/PromptSection.md)
 
-Defined in: [packages/agent-sdk/src/instructions.ts:356](https://github.com/zocomputer/zov2-code/blob/3f99c6555eb919be314852ec3a36b08e02504d85/packages/agent-sdk/src/instructions.ts#L356)
+Defined in: [packages/agent-sdk/src/instructions.ts:356](https://github.com/zocomputer/zov2-code/blob/9d3f4b0b6ac2b9a8a8d1307a4590af07d0d7978f/packages/agent-sdk/src/instructions.ts#L356)
 
 The ask_question playbook section: ask only when blocked on the user's
 choice, structured options with a primary recommendation, freeform open,

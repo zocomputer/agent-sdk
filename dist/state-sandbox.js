@@ -1,4 +1,4 @@
-// ../../../../../tmp/agent-sdk-mirror-rIJSFY/repo/src/state-consent-envelope.ts
+// ../../../../../tmp/agent-sdk-mirror-yBFhNa/repo/src/state-consent-envelope.ts
 import { z } from "zod";
 var consentPartySchema = z.object({
   handle: z.string().min(1),
@@ -16,7 +16,7 @@ function parseConsentEnvelope(value) {
   return result.success ? result.data : null;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-rIJSFY/repo/src/state-files.ts
+// ../../../../../tmp/agent-sdk-mirror-yBFhNa/repo/src/state-files.ts
 function normalizeStateFilePath(path) {
   if (path.length === 0) {
     throw new Error("state file path must not be empty");
@@ -31,18 +31,28 @@ function normalizeStateFilePath(path) {
   return path;
 }
 
-// ../../../../../tmp/agent-sdk-mirror-rIJSFY/repo/src/state-sandbox.ts
+// ../../../../../tmp/agent-sdk-mirror-yBFhNa/repo/src/state-sandbox.ts
 var STATE_SANDBOX_HANDLE_PATH = "/state/handles";
 var ZO_AGENT_TOKEN_HEADER = "x-zo-agent-token";
 var ZO_EVE_SESSION_HEADER = "x-zo-eve-session";
 var ZO_SESSION_CAPABILITY_HEADER = "x-zo-session-capability";
+var STATE_SANDBOX_HANDLE_ERROR_BRAND = Symbol.for("@zocomputer/agent-sdk/StateSandboxHandleError");
 
 class StateSandboxHandleError extends Error {
   status;
   code;
   consent;
+  static [Symbol.hasInstance](value) {
+    if (this !== StateSandboxHandleError) {
+      return Function.prototype[Symbol.hasInstance].call(this, value);
+    }
+    return typeof value === "object" && value !== null && Reflect.get(value, STATE_SANDBOX_HANDLE_ERROR_BRAND) === true;
+  }
   constructor(message, options) {
     super(message);
+    Object.defineProperty(this, STATE_SANDBOX_HANDLE_ERROR_BRAND, {
+      value: true
+    });
     this.name = "StateSandboxHandleError";
     this.status = options.status;
     this.code = options.code ?? null;

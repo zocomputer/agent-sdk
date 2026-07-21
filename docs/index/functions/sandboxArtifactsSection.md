@@ -8,7 +8,7 @@
 
 > **sandboxArtifactsSection**(`opts?`): [`PromptSection`](../interfaces/PromptSection.md)
 
-Defined in: [packages/agent-sdk/src/instructions.ts:487](https://github.com/zocomputer/zov2-code/blob/3f99c6555eb919be314852ec3a36b08e02504d85/packages/agent-sdk/src/instructions.ts#L487)
+Defined in: [packages/agent-sdk/src/instructions.ts:487](https://github.com/zocomputer/zov2-code/blob/9d3f4b0b6ac2b9a8a8d1307a4590af07d0d7978f/packages/agent-sdk/src/instructions.ts#L487)
 
 Routing guidance for consumers whose sandbox image carries Zo's standard
 document, browser, media, and data CLIs. Kept opt-in because the SDK can

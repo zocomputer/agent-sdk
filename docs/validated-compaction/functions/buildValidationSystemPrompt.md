@@ -8,7 +8,7 @@
 
 > **buildValidationSystemPrompt**(`maxFacts`): `string`
 
-Defined in: [packages/runtime-ai/src/validated-compaction.ts:146](https://github.com/zocomputer/zov2-code/blob/3f99c6555eb919be314852ec3a36b08e02504d85/packages/runtime-ai/src/validated-compaction.ts#L146)
+Defined in: [packages/runtime-ai/src/validated-compaction.ts:146](https://github.com/zocomputer/zov2-code/blob/9d3f4b0b6ac2b9a8a8d1307a4590af07d0d7978f/packages/runtime-ai/src/validated-compaction.ts#L146)
 
 Build the default judge system prompt, telling the model to audit a summary
 against its source transcript and reply `NOTHING MISSING` or at most

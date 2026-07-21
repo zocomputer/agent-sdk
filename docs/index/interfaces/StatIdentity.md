@@ -6,7 +6,7 @@
 
 # Interface: StatIdentity
 
-Defined in: [packages/agent-sdk/src/extract/cache.ts:11](https://github.com/zocomputer/zov2-code/blob/3f99c6555eb919be314852ec3a36b08e02504d85/packages/agent-sdk/src/extract/cache.ts#L11)
+Defined in: [packages/agent-sdk/src/extract/cache.ts:11](https://github.com/zocomputer/zov2-code/blob/9d3f4b0b6ac2b9a8a8d1307a4590af07d0d7978f/packages/agent-sdk/src/extract/cache.ts#L11)
 
 A file's stat-based identity: mtime plus size. The cache validates hits
 against both, so a changed file re-extracts.
@@ -17,7 +17,7 @@ against both, so a changed file re-extracts.
 
 > `readonly` **mtimeMs**: `number`
 
-Defined in: [packages/agent-sdk/src/extract/cache.ts:12](https://github.com/zocomputer/zov2-code/blob/3f99c6555eb919be314852ec3a36b08e02504d85/packages/agent-sdk/src/extract/cache.ts#L12)
+Defined in: [packages/agent-sdk/src/extract/cache.ts:12](https://github.com/zocomputer/zov2-code/blob/9d3f4b0b6ac2b9a8a8d1307a4590af07d0d7978f/packages/agent-sdk/src/extract/cache.ts#L12)
 
 ***
 
@@ -25,4 +25,4 @@ Defined in: [packages/agent-sdk/src/extract/cache.ts:12](https://github.com/zoco
 
 > `readonly` **size**: `number`
 
-Defined in: [packages/agent-sdk/src/extract/cache.ts:13](https://github.com/zocomputer/zov2-code/blob/3f99c6555eb919be314852ec3a36b08e02504d85/packages/agent-sdk/src/extract/cache.ts#L13)
+Defined in: [packages/agent-sdk/src/extract/cache.ts:13](https://github.com/zocomputer/zov2-code/blob/9d3f4b0b6ac2b9a8a8d1307a4590af07d0d7978f/packages/agent-sdk/src/extract/cache.ts#L13)

@@ -8,7 +8,7 @@
 
 > **createTaskRegistry**(`opts`): [`TaskRegistry`](../interfaces/TaskRegistry.md)
 
-Defined in: [packages/agent-sdk/src/async-tasks.ts:239](https://github.com/zocomputer/zov2-code/blob/3f99c6555eb919be314852ec3a36b08e02504d85/packages/agent-sdk/src/async-tasks.ts#L239)
+Defined in: [packages/agent-sdk/src/async-tasks.ts:239](https://github.com/zocomputer/zov2-code/blob/9d3f4b0b6ac2b9a8a8d1307a4590af07d0d7978f/packages/agent-sdk/src/async-tasks.ts#L239)
 
 Create a task registry backed by a JSON store. Registries are deduped per
 `storePath` and ABI on `globalThis` so compatible module copies (across

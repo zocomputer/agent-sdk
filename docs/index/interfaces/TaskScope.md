@@ -6,7 +6,7 @@
 
 # Interface: TaskScope
 
-Defined in: [packages/agent-sdk/src/async-tasks.ts:46](https://github.com/zocomputer/zov2-code/blob/3f99c6555eb919be314852ec3a36b08e02504d85/packages/agent-sdk/src/async-tasks.ts#L46)
+Defined in: [packages/agent-sdk/src/async-tasks.ts:46](https://github.com/zocomputer/zov2-code/blob/9d3f4b0b6ac2b9a8a8d1307a4590af07d0d7978f/packages/agent-sdk/src/async-tasks.ts#L46)
 
 Session authorization required for every background-task operation.
 
@@ -16,7 +16,7 @@ Session authorization required for every background-task operation.
 
 > `readonly` **kind**: `"session"`
 
-Defined in: [packages/agent-sdk/src/async-tasks.ts:47](https://github.com/zocomputer/zov2-code/blob/3f99c6555eb919be314852ec3a36b08e02504d85/packages/agent-sdk/src/async-tasks.ts#L47)
+Defined in: [packages/agent-sdk/src/async-tasks.ts:47](https://github.com/zocomputer/zov2-code/blob/9d3f4b0b6ac2b9a8a8d1307a4590af07d0d7978f/packages/agent-sdk/src/async-tasks.ts#L47)
 
 ***
 
@@ -24,4 +24,4 @@ Defined in: [packages/agent-sdk/src/async-tasks.ts:47](https://github.com/zocomp
 
 > `readonly` **sessionId**: `string`
 
-Defined in: [packages/agent-sdk/src/async-tasks.ts:48](https://github.com/zocomputer/zov2-code/blob/3f99c6555eb919be314852ec3a36b08e02504d85/packages/agent-sdk/src/async-tasks.ts#L48)
+Defined in: [packages/agent-sdk/src/async-tasks.ts:48](https://github.com/zocomputer/zov2-code/blob/9d3f4b0b6ac2b9a8a8d1307a4590af07d0d7978f/packages/agent-sdk/src/async-tasks.ts#L48)

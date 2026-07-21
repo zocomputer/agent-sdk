@@ -6,7 +6,7 @@
 
 # Interface: WorkspaceIO
 
-Defined in: [packages/agent-sdk/src/workspace-io.ts:82](https://github.com/zocomputer/zov2-code/blob/3f99c6555eb919be314852ec3a36b08e02504d85/packages/agent-sdk/src/workspace-io.ts#L82)
+Defined in: [packages/agent-sdk/src/workspace-io.ts:82](https://github.com/zocomputer/zov2-code/blob/9d3f4b0b6ac2b9a8a8d1307a4590af07d0d7978f/packages/agent-sdk/src/workspace-io.ts#L82)
 
 Byte-oriented workspace effects, async so a remote backend fits. All paths
 are absolute (already resolved through `Workspace`); returned file lists
@@ -18,7 +18,7 @@ and match paths are workspace-root-relative with forward slashes.
 
 > **listFiles**(`scope?`): `Promise`\<`Iterable`\<`string`, `any`, `any`\>\>
 
-Defined in: [packages/agent-sdk/src/workspace-io.ts:93](https://github.com/zocomputer/zov2-code/blob/3f99c6555eb919be314852ec3a36b08e02504d85/packages/agent-sdk/src/workspace-io.ts#L93)
+Defined in: [packages/agent-sdk/src/workspace-io.ts:93](https://github.com/zocomputer/zov2-code/blob/9d3f4b0b6ac2b9a8a8d1307a4590af07d0d7978f/packages/agent-sdk/src/workspace-io.ts#L93)
 
 Candidate file paths for glob/grep — root-relative, gitignore-aware.
 `scope` (absolute directory) narrows the listing.
@@ -39,7 +39,7 @@ Candidate file paths for glob/grep — root-relative, gitignore-aware.
 
 > **readFile**(`abs`): `Promise`\<`Buffer`\<`ArrayBufferLike`\> \| `null`\>
 
-Defined in: [packages/agent-sdk/src/workspace-io.ts:86](https://github.com/zocomputer/zov2-code/blob/3f99c6555eb919be314852ec3a36b08e02504d85/packages/agent-sdk/src/workspace-io.ts#L86)
+Defined in: [packages/agent-sdk/src/workspace-io.ts:86](https://github.com/zocomputer/zov2-code/blob/9d3f4b0b6ac2b9a8a8d1307a4590af07d0d7978f/packages/agent-sdk/src/workspace-io.ts#L86)
 
 Read one file's bytes; `null` when it doesn't exist.
 
@@ -59,7 +59,7 @@ Read one file's bytes; `null` when it doesn't exist.
 
 > **search**(`options`): `Promise`\<[`IoSearchResult`](IoSearchResult.md)\>
 
-Defined in: [packages/agent-sdk/src/workspace-io.ts:95](https://github.com/zocomputer/zov2-code/blob/3f99c6555eb919be314852ec3a36b08e02504d85/packages/agent-sdk/src/workspace-io.ts#L95)
+Defined in: [packages/agent-sdk/src/workspace-io.ts:95](https://github.com/zocomputer/zov2-code/blob/9d3f4b0b6ac2b9a8a8d1307a4590af07d0d7978f/packages/agent-sdk/src/workspace-io.ts#L95)
 
 Regex content search, backend-native (in-process locally, rg/grep remotely).
 
@@ -79,7 +79,7 @@ Regex content search, backend-native (in-process locally, rg/grep remotely).
 
 > **stat**(`abs`): `Promise`\<[`IoStat`](IoStat.md) \| `null`\>
 
-Defined in: [packages/agent-sdk/src/workspace-io.ts:84](https://github.com/zocomputer/zov2-code/blob/3f99c6555eb919be314852ec3a36b08e02504d85/packages/agent-sdk/src/workspace-io.ts#L84)
+Defined in: [packages/agent-sdk/src/workspace-io.ts:84](https://github.com/zocomputer/zov2-code/blob/9d3f4b0b6ac2b9a8a8d1307a4590af07d0d7978f/packages/agent-sdk/src/workspace-io.ts#L84)
 
 Stat one path; `null` when it doesn't exist.
 
@@ -99,7 +99,7 @@ Stat one path; `null` when it doesn't exist.
 
 > **writeFile**(`abs`, `content`): `Promise`\<`void`\>
 
-Defined in: [packages/agent-sdk/src/workspace-io.ts:88](https://github.com/zocomputer/zov2-code/blob/3f99c6555eb919be314852ec3a36b08e02504d85/packages/agent-sdk/src/workspace-io.ts#L88)
+Defined in: [packages/agent-sdk/src/workspace-io.ts:88](https://github.com/zocomputer/zov2-code/blob/9d3f4b0b6ac2b9a8a8d1307a4590af07d0d7978f/packages/agent-sdk/src/workspace-io.ts#L88)
 
 Write one file, creating parent directories and overwriting.
 

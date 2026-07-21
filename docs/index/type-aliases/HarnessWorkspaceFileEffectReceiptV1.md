@@ -8,7 +8,7 @@
 
 > **HarnessWorkspaceFileEffectReceiptV1** = [`HarnessWorkspaceFileEffectCommonV1`](HarnessWorkspaceFileEffectCommonV1.md) & \{ `after`: [`HarnessFileStateV1`](HarnessFileStateV1.md); `before`: `null`; `operation`: `"create"`; \} \| \{ `after`: [`HarnessFileStateV1`](HarnessFileStateV1.md); `before`: [`HarnessFileStateV1`](HarnessFileStateV1.md); `operation`: `"update"`; \} \| \{ `after`: `null`; `before`: [`HarnessFileStateV1`](HarnessFileStateV1.md); `operation`: `"delete"`; \}
 
-Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:94](https://github.com/zocomputer/zov2-code/blob/3f99c6555eb919be314852ec3a36b08e02504d85/packages/agent-sdk/src/harness-protocol-v1.ts#L94)
+Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:94](https://github.com/zocomputer/zov2-code/blob/9d3f4b0b6ac2b9a8a8d1307a4590af07d0d7978f/packages/agent-sdk/src/harness-protocol-v1.ts#L94)
 
 A bounded workspace file receipt. Operation-specific nullability prevents a
 create from claiming a before-state or a delete from claiming an after-state.

@@ -6,7 +6,7 @@
 
 # Interface: SandboxIoOptions
 
-Defined in: [packages/agent-sdk/src/sandbox-io.ts:42](https://github.com/zocomputer/zov2-code/blob/3f99c6555eb919be314852ec3a36b08e02504d85/packages/agent-sdk/src/sandbox-io.ts#L42)
+Defined in: [packages/agent-sdk/src/sandbox-io.ts:42](https://github.com/zocomputer/zov2-code/blob/9d3f4b0b6ac2b9a8a8d1307a4590af07d0d7978f/packages/agent-sdk/src/sandbox-io.ts#L42)
 
 Options for creating a sandbox-backed workspace I/O provider that executes file operations over an eve session sandbox.
 
@@ -16,7 +16,7 @@ Options for creating a sandbox-backed workspace I/O provider that executes file 
 
 > `optional` **resolveSession?**: (`ctx`) => `PromiseLike`\<[`SandboxSessionLike`](SandboxSessionLike.md)\>
 
-Defined in: [packages/agent-sdk/src/sandbox-io.ts:54](https://github.com/zocomputer/zov2-code/blob/3f99c6555eb919be314852ec3a36b08e02504d85/packages/agent-sdk/src/sandbox-io.ts#L54)
+Defined in: [packages/agent-sdk/src/sandbox-io.ts:54](https://github.com/zocomputer/zov2-code/blob/9d3f4b0b6ac2b9a8a8d1307a4590af07d0d7978f/packages/agent-sdk/src/sandbox-io.ts#L54)
 
 Resolves the sandbox session for one tool call. Defaults to
 `ctx.getSandbox()` — the eve session sandbox. Injectable for tests and
@@ -38,7 +38,7 @@ for callers that hold a session some other way.
 
 > **root**: `string`
 
-Defined in: [packages/agent-sdk/src/sandbox-io.ts:48](https://github.com/zocomputer/zov2-code/blob/3f99c6555eb919be314852ec3a36b08e02504d85/packages/agent-sdk/src/sandbox-io.ts#L48)
+Defined in: [packages/agent-sdk/src/sandbox-io.ts:48](https://github.com/zocomputer/zov2-code/blob/9d3f4b0b6ac2b9a8a8d1307a4590af07d0d7978f/packages/agent-sdk/src/sandbox-io.ts#L48)
 
 Absolute path of the workspace root **inside the sandbox** (e.g.
 "/workspace", or the Builder's "/home/daytona/agent"). Must match the

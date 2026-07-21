@@ -8,7 +8,7 @@
 
 > **createLookInstruction**(`opts`): `DynamicSentinel`\<\{ `markdown`: `string`; \}\>
 
-Defined in: [packages/agent-sdk/src/instructions.ts:464](https://github.com/zocomputer/zov2-code/blob/3f99c6555eb919be314852ec3a36b08e02504d85/packages/agent-sdk/src/instructions.ts#L464)
+Defined in: [packages/agent-sdk/src/instructions.ts:464](https://github.com/zocomputer/zov2-code/blob/9d3f4b0b6ac2b9a8a8d1307a4590af07d0d7978f/packages/agent-sdk/src/instructions.ts#L464)
 
 The media-delegation playbook for agents with a `look` oracle wired: view
 natively what the session model supports, delegate the rest to the oracle.

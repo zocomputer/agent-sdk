@@ -8,7 +8,7 @@
 
 > **HarnessFileStateV1** = `object`
 
-Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:57](https://github.com/zocomputer/zov2-code/blob/3f99c6555eb919be314852ec3a36b08e02504d85/packages/agent-sdk/src/harness-protocol-v1.ts#L57)
+Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:57](https://github.com/zocomputer/zov2-code/blob/9d3f4b0b6ac2b9a8a8d1307a4590af07d0d7978f/packages/agent-sdk/src/harness-protocol-v1.ts#L57)
 
 Content identity before or after a workspace file mutation.
 
@@ -18,7 +18,7 @@ Content identity before or after a workspace file mutation.
 
 > `readonly` **bytes**: `number`
 
-Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:59](https://github.com/zocomputer/zov2-code/blob/3f99c6555eb919be314852ec3a36b08e02504d85/packages/agent-sdk/src/harness-protocol-v1.ts#L59)
+Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:59](https://github.com/zocomputer/zov2-code/blob/9d3f4b0b6ac2b9a8a8d1307a4590af07d0d7978f/packages/agent-sdk/src/harness-protocol-v1.ts#L59)
 
 ***
 
@@ -26,4 +26,4 @@ Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:59](https://github.co
 
 > `readonly` **sha256**: `string`
 
-Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:58](https://github.com/zocomputer/zov2-code/blob/3f99c6555eb919be314852ec3a36b08e02504d85/packages/agent-sdk/src/harness-protocol-v1.ts#L58)
+Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:58](https://github.com/zocomputer/zov2-code/blob/9d3f4b0b6ac2b9a8a8d1307a4590af07d0d7978f/packages/agent-sdk/src/harness-protocol-v1.ts#L58)

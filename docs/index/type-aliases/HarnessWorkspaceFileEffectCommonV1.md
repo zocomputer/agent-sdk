@@ -8,7 +8,7 @@
 
 > **HarnessWorkspaceFileEffectCommonV1** = `object`
 
-Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:81](https://github.com/zocomputer/zov2-code/blob/3f99c6555eb919be314852ec3a36b08e02504d85/packages/agent-sdk/src/harness-protocol-v1.ts#L81)
+Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:81](https://github.com/zocomputer/zov2-code/blob/9d3f4b0b6ac2b9a8a8d1307a4590af07d0d7978f/packages/agent-sdk/src/harness-protocol-v1.ts#L81)
 
 Fields shared by every workspace file effect receipt.
 
@@ -18,7 +18,7 @@ Fields shared by every workspace file effect receipt.
 
 > `readonly` `optional` **callId?**: `string`
 
-Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:86](https://github.com/zocomputer/zov2-code/blob/3f99c6555eb919be314852ec3a36b08e02504d85/packages/agent-sdk/src/harness-protocol-v1.ts#L86)
+Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:86](https://github.com/zocomputer/zov2-code/blob/9d3f4b0b6ac2b9a8a8d1307a4590af07d0d7978f/packages/agent-sdk/src/harness-protocol-v1.ts#L86)
 
 ***
 
@@ -26,7 +26,7 @@ Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:86](https://github.co
 
 > `readonly` **content**: [`HarnessFileEffectContentV1`](HarnessFileEffectContentV1.md)
 
-Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:85](https://github.com/zocomputer/zov2-code/blob/3f99c6555eb919be314852ec3a36b08e02504d85/packages/agent-sdk/src/harness-protocol-v1.ts#L85)
+Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:85](https://github.com/zocomputer/zov2-code/blob/9d3f4b0b6ac2b9a8a8d1307a4590af07d0d7978f/packages/agent-sdk/src/harness-protocol-v1.ts#L85)
 
 ***
 
@@ -34,7 +34,7 @@ Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:85](https://github.co
 
 > `readonly` **kind**: `"workspace.file"`
 
-Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:83](https://github.com/zocomputer/zov2-code/blob/3f99c6555eb919be314852ec3a36b08e02504d85/packages/agent-sdk/src/harness-protocol-v1.ts#L83)
+Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:83](https://github.com/zocomputer/zov2-code/blob/9d3f4b0b6ac2b9a8a8d1307a4590af07d0d7978f/packages/agent-sdk/src/harness-protocol-v1.ts#L83)
 
 ***
 
@@ -42,7 +42,7 @@ Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:83](https://github.co
 
 > `readonly` **path**: `string`
 
-Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:84](https://github.com/zocomputer/zov2-code/blob/3f99c6555eb919be314852ec3a36b08e02504d85/packages/agent-sdk/src/harness-protocol-v1.ts#L84)
+Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:84](https://github.com/zocomputer/zov2-code/blob/9d3f4b0b6ac2b9a8a8d1307a4590af07d0d7978f/packages/agent-sdk/src/harness-protocol-v1.ts#L84)
 
 ***
 
@@ -50,7 +50,7 @@ Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:84](https://github.co
 
 > `readonly` **schemaVersion**: `1`
 
-Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:82](https://github.com/zocomputer/zov2-code/blob/3f99c6555eb919be314852ec3a36b08e02504d85/packages/agent-sdk/src/harness-protocol-v1.ts#L82)
+Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:82](https://github.com/zocomputer/zov2-code/blob/9d3f4b0b6ac2b9a8a8d1307a4590af07d0d7978f/packages/agent-sdk/src/harness-protocol-v1.ts#L82)
 
 ***
 
@@ -58,4 +58,4 @@ Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:82](https://github.co
 
 > `readonly` `optional` **turn?**: [`HarnessEffectTurnIdentityV1`](HarnessEffectTurnIdentityV1.md)
 
-Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:87](https://github.com/zocomputer/zov2-code/blob/3f99c6555eb919be314852ec3a36b08e02504d85/packages/agent-sdk/src/harness-protocol-v1.ts#L87)
+Defined in: [packages/agent-sdk/src/harness-protocol-v1.ts:87](https://github.com/zocomputer/zov2-code/blob/9d3f4b0b6ac2b9a8a8d1307a4590af07d0d7978f/packages/agent-sdk/src/harness-protocol-v1.ts#L87)

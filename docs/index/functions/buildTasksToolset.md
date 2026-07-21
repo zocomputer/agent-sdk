@@ -8,7 +8,7 @@
 
 > **buildTasksToolset**(`opts`): \{ `await_task`: `ToolDefinition`\<\{ `task_id`: `string`; `wait_ms?`: `number`; \}, \{ `elapsedMs`: `number`; `label`: `string`; `result`: `unknown`; `status`: `"error"` \| `"running"` \| `"done"` \| `"lost"`; `task_id`: `string` & `$brand`\<`"TaskId"`\>; `tool`: `string`; \} \| \{ `elapsedMs`: `number`; `error`: `string`; `label`: `string`; `status`: `"error"` \| `"running"` \| `"done"` \| `"lost"`; `task_id`: `string` & `$brand`\<`"TaskId"`\>; `tool`: `string`; \} \| \{ `elapsedMs`: `number`; `label`: `string`; `progress?`: \{ \} \| `null`; `status`: `"error"` \| `"running"` \| `"done"` \| `"lost"`; `task_id`: `string` & `$brand`\<`"TaskId"`\>; `tool`: `string`; \}\>; `check_tasks`: `ToolDefinition`\<`Record`\<`string`, `never`\>, \{ `runningCount`: `number`; `tasks`: `object`[]; \}\>; `run_async`: `ToolDefinition`\<\{ `input`: `Record`\<`string`, `unknown`\>; `tool`: `string`; \}, \{ `note`: `string`; `status`: `"running"`; `task_id`: `string` & `$brand`\<`"TaskId"`\>; `tool`: `string`; \}\>; \} \| `null`
 
-Defined in: [packages/agent-sdk/src/tools/tasks.ts:58](https://github.com/zocomputer/zov2-code/blob/3f99c6555eb919be314852ec3a36b08e02504d85/packages/agent-sdk/src/tools/tasks.ts#L58)
+Defined in: [packages/agent-sdk/src/tools/tasks.ts:58](https://github.com/zocomputer/zov2-code/blob/9d3f4b0b6ac2b9a8a8d1307a4590af07d0d7978f/packages/agent-sdk/src/tools/tasks.ts#L58)
 
 Build the `{run_async, check_tasks, await_task}` toolset. Exported with its
 concrete types for direct testing; agents wire it through createTasksTools

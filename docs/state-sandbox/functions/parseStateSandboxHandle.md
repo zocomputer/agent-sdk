@@ -8,7 +8,7 @@
 
 > **parseStateSandboxHandle**(`value`): [`StateSandboxHandle`](../interfaces/StateSandboxHandle.md) \| `null`
 
-Defined in: [packages/agent-sdk/src/state-sandbox.ts:195](https://github.com/zocomputer/zov2-code/blob/3f99c6555eb919be314852ec3a36b08e02504d85/packages/agent-sdk/src/state-sandbox.ts#L195)
+Defined in: [packages/agent-sdk/src/state-sandbox.ts:221](https://github.com/zocomputer/zov2-code/blob/9d3f4b0b6ac2b9a8a8d1307a4590af07d0d7978f/packages/agent-sdk/src/state-sandbox.ts#L221)
 
 Parses a runtime broker response into a `StateSandboxHandle`.
 Returns `null` if the shape is invalid or required fields are missing.

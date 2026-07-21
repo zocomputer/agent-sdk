@@ -6,7 +6,7 @@
 
 # Class: StateSandboxHandleError
 
-Defined in: [packages/agent-sdk/src/state-sandbox.ts:132](https://github.com/zocomputer/zov2-code/blob/3f99c6555eb919be314852ec3a36b08e02504d85/packages/agent-sdk/src/state-sandbox.ts#L132)
+Defined in: [packages/agent-sdk/src/state-sandbox.ts:140](https://github.com/zocomputer/zov2-code/blob/9d3f4b0b6ac2b9a8a8d1307a4590af07d0d7978f/packages/agent-sdk/src/state-sandbox.ts#L140)
 
 Error thrown when a state sandbox handle request fails.
 Carries the HTTP status and an optional error code from the broker.
@@ -21,7 +21,7 @@ Carries the HTTP status and an optional error code from the broker.
 
 > **new StateSandboxHandleError**(`message`, `options`): `StateSandboxHandleError`
 
-Defined in: [packages/agent-sdk/src/state-sandbox.ts:142](https://github.com/zocomputer/zov2-code/blob/3f99c6555eb919be314852ec3a36b08e02504d85/packages/agent-sdk/src/state-sandbox.ts#L142)
+Defined in: [packages/agent-sdk/src/state-sandbox.ts:165](https://github.com/zocomputer/zov2-code/blob/9d3f4b0b6ac2b9a8a8d1307a4590af07d0d7978f/packages/agent-sdk/src/state-sandbox.ts#L165)
 
 #### Parameters
 
@@ -71,7 +71,7 @@ The cause of the error.
 
 > `readonly` **code**: `string` \| `null`
 
-Defined in: [packages/agent-sdk/src/state-sandbox.ts:134](https://github.com/zocomputer/zov2-code/blob/3f99c6555eb919be314852ec3a36b08e02504d85/packages/agent-sdk/src/state-sandbox.ts#L134)
+Defined in: [packages/agent-sdk/src/state-sandbox.ts:142](https://github.com/zocomputer/zov2-code/blob/9d3f4b0b6ac2b9a8a8d1307a4590af07d0d7978f/packages/agent-sdk/src/state-sandbox.ts#L142)
 
 ***
 
@@ -79,7 +79,7 @@ Defined in: [packages/agent-sdk/src/state-sandbox.ts:134](https://github.com/zoc
 
 > `readonly` **consent**: \{ `bindingId`: `string`; `declarationName`: `string`; `party`: \{ `external`: `boolean`; `handle`: `string`; `intentDivergenceNote?`: `string`; \}; `resourceName`: `string`; \} \| `null`
 
-Defined in: [packages/agent-sdk/src/state-sandbox.ts:140](https://github.com/zocomputer/zov2-code/blob/3f99c6555eb919be314852ec3a36b08e02504d85/packages/agent-sdk/src/state-sandbox.ts#L140)
+Defined in: [packages/agent-sdk/src/state-sandbox.ts:148](https://github.com/zocomputer/zov2-code/blob/9d3f4b0b6ac2b9a8a8d1307a4590af07d0d7978f/packages/agent-sdk/src/state-sandbox.ts#L148)
 
 The consent envelope, present ONLY on a `consent_required` 409 carrying the
 full contract (bindingId, declarationName, resourceName, party); `null`
@@ -127,7 +127,7 @@ Defined in: node\_modules/.bun/typescript@6.0.3/node\_modules/typescript/lib/lib
 
 > `readonly` **status**: `number`
 
-Defined in: [packages/agent-sdk/src/state-sandbox.ts:133](https://github.com/zocomputer/zov2-code/blob/3f99c6555eb919be314852ec3a36b08e02504d85/packages/agent-sdk/src/state-sandbox.ts#L133)
+Defined in: [packages/agent-sdk/src/state-sandbox.ts:141](https://github.com/zocomputer/zov2-code/blob/9d3f4b0b6ac2b9a8a8d1307a4590af07d0d7978f/packages/agent-sdk/src/state-sandbox.ts#L141)
 
 ***
 
@@ -152,6 +152,26 @@ not capture any frames.
 `Error.stackTraceLimit`
 
 ## Methods
+
+### \[hasInstance\]()
+
+> `static` **\[hasInstance\]**(`value`): `boolean`
+
+Defined in: [packages/agent-sdk/src/state-sandbox.ts:151](https://github.com/zocomputer/zov2-code/blob/9d3f4b0b6ac2b9a8a8d1307a4590af07d0d7978f/packages/agent-sdk/src/state-sandbox.ts#L151)
+
+Recognizes handle errors created by any bundled public SDK entrypoint.
+
+#### Parameters
+
+##### value
+
+`unknown`
+
+#### Returns
+
+`boolean`
+
+***
 
 ### captureStackTrace()
 

@@ -99,6 +99,14 @@ export type StateSandboxHeadersInit =
   | ReadonlyArray<readonly [string, string]>
   | Readonly<Record<string, string>>;
 
+// The public mirror bundles `./sandbox` and `./state-sandbox` as separate
+// entrypoints. Symbol.for keeps `instanceof StateSandboxHandleError` reliable
+// when a composed sandbox client throws the bundled copy and authored code
+// imports the class from the low-level subpath.
+const STATE_SANDBOX_HANDLE_ERROR_BRAND = Symbol.for(
+  "@zocomputer/agent-sdk/StateSandboxHandleError",
+);
+
 /**
  * Options for requesting a state sandbox handle from the runtime broker.
  * Specifies the HTTP client, API base URL, state declaration details, and optional auth credentials.
@@ -139,11 +147,29 @@ export class StateSandboxHandleError extends Error {
    */
   readonly consent: StateConsentEnvelope | null;
 
+  /** Recognizes handle errors created by any bundled public SDK entrypoint. */
+  static override [Symbol.hasInstance](value: unknown): boolean {
+    // Subclasses keep native prototype-chain semantics. Without this guard,
+    // the inherited brand check would make every base handle error an instance
+    // of every subclass as well.
+    if (this !== StateSandboxHandleError) {
+      return Function.prototype[Symbol.hasInstance].call(this, value);
+    }
+    return (
+      typeof value === "object" &&
+      value !== null &&
+      Reflect.get(value, STATE_SANDBOX_HANDLE_ERROR_BRAND) === true
+    );
+  }
+
   constructor(
     message: string,
     options: { status: number; code?: string | null; consent?: StateConsentEnvelope | null },
   ) {
     super(message);
+    Object.defineProperty(this, STATE_SANDBOX_HANDLE_ERROR_BRAND, {
+      value: true,
+    });
     this.name = "StateSandboxHandleError";
     this.status = options.status;
     this.code = options.code ?? null;

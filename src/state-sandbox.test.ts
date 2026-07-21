@@ -179,6 +179,33 @@ describe("requestStateSandboxHandle", () => {
       expect((caught as StateSandboxHandleError).code).toBe("not_allowed");
     }
   });
+
+  test("recognizes the same error class bundled through another SDK subpath", () => {
+    const bundledCopy = Object.assign(new Error("consent required"), {
+      name: "StateSandboxHandleError",
+      status: 409,
+      code: "consent_required",
+      consent: null,
+    });
+    Object.defineProperty(
+      bundledCopy,
+      Symbol.for("@zocomputer/agent-sdk/StateSandboxHandleError"),
+      { value: true },
+    );
+
+    expect(bundledCopy).toBeInstanceOf(StateSandboxHandleError);
+  });
+
+  test("preserves native instanceof semantics for subclasses", () => {
+    class SpecializedHandleError extends StateSandboxHandleError {}
+
+    const base = new StateSandboxHandleError("base", { status: 500 });
+    const specialized = new SpecializedHandleError("specialized", { status: 409 });
+
+    expect(base).not.toBeInstanceOf(SpecializedHandleError);
+    expect(specialized).toBeInstanceOf(SpecializedHandleError);
+    expect(specialized).toBeInstanceOf(StateSandboxHandleError);
+  });
 });
 
 describe("parseStateSandboxHandle", () => {
